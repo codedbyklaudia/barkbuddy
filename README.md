@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
@@ -73,3 +74,7 @@ export default defineConfig([
   },
 ])
 ```
+=======
+# barkbuddy
+Platform for UK dog parents with dog care tips, health tracker calendar, and services finder. 
+>>>>>>> ee29d86c4614e3d3f30bb856467cffd55c1881e8
