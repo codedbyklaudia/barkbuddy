@@ -1,0 +1,588 @@
+@import '../styles/variables';
+@import '../styles/mixins';
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+// Login gate
+.admin-login {
+  min-height: 100dvh;
+  background: $twilight-purple;
+  @include flex-center;
+  font-family: $font-secondary;
+
+  &__box {
+    background: #fff;
+    border-radius: $radius-lg;
+    padding: $space-xxl clamp(2rem, 5vw, 3rem);
+    width: 100%;
+    max-width: 380px;
+    text-align: center;
+    box-shadow: $shadow-xl;
+  }
+
+  &__logo { font-size: 2.5rem; margin-bottom: $space-lg; display: block; }
+
+  h1 {
+    font-family: $font-primary;
+    font-size: 1.6rem;
+    font-weight: $fw-regular;
+    color: $twilight-purple;
+    margin-bottom: $space-sm;
+  }
+
+  p {
+    font-size: $t-body-des;
+    color: rgba($twilight-purple, 0.45);
+    margin-bottom: $space-xxl;
+  }
+
+  input {
+    width: 100%;
+    border: 1.5px solid rgba($twilight-purple, 0.15);
+    border-radius: $radius-md;
+    padding: $space-md $space-lg;
+    font-family: $font-secondary;
+    font-size: $t-body-des;
+    color: $soft-pearl;
+    outline: none;
+    margin-bottom: $space-md;
+    transition: border-color 0.2s;
+
+    &:focus { border-color: $serene-purple; }
+    &.error { border-color: #dc2626; }
+  }
+
+  button {
+    width: 100%;
+    background: $twilight-purple;
+    color: #fff;
+    border: none;
+    border-radius: $radius-lg;
+    padding: $space-md;
+    font-family: $font-secondary;
+    font-size: $t-body-des;
+    font-weight: $fw-bold;
+    cursor: pointer;
+    transition: background 0.2s;
+
+    &:hover { background: darken($twilight-purple, 8%); }
+  }
+
+  &__error {
+    display: block;
+    font-size: $t-body-mob;
+    color: #dc2626;
+    margin-bottom: $space-md;
+  }
+}
+
+// Main panel shell
+.admin-panel {
+  min-height: 100dvh;
+  background: #f4f3fa;
+  font-family: $font-secondary;
+  display: flex;
+  flex-direction: column;
+}
+
+// ─── Header ───────────────────────────────────────────────────────────────────
+.admin-header {
+  background: $twilight-purple;
+  padding: $space-lg clamp(1.5rem, 4vw, 3rem);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+
+  &__left {
+    display: flex;
+    align-items: center;
+    gap: $space-md;
+  }
+
+  &__logo { font-size: 1.5rem; }
+
+  h1 {
+    font-family: $font-primary;
+    font-size: 1.25rem;
+    font-weight: $fw-regular;
+    color: $soft-pearl;
+    letter-spacing: 0.04em;
+  }
+
+  &__right {
+    display: flex;
+    align-items: center;
+    gap: $space-md;
+  }
+}
+
+.admin-refresh,
+.admin-logout {
+  background: rgba($misty-lavender, 0.1);
+  border: 1px solid rgba($misty-lavender, 0.15);
+  color: rgba($misty-lavender, 0.7);
+  border-radius: $radius-lg;
+  padding: $space-xs $space-lg;
+  font-family: $font-secondary;
+  font-size: $t-body-des;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover { background: rgba($misty-lavender, 0.18); color: $soft-pearl; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+// ─── Auth error ───────────────────────────────────────────────────────────────
+.admin-auth-error {
+  background: #fef2f2;
+  border-bottom: 1px solid #fecaca;
+  color: #991b1b;
+  padding: $space-md clamp(1.5rem, 4vw, 3rem);
+  font-size: $t-body-des;
+}
+
+// ─── Stats row ────────────────────────────────────────────────────────────────
+.admin-stats {
+  display: flex;
+  gap: $space-md;
+  padding: $space-xl clamp(1.5rem, 4vw, 3rem) 0;
+  flex-wrap: wrap;
+}
+
+.admin-stat {
+  background: #fff;
+  border: 2px solid transparent;
+  border-radius: $radius-lg;
+  padding: $space-lg $space-xxl;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s;
+  min-width: 110px;
+
+  &__count {
+    display: block;
+    font-size: 1.8rem;
+    font-weight: $fw-bold;
+    color: $twilight-purple;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  &__label {
+    font-size: $t-body-mob;
+    font-weight: $fw-bold;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba($twilight-purple, 0.4);
+  }
+
+  &--pending  &__count { color: #d97706; }
+  &--approved &__count { color: #059669; }
+  &--rejected &__count { color: #dc2626; }
+
+  &--active {
+    border-color: $serene-purple;
+    box-shadow: 0 0 0 4px rgba($serene-purple, 0.1);
+  }
+
+  &:hover { box-shadow: $shadow-md; }
+}
+
+// Search 
+.admin-search-bar {
+  padding: $space-xl clamp(1.5rem, 4vw, 3rem) $space-md;
+
+  input {
+    width: 100%;
+    max-width: 500px;
+    background: #fff;
+    border: 1.5px solid rgba($twilight-purple, 0.12);
+    border-radius: $radius-lg;
+    padding: $space-md $space-xl;
+    font-family: $font-secondary;
+    font-size: $t-body-des;
+    color: $twilight-purple;
+    outline: none;
+    transition: border-color 0.2s;
+
+    &:focus { border-color: $serene-purple; }
+    &::placeholder { color: rgba($twilight-purple, 0.3); }
+    &::-webkit-search-cancel-button { display: none; }
+  }
+}
+
+// ─── Table ────────────────────────────────────────────────────────────────────
+.admin-table-wrap {
+  padding: 0 clamp(1.5rem, 4vw, 3rem) clamp(3rem, 5vw, 4rem);
+  overflow-x: auto;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #fff;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  box-shadow: $shadow-sm;
+  font-size: $t-body-des;
+
+  thead tr {
+    background: rgba($twilight-purple, 0.04);
+    th {
+      padding: $space-md $space-lg;
+      text-align: left;
+      font-size: $t-body-mob;
+      font-weight: $fw-bold;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba($twilight-purple, 0.4);
+      white-space: nowrap;
+      border-bottom: 1px solid rgba($twilight-purple, 0.07);
+    }
+  }
+
+  &__row {
+    cursor: pointer;
+    transition: background 0.15s;
+
+    &:hover { background: rgba($serene-purple, 0.04); }
+
+    td {
+      padding: $space-md $space-lg;
+      border-bottom: 1px solid rgba($twilight-purple, 0.05);
+      vertical-align: middle;
+      color: rgba($twilight-purple, 0.75);
+
+      strong { color: $twilight-purple; display: block; }
+    }
+
+    &:last-child td { border-bottom: none; }
+  }
+
+  &__sub {
+    display: block;
+    font-size: $t-body-mob;
+    color: rgba($twilight-purple, 0.35);
+    margin-top: 2px;
+  }
+}
+
+.admin-status-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: $radius-lg;
+  font-size: $t-body-mob;
+  font-weight: $fw-bold;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.admin-verified {
+  font-size: $t-body-des;
+  font-weight: $fw-medium;
+  &--true  { color: #059669; }
+  &--false { color: #d97706; }
+}
+
+.admin-view-btn {
+  background: none;
+  border: 1px solid rgba($twilight-purple, 0.15);
+  border-radius: $radius-lg;
+  padding: $space-xs $space-md;
+  font-family: $font-secondary;
+  font-size: $t-body-mob;
+  color: rgba($twilight-purple, 0.5);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+
+  &:hover { border-color: $serene-purple; color: $serene-purple; }
+}
+
+.admin-empty {
+  text-align: center;
+  padding: $space-xxl;
+  color: rgba($twilight-purple, 0.35);
+  font-size: $t-body-des;
+}
+
+// ─── Drawer overlay ───────────────────────────────────────────────────────────
+.admin-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba($twilight-purple, 0.4);
+  z-index: 200;
+  backdrop-filter: blur(2px);
+  animation: fadeIn 0.2s ease;
+}
+
+.admin-drawer {
+  position: absolute;
+  top: 0; right: 0; bottom: 0;
+  width: min(520px, 100vw);
+  background: #fff;
+  overflow-y: auto;
+  box-shadow: -8px 0 40px rgba($twilight-purple, 0.15);
+  animation: slideIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &__close {
+    position: absolute;
+    top: $space-lg; right: $space-lg;
+    background: rgba($twilight-purple, 0.07);
+    border: none;
+    border-radius: 50%;
+    width: 36px; height: 36px;
+    cursor: pointer;
+    font-size: 1rem;
+    color: rgba($twilight-purple, 0.5);
+    transition: background 0.2s;
+    z-index: 10;
+
+    &:hover { background: rgba($twilight-purple, 0.14); }
+  }
+
+  &__status-bar {
+    padding: $space-md $space-xl;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: $t-body-mob;
+    font-weight: $fw-bold;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #fff;
+  }
+
+  &__body {
+    padding: $space-xl clamp(1.5rem, 4vw, 2rem) $space-xxl;
+
+    h2 {
+      font-family: $font-primary;
+      font-size: 1.5rem;
+      font-weight: $fw-regular;
+      color: $twilight-purple;
+      margin-bottom: $space-xs;
+    }
+  }
+
+  &__sub {
+    font-size: $t-body-des;
+    color: rgba($twilight-purple, 0.4);
+    text-transform: capitalize;
+    margin-bottom: $space-xl;
+    display: block;
+  }
+
+  &__loading {
+    padding: $space-xxl;
+    text-align: center;
+    color: rgba($twilight-purple, 0.4);
+  }
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+// ─── Info grid ────────────────────────────────────────────────────────────────
+.admin-info-grid {
+  background: rgba($twilight-purple, 0.03);
+  border: 1px solid rgba($twilight-purple, 0.07);
+  border-radius: $radius-md;
+  overflow: hidden;
+  margin-bottom: $space-xl;
+}
+
+.admin-info-row {
+  display: flex;
+  align-items: baseline;
+  gap: $space-lg;
+  padding: $space-md $space-lg;
+  border-bottom: 1px solid rgba($twilight-purple, 0.05);
+  font-size: $t-body-des;
+
+  &:last-child { border-bottom: none; }
+
+  span {
+    color: rgba($twilight-purple, 0.4);
+    font-size: $t-body-mob;
+    font-weight: $fw-bold;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    min-width: 110px;
+    flex-shrink: 0;
+  }
+
+  strong {
+    color: $twilight-purple;
+    a { color: $serene-purple; text-decoration: none; }
+  }
+}
+
+.admin-username {
+  font-family: monospace;
+  font-size: 1rem;
+  color: $serene-purple !important;
+  letter-spacing: 0.06em;
+}
+
+// ─── Detail boxes ─────────────────────────────────────────────────────────────
+.admin-detail-box {
+  background: rgba($twilight-purple, 0.03);
+  border: 1px solid rgba($twilight-purple, 0.07);
+  border-radius: $radius-md;
+  padding: $space-lg;
+  margin-bottom: $space-md;
+  font-size: $t-body-des;
+  color: rgba($twilight-purple, 0.7);
+  line-height: 1.7;
+
+  &__label {
+    font-size: $t-body-mob;
+    font-weight: $fw-bold;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba($twilight-purple, 0.35);
+    margin-bottom: $space-sm;
+  }
+}
+
+.admin-doc-link {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-sm;
+  color: $serene-purple;
+  text-decoration: none;
+  font-weight: $fw-medium;
+  font-size: $t-body-des;
+
+  &:hover { text-decoration: underline; }
+}
+
+//  Actions 
+.admin-actions {
+  display: flex;
+  gap: $space-md;
+  margin-top: $space-xl;
+  flex-wrap: wrap;
+}
+
+.admin-btn {
+  border: none;
+  border-radius: $radius-lg;
+  padding: $space-md $space-xl;
+  font-family: $font-secondary;
+  font-size: $t-body-des;
+  font-weight: $fw-bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 44px;
+
+  &--approve {
+    background: #059669;
+    color: #fff;
+    &:hover:not(:disabled) { background: darken(#059669, 8%); }
+  }
+
+  &--reject {
+    background: #dc2626;
+    color: #fff;
+    &:hover:not(:disabled) { background: darken(#dc2626, 8%); }
+  }
+
+  &--ghost {
+    background: none;
+    color: rgba($twilight-purple, 0.5);
+    border: 1.5px solid rgba($twilight-purple, 0.15);
+    &:hover { border-color: $twilight-purple; color: $twilight-purple; }
+  }
+
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
+.admin-reject-form {
+  width: 100%;
+
+  label {
+    display: block;
+    font-size: $t-body-des;
+    font-weight: $fw-bold;
+    color: rgba($twilight-purple, 0.65);
+    margin-bottom: $space-sm;
+
+    span {
+      font-weight: $fw-regular;
+      color: rgba($twilight-purple, 0.4);
+    }
+  }
+
+  textarea {
+    width: 100%;
+    border: 1.5px solid rgba($twilight-purple, 0.15);
+    border-radius: $radius-md;
+    padding: $space-md;
+    font-family: $font-secondary;
+    font-size: $t-body-des;
+    color: $twilight-purple;
+    resize: vertical;
+    outline: none;
+    margin-bottom: $space-md;
+    transition: border-color 0.2s;
+
+    &:focus { border-color: $serene-purple; }
+  }
+
+  &__btns {
+    display: flex;
+    gap: $space-md;
+  }
+}
+
+.admin-approved-note {
+  margin-top: $space-xl;
+  padding: $space-lg;
+  background: rgba(#059669, 0.08);
+  border: 1px solid rgba(#059669, 0.2);
+  border-radius: $radius-md;
+  font-size: $t-body-des;
+  color: #065f46;
+}
+
+.admin-rejected-note {
+  margin-top: $space-xl;
+  padding: $space-lg;
+  background: rgba(#dc2626, 0.06);
+  border: 1px solid rgba(#dc2626, 0.15);
+  border-radius: $radius-md;
+  font-size: $t-body-des;
+  color: #991b1b;
+}
+
+// Toast 
+.admin-toast {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: $twilight-purple;
+  color: $soft-pearl;
+  padding: $space-md $space-xl;
+  font-size: $t-body-des;
+  font-weight: $fw-medium;
+  text-align: center;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-100%); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}

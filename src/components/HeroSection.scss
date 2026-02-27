@@ -1,0 +1,362 @@
+@import '../styles/mixins';
+@import '../styles/variables';
+
+//Hero section with title and CTA buttons
+.hero {
+  background: $twilight-purple;
+  min-height: 70vh;
+  width: 100vw;
+  @include flex-between;
+  @include relative;
+  padding: clamp($space-lg, 4vh, $space-xl) clamp($space-lg, 5vw, $space-xxl);
+  overflow: hidden;
+
+  @media (max-width: $bp-laptop) {
+    flex-direction: column;
+    justify-content: center;
+    padding: $space-lg $space-lg;
+    min-height: auto;
+    text-align: center;
+    gap: $space-lg;
+  }
+
+  @media (max-width: $bp-tablet) {
+    padding: $space-md $space-md;
+    gap: $space-md;
+  }
+
+  &__content {
+    flex: 1;
+    max-width: 550px;
+    z-index: 2;
+    padding-right: $space-md;
+
+    @media (max-width: $bp-laptop) {
+      max-width: 100%;
+      padding-right: 0;
+      margin-bottom: 0;
+    }
+  }
+
+  &__title {
+    font-family: $font-primary;
+    font-size: clamp(1.5rem, 4vw, 2.2rem);
+    font-weight: $fw-regular;
+    color: $text-color-white;
+    line-height: $lh-tight;
+    margin-bottom: $space-md;
+
+    @media (max-width: $bp-tablet) {
+      font-size: $t-tit-tab;
+      margin-bottom: $space-sm;
+    }
+
+    @media (max-width: $bp-mobile) {
+      font-size: $t-tit-mob;
+    }
+  }
+
+  &__subtitle {
+    font-family: $font-secondary;
+    font-size: clamp(0.95rem, 1.8vw, 1.125rem);
+    color: $misty-lavender;
+    margin-bottom: $space-lg;
+    line-height: 1.6;
+
+    @media (max-width: $bp-tablet) {
+      font-size: $t-body-tab;
+      margin-bottom: $space-md;
+    }
+
+    @media (max-width: $bp-mobile) {
+      font-size: $t-body-mob;
+    }
+  }
+
+  &__cta-buttons {
+    display: flex;
+    gap: $space-md;
+    flex-wrap: wrap;
+
+    @media (max-width: $bp-laptop) {
+      justify-content: center;
+    }
+
+    @media (max-width: $bp-mobile) {
+      flex-direction: column;
+      width: 100%;
+    }
+  }
+
+  &__image {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+
+    @media (max-width: $bp-laptop) {
+      width: 100%;
+    }
+  }
+}
+
+//Buttons
+.btn {
+  font-family: $font-secondary;
+  font-size: $t-link-des;
+  padding: $space-md $space-xl;
+  border-radius: $radius-lg;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-sm;
+  transition: all 0.3s ease;
+  font-weight: $fw-medium;
+  white-space: nowrap;
+
+  @media (max-width: $bp-tablet) {
+    font-size: $t-link-tab;
+    padding: $space-xs $space-md;
+  }
+
+  @media (max-width: $bp-mobile) {
+    font-size: $t-link-mob;
+    width: 100%;
+    padding: $space-sm $space-md;
+  }
+
+  &__icon {
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+  }
+
+  &:hover .btn__icon {
+    transform: translateX(4px);
+  }
+
+  &--primary {
+    background-color: $serene-purple;
+    color: $text-color-white;
+    box-shadow: $shadow-md;
+
+    &:hover {
+      background-color: darken($serene-purple, 10%);
+      transform: translateY(-2px);
+      box-shadow: $shadow-lg;
+    }
+  }
+
+  &--secondary {
+    background-color: $soft-pearl;
+    color: $twilight-purple;
+
+    &:hover {
+      background-color: darken($soft-pearl, 5%);
+      transform: translateY(-2px);
+      box-shadow: $shadow-md;
+    }
+  }
+
+  &--download {
+    background-color: $twilight-purple;
+    color: $text-color-white;
+    box-shadow: $shadow-sm;
+
+    &:hover {
+      background-color: lighten($twilight-purple, 10%);
+      transform: translateY(-2px);
+      box-shadow: $shadow-md;
+    }
+  }
+}
+
+.hero-link:hover {
+  opacity: 1;
+}
+
+.link-separator {
+  opacity: 0.6;
+}
+
+// Images
+.hero-images {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.75rem, 1.5vw, 1.25rem);
+  align-items: center;
+  justify-content: center;
+  height: clamp(350px, 50vh, 480px);
+  width: 100%;
+  max-width: 600px;
+  overflow: hidden;
+  position: relative;
+
+  // Blur/Vignette Overlay
+  &__overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 2;
+    
+    // Ultra-subtle fade 
+    background: linear-gradient(
+      to right,
+      rgba(58, 47, 81, 1) 0%,
+      rgba(58, 47, 81, 0.95) 5%,
+      rgba(58, 47, 81, 0.85) 10%,
+      rgba(58, 47, 81, 0.7) 15%,
+      rgba(58, 47, 81, 0.5) 20%,
+      rgba(58, 47, 81, 0.3) 25%,
+      rgba(58, 47, 81, 0.1) 30%,
+      transparent 40%,
+      transparent 60%,
+      rgba(58, 47, 81, 0.1) 70%,
+      rgba(58, 47, 81, 0.3) 75%,
+      rgba(58, 47, 81, 0.5) 80%,
+      rgba(58, 47, 81, 0.7) 85%,
+      rgba(58, 47, 81, 0.85) 90%,
+      rgba(58, 47, 81, 0.95) 95%,
+      rgba(58, 47, 81, 1) 100%
+    );
+  }
+
+  @media (max-width: $bp-laptop) {
+    max-width: 100%;
+    height: clamp(320px, 45vh, 400px);
+    margin: 0 auto;
+  }
+
+  @media (max-width: $bp-tablet) {
+    height: clamp(280px, 35vh, 350px);
+    gap: 0.65rem;
+  }
+
+  @media (max-width: $bp-mobile) {
+    height: 280px;
+    gap: 0.5rem;
+  }
+}
+
+.image-row {
+  display: flex;
+  width: 100%;
+  overflow: hidden;
+  @include relative; 
+}
+
+.scroll-content {
+  display: flex;
+  gap: clamp(1rem, 2vw, 1.5rem);
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform;
+}
+
+// Scroll Right Animation 
+.scroll-right .scroll-content {
+  animation: scrollRight 40s linear infinite;
+
+  @media (max-width: $bp-tablet) {
+    animation-duration: 30s;
+  }
+
+  @media (max-width: $bp-mobile) {
+    animation-duration: 25s;
+  }
+}
+
+// Scroll Left Animation 
+.scroll-left .scroll-content {
+  animation: scrollLeft 45s linear infinite;
+
+  @media (max-width: $bp-tablet) {
+    animation-duration: 35s;
+  }
+
+  @media (max-width: $bp-mobile) {
+    animation-duration: 30s;
+  }
+}
+
+.image-card {
+  width: clamp(140px, 18vw, 220px);
+  height: clamp(105px, 13.5vw, 165px);
+  border-radius: clamp(1rem, 2vw, 1.5rem);
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  z-index: 1;
+
+  @media (max-width: $bp-laptop) {
+    width: clamp(140px, 20vw, 200px);
+    height: clamp(105px, 15vw, 150px);
+  }
+
+  @media (max-width: $bp-tablet) {
+    width: clamp(120px, 25vw, 160px);
+    height: clamp(90px, 18.75vw, 120px);
+  }
+
+  @media (max-width: $bp-mobile) {
+    width: 120px;
+    height: 90px;
+    border-radius: 1rem;
+  }
+
+  &:hover {
+    transform: scale(1.08);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+    z-index: 3;
+
+    @media (max-width: $bp-tablet) {
+      transform: scale(1.05);
+    }
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+//Keyframe animations
+@keyframes fadeInSlide {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scrollRight {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-33.333%);
+  }
+}
+
+@keyframes scrollLeft {
+  0% {
+    transform: translateX(-33.333%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+// Pause animation on hover
+.image-row:hover .scroll-content {
+  animation-play-state: paused;
+}

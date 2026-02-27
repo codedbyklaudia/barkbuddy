@@ -1,0 +1,109 @@
+///////////////////
+//Colours
+//////////////////
+$soft-pearl: #f7f7f7;
+$twilight-purple: #3A2F51;
+$misty-lavender: #DED6F0;
+$serene-purple: #927ACF;
+$gentle-amethyst: #B79EBE;
+//Text colours
+$text-color-dark: $twilight-purple;
+$text-color-white: $soft-pearl;
+//Inputs colours
+$input-color: $misty-lavender;
+
+///////////////////
+//Fonts
+//////////////////
+// Font-family
+// Fredoka
+@font-face {
+  font-family: 'Fredoka';
+  src: url('../Fonts/Fredoka/Fredoka-font.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+$font-secondary: 'Fredoka', sans-serif;
+// Marcellus
+@font-face {
+  font-family: 'Marcellus';
+  src: url('../Fonts/Marcellus/Marcellus-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+$font-primary: 'Marcellus', serif;
+//Font-sizes
+//Desktop
+$t-tit-des: 2rem;
+$t-title-des: clamp(1.5rem, 3vw, 2rem);
+$t-sub-des: 1.5rem;
+$t-body-des: 1.2rem;
+$t-link-des: 1.1rem;
+$t-but-des: 1.05rem;
+$t-forgot-des: 0.95rem;
+//Tablet
+$t-tit-tab: 1.7rem;
+$t-body-tab: 1.1rem;
+$t-link-tab: 0.95rem;
+$t-sub-tab: 1.2rem;
+$t-but-tab: 0.95rem;
+$t-forgot-tab: 0.8rem;
+//Mobile
+$t-tit-mob: 1.4rem;
+$t-body-mob: 0.9rem;
+$t-link-mob: 0.9rem;
+$t-sub-mob: 0.5rem;
+$t-but-mob: 0.85rem;
+$t-forgot-mob: 0.75rem;
+
+//Font-weights
+$fw-light: 300;
+$fw-regular: 400;
+$fw-medium: 500;
+$fw-bold: 700;
+
+///////////////////
+//Additionals
+//////////////////
+//Line heights
+$lh-tight: 1.2;
+$lh-normal: 1.5;
+$lh-loose: 1.8;
+//Spacing
+$space-xs: 4px;
+$space-sm: 8px;
+$space-md: 16px;
+$space-lg: 24px;
+$space-xl: 32px;
+$space-xxl: 48px;
+$space-xxxl: 65px;
+$space-4xl: 5rem;
+$space-5xl: 6rem;
+$space-huge: 12rem;
+//Border-radius
+$radius-sm: 5px;
+$radius-md: 10px;
+$radius-lg: 20px;
+$radius-round: 50%;
+$radius-xl: 30%;
+//Breakpoints for responsive design
+$bp-mobile: 480px;
+$bp-tablet: 768px;
+$bp-laptop: 1024px;
+$bp-desktop: 1280px;
+$bp-large: 1600px;
+//Shadows
+$shadow-xs: 0 1px 2px 0 rgba(88, 86, 214, 0.05);
+$shadow-sm: 0 1px 3px 0 rgba(88, 86, 214, 0.1), 0 1px 2px 0 rgba(88, 86, 214, 0.06);
+$shadow-md: 0 4px 6px -1px rgba(88, 86, 214, 0.1), 0 2px 4px -1px rgba(88, 86, 214, 0.06);
+$shadow-lg: 0 10px 15px -3px rgba(88, 86, 214, 0.1), 0 4px 6px -2px rgba(88, 86, 214, 0.05);
+$shadow-xl: 0 20px 25px -5px rgba(88, 86, 214, 0.1), 0 10px 10px -5px rgba(88, 86, 214, 0.04);
+$shadow-2xl: 0 25px 50px -12px rgba(88, 86, 214, 0.25);
+
+// Special shadows
+$shadow-inner: inset 0 2px 4px 0 rgba(88, 86, 214, 0.06); // For inset effects
+$shadow-outline: 0 0 0 3px rgba(149, 128, 255, 0.5); // For focus states
+$shadow-none: none;
+
+$shadow-purple-glow: 0 0 20px rgba(149, 128, 255, 0.4); // Glowing effect for CTAs
+$shadow-card-hover: 0 12px 24px -4px rgba(88, 86, 214, 0.15), 0 4px 8px -2px rgba(88, 86, 214, 0.08); // Enhanced card hover

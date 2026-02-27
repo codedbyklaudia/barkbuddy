@@ -1,0 +1,921 @@
+@import '../styles/mixins';
+@import '../styles/variables';
+// Status colours
+$status-overdue:  #ef4444;
+$status-soon:     #f59e0b;
+$status-upcoming: $serene-purple;
+$status-done:     #10b981;
+$border-color:    rgba($serene-purple, 0.2);
+//Additional Breakpoints
+$cal-bp-wide: 1100px;
+$cal-bp-mid:   768px;
+$cal-bp-sm:    540px;
+$cal-bp-xs:    380px;
+
+.cal-loading {
+  @include flex-center;
+  height: 300px;
+  font-family: $font-secondary;
+  font-size: $t-body-des;
+  color: $serene-purple;
+}
+// WRAPPER
+.buddy-calendar {
+  @include column;
+  width: 100%;
+  gap: $space-xl;
+  padding: clamp(1.2rem, 3vw, 2.5rem);
+  padding-top: clamp(1.5rem, 4vw, 3rem);
+  padding-bottom: clamp(2rem, 5vw, 4rem);
+  background: linear-gradient(
+    180deg,
+    rgba($misty-lavender, 0.4) 0%,
+    rgba($soft-pearl, 0.6) 100%
+  );
+  border-radius: $radius-lg;
+  @media (max-width: $cal-bp-mid) { gap: $space-md; padding-bottom: $space-xl; }
+  @media (max-width: $cal-bp-sm)  { gap: $space-sm; padding-bottom: $space-lg; }
+}
+
+// HEADER
+.cal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: $space-md;
+
+  @media (max-width: $cal-bp-sm) {
+    @include column;
+    gap: $space-sm;
+  }
+}
+
+.cal-title {
+  font-family: $font-primary;
+  font-size: $t-tit-des;
+  font-weight: $fw-regular;
+  color: $text-color-dark;
+  margin: 0 0 $space-xs;
+  line-height: $lh-tight;
+
+  @media (max-width: $cal-bp-mid) { font-size: $t-tit-tab; }
+  @media (max-width: $cal-bp-sm)  { font-size: $t-tit-mob; }
+  @media (max-width: $cal-bp-xs)  { font-size: 1.1rem; }
+}
+
+.cal-sub {
+  font-family: $font-secondary;
+  font-size: $t-body-des;
+  color: $gentle-amethyst;
+  margin: 0;
+
+  @media (max-width: $cal-bp-xs) { font-size: 0.72rem; }
+}
+
+.cal-header-actions {
+  @include center;
+  gap: $space-sm;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+
+  @media (max-width: $cal-bp-sm) {
+    width: 100%;
+    gap: $space-xs;
+  }
+}
+
+// BUTTONS
+.cal-add-btn {
+  background: $twilight-purple;
+  color: $misty-lavender;
+  border: none;
+  @include center;
+  border-radius: $radius-lg;
+  padding: $space-sm $space-md;
+  font-family: $font-secondary;
+  font-size: $t-link-des;
+  font-weight: $fw-medium;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+  box-shadow: $shadow-md;
+  img {
+    width: 30px;
+    height: 30px;
+    filter: invert(1);
+    padding-right: 7px;
+  }
+  &:hover { background: $serene-purple; box-shadow: $shadow-purple-glow; }
+  @media (max-width: $cal-bp-sm) { font-size: 0.78rem; padding: $space-xs $space-md; }
+  @media (max-width: $cal-bp-xs) { font-size: 0.72rem; padding: 6px $space-sm; }
+}
+
+.cal-filter-toggle {
+  background: $soft-pearl;
+  border: 1.5px solid $border-color;
+  border-radius: $radius-lg;
+  padding: $space-sm $space-md;
+  font-family: $font-secondary;
+  font-size: $t-link-des;
+  color: $gentle-amethyst;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+  transition: all 0.2s;
+  img {
+    width: 24px;
+    height: 24px;
+  }
+
+  &:hover,
+  &.active     { border-color: $serene-purple; color: $twilight-purple; }
+  &.has-filter { border-color: $serene-purple; color: $serene-purple;   }
+
+  @media (max-width: $cal-bp-sm) { font-size: 0.78rem; padding: $space-xs $space-md; }
+  @media (max-width: $cal-bp-xs) { font-size: 0.72rem; padding: 6px $space-sm; }
+}
+
+.filter-dot {
+  width: 6px; height: 6px;
+  background: $serene-purple;
+  border-radius: $radius-round;
+  flex-shrink: 0;
+}
+
+.cal-add-btn-sm {
+  display: block;
+  margin-top: $space-md;
+  background: transparent;
+  border: 1.5px solid $serene-purple;
+  color: $serene-purple;
+  border-radius: $radius-lg;
+  padding: $space-xs $space-lg;
+  font-family: $font-secondary;
+  font-size: $t-but-des;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover { background: rgba($serene-purple, 0.08); }
+  @media (max-width: $cal-bp-sm) { font-size: 0.78rem; }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// STATS ROW
+// ═══════════════════════════════════════════════════════════════════════════════
+.cal-stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: $space-md;
+
+  @media (max-width: $cal-bp-mid) { grid-template-columns: repeat(2, 1fr); gap: $space-sm; }
+  @media (max-width: $cal-bp-xs)  { gap: $space-xs; }
+}
+
+.cal-stat-card {
+  background: $soft-pearl;
+  border-radius: $radius-md;
+  padding: $space-md;
+  border-top: 3px solid;
+  box-shadow: $shadow-sm;
+  @include column;
+  align-items: flex-start;
+  gap: $space-xs;
+
+  @media (max-width: $cal-bp-mid) { padding: $space-sm $space-md; }
+  @media (max-width: $cal-bp-sm)  { padding: $space-sm; gap: 2px; }
+  @media (max-width: $cal-bp-xs)  { padding: 10px $space-sm; }
+}
+
+.cal-stat-count {
+  font-family: $font-primary;
+  font-size: $t-tit-des;
+  font-weight: $fw-regular;
+  line-height: 1;
+
+  @media (max-width: $cal-bp-mid) { font-size: $t-tit-tab; }
+  @media (max-width: $cal-bp-sm)  { font-size: $t-sub-des; }
+  @media (max-width: $cal-bp-xs)  { font-size: 1.2rem; }
+}
+
+.cal-stat-label {
+  font-family: $font-secondary;
+  font-size: $t-body-mob;
+  color: $gentle-amethyst;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+
+  @media (max-width: $cal-bp-sm) { font-size: 0.6rem; }
+  @media (max-width: $cal-bp-xs) { font-size: 0.55rem; letter-spacing: 0; }
+}
+
+// FILTERS PANEL
+.cal-filters-panel {
+  background: $soft-pearl;
+  border-radius: $radius-md;
+  padding: $space-md;
+  box-shadow: $shadow-sm;
+  @include column;
+  align-items: flex-start;
+  gap: $space-md;
+  animation: calSlideDown 0.2s ease;
+
+  @media (max-width: $cal-bp-sm) { padding: $space-sm; gap: $space-sm; }
+}
+
+@keyframes calSlideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.cal-filter-group { @include column; align-items: flex-start; gap: $space-sm; width: 100%; }
+
+.cal-filter-title {
+  font-family: $font-secondary;
+  font-size: $t-but-des;
+  font-weight: $fw-medium;
+  color: $text-color-dark;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 0;
+
+  @media (max-width: $cal-bp-xs) { font-size: 0.62rem; }
+}
+
+.cal-filter-btns { display: flex; flex-wrap: wrap; gap: $space-sm; }
+
+.cal-filter-btn {
+  padding: $space-xs $space-md;
+  border: 1.5px solid $border-color;
+  border-radius: $radius-lg;
+  background: none;
+  font-family: $font-secondary;
+  font-size: $t-but-des;
+  color: $text-color-dark;
+  cursor: pointer;
+  transition: all 0.18s;
+  white-space: nowrap;
+
+  &:hover  { border-color: $serene-purple; color: $twilight-purple; }
+  &.active {
+    border-color: $serene-purple; color: $serene-purple;
+    background: rgba($serene-purple, 0.08); font-weight: $fw-medium;
+  }
+
+  @media (max-width: $cal-bp-sm) { font-size: 0.65rem; padding: 4px $space-sm; }
+  @media (max-width: $cal-bp-xs) { font-size: 0.6rem;  padding: 3px 8px; }
+}
+
+.cal-clear-all,
+.cal-clear-date {
+  background: none;
+  border: 1.5px solid rgba($status-overdue, 0.3);
+  border-radius: $radius-lg;
+  color: $status-overdue;
+  font-family: $font-secondary;
+  font-size: $t-but-des;
+  padding: $space-xs $space-md;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover { background: rgba($status-overdue, 0.06); }
+  @media (max-width: $cal-bp-sm) { font-size: 0.7rem; }
+}
+
+.cal-clear-date { text-align: center; width: 100%; }
+
+// MAIN LAYOUT
+.cal-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $space-lg;
+  align-items: start;
+
+  @media (max-width: $cal-bp-wide) { grid-template-columns: 1fr; gap: $space-md; }
+  @media (max-width: $cal-bp-sm)   { gap: $space-sm; }
+}
+
+.cal-left {
+  @include column;
+  align-items: stretch;
+  gap: $space-md;
+
+  @media (max-width: $cal-bp-sm) { gap: $space-sm; }
+}
+
+// MINI CALENDAR
+.mini-calendar {
+  width: 100%;
+  background: $soft-pearl;
+  border-radius: $radius-lg;
+  padding: clamp(1.2rem, 2.2vw, 1.8rem);
+
+  box-shadow:
+    0 10px 30px rgba($serene-purple, 0.08),
+    0 2px 6px rgba(0,0,0,0.04);
+
+  border: 1px solid rgba($serene-purple, 0.08);
+
+
+  @media (max-width: $cal-bp-mid) { padding: $space-md; }
+  @media (max-width: $cal-bp-sm)  { padding: $space-sm $space-md; }
+  @media (max-width: $cal-bp-xs)  { padding: $space-sm; }
+}
+
+.mini-cal-header {
+  @include flex-between;
+  margin-bottom: $space-md;
+
+  @media (max-width: $cal-bp-sm) { margin-bottom: $space-sm; }
+}
+
+.mini-cal-title {
+  font-family: $font-secondary;
+  font-size: $t-body-des;
+  font-weight: $fw-medium;
+  color: $text-color-dark;
+
+  @media (max-width: $cal-bp-sm) { font-size: $t-body-des; }
+  @media (max-width: $cal-bp-xs) { font-size: $t-body-mob; }
+}
+
+.mini-cal-nav {
+  background: none;
+  border: 1px solid $border-color;
+  border-radius: $radius-sm;
+  width: 35px; height: 35px;
+  @include flex-center;
+  cursor: pointer;
+  font-size: $t-body-des;
+  color: $serene-purple;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+
+  &:hover { background: $misty-lavender; }
+
+  @media (max-width: $cal-bp-xs) { width: 26px; height: 26px; font-size: 0.85rem; }
+}
+
+.mini-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+
+  @media (max-width: $cal-bp-xs) { gap: 1px; }
+}
+
+.mini-cal-day-label {
+  font-family: $font-secondary;
+  font-size: $t-link-des;
+  font-weight: $fw-medium;
+  color: $gentle-amethyst;
+  text-align: center;
+  padding: $space-xs 0;
+  letter-spacing: 0.03em;
+
+  @media (max-width: $cal-bp-xs) { font-size: 0.55rem; padding: 3px 0; letter-spacing: 0; }
+}
+
+.mini-cal-cell {
+  @include relative;
+  aspect-ratio: 1;
+  @include flex-column;
+  gap: 1px;
+  font-family: $font-secondary;
+  font-size: $t-link-des;
+  color: $text-color-dark;
+  @include none;
+  border-radius: $radius-round;
+  cursor: pointer;
+  transition: all 0.15s;
+  min-height: 28px;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  &:hover    { background: $misty-lavender; transform: translateY(-1px);box-shadow: 0 4px 10px rgba($serene-purple, 0.15); }
+  
+  &.today {
+  font-weight: $fw-bold;
+  color: $serene-purple;
+  background: rgba($serene-purple, 0.08);
+  box-shadow: inset 0 0 0 1px rgba($serene-purple, 0.25);
+}
+  &.selected {
+    background: $twilight-purple;
+    color: $misty-lavender;
+    box-shadow: 0 6px 14px rgba($twilight-purple, 0.3);
+    .mini-cal-dot { background: $misty-lavender !important; }
+  }
+  &.has-events { font-weight: $fw-medium; }
+
+  @media (max-width: $cal-bp-xs) { font-size: 0.6rem; min-height: 24px; }
+}
+
+.mini-cal-dot {
+  width: 7px; height: 7px;
+  border-radius: $radius-round;
+  flex-shrink: 1;
+}
+
+// Right panel 
+.cal-right {
+  @include column;
+  align-items: stretch;
+  gap: $space-lg;
+  min-height: 200px;
+
+  @media (max-width: $cal-bp-mid) { gap: $space-md; }
+  @media (max-width: $cal-bp-sm)  { gap: $space-sm; min-height: 120px; }
+}
+
+// EMPTY STATE
+.cal-empty {
+  background: $soft-pearl;
+  border-radius: $radius-lg;
+  padding: $space-xxl $space-xl;
+  box-shadow: $shadow-sm;
+  @include flex-column;
+  align-items: center;
+
+  p {
+    font-family: $font-secondary;
+    font-size: $t-body-des;
+    color: $gentle-amethyst;
+    margin: $space-sm 0 0;
+    text-align: center;
+  }
+
+  @media (max-width: $cal-bp-mid) { padding: $space-xl $space-lg; }
+  @media (max-width: $cal-bp-sm)  { padding: $space-xl $space-md; p { font-size: $t-body-mob; } }
+  @media (max-width: $cal-bp-xs)  { padding: $space-lg $space-sm; }
+}
+
+.cal-empty-icon {
+  font-size: 2.5rem;
+  @media (max-width: $cal-bp-sm) { font-size: 2rem; }
+}
+
+// Event group
+.cal-group {
+  @include column;
+  align-items: stretch;
+  gap: $space-sm;
+  width: 100%;
+
+  @media (max-width: $cal-bp-sm) { gap: $space-xs; }
+}
+
+.cal-group-title {
+  font-family: $font-secondary;
+  font-size: $t-body-mob;
+  font-weight: $fw-bold;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 0 0 $space-xs;
+
+  @media (max-width: $cal-bp-xs) { font-size: 0.62rem; }
+}
+
+// EVENT CARD
+.event-card {
+  width: 100%;
+  box-sizing: border-box;
+  background: $soft-pearl;
+  border-radius: $radius-md;
+  padding: $space-md;
+  border-left: 4px solid;
+  box-shadow: $shadow-sm;
+  @include flex-between;
+  gap: $space-md;
+  transition: box-shadow 0.2s;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 12px 24px rgba($serene-purple, 0.08),
+      0 4px 10px rgba(0,0,0,0.05);
+  }
+
+  &.completed {
+    opacity: 0.65;
+    .event-title { text-decoration: line-through; }
+  }
+
+  @media (max-width: $cal-bp-mid) {
+    padding: $space-sm $space-md;
+    gap: $space-sm;
+  }
+
+  @media (max-width: $cal-bp-sm) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $space-xs;
+    padding: $space-sm;
+    border-radius: $radius-sm;
+  }
+
+  @media (max-width: $cal-bp-xs) {
+    padding: 10px $space-sm;
+  }
+}
+
+// Card left
+.event-card-left {
+  @include center;
+  gap: $space-md;
+  flex: 1;
+  min-width: 0;
+
+  @media (max-width: $cal-bp-sm)  { gap: $space-sm; width: 100%; }
+  @media (max-width: $cal-bp-xs)  { gap: $space-xs; }
+}
+
+.event-info {
+  @include column;
+  align-items: flex-start;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+.event-title {
+  font-family: $font-secondary;
+  font-size: $t-link-des;
+  font-weight: $fw-medium;
+  color: $text-color-dark;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+
+  @media (max-width: $cal-bp-mid) { font-size: $t-body-des; }
+  @media (max-width: $cal-bp-xs)  { font-size: $t-body-mob; }
+}
+
+.event-meta {
+  @include column;
+  gap: 2px;
+  min-width: 0;
+  width: 100%;
+}
+
+.event-date {
+  font-family: $font-secondary;
+  font-size: $t-body-mob;
+  color: $gentle-amethyst;
+
+  @media (max-width: $cal-bp-xs) { font-size: 0.68rem; }
+}
+
+.event-notes {
+  font-family: $font-secondary;
+  font-size: $t-body-mob;
+  color: $gentle-amethyst;
+  font-style: italic;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+
+  @media (max-width: $cal-bp-xs) { font-size: 0.68rem; }
+}
+
+// Card right 
+.event-card-right {
+  @include center;
+  gap: $space-sm;
+  flex-shrink: 0;
+
+  @media (max-width: $cal-bp-sm) {
+    width: 100%;
+    justify-content: flex-end;
+    gap: $space-xs;
+    padding-top: $space-xs;
+    border-top: 1px solid rgba($serene-purple, 0.1);
+  }
+}
+
+.event-actions {
+  @include center;
+  gap: $space-xs;
+}
+
+// Status badge
+.event-status-badge {
+  font-family: $font-secondary;
+  font-size: 0.65rem;
+  font-weight: $fw-medium;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: $space-xs $space-sm;
+  border-radius: $radius-lg;
+  white-space: nowrap;
+
+  @media (max-width: $cal-bp-sm) { display: none; }
+}
+
+.event-complete-btn {
+  font-family: $font-secondary;
+  font-size: $t-body-mob;
+  font-weight: $fw-medium;
+  padding: $space-xs $space-md;
+  border: 1.5px solid;
+  border-radius: $radius-lg;
+  background: none;
+  cursor: pointer;
+  transition: all 0.18s;
+  white-space: nowrap;
+
+  &:hover { opacity: 0.75; }
+  &.undo  { font-weight: $fw-bold; }
+
+  @media (max-width: $cal-bp-sm) { font-size: 0.65rem; padding: 4px $space-sm; }
+  @media (max-width: $cal-bp-xs) { font-size: 0.6rem;  padding: 3px 8px; }
+}
+
+.event-icon-btn {
+  background: none;
+  border: 1.5px solid $border-color;
+  border-radius: $radius-sm;
+  width: 30px; height: 30px;
+  @include flex-center;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.18s;
+  flex-shrink: 0;
+  color: $gentle-amethyst;
+  -webkit-tap-highlight-color: transparent;
+
+  &.edit:hover {
+    border-color: $serene-purple;
+    color: $twilight-purple;
+    background: rgba($serene-purple, 0.08);
+  }
+
+  &.delete:hover {
+    border-color: rgba($status-overdue, 0.5);
+    color: $status-overdue;
+    background: rgba($status-overdue, 0.06);
+  }
+
+  @media (max-width: $cal-bp-sm) { width: 28px; height: 28px; font-size: 0.75rem; }
+  @media (max-width: $cal-bp-xs) { width: 26px; height: 26px; font-size: 0.7rem;  }
+}
+
+// MODAL
+.cal-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba($twilight-purple, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 1001;
+  @include flex-center;
+  padding: $space-md;
+  animation: calFadeIn 0.15s ease;
+
+  // Bottom-sheet on small screens
+  @media (max-width: $cal-bp-sm) {
+    align-items: flex-end;
+    padding: 0;
+  }
+}
+
+@keyframes calFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.cal-modal {
+  background: $misty-lavender;
+  border-radius: $radius-lg;
+  width: 100%;
+  max-width: 480px;
+  max-height: 92dvh;
+  @include column;
+  align-items: stretch;
+  box-shadow: $shadow-2xl;
+  animation: calSlideUp 0.2s ease;
+
+  @media (max-width: $cal-bp-sm) {
+    max-width: 100%;
+    border-radius: $radius-lg $radius-lg 0 0;
+    max-height: 90dvh;
+  }
+}
+
+@keyframes calSlideUp {
+  from { transform: translateY(14px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.cal-modal-header {
+  @include flex-between;
+  padding: $space-lg $space-lg 0;
+
+  h3 {
+    font-family: $font-primary;
+    font-size: $t-sub-des;
+    font-weight: $fw-regular;
+    color: $text-color-dark;
+    letter-spacing: 0.03em;
+    margin: 0;
+  }
+
+  @media (max-width: $cal-bp-sm) {
+    padding: $space-md $space-md 0;
+    h3 { font-size: $t-body-des; }
+  }
+}
+
+.cal-modal-close {
+  @include none;
+  color: $serene-purple;
+  cursor: pointer;
+  font-size: $t-link-des;
+  padding: $space-xs $space-sm;
+  border-radius: $radius-sm;
+  transition: all 0.2s;
+  flex-shrink: 0;
+
+  &:hover { background: rgba($serene-purple, 0.12); }
+}
+
+.cal-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: $space-md $space-lg;
+  @include column;
+  align-items: stretch;
+  gap: $space-xs;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar       { width: 4px; }
+  &::-webkit-scrollbar-thumb { background: rgba($serene-purple, 0.3); border-radius: 2px; }
+
+  @media (max-width: $cal-bp-sm) { padding: $space-sm $space-md; }
+  @media (max-width: $cal-bp-xs) { padding: $space-xs $space-sm; }
+}
+
+.cal-label {
+  font-family: $font-secondary;
+  font-size: $t-body-mob;
+  font-weight: $fw-medium;
+  color: $twilight-purple;
+  margin-top: $space-sm;
+}
+
+.cal-optional { font-weight: $fw-regular; color: $serene-purple; }
+
+.cal-type-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $space-sm;
+  margin-bottom: $space-xs;
+
+  @media (max-width: $cal-bp-xs) { grid-template-columns: 1fr; gap: $space-xs; }
+}
+
+.cal-type-btn {
+  @include center;
+  gap: $space-sm;
+  padding: $space-sm $space-md;
+  border: 1.5px solid $border-color;
+  border-radius: $radius-md;
+  background: rgba($soft-pearl, 0.8);
+  cursor: pointer;
+  transition: all 0.18s;
+  text-align: left;
+
+  &:hover    { border-color: $serene-purple; }
+  &.selected { font-weight: $fw-medium; }
+
+  @media (max-width: $cal-bp-sm) { padding: $space-xs $space-sm; }
+}
+
+.cal-type-emoji { font-size: 1rem; flex-shrink: 0; }
+
+.cal-type-label {
+  font-family: $font-secondary;
+  font-size: $t-body-mob;
+  color: $text-color-dark;
+}
+
+.cal-input {
+  width: 100%;
+  padding: $space-sm $space-md;
+  border: 1.5px solid rgba($serene-purple, 0.3);
+  border-radius: $radius-md;
+  font-family: $font-secondary;
+  // min 16px prevents iOS zoom on input focus
+  font-size: max(16px, #{$t-body-mob});
+  color: $text-color-dark;
+  background: rgba($soft-pearl, 0.8);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+
+  &:focus  { border-color: $serene-purple; box-shadow: $shadow-outline; }
+  &.error  { border-color: $status-overdue; background: $soft-pearl; }
+}
+
+.cal-textarea {
+  resize: vertical;
+  min-height: 68px;
+  font-size: max(16px, #{$t-body-mob}); //prevents iOS zoom
+
+  @media (max-width: $cal-bp-sm) { min-height: 54px; }
+}
+
+.cal-field-error {
+  font-size: $t-body-mob;
+  color: $status-overdue;
+  margin-top: 2px;
+}
+
+.cal-modal-error {
+  background: #fff5f5;
+  border: 1px solid rgba($status-overdue, 0.4);
+  color: darken($status-overdue, 10%);
+  border-radius: $radius-sm;
+  padding: $space-sm $space-md;
+  font-family: $font-secondary;
+  font-size: $t-body-mob;
+}
+
+.cal-modal-footer {
+  @include center;
+  justify-content: flex-end;
+  gap: $space-md;
+  padding: $space-md $space-lg;
+  border-top: 1px solid rgba($serene-purple, 0.15);
+  flex-shrink: 0;
+
+  @media (max-width: $cal-bp-sm) { padding: $space-sm $space-md; gap: $space-sm; }
+
+  @media (max-width: $cal-bp-xs) {
+    flex-direction: column-reverse;
+    gap: $space-xs;
+
+    .cal-btn-cancel,
+    .cal-btn-save { width: 100%; justify-content: center; }
+  }
+}
+
+.cal-btn-cancel {
+  background: none;
+  border: 1.5px solid rgba($serene-purple, 0.35);
+  color: $serene-purple;
+  padding: $space-sm $space-lg;
+  border-radius: $radius-lg;
+  font-family: $font-secondary;
+  font-size: $t-but-des;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover { background: rgba($serene-purple, 0.06); }
+  @media (max-width: $cal-bp-sm) { font-size: 0.78rem; padding: $space-xs $space-md; }
+}
+
+.cal-btn-save {
+  @include center;
+  gap: $space-xs;
+  background: $twilight-purple;
+  color: $misty-lavender;
+  border: none;
+  padding: $space-sm $space-lg;
+  border-radius: $radius-lg;
+  font-family: $font-secondary;
+  font-size: $t-but-des;
+  font-weight: $fw-medium;
+  cursor: pointer;
+  box-shadow: $shadow-md;
+  transition: all 0.2s;
+
+  &:hover:not(:disabled) { background: $serene-purple; box-shadow: $shadow-purple-glow; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  @media (max-width: $cal-bp-sm) { font-size: 0.78rem; padding: $space-xs $space-md; }
+}
+
+.cal-type-icon,
+.event-icon,
+.filter-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.cal-type-btn {
+  @include center;
+  gap: 6px;
+}
+
+.event-card-left {
+  @include center;
+  gap: 10px;
+}
+
+.cal-filter-btn {
+  @include center;
+  gap: 6px;
+}
