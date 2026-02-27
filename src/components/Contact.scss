@@ -1,0 +1,393 @@
+@import '../styles/variables';
+@import '../styles/mixins';
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+// Page shell — full-height split 
+.contact-page {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: 600px 1fr;
+  font-family: $font-secondary;
+
+  @media (max-width: $bp-laptop) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// Shared panel 
+.contact-panel {
+  &__inner {
+    padding: clamp(3rem, 6vw, 5rem) clamp(2rem, 5vw, 4rem);
+    height: 100%;
+    @include column;
+    max-width: 560px;
+
+    @media (max-width: $bp-laptop) {
+      max-width: 100%;
+    }
+  }
+
+  // Dark panel (left)
+  &--dark {
+    background: $twilight-purple;
+    @include relative;
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      @include absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 0% 0%,   rgba($serene-purple, 0.28) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 50% at 100% 100%, rgba($gentle-amethyst, 0.14) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .contact-panel__inner {
+      @include relative;
+      z-index: 1;
+    }
+  }
+
+  // Light panel (right)
+  &--light {
+    background: $soft-pearl;
+    border-left: 1px solid rgba($twilight-purple, 0.07);
+    overflow-y: auto;
+
+    .contact-panel__inner {
+      @media (min-width: $bp-laptop) {
+        max-width: 600px;
+        margin: 0 auto;
+      }
+    }
+  }
+}
+
+// Dark panel content 
+.contact-panel__eyebrow {
+  display: inline-block;
+  font-size: $t-body-mob;
+  font-weight: $fw-bold;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba($misty-lavender, 0.45);
+  margin-bottom: $space-xl;
+}
+
+.contact-panel__title {
+  font-family: $font-primary;
+  font-size: clamp(2.2rem, 4vw, 3.4rem);
+  font-weight: $fw-regular;
+  color: $soft-pearl;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  margin-bottom: $space-xl;
+
+  em {
+    font-style: normal;
+    color: $serene-purple;
+  }
+}
+
+.contact-panel__sub {
+  font-size: $t-body-des;
+  color: rgba($misty-lavender, 0.55);
+  line-height: 1.8;
+  margin-bottom: $space-xxl;
+}
+
+// Direct email link
+.contact-email-link {
+  @include center;
+  gap: $space-md;
+  text-decoration: none;
+  padding: $space-md $space-lg;
+  background: rgba($misty-lavender, 0.07);
+  border: 1px solid rgba($misty-lavender, 0.12);
+  border-radius: $radius-md;
+  transition: background 0.2s, border-color 0.2s;
+  margin-bottom: $space-lg;
+
+  &:hover {
+    background: rgba($misty-lavender, 0.12);
+    border-color: rgba($misty-lavender, 0.2);
+  }
+
+  &__icon {
+    color: $serene-purple;
+    @include center;
+    flex-shrink: 0;
+  }
+
+  &__text {
+    font-size: $t-body-des;
+    font-weight: $fw-medium;
+    color: $soft-pearl;
+    word-break: break-all;
+  }
+}
+.contact-socialmedia {
+  @include column;
+  gap: $space-md;
+  .contact-socialmedia-para{
+    font-size: $t-sub-des;
+    color: rgba($misty-lavender, 0.55);
+  }
+  .contact-socialmedia-icons {
+    @include center;
+    gap: $space-xl;
+  }
+}
+
+// Response time indicator
+.contact-panel__note {
+  @include center;
+  gap: $space-sm;
+  font-size: $t-body-mob;
+  color: rgba($misty-lavender, 0.4);
+  margin-bottom: $space-xxl;
+}
+
+.contact-panel__note-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #34d399;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 3px rgba(#34d399, 0.2);
+  animation: dotPulse 2s ease-in-out infinite;
+}
+
+@keyframes dotPulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(#34d399, 0.2); }
+  50%       { box-shadow: 0 0 0 6px rgba(#34d399, 0.08); }
+}
+
+// Form header 
+.contact-form-header {
+  margin-bottom: $space-xxl;
+
+  &__title {
+    font-family: $font-primary;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: $fw-regular;
+    color: $twilight-purple;
+    letter-spacing: 0.02em;
+    margin-bottom: $space-md;
+  }
+
+  &__sub {
+    font-size: $t-body-des;
+    color: rgba($twilight-purple, 0.5);
+    line-height: 1.65;
+  }
+}
+
+// Error banner 
+.contact-error {
+  background: rgba(#dc2626, 0.06);
+  border: 1px solid rgba(#dc2626, 0.2);
+  border-radius: $radius-md;
+  padding: $space-md $space-lg;
+  font-size: $t-body-des;
+  color: #b91c1c;
+  margin-bottom: $space-xl;
+  line-height: 1.5;
+}
+
+// Form 
+.contact-form {
+  @include column;
+  gap: $space-xl;
+
+  &__row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: $space-lg;
+
+    @media (max-width: $bp-tablet) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__privacy {
+    font-size: $t-body-mob;
+    color: rgba($twilight-purple, 0.3);
+    line-height: 1.5;
+    text-align: center;
+  }
+}
+
+// Form field 
+.contact-field {
+  @include column;
+  @include relative;
+  gap: $space-sm;
+
+  &__label {
+    font-size: $t-body-des;
+    font-weight: $fw-bold;
+    color: rgba($twilight-purple, 0.7);
+    letter-spacing: 0.02em;
+
+    span { color: $serene-purple; margin-left: 2px; }
+  }
+
+  &__input,
+  &__select,
+  &__textarea {
+    width: 100%;
+    background: #fff;
+    border: 1.5px solid rgba($twilight-purple, 0.12);
+    border-radius: $radius-md;
+    padding: $space-md $space-lg;
+    font-family: $font-secondary;
+    font-size: $t-body-des;
+    color: $twilight-purple;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    min-height: 48px;
+
+    &::placeholder { color: rgba($twilight-purple, 0.3); }
+
+    &:focus {
+      border-color: $serene-purple;
+      box-shadow: 0 0 0 3px rgba($serene-purple, 0.1);
+    }
+  }
+
+  &__textarea {
+    resize: vertical;
+    min-height: 140px;
+    line-height: 1.7;
+  }
+
+  &__count {
+    font-size: $t-body-mob;
+    color: rgba($twilight-purple, 0.25);
+    text-align: right;
+    margin-top: -($space-xs);
+  }
+  &__select-wrap {
+    @include relative;
+  }
+  &__select {
+    appearance: none;
+    cursor: pointer;
+    padding-right: $space-xxl;
+  }
+  &__select-arrow {
+    @include absolute;    
+    right: $space-lg;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba($twilight-purple, 0.4);
+    pointer-events: none;
+  }
+}
+
+// Submit button 
+.contact-submit {
+  @include flex-center;
+  gap: $space-sm;
+  background: $twilight-purple;
+  color: $soft-pearl;
+  border: none;
+  border-radius: $radius-lg;
+  padding: $space-lg $space-xxl;
+  font-family: $font-secondary;
+  font-size: $t-body-des;
+  font-weight: $fw-bold;
+  cursor: pointer;
+  min-height: 52px;
+  letter-spacing: 0.02em;
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  align-self: flex-start;
+
+  &:hover:not(:disabled) {
+    background: darken($twilight-purple, 8%);
+    transform: translateY(-2px);
+    box-shadow: $shadow-lg;
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  &__spinner {
+    width: 18px; height: 18px;
+    border: 2px solid rgba($soft-pearl, 0.3);
+    border-top-color: $soft-pearl;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+
+  @media (max-width: $bp-mobile) {
+    align-self: stretch;
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+// Success state 
+.contact-success {
+  @include flex-column;
+  text-align: center;
+  gap: $space-xl;
+  flex: 1;
+  padding: $space-xxl 0;
+  animation: successIn 0.5s ease;
+
+  &__icon {
+    color: #059669;
+    animation: successPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  &__title {
+    font-family: $font-primary;
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    font-weight: $fw-regular;
+    color: $twilight-purple;
+    letter-spacing: 0.02em;
+  }
+
+  &__body {
+    font-size: $t-body-des;
+    color: rgba($twilight-purple, 0.55);
+    line-height: 1.75;
+    max-width: 380px;
+  }
+
+  &__reset {
+    background: none;
+    border: 1.5px solid rgba($twilight-purple, 0.2);
+    border-radius: $radius-lg;
+    padding: $space-md $space-xl;
+    font-family: $font-secondary;
+    font-size: $t-body-des;
+    font-weight: $fw-medium;
+    color: rgba($twilight-purple, 0.5);
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: $space-md;
+
+    &:hover {
+      border-color: $twilight-purple;
+      color: $twilight-purple;
+    }
+  }
+}
+
+@keyframes successIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes successPop {
+  from { transform: scale(0.5); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}

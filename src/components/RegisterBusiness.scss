@@ -1,0 +1,1330 @@
+@import '../styles/variables';
+@import '../styles/mixins';
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+// Page Shell 
+.rb-page {
+  min-height: 100dvh;
+  background-color: $twilight-purple;
+  font-family: $font-secondary;
+  @include relative;
+  overflow: hidden !important;
+
+  // Subtle noise texture
+  &::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    background-size: 200px 200px;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.5;
+  }
+}
+// Hero — split panel
+.rb-hero {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  @include relative;
+   overflow: hidden !important;
+
+  @media (max-width: $bp-laptop) {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+}
+
+// Left panel - dark 
+.rb-hero__left {
+  background-color: $twilight-purple;
+  padding: clamp(3rem, 6vw, 5rem) clamp(2rem, 4vw, 4.5rem);
+  @include column;
+  @include flex-between;
+  @include relative;
+  overflow: hidden;
+  z-index: 1;
+
+  @media (max-width: $bp-laptop) { padding: $space-xxl $space-xl; }
+  @media (max-width: $bp-mobile) { padding: $space-xl $space-lg;  }
+}
+
+// Diagonal slice right edge
+.rb-hero__left::after {
+  content: '';
+  @include absolute;
+  top: 0;
+  right: -48px;
+  width: 96px;
+  height: 100%;
+  background: $twilight-purple;
+  transform: skewX(-3deg);
+  z-index: 2;
+
+  @media (max-width: $bp-laptop) { display: none; }
+}
+
+// Radial glow behind copy
+.rb-hero__left::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 65% 55% at 15% 15%, rgba($serene-purple, 0.22) 0%, transparent 70%),
+    radial-gradient(ellipse 45% 55% at 85% 85%, rgba($gentle-amethyst, 0.14) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+// Right panel — white, actionable
+.rb-hero__right {
+  background-color: $soft-pearl;
+  padding: clamp(3rem, 6vw, 5rem) clamp(2rem, 4vw, 4.5rem);
+  @include flex-column;
+  @include relative;
+  z-index: 0;
+
+  @media (max-width: $bp-laptop) { padding: $space-xxl $space-xl; }
+  @media (max-width: $bp-mobile) { padding: $space-xl $space-lg;  }
+}
+
+// Main copy 
+.rb-hero__copy {
+  @include relative;
+  z-index: 1;
+  flex: 1;
+  @include flex-column;
+  margin-top: 20%;
+}
+
+.rb-hero__title {
+  font-family: $font-primary;
+  font-size: clamp(2.4rem, 5vw, 3.8rem);
+  font-weight: $fw-regular;
+  color: $soft-pearl;
+  letter-spacing: 0.02em;
+  line-height: 1.05;
+  margin-bottom: $space-xl;
+
+  em {
+    font-style: normal;
+    color: $serene-purple;
+  }
+}
+
+.rb-hero__sub {
+  font-family: $font-secondary;
+  font-size: clamp(0.9rem, 1.4vw, 1rem);
+  color: rgba($misty-lavender, 0.55);
+  line-height: 1.85;
+  max-width: 360px;
+}
+
+// Trust stats strip 
+.rb-hero__stats {
+  @include relative;
+  z-index: 1;
+  display: flex;
+  gap: $space-xl;
+  padding-top: $space-xl;
+  border-top: 1px solid rgba($misty-lavender, 0.1);
+}
+
+.rb-hero__stat {
+  @include column;
+  gap: 3px;
+}
+
+.rb-hero__stat-num {
+  font-family: $font-primary;
+  font-size: clamp(1.4rem, 2.5vw, 2rem);
+  color: $soft-pearl;
+  letter-spacing: 0.01em;
+  line-height: 1;
+}
+
+.rb-hero__stat-label {
+  font-family: $font-secondary;
+  font-size: $t-body-mob;
+  color: rgba($misty-lavender, 0.4);
+  letter-spacing: 0.03em;
+  line-height: 1.4;
+}
+
+// Right panel heading 
+.rb-hero__right-heading {
+  font-family: $font-primary;
+  font-size: clamp(1.15rem, 2vw, 1.5rem);
+  font-weight: $fw-regular;
+  color: $twilight-purple;
+  letter-spacing: 0.02em;
+  margin-bottom: $space-xl;
+  line-height: 1.3;
+}
+
+.rb-hero__login {
+  margin-top: $space-xl;
+  @include column;
+  gap: $space-md;
+  flex-wrap: wrap;
+
+  p {
+    font-size: $t-body-des;
+    color: rgba($twilight-purple, 0.5);
+    margin: 0;
+  }
+}
+
+.rb-hero__login-btn {
+  @include flex-center;
+  background: $twilight-purple;
+  color: $soft-pearl;
+  @include text-none;
+  font-family: $font-secondary;
+  font-size: $t-body-des;
+  font-weight: $fw-bold;
+  padding: $space-sm $space-lg;
+  border-radius: $radius-md;
+  text-align: center;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  min-height: 40px;
+
+  &:hover {
+    background: darken($twilight-purple, 8%);
+    transform: translateY(-1px);
+    box-shadow: $shadow-md;
+    color: $gentle-amethyst;
+  }
+}
+
+// Category Cards 
+.rb-cat-grid {
+  @include column;
+  gap: $space-md;
+  margin-bottom: $space-xl;
+  width: 100%;
+}
+
+.rb-cat-card {
+  @include center;
+  gap: $space-lg;
+  padding: $space-xl;
+  background: #fff;
+  border: 1.5px solid rgba($twilight-purple, 0.1);
+  border-radius: $radius-lg;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.22s ease;
+  @include relative;
+  overflow: hidden;
+
+  // Coloured accent bar on the left
+  &::before {
+    content: '';
+    @include absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    border-radius: $radius-lg 0 0 $radius-lg;
+    transition: width 0.22s ease;
+  }
+
+  &--activities::before { background: $serene-purple; }
+  &--services::before   { background: $gentle-amethyst; }
+
+  &:hover {
+    border-color: rgba($twilight-purple, 0.18);
+    box-shadow: $shadow-lg;
+    transform: translateX(5px);
+
+    &::before { width: 6px; }
+
+    .rb-cat-card__arrow svg { transform: translateX(3px); }
+  }
+
+  @media (max-width: $bp-mobile) { padding: $space-lg; gap: $space-md; }
+}
+
+.rb-cat-card__icon {
+  flex-shrink: 0;
+  width: 56px; height: 56px;
+  border-radius: $radius-md;
+  @include flex-center;
+  padding: $space-xs;
+
+  .rb-cat-card--activities & { background: rgba($serene-purple, 0.09); }
+  .rb-cat-card--services   & { background: rgba($gentle-amethyst, 0.12); }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+}
+
+.rb-cat-card__body { flex: 1; min-width: 0; }
+
+.rb-cat-card__title {
+  font-family: $font-primary;
+  font-size: $t-link-des;
+  font-weight: $fw-regular;
+  color: $twilight-purple;
+  letter-spacing: 0.02em;
+  margin-bottom: $space-xs;
+  line-height: 1.2;
+}
+
+.rb-cat-card__desc {
+  font-size: $t-body-des;
+  color: rgba($twilight-purple, 0.5);
+  line-height: 1.55;
+  margin-bottom: $space-sm;
+}
+
+.rb-cat-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+
+  span {
+    font-size: $t-body-mob;
+    font-weight: $fw-medium;
+    color: rgba($twilight-purple, 0.4);
+    background: rgba($twilight-purple, 0.05);
+    border: 1px solid rgba($twilight-purple, 0.1);
+    padding: 2px 8px;
+    border-radius: $radius-lg;
+    letter-spacing: 0.02em;
+  }
+}
+
+.rb-cat-card__arrow {
+  flex-shrink: 0;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  @include flex-center;
+
+  .rb-cat-card--activities & { background: rgba($serene-purple, 0.08); }
+  .rb-cat-card--services   & { background: rgba($gentle-amethyst, 0.1); }
+
+  svg {
+    display: block;
+    transition: transform 0.2s ease;
+    width: 16px; height: 16px;
+  }
+
+  .rb-cat-card--activities & svg { stroke: $serene-purple; }
+  .rb-cat-card--services   & svg { stroke: $gentle-amethyst; }
+}
+
+
+// Two-column Form Layout
+.rb-layout {
+  display: grid;
+  grid-template-columns: 500px 1fr;
+  min-height: 100dvh;
+  @include relative;
+  z-index: 1;
+
+  @media (max-width: $bp-laptop) { grid-template-columns: 1fr; }
+}
+
+// Sidebar 
+.rb-sidebar {
+  background: $twilight-purple;
+  border-right: 1px solid rgba($misty-lavender, 0.08);
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  overflow-y: visible;
+
+  // Subtle radial glow for depth
+  background-image: radial-gradient(
+    ellipse 80% 60% at 10% 10%,
+    rgba($serene-purple, 0.14) 0%,
+    transparent 70%
+  );
+
+  @media (max-width: $bp-laptop) {
+    position: static;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid rgba($misty-lavender, 0.08);
+  }
+}
+
+.rb-sidebar__inner {
+  padding: $space-xxl $space-xl;
+  @include column;
+  gap: $space-xxl;
+  min-height: 100%;
+
+  @media (max-width: $bp-laptop) {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    padding: $space-xl;
+    gap: $space-xl;
+  }
+
+  @media (max-width: $bp-tablet) {
+    padding: $space-lg;
+    gap: $space-lg;
+  }
+}
+
+// Category badge
+.rb-sidebar__category {
+  @include center;
+  gap: $space-md;
+  padding: $space-md $space-lg;
+  border-bottom: 1px solid rgba($misty-lavender, 0.2);
+  border-radius: $radius-lg;
+}
+
+.rb-sidebar__cat-img {
+  flex-shrink: 0;
+  width: 44px; height: 44px;
+  background: rgba($misty-lavender, 0.1);
+  border-radius: $radius-md;
+  @include flex-center;
+  padding: 6px;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    filter: brightness(1.1) drop-shadow(0 1px 3px rgba(0,0,0,0.25));
+  }
+}
+
+.rb-sidebar__cat-label {
+  font-family: $font-secondary;
+  font-size: $t-body-mob;
+  font-weight: $fw-bold;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba($misty-lavender, 0.4);
+}
+
+.rb-sidebar__cat-name {
+  font-family: $font-secondary;
+  font-size: $t-body-des;
+  font-weight: $fw-medium;
+  color: $soft-pearl;
+  margin-top: 3px;
+}
+
+// Step Indicator
+.rb-steps {
+  @include column;
+  gap: 0;
+}
+
+.rb-step {
+  @include center;
+  gap: $space-md;
+
+  &__node {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: rgba($misty-lavender, 0.1);
+    border: 1.5px solid rgba($misty-lavender, 0.2);
+    @include flex-center;
+    font-size: $t-body-mob;
+    font-weight: $fw-bold;
+    color: rgba($misty-lavender, 0.4);
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+  }
+  &__label {
+    font-family: $font-secondary;
+    font-size: $t-body-des;
+    font-weight: $fw-medium;
+    color: rgba($misty-lavender, 0.45);
+    transition: color 0.3s ease;
+  }
+
+  &--active {
+    .rb-step__node {
+      background: $serene-purple;
+      border-color: $serene-purple;
+      color: $soft-pearl;
+      box-shadow: 0 0 0 4px rgba($serene-purple, 0.22);
+    }
+    .rb-step__label { color: $soft-pearl; }
+  }
+
+  &--done {
+    .rb-step__node {
+      background: #059669;
+      border-color: #059669;
+      color: $soft-pearl;
+    }
+    .rb-step__label { color: rgba($misty-lavender, 0.65); }
+  }
+}
+
+.rb-step__line {
+  width: 1.5px;
+  height: 28px;
+  background: rgba($misty-lavender, 0.12);
+  margin-left: 15px;
+  transition: background 0.3s ease;
+
+  &--done { background: #059669; }
+}
+
+// Sidebar Perks
+.rb-sidebar__perks {
+  @media (max-width: $bp-laptop) { flex: 1; }
+
+  &-title {
+    font-family: $font-secondary;
+    font-size: $t-body-mob;
+    font-weight: $fw-bold;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba($misty-lavender, 0.35);
+    margin-bottom: $space-lg;
+  }
+
+  ul {
+    list-style: none;
+    @include column;
+    gap: 2px;
+  }
+
+  li {
+    @include center;
+    gap: $space-md;
+    padding: $space-sm $space-md;
+    border-radius: $radius-md;
+    font-family: $font-secondary;
+    font-size: $t-body-des;
+    color: rgba($misty-lavender, 0.6);
+    line-height: $lh-normal;
+    transition: background 0.2s, color 0.2s;
+
+    &:hover {
+      background: rgba($misty-lavender, 0.06);
+      color: rgba($misty-lavender, 0.85);
+    }
+  }
+}
+
+.rb-sidebar__perk-icon {
+  width: 30px; height: 30px;
+  background: rgba($misty-lavender, 0.07);
+  border-radius: $radius-sm;
+  @include flex-center;
+  flex-shrink: 0;
+  padding: 4px;
+
+  img {
+    width: 100%; height: 100%;
+    object-fit: contain;
+    display: block;
+    filter: brightness(1.1) drop-shadow(0 1px 2px rgba(0,0,0,0.2));
+  }
+}
+
+// Sidebar Footer 
+.rb-sidebar__footer {
+  margin-top: auto;
+  padding-top: $space-xl;
+  border-top: 1px solid rgba($misty-lavender, 0.2);
+  border-radius: $radius-md;
+  @include column;
+  gap: $space-md;
+}
+
+.rb-sidebar__change {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-xs;
+  @include none;
+  font-family: $font-secondary;
+  font-size: $t-body-des;
+  color: rgba($misty-lavender, 0.35);
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+  transition: color 0.2s;
+
+  svg { flex-shrink: 0; }
+
+  &:hover { color: rgba($misty-lavender, 0.7); }
+}
+
+.rb-sidebar__help {
+  font-family: $font-secondary;
+  font-size: $t-body-mob;
+  color: rgba($misty-lavender, 0.25);
+  line-height: 1.5;
+
+  a {
+    color: rgba($serene-purple, 0.6);
+    text-decoration: none;
+    font-weight: $fw-medium;
+    &:hover { color: $serene-purple; text-decoration: underline; }
+  }
+}
+
+// Main Form Area 
+.rb-main {
+  background: $soft-pearl;
+  min-height: 100dvh;
+  overflow-y: auto;
+}
+
+.rb-main__inner {
+  max-width: 740px;
+  padding: $space-xxl $space-xxl 8rem;
+
+  @media (max-width: $bp-tablet) { padding: $space-xl $space-xl 6rem; }
+  @media (max-width: $bp-mobile) { padding: $space-xl $space-lg 5rem; }
+}
+
+.rb-main__header { margin-bottom: $space-xxl; }
+
+.rb-main__title {
+  font-family: $font-primary;
+  font-size: clamp(1.7rem, 3vw, 2.3rem);
+  font-weight: $fw-regular;
+  color: $text-color-dark;
+  letter-spacing: 0.03em;
+  margin-bottom: $space-md;
+  line-height: 1.15;
+}
+
+.rb-main__sub {
+  font-size: $t-body-des;        
+  color: #7c7c99;
+  line-height: 1.7;
+}
+
+// Section Blocks 
+.rb-form-section {
+  @include column;
+  gap: $space-xxl;
+}
+
+.rb-section-block {
+  @include column;
+  gap: $space-lg;
+}
+
+.rb-section-heading {
+  font-family: $font-primary;
+  font-size: $t-body-mob;
+  font-weight: $fw-bold;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba($twilight-purple, 0.55);
+  padding-bottom: $space-sm;
+  border-bottom: 1px solid rgba($twilight-purple, 0.1);
+}
+
+// Field Layout 
+.rb-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $space-lg;
+
+  @media (max-width: $bp-mobile) { grid-template-columns: 1fr; }
+}
+
+.rb-field {
+  @include column;
+  gap: $space-xs;
+}
+
+.rb-label {
+  font-family: $font-secondary;
+  font-size: $t-body-des;
+  font-weight: $fw-bold;
+  color: $twilight-purple;
+  letter-spacing: 0.02em;
+}
+
+.rb-optional {
+  font-weight: $fw-regular;
+  color: rgba($twilight-purple, 0.45);
+}
+
+// Inputs 
+.rb-input {
+  width: 100%;
+  padding: $space-md $space-lg;
+  border: 1.5px solid rgba($twilight-purple, 0.2);
+  border-radius: $radius-md;
+  font-family: $font-secondary;
+  font-size: $t-body-des; 
+  color: $text-color-dark;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  min-height: 48px;
+
+  &::placeholder {
+    color: rgba($twilight-purple, 0.3);
+    font-style: italic;
+    font-size: $t-body-des;
+  }
+
+  &:focus {
+    border-color: $serene-purple;
+    box-shadow: 0 0 0 3px rgba($serene-purple, 0.12);
+  }
+
+  &--error {
+    border-color: #dc2626;
+    background: #fff8f8;
+    &:focus { box-shadow: 0 0 0 3px rgba(#dc2626, 0.1); }
+  }
+}
+
+.rb-textarea {
+  @extend .rb-input;
+  resize: vertical;
+  min-height: 96px;
+  line-height: 1.6;
+}
+
+// Password Field 
+.rb-pw-wrap {
+  @include relative;
+  .rb-input { padding-right: 3rem; }
+}
+
+.rb-pw-eye {
+  right: $space-md;
+  top: 50%;
+  transform: translateY(-50%);
+  @include none;
+  cursor: pointer;
+  color: rgba($twilight-purple, 0.35);
+  @include center;
+  @include absolute;
+  transition: color 0.2s;
+  padding: $space-xs;
+
+  &:hover { color: $serene-purple; }
+}
+
+// Field Error 
+.rb-field-error {
+  @include center;
+  gap: $space-xs;
+  font-family: $font-secondary;
+  font-size: $t-body-des;
+  font-weight: $fw-medium;
+  color: #dc2626;
+  line-height: 1.4;
+}
+
+// Type Chip Grid 
+.rb-type-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: $space-sm;
+  margin-top: $space-sm;
+
+  @media (max-width: $bp-tablet) { grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: $bp-mobile) { grid-template-columns: repeat(2, 1fr); }
+}
+
+.rb-type-chip {
+  @include column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: $space-md;
+  background: rgba($twilight-purple, 0.04);
+  border: 1.5px solid rgba($twilight-purple, 0.14);
+  border-radius: $radius-md;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+  font-family: $font-secondary;
+  min-height: 80px;
+
+  &:hover {
+    background: rgba($serene-purple, 0.07);
+    border-color: rgba($serene-purple, 0.35);
+    transform: translateY(-1px);
+  }
+
+  &--selected {
+    background: rgba($serene-purple, 0.09);
+    border-color: $serene-purple;
+    box-shadow: 0 0 0 3px rgba($serene-purple, 0.1);
+  }
+
+  &__icon {
+    width: 28px; height: 28px;
+    @include flex-center;
+    flex-shrink: 0;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+  }
+  &__label { font-size: $t-body-des; font-weight: $fw-bold; color: $text-color-dark; line-height: 1.2; }
+  &__desc  { font-size: $t-body-mob; color: rgba($twilight-purple, 0.5); line-height: 1.3; }
+}
+
+.rb-not-listed {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-xs;
+  margin-top: $space-md;
+  font-size: $t-body-des;
+  color: $serene-purple;
+  text-decoration: none;
+  font-weight: $fw-medium;
+  transition: color 0.2s;
+
+  &:hover { color: $gentle-amethyst; text-decoration: underline; }
+}
+
+// Document Upload
+.rb-doc-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-lg;
+  padding: $space-xl;
+  background: linear-gradient(135deg, rgba($serene-purple, 0.08), rgba($gentle-amethyst, 0.04));
+  border: 1px solid rgba($serene-purple, 0.22);
+  border-radius: $radius-lg;
+
+  &__icon { font-size: 2rem; flex-shrink: 0; }
+
+  &__title {
+    font-family: $font-primary;
+    font-size: $t-sub-tab;
+    color: $text-color-dark;
+    margin-bottom: $space-sm;
+  }
+
+  &__text {
+    font-size: $t-body-des;
+    color: #7c7c99;
+    line-height: 1.65;
+  }
+}
+
+.rb-doc-examples {
+  &__title {
+    font-size: $t-body-mob;
+    font-weight: $fw-bold;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba($twilight-purple, 0.45);
+    margin-bottom: $space-md;
+  }
+
+  ul {
+    list-style: none;
+    @include column;
+    gap: $space-sm;
+
+    li {
+      font-size: $t-body-des; 
+      color: $text-color-dark;
+      line-height: 1.5;
+    }
+  }
+}
+
+.rb-upload-zone {
+  border: 2px dashed rgba($twilight-purple, 0.2);
+  border-radius: $radius-lg;
+  background: rgba($twilight-purple, 0.02);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  outline: none;
+
+  &:hover, &--drag {
+    border-color: $serene-purple;
+    background: rgba($serene-purple, 0.04);
+  }
+
+  &--has-file {
+    border-style: solid;
+    border-color: #059669;
+    background: rgba(#059669, 0.03);
+  }
+
+  &--error { border-color: #dc2626; }
+
+  &:focus-visible {
+    box-shadow: 0 0 0 3px rgba($serene-purple, 0.2);
+  }
+
+  &__placeholder {
+    @include flex-column;
+    gap: $space-md;
+    padding: $space-xxl $space-xl;
+    text-align: center;
+  }
+
+  &__icon {
+    width: 64px; height: 64px;
+    background: rgba($serene-purple, 0.08);
+    border-radius: $radius-md;
+    @include flex-center;
+    svg { stroke: $serene-purple; opacity: 0.7; }
+  }
+
+  &__cta {
+    font-size: $t-link-des;
+    font-weight: $fw-medium;
+    color: $text-color-dark;
+  }
+
+  &__sub {
+    font-size: $t-body-des;
+    color: rgba($twilight-purple, 0.45);
+  }
+
+  &__success {
+    @include center;
+    gap: $space-lg;
+    padding: $space-xl;
+  }
+
+  &__filename {
+    font-size: $t-body-des;
+    font-weight: $fw-medium;
+    color: $text-color-dark;
+    word-break: break-all;
+  }
+
+  &__filesize {
+    font-size: $t-body-mob;
+    color: rgba($twilight-purple, 0.45);
+    margin-top: 3px;
+  }
+
+  &__remove {
+    margin-left: auto;
+    background: none;
+    border: 1px solid rgba($twilight-purple, 0.2);
+    border-radius: $radius-sm;
+    padding: $space-xs $space-md;
+    font-size: $t-body-des;
+    font-family: $font-secondary;
+    color: rgba($twilight-purple, 0.5);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    min-height: 36px;
+
+    &:hover { border-color: #dc2626; color: #dc2626; }
+  }
+}
+
+// Verification Steps
+.rb-verify-flow {
+  @include center;
+  gap: $space-md;
+  padding: $space-xl;
+  background: rgba($twilight-purple, 0.04);
+  border-radius: $radius-lg;
+
+  @media (max-width: $bp-mobile) {
+    @include column;
+    align-items: flex-start;
+
+    .rb-verify-step__arrow { transform: rotate(90deg); }
+  }
+}
+
+.rb-verify-step {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-sm;
+  flex: 1;
+
+  p {
+    font-size: $t-body-des; 
+    color: $text-color-dark;
+    line-height: 1.5;
+    strong { color: $serene-purple; font-weight: $fw-bold; }
+  }
+
+  &__num {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: $serene-purple;
+    color: $soft-pearl;
+    font-size: $t-body-des;
+    font-weight: $fw-bold;
+    @include flex-center;
+    flex-shrink: 0;
+  }
+
+  &__arrow {
+    font-size: 1.1rem;
+    color: rgba($twilight-purple, 0.3);
+    flex-shrink: 0;
+  }
+}
+
+.rb-no-doc-note {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-sm;
+  padding: $space-lg;
+  background: #fff8f0;
+  border: 1px solid #fed7aa;
+  border-radius: $radius-md;
+
+  svg { stroke: #d97706; flex-shrink: 0; margin-top: 2px; }
+
+  p {
+    font-size: $t-body-des;
+    color: #92400e;
+    line-height: 1.6;
+
+    a {
+      color: $serene-purple;
+      font-weight: $fw-medium;
+      text-decoration: none;
+      &:hover { text-decoration: underline; }
+    }
+  }
+}
+
+// API Error 
+.rb-api-error {
+  @include center;
+  gap: $space-sm;
+  margin-top: $space-lg;
+  padding: $space-md $space-lg;
+  background: #fff5f5;
+  border: 1px solid #fca5a5;
+  border-radius: $radius-md;
+  font-family: $font-secondary;
+  font-size: $t-body-des; 
+  font-weight: $fw-medium;
+  color: #b91c1c;
+
+  svg { stroke: #b91c1c; flex-shrink: 0; }
+}
+
+// Form Actions 
+.rb-form-actions {
+  @include center;
+  justify-content: flex-end;
+  gap: $space-lg;
+  margin-top: $space-xxl;
+  padding-top: $space-xl;
+  border-top: 1px solid rgba($twilight-purple, 0.1);
+}
+
+.rb-btn-next {
+  @include center;
+  gap: $space-sm;
+  background: $serene-purple;
+  color: $soft-pearl;
+  border: none;
+  border-radius: $radius-lg;
+  padding: $space-md $space-xxl;
+  font-family: $font-secondary;
+  font-size: $t-but-des;
+  font-weight: $fw-bold;
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  transition: all 0.25s ease;
+  box-shadow: $shadow-md;
+  min-height: 48px;
+
+  svg { transition: transform 0.2s; }
+
+  &:hover:not(&--loading) {
+    background: $gentle-amethyst;
+    transform: translateY(-2px);
+    box-shadow: $shadow-purple-glow;
+    svg { transform: translateX(3px); }
+  }
+
+  &--loading {
+    opacity: 0.72;
+    cursor: not-allowed;
+  }
+}
+
+.rb-btn-back {
+  @include center;
+  @include none;
+  gap: $space-xs;
+  font-family: $font-secondary;
+  font-size: $t-body-des;
+  color: rgba($twilight-purple, 0.5);
+  cursor: pointer;
+  padding: $space-sm $space-md;
+  border-radius: $radius-sm;
+  min-height: 48px;
+  transition: all 0.2s;
+
+  &:hover {
+    background: rgba($twilight-purple, 0.06);
+    color: $twilight-purple;
+  }
+}
+
+.rb-spinner {
+  display: inline-block;
+  width: 16px; height: 16px;
+  border: 2px solid rgba($soft-pearl, 0.35);
+  border-top-color: $soft-pearl;
+  border-radius: 50%;
+  animation: rbSpin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes rbSpin { to { transform: rotate(360deg); } }
+
+// Success Screen 
+.rb-success {
+  min-height: 100vh;
+  @include flex-column;
+  padding: 5rem 1.5rem;
+  margin: 0 auto;
+  background: $soft-pearl;
+  @include relative;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    @include absolute;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, $misty-lavender 0%, transparent 70%);
+    top: -150px;
+    right: -150px;
+    opacity: 0.5;
+    z-index: 0;
+  }
+
+  &__card {
+    @include relative;
+    z-index: 1;
+    padding: 3rem 3.5rem;
+    border-radius: 20px;
+    box-shadow:
+      0 20px 50px rgba(58, 47, 81, 0.08),
+      0 5px 15px rgba(58, 47, 81, 0.05);
+    text-align: center;
+    max-width: 600px;
+    width: 100%;
+    animation: fadeInUp 0.6s ease forwards;
+  }
+
+  &__icon {
+    width: 150px;
+    height: 150px;
+    margin: 0 auto 1.8rem;
+    @include flex-center;
+    background: linear-gradient(
+      135deg,
+      $misty-lavender,
+      $gentle-amethyst
+    );
+    border-radius: $radius-round;
+    box-shadow: 0 10px 25px rgba(146, 122, 207, 0.25);
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+
+    img {
+      width: 125px;
+      height: 125px;
+    }
+
+    // Micro interaction on hover
+    &:hover {
+      transform: scale(1.05) rotate(4deg);
+      box-shadow: 0 15px 35px rgba(146, 122, 207, 0.35);
+    }
+  }
+
+  &__title {
+    font-size: $t-title-des;
+    font-weight: $fw-bold;
+    color: $twilight-purple;
+    margin-bottom: $space-4xl;
+    letter-spacing: -0.5px;
+  }
+
+  &__text {
+    max-width: 40vw;
+    font-size: $t-body-des;
+    line-height: $lh-loose;
+    color: darken($twilight-purple, 10%);
+    opacity: 0.85;
+    margin-bottom: $space-4xl;
+  }
+
+  &__btn {
+    display: inline-block;
+    padding: 0.9rem 1.8rem;
+    border-radius: 12px;
+    font-weight: $fw-bold;
+    text-decoration: none;
+    background: linear-gradient(
+      135deg,
+      $serene-purple,
+      $gentle-amethyst
+    );
+    color: $soft-pearl;
+    box-shadow: 0 10px 20px rgba(146, 122, 207, 0.25);
+    transition: all 0.25s ease;
+    @include relative;
+    overflow: hidden;
+
+    &:hover {
+      transform: translateY(-3px);
+      color: $twilight-purple;
+      box-shadow: 0 15px 30px rgba(146, 122, 207, 0.35);
+    }
+
+    &:active {
+      transform: translateY(0);
+      box-shadow: 0 6px 15px rgba(146, 122, 207, 0.25);
+    }
+
+    &::after {
+      content: "";
+      @include absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        120deg,
+        transparent,
+        rgba(255, 255, 255, 0.3),
+        transparent
+      );
+      transition: 0.6s;
+    }
+
+    &:hover::after {
+      left: 100%;
+    }
+  }
+}
+
+// Entrance animation
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+// Photo Upload 
+.rb-photo-upload {
+  border: 2px dashed rgba($twilight-purple, 0.2);
+  border-radius: $radius-lg;
+  background: rgba($twilight-purple, 0.02);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  outline: none;
+  overflow: hidden;
+
+  &:hover {
+    border-color: $serene-purple;
+    background: rgba($serene-purple, 0.04);
+  }
+
+  &:focus-visible {
+    box-shadow: 0 0 0 3px rgba($serene-purple, 0.2);
+  }
+
+  &--error {
+    border-color: #dc2626;
+    background: #fff8f8;
+  }
+
+  &--has-photo {
+    border-style: solid;
+    border-color: rgba($serene-purple, 0.35);
+    background: rgba($serene-purple, 0.03);
+  }
+
+  &__placeholder {
+    @include flex-column;
+    align-items: center;
+    gap: $space-md;
+    padding: $space-xxl $space-xl;
+    text-align: center;
+  }
+
+  &__icon {
+    width: 64px; height: 64px;
+    background: rgba($serene-purple, 0.08);
+    border-radius: $radius-md;
+    @include flex-center;
+    font-size: 1.8rem;
+  }
+
+  &__cta {
+    font-size: $t-link-des;
+    font-weight: $fw-medium;
+    color: $text-color-dark;
+  }
+
+  &__sub {
+    font-size: $t-body-des;
+    color: rgba($twilight-purple, 0.45);
+  }
+
+  &__preview {
+    @include relative;
+    width: 100%;
+
+    img {
+      width: 100%;
+      max-height: 240px;
+      object-fit: cover;
+      display: block;
+    }
+  }
+
+  &__remove {
+    @include absolute;
+    top: $space-sm;
+    right: $space-sm;
+    background: rgba(#fff, 0.92);
+    border: 1px solid rgba($twilight-purple, 0.2);
+    border-radius: $radius-sm;
+    padding: $space-xs $space-md;
+    font-family: $font-secondary;
+    font-size: $t-body-des;
+    font-weight: $fw-bold;
+    color: #b91c1c;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-height: 36px;
+    @include center;
+    gap: $space-xs;
+
+    &:hover {
+      background: #fff;
+      border-color: #dc2626;
+      box-shadow: $shadow-sm;
+    }
+  }
+}
