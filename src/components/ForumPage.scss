@@ -1,0 +1,690 @@
+@import '../styles/variables';
+@import '../styles/mixins';
+$border-color: rgba($serene-purple, 0.14);
+// ANIMATIONS
+@keyframes reveal-up {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes likePop {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.5); }
+  65%  { transform: scale(0.88); }
+  100% { transform: scale(1); }
+}
+@keyframes replySlide {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes forumFadeIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes forumSlideUp {
+  from { transform: translateY(24px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+@keyframes commentGlow {
+  0%   { box-shadow: 0 0 0 3px rgba($serene-purple, 0.4); }
+  100% { box-shadow: 0 0 0 3px rgba($serene-purple, 0); }
+}
+@keyframes rowIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+// LOCKED 
+.forum-locked {
+  @include relative;
+  min-height: 100vh;
+  overflow: hidden;
+  @include flex-center;
+  background: $soft-pearl;
+
+  &__blur-bg {
+    @include absolute; inset: 0; @include column; gap: $space-md;
+    padding: $space-xxl; filter: blur(8px); opacity: 0.3;
+    pointer-events: none; z-index: 0;
+  }
+  &__fake-hero { background: $twilight-purple; border-radius: $radius-lg; height: 160px; width: 100%; }
+  &__fake-row  { background: rgba($misty-lavender, 0.5); border-radius: $radius-md; height: 52px; width: 100%; &--short { width: 65%; } }
+  &__overlay   { @include absolute; inset: 0; background: linear-gradient(to bottom, rgba($soft-pearl,.2) 0%, rgba($soft-pearl,.88) 40%, $soft-pearl 100%); z-index: 1; pointer-events: none; }
+
+  &__card {
+    @include relative; z-index: 2; @include flex-column; gap: $space-lg;
+    width: calc(100% - 2rem); max-width: 440px;
+    padding: $space-xl; background: $soft-pearl; border-radius: $radius-lg;
+    box-shadow: 0 24px 72px rgba($twilight-purple,.14), 0 0 0 1px rgba($twilight-purple,.06);
+    animation: fade-up 0.5s ease both; text-align: center;
+    @media (min-width: $bp-mobile) { padding: $space-xxl; }
+  }
+  &__icon    { @include icon-box(56px); background: rgba($serene-purple,.1); color: $serene-purple; font-size: 1.6rem; border-radius: $radius-lg; @include margin-center; }
+  &__title   { @include type-display($weight: $fw-bold); font-size: clamp(1.5rem,5vw,2.1rem); color: $twilight-purple; letter-spacing: -.025em; margin: 0; line-height: 1.1; }
+  &__sub     { @include type-ui($t-but-des,$fw-regular); color: rgba($twilight-purple,.6); line-height: $lh-loose; margin: 0; strong { color: $twilight-purple; font-weight: $fw-bold; } }
+  &__actions { @include flex-center; gap: $space-sm; flex-wrap: wrap; width: 100%; }
+  &__btn {
+    @include center; gap: $space-sm; @include type-ui($t-but-des,$fw-bold); text-decoration: none;
+    padding: 12px $space-xl; border-radius: $radius-md; transition: all .2s; flex: 1; min-width: 128px; @include flex-center;
+    &--primary { background: $twilight-purple; color: $soft-pearl; &:hover { background: $serene-purple; transform: translateY(-2px); box-shadow: 0 8px 24px rgba($twilight-purple,.26); } }
+    &--ghost   { background: transparent; color: $twilight-purple; border: 1.5px solid rgba($twilight-purple,.2); &:hover { border-color: $twilight-purple; background: rgba($twilight-purple,.04); } }
+  }
+  &__hint { @include type-ui(.8rem,$fw-regular); color: rgba($twilight-purple,.4); margin: 0; a { color: $serene-purple; text-decoration: none; font-weight: $fw-medium; &:hover { text-decoration: underline; } } }
+}
+
+// Page wrapper
+.forum-page,
+.forum-page__inner,
+.forum-content {
+  background: $soft-pearl;
+  width: 100%; max-width: 100vw;
+  overflow-x: hidden; box-sizing: border-box;
+}
+
+.forum-page { @include column; align-items: stretch; min-height: 100vh; gap: 0; background: $soft-pearl; }
+
+// Hero
+.forum-page-hero {
+  display: flex; align-items: stretch;
+  background: $twilight-purple;
+  background-image:
+    radial-gradient(ellipse at 65% 40%, rgba($serene-purple,.32) 0%, transparent 55%),
+    radial-gradient(ellipse at 5% 85%, rgba($misty-lavender,.08) 0%, transparent 45%);
+  overflow: hidden; box-sizing: border-box;
+  @include relative;
+  min-height: 340px;
+  animation: fade-up 0.6s ease both;
+
+  @media (min-width: $bp-tablet) {
+    min-height: 420px;
+  }
+
+  &__left {
+    @include column; gap: $space-md; z-index: 1; min-width: 0;
+    padding: $space-xxl $space-lg $space-xl;
+    flex: 0 0 58%;
+    max-width: 58%;
+
+    @media (min-width: $bp-tablet) {
+      gap: $space-lg;
+      padding: $space-4xl clamp($space-xl, 5vw, 72px) $space-xxl;
+      flex: 0 0 54%;
+      max-width: 54%;
+    }
+
+    @media (max-width: #{$bp-tablet - 1px}) {
+      flex: 1; max-width: 100%;
+    }
+  }
+  &__ctas {
+    display: flex;
+    margin: $space-xl 0 $space-md 0;
+    gap: $space-sm;
+    font-size: $t-forgot-des;
+    animation: reveal-up 0.65s 0.25s ease both;
+    font-family: $font-secondary;
+    font-size: 0.8rem;
+    font-weight: $fw-bold;
+    letter-spacing: 0.04em;
+    @include cursor;
+    border: none;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: $space-sm;
+    transition: all 0.22s ease;
+  }
+  &__cta--primary {
+    background: $soft-pearl;
+    color: $twilight-purple;
+    padding: 12px $space-xl;
+    border-radius: 4px;
+
+    &:hover {
+      background: $misty-lavender;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    }
+  }
+
+  &__cta--ghost {
+    background: transparent;
+    color: rgba($soft-pearl, 0.5);
+    padding: 12px 0;
+    border-bottom: 1px solid rgba($soft-pearl, 0.2);
+    border-radius: 0;
+
+    &:hover { color: $soft-pearl; border-color: $soft-pearl; border: none;}
+  }
+  &__eyebrow {
+    @include center; gap: $space-sm; justify-content: flex-start; font-family: $font-secondary;
+    &::before { content: ''; display: block; width: 18px; height: 1.5px; background: rgba($soft-pearl,.22); flex-shrink: 0; }
+    span { @include type-ui(.62rem,$fw-bold); @include label-caps(.2em); color: rgba($soft-pearl,.5); }
+  }
+  &__title {
+    @include type-display($weight: $fw-bold); font-size: clamp(2rem,4.5vw,3.6rem);
+    color: $soft-pearl; line-height: 1.05; letter-spacing: -.035em; margin: 0;
+    em { font-style: italic; color: rgba($misty-lavender,.72); font-weight: $fw-regular; }
+  }
+  &__sub { @include type-ui($t-but-des,$fw-regular); color: rgba($soft-pearl,.5); line-height: $lh-loose; margin-top: $space-md; max-width: 380px; }
+
+  &__search {
+    @include center; max-width: 440px;
+    background: rgba($soft-pearl,.08); border: 1px solid rgba($soft-pearl,.14);
+    border-radius: $radius-md; overflow: hidden; transition: all .22s;
+    &:focus-within { background: rgba($soft-pearl,.13); border-color: rgba($soft-pearl,.3); box-shadow: 0 0 0 3px rgba($soft-pearl,.06); }
+  }
+  &__search-icon  { color: rgba($soft-pearl,.28); padding: 0 $space-md; flex-shrink: 0; font-size: .85rem; }
+  &__search-input { flex: 1; border: none; background: transparent; @include type-ui($t-but-des,$fw-regular); color: $soft-pearl; padding: 13px 0; outline: none; min-width: 0; &::placeholder { color: rgba($soft-pearl,.26); } }
+  &__search-clear { @include none; @include cursor; color: rgba($soft-pearl,.32); padding: 0 $space-sm; font-size: 1rem; transition: color .18s; &:hover { color: $soft-pearl; } }
+  &__search-btn   { @include none; @include cursor; @include type-ui($t-forgot-des,$fw-bold); background: $gentle-amethyst; color: $soft-pearl; padding: 16px $space-lg; flex-shrink: 0; transition: background .18s; border-left: 1px solid rgba($soft-pearl,.1); &:hover { background: rgba($serene-purple, 0.6); outline: none; } }
+
+  // ── Right image
+  &__right {
+    display: none;
+
+    @media (min-width: $bp-tablet) {
+      display: block;
+      flex: 1;
+      @include relative;
+      overflow: hidden;
+
+      //::after gradient fade
+      &::after {
+        content: '';
+        @include absolute;
+        inset: 0;
+        background: linear-gradient(
+          to right,
+          $twilight-purple                0%,
+          rgba($twilight-purple, 0.55)   14%,
+          rgba($twilight-purple, 0.12)   30%,
+          transparent                    46%
+        );
+        pointer-events: none;
+        z-index: 1;
+      }
+    }
+
+    img {
+      display: block;
+      @include absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center center;
+    }
+  }
+}
+
+// INNER LAYOUT
+.forum-cats-mobile,
+.forum-cats,
+.forum-table-wrap,
+.forum-cta,
+.forum-loading,
+.post-detail {
+  @include relative; z-index: 1;
+  margin-left:  clamp($space-md, 4vw, 64px);
+  margin-right: clamp($space-md, 4vw, 64px);
+  max-width:    calc(100vw - clamp(#{$space-md}, 4vw, 64px) * 2);
+  box-sizing:   border-box;
+}
+
+.forum-cats-mobile { margin-top: $space-lg;  @media (min-width: $bp-tablet) { display: none !important; } }
+.forum-cats        { margin-top: $space-xl;  margin-bottom: $space-md; }
+.forum-table-wrap  { margin-bottom: $space-lg; }
+.forum-cta         { margin-bottom: $space-xxl; }
+
+//Loading
+.forum-loading {
+  @include flex-center; flex-direction: column; gap: $space-sm;
+  min-height: 200px; @include type-ui($t-body-des,$fw-regular); color: $gentle-amethyst;
+  &::before { content: ''; width: 28px; height: 28px; border: 2.5px solid rgba($serene-purple,.18); border-top-color: $serene-purple; border-radius: 50%; animation: spin .75s linear infinite; }
+  &--error { color: #ef4444; &::before { display: none; } }
+}
+
+// CATEGORY TABS 
+.forum-cats-mobile {
+  display: block; @include relative;
+  &::after { content: ''; @include absolute; right: $space-md; top: 50%; transform: translateY(-50%); border: 5px solid transparent; border-top-color: $gentle-amethyst; pointer-events: none; }
+}
+
+.forum-cats-select {
+  width: 100%; padding: $space-sm $space-xl $space-sm $space-md;
+  background: $soft-pearl; border: 1.5px solid $border-color; border-radius: $radius-md;
+  @include type-ui($t-body-des,$fw-regular); color: $text-color-dark; @include cursor;
+  appearance: none; -webkit-appearance: none; outline: none;
+  box-shadow: 0 1px 4px rgba($twilight-purple,.05); transition: border-color .18s;
+  &:focus { border-color: $serene-purple; box-shadow: 0 0 0 3px rgba($serene-purple,.1); }
+}
+
+.forum-cats {
+  display: none;
+  @media (min-width: $bp-tablet) { display: flex; flex-wrap: wrap; gap: $space-xs; }
+}
+
+.forum-cat-tab {
+  padding: 7px $space-md; border: 1.5px solid $border-color; border-radius: 99px;
+  @include none; @include type-ui($t-but-des,$fw-regular); color: rgba($twilight-purple,.6);
+  @include cursor; transition: all .16s; white-space: nowrap; background: transparent;
+  &:hover { border-color: rgba($serene-purple,.45); color: $twilight-purple; background: rgba($serene-purple,.05); transform: translateY(-1px); }
+  &.active { background: $twilight-purple; border-color: $twilight-purple; color: $misty-lavender; font-weight: $fw-medium; box-shadow: 0 3px 10px rgba($twilight-purple,.24); transform: translateY(-1px); }
+}
+
+// TABLE 
+.forum-table-wrap {
+  background: $soft-pearl;
+  border-radius: $radius-lg;
+  box-shadow: 0 1px 10px rgba($twilight-purple,.07), 0 0 0 1px rgba($twilight-purple,.05);
+  overflow: hidden;
+}
+
+.forum-table {
+  width: 100%; max-width: 100%;
+  border-collapse: collapse; table-layout: fixed;
+
+  thead {
+    background: rgba($misty-lavender,.35);
+    border-bottom: 1px solid rgba($serene-purple,.1);
+    th {
+      font-family: $font-secondary; font-size: .88rem; font-weight: $fw-bold;
+      color: $twilight-purple; padding: $space-sm $space-md;
+      text-align: left; letter-spacing: .1em; text-transform: uppercase;
+      white-space: nowrap; overflow: hidden;
+      @media (min-width: $bp-tablet) { padding: 12px $space-lg; }
+    }
+  }
+  tbody tr { border-top: 1px solid rgba($twilight-purple,.07); }
+}
+
+.forum-row {
+  @include cursor; transition: background .16s;
+  animation: rowIn .28s ease both;
+
+  @for $i from 1 through 20 {
+    &:nth-child(#{$i}) { animation-delay: #{$i * 0.025}s; }
+  }
+
+  &:hover {
+    background: rgba($misty-lavender,.2);
+    .forum-row-title { color: $twilight-purple; }
+  }
+
+  td {
+    font-family: $font-secondary; font-size: $t-body-mob; color: $text-color-dark;
+    padding: $space-sm $space-md; vertical-align: middle; overflow: hidden;
+    @media (min-width: $bp-tablet) { font-size: $t-body-des; padding: 14px $space-lg; }
+  }
+}
+
+.forum-row-title-wrap { @include column; gap: 2px; min-width: 0; }
+
+.forum-row-title {
+  font-weight: $fw-regular; color: $text-color-dark; line-height: $lh-normal;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden; word-break: break-word; transition: color .16s;
+  @media (min-width: $bp-tablet) { -webkit-line-clamp: 1; }
+}
+.forum-row-meta {
+  @include type-ui(.72rem,$fw-regular); color: $twilight-purple;
+  display: block;
+  @media (min-width: $bp-tablet) { display: none; }
+}
+
+// COLUMNS 
+.col-title    { width: 40%; font-size: $t-but-des; }
+
+.col-date {
+  width: 15%; white-space: nowrap; color: $twilight-purple !important;
+  display: none;
+  @media (min-width: $bp-tablet) { display: table-cell; }
+}
+
+.col-cat {
+  width: 15%; white-space: nowrap;
+  display: none;
+  @media (min-width: $bp-mobile) { display: table-cell; }
+}
+
+.col-comments { width: 15%; text-align: center; white-space: nowrap; color: $twilight-purple !important;}
+
+.col-action {
+  width: 25%; text-align: right;
+  color: $twilight-purple;
+  @media (min-width: $bp-mobile) { display: table-cell; }
+}
+
+.forum-cat-label {
+  @include type-ui($t-link-des, $fw-bold); color: $twilight-purple;
+  padding: 2px 9px; display: inline-block;
+}
+
+.forum-replies-pill {
+  @include type-ui($t-link-des,$fw-bold); color: $twilight-purple;
+  padding: 2px 9px; display: inline-block; min-width: 26px; text-align: center;
+}
+
+.forum-empty-row { text-align: center; @include type-ui($t-body-des,$fw-regular); color: $gentle-amethyst; padding: $space-4xl $space-md !important; }
+
+.forum-count {
+  @include type-ui($t-forgot-des,$fw-regular); color: $gentle-amethyst;
+  padding: $space-sm $space-lg; margin: 0;
+  border-top: 1px solid rgba($serene-purple,.07); background: rgba($misty-lavender,.15);
+}
+
+.forum-row-actions { @include center; justify-content: flex-end; gap: 4px; }
+
+.forum-open-btn { @include none; border: 1.5px solid $border-color; border-radius: $radius-sm; width: 30px; height: 30px; @include flex-center; @include cursor; color: $twilight-purple; transition: all .16s; &:hover { border-color: $serene-purple; color: $twilight-purple; background: rgba($serene-purple,.07); } }
+.forum-report-row-btn { @include none; border: 1.5px solid transparent; border-radius: $radius-sm; width: 30px; height: 30px; @include flex-center; @include cursor; color: $twilight-purple; font-size: .75rem; transition: all .16s; &:hover { border-color: #f59e0b; color: #f59e0b; background: rgba(245,158,11,.07); } }
+.forum-delete-row-btn { @include none; border: 1.5px solid transparent; border-radius: $radius-sm; width: 30px; height: 30px; @include flex-center; @include cursor; color: $twilight-purple; font-size: .75rem; transition: all .16s; &:hover { border-color: #ef4444; color: #ef4444; background: rgba(239,68,68,.06); } }
+
+// CTA BANNER 
+.forum-cta {
+  @include relative; @include flex-column; align-items: center; gap: $space-md;
+  background: $twilight-purple;
+  background-image:
+    radial-gradient(ellipse at 15% 50%, rgba($serene-purple,.28) 0%, transparent 55%),
+    radial-gradient(circle, rgba($soft-pearl,.025) 1px, transparent 1px);
+  background-size: auto, 20px 20px;
+  border-radius: $radius-lg; padding: $space-xl $space-lg; overflow: hidden;
+  &::before { content: ''; @include absolute; right: -36px; bottom: -36px; width: 170px; height: 170px; background: rgba($serene-purple,.13); border-radius: 50%; pointer-events: none; }
+  @media (min-width: $bp-tablet) { flex-direction: row; justify-content: space-between; padding: $space-xxl $space-xl; }
+}
+.forum-cta-text { @include type-display($weight: $fw-regular); font-size: clamp($t-but-des,2.5vw,$t-sub-des); color: $misty-lavender; margin: 0; text-align: center; @media (min-width: $bp-tablet) { text-align: left; } }
+.forum-cta-btn  { @include none; @include center; gap: $space-xs; @include type-ui($t-but-des,$fw-bold); color: $twilight-purple; background: $soft-pearl; padding: $space-sm $space-xl; border-radius: $radius-md; @include cursor; transition: all .2s; white-space: nowrap; flex-shrink: 0; box-shadow: 0 4px 14px rgba($twilight-purple,.28); &:hover { background: $gentle-amethyst; color: $twilight-purple; transform: translateY(-2px); box-shadow: 0 8px 22px rgba($twilight-purple,.38); } }
+
+// AVATAR 
+.forum-avatar {
+  border-radius: $radius-round; background: $misty-lavender;
+  @include flex-center; flex-shrink: 0; overflow: hidden; color: $twilight-purple;
+  img { width: 100%; height: 100%; object-fit: cover; }
+}
+
+// POST DETAIL PAGE 
+.post-detail {
+  @include column; align-items: stretch; gap: $space-lg;
+  padding-top: $space-lg; padding-bottom: $space-5xl;
+  animation: fade-in .25s ease both;
+  background: $soft-pearl;   // explicit — covers any dark app shell behind it
+  flex: 1;                   // stretch to fill .forum-page height
+  @media (min-width: $bp-tablet) { gap: $space-xl; padding-top: $space-xl; }
+}
+
+.forum-back-btn {
+  @include none; @include type-ui($t-but-des,$fw-medium); color: $serene-purple; @include cursor;
+  align-self: flex-start; @include center; gap: $space-xs;
+  padding: 7px 14px; border-radius: $radius-md; border: 1.5px solid rgba($serene-purple,.22);
+  background: $soft-pearl; transition: all .18s;
+  &:hover { background: rgba($serene-purple,.06); border-color: $serene-purple; transform: translateX(-2px); }
+}
+
+// The post card — editorial, airy, no dark bg
+.post-detail-card {
+  background: white;
+  border-radius: $radius-lg;
+  padding: $space-xl;
+  box-shadow: 0 2px 20px rgba($twilight-purple,.07), 0 0 0 1px rgba($twilight-purple,.05);
+  @include column; align-items: flex-start; gap: $space-lg;
+  @media (min-width: $bp-tablet) { padding: $space-4xl; }
+
+  // top row
+  &__top {
+    @include flex-between; width: 100%; align-items: center; flex-wrap: wrap; gap: $space-sm;
+  }
+}
+
+.post-category-badge {
+  @include type-ui(.66rem,$fw-bold); color: $twilight-purple;
+  background: rgba($serene-purple,.1); border-radius: 99px; padding: 4px 12px;
+  letter-spacing: .08em; text-transform: uppercase;
+}
+
+.post-report-btn {
+  @include none; @include cursor; @include center; gap: 5px;
+  @include type-ui(.76rem,$fw-medium); color: $gentle-amethyst;
+  border: 1px solid rgba($gentle-amethyst,.22); border-radius: 20px; padding: 5px $space-md;
+  transition: all .18s;
+  &:hover { color: #f59e0b; border-color: #f59e0b; background: rgba(245,158,11,.05); }
+}
+
+// Big editorial title
+.post-detail-title {
+  @include type-display($weight: $fw-regular);
+  font-size: clamp(1.5rem, 4vw, 2.4rem);
+  color: $text-color-dark; margin: 0;
+  line-height: 1.15; letter-spacing: -.025em;
+  width: 100%;
+}
+
+// Author row — avatar left, name + date stacked right
+.post-detail-author {
+  @include center; gap: $space-md; align-items: center;
+
+  &__info {
+    @include column; gap: 2px;
+  }
+  &__name { @include type-ui($t-body-des,$fw-medium); color: $text-color-dark; }
+  &__date { @include type-ui(.72rem,$fw-regular); color: $gentle-amethyst; }
+}
+
+.post-detail-divider {
+  width: 100%; height: 1px;
+  background: linear-gradient(to right, rgba($serene-purple,.18) 0%, rgba($serene-purple,.04) 100%);
+}
+
+.post-detail-content {
+  @include type-ui($t-body-des,$fw-regular); color: $text-color-dark;
+  line-height: 1.75; margin: 0; white-space: pre-wrap; word-break: break-word;
+  font-size: clamp(.9rem,2vw,1rem); width: 100%;
+}
+
+// COMMENTS 
+.comments-section { @include column; align-items: stretch; gap: $space-lg; }
+
+.comments-header {
+  @include flex-between; align-items: center; flex-wrap: wrap; gap: $space-sm;
+  padding-bottom: $space-sm; border-bottom: 1px solid rgba($serene-purple,.1);
+}
+
+.comments-title {
+  @include center; gap: $space-sm; justify-content: flex-start;
+  @include type-ui($t-link-des,$fw-medium); color: $text-color-dark; margin: 0;
+}
+
+.comments-empty {
+  @include flex-center; flex-direction: column; gap: $space-sm; padding: $space-xxl $space-md;
+  @include type-ui($t-body-des,$fw-regular); color: $gentle-amethyst;
+  background: rgba($misty-lavender,.15); border-radius: $radius-md;
+  border: 1.5px dashed rgba($serene-purple,.18); text-align: center;
+  &::before { content: '💬'; font-size: 1.6rem; opacity: .45; }
+}
+
+.comments-list { @include column; align-items: stretch; gap: $space-md; }
+
+// ─── COMMENT CARD ─────────────────────────────────────────────────────────────
+.comment-card {
+  background: white; border-radius: $radius-md; padding: $space-md;
+  box-shadow: 0 1px 5px rgba($twilight-purple,.06);
+  border-left: 3px solid rgba($serene-purple,.22);
+  @include column; align-items: stretch; gap: $space-sm;
+  transition: box-shadow .18s, transform .18s;
+  &:hover { box-shadow: 0 4px 18px rgba($twilight-purple,.1); transform: translateY(-1px); }
+  @media (min-width: $bp-tablet) { padding: $space-lg $space-xl; }
+}
+
+.comment-header {
+  @include center; gap: $space-sm;
+  &__actions { margin-left: auto; @include center; gap: $space-xs; }
+}
+.comment-action-btn {
+  @include none; @include cursor; @include flex-center;
+  width: 28px; height: 28px; border-radius: $radius-sm; font-size: .72rem;
+  transition: all .16s; color: rgba($gentle-amethyst,.45); border: 1.5px solid transparent;
+  &--report { &:hover { color: #f59e0b; background: rgba(245,158,11,.07); border-color: rgba(245,158,11,.18); } }
+  &--delete  { &:hover { color: #ef4444; background: rgba(239,68,68,.06); border-color: rgba(239,68,68,.18); } }
+}
+
+.comment-meta { @include column; align-items: flex-start; gap: 1px; flex: 1; min-width: 0; }
+.comment-name { @include type-ui($t-body-des,$fw-medium); color: $text-color-dark; }
+.comment-date { @include type-ui(.66rem,$fw-regular); color: $gentle-amethyst; }
+
+.comment-content {
+  @include type-ui($t-body-des,$fw-regular); color: $text-color-dark;
+  line-height: $lh-normal; margin: 0; white-space: pre-wrap; word-break: break-word;
+}
+
+.comment-actions {
+  @include center; gap: $space-md;
+  padding-top: $space-xs; border-top: 1px solid rgba($serene-purple,.07); margin-top: 2px;
+}
+
+.comment-like-btn {
+  @include center; gap: 5px; @include none; padding: 4px 10px; border-radius: 99px;
+  @include type-ui($t-forgot-des,$fw-regular); color: $gentle-amethyst; @include cursor;
+  transition: all .16s; user-select: none; border: 1.5px solid transparent;
+  &:hover:not(:disabled) { background: rgba($serene-purple,.07); color: $serene-purple; border-color: rgba($serene-purple,.18); }
+  &.is-liked  { color: $serene-purple; background: rgba($serene-purple,.07); border-color: rgba($serene-purple,.18); }
+  &.is-pending { opacity: .55; pointer-events: none; }
+  &:disabled:not(.is-pending) { @include cursor; opacity: .38; }
+  &:active:not(:disabled) { transform: scale(.9); }
+}
+
+.like-heart-icon { @include flex-center; line-height: 1; &.beating { animation: likePop .3s cubic-bezier(.36,.07,.19,.97); } }
+.like-count { font-size: .72rem; font-weight: $fw-medium; min-width: 14px; line-height: 1; text-align: center; }
+.like-label { font-size: .72rem; line-height: 1; }
+
+.comment-reply-btn {
+  @include center; gap: 5px; padding: 4px 10px; @include none; border-radius: $radius-sm;
+  color: $gentle-amethyst; @include type-ui($t-forgot-des,$fw-regular); @include cursor;
+  border: 1.5px solid transparent; transition: all .14s;
+  &:hover   { background: rgba($twilight-purple,.06); color: $twilight-purple; border-color: rgba($twilight-purple,.14); }
+  &.is-active { color: $twilight-purple; background: rgba($twilight-purple,.06); border-color: rgba($twilight-purple,.14); }
+  .reply-count { background: rgba($twilight-purple,.09); color: $twilight-purple; border-radius: 99px; padding: 1px 7px; font-size: .66rem; font-weight: $fw-bold; line-height: 1.4; }
+}
+
+.replies-list { margin-top: $space-sm; padding-left: $space-md; border-left: 2px solid rgba($twilight-purple,.1); @include column; gap: $space-sm; }
+
+.comment-card.comment-reply {
+  padding: $space-xs $space-sm; background: rgba($twilight-purple,.02);
+  border-left-color: rgba($serene-purple,.1);
+  &:hover { transform: none; }
+  .comment-name    { font-size: .8rem; }
+  .comment-date    { font-size: .63rem; }
+  .comment-content { font-size: .87rem; }
+}
+
+.reply-box {
+  margin-top: $space-sm; padding: $space-sm $space-md;
+  background: rgba($twilight-purple,.03); border-radius: $radius-sm;
+  border-left: 3px solid rgba($twilight-purple,.3);
+  animation: replySlide .18s ease;
+}
+.reply-box-label   { @include center; gap: $space-xs; font-size: .73rem; color: $gentle-amethyst; margin-bottom: $space-xs; strong { color: $twilight-purple; } }
+.reply-textarea    { min-height: 60px !important; }
+.reply-box-footer  { @include flex-between; margin-top: $space-xs; flex-wrap: wrap; gap: $space-xs; }
+.reply-box-actions { @include center; gap: $space-xs; }
+.reply-cancel { padding: 5px 12px; }
+.reply-submit { padding: 5px 14px; }
+
+// ─── COMPOSE BOX ──────────────────────────────────────────────────────────────
+.comment-compose {
+  background: white; border-radius: $radius-md; padding: $space-md;
+  box-shadow: 0 1px 6px rgba($twilight-purple,.06), 0 0 0 1px rgba($twilight-purple,.05);
+  @include column; align-items: stretch; gap: $space-sm;
+  @media (min-width: $bp-tablet) { padding: $space-lg; }
+}
+
+.comment-compose-footer { @include flex-between; flex-wrap: wrap; gap: $space-sm; }
+.comment-hint { @include type-ui($t-forgot-des,$fw-regular); color: $gentle-amethyst; display: none; @media (min-width: $bp-tablet) { display: block; } }
+
+.comment-login-prompt {
+  @include type-ui($t-body-des,$fw-regular); color: $gentle-amethyst; text-align: center;
+  padding: $space-lg; background: rgba($misty-lavender,.18); border-radius: $radius-md;
+  border: 1.5px dashed rgba($serene-purple,.16);
+  a { color: $serene-purple; text-decoration: none; font-weight: $fw-medium; &:hover { text-decoration: underline; } }
+}
+
+// SHARED INPUTS 
+.forum-input {
+  width: 100%; padding: $space-sm $space-md;
+  border: 1.5px solid rgba($serene-purple,.22); border-radius: $radius-md;
+  @include type-ui($t-body-des,$fw-regular); color: $text-color-dark;
+  background: rgba($soft-pearl,.65); outline: none;
+  transition: border-color .18s, box-shadow .18s, background .18s; box-sizing: border-box;
+  &:focus { border-color: $serene-purple; box-shadow: $shadow-outline; background: white; }
+  &.error { border-color: #ef4444; background: #fff8f8; }
+}
+.forum-textarea    { resize: vertical; min-height: 88px; }
+.forum-field-error { @include type-ui($t-forgot-des,$fw-regular); color: #ef4444; margin-top: 2px; }
+.forum-modal-error { background: #fff5f5; border: 1px solid rgba(239,68,68,.28); color: #b91c1c; border-radius: $radius-sm; padding: $space-sm $space-md; @include type-ui($t-forgot-des,$fw-regular); }
+
+// ─── MODALS ───────────────────────────────────────────────────────────────────
+.forum-modal-overlay {
+  position: fixed; inset: 0; background: rgba($twilight-purple,.5);
+  backdrop-filter: blur(8px); z-index: 1001; @include flex-center;
+  align-items: flex-end; padding: 0; animation: forumFadeIn .14s ease;
+  @media (min-width: $bp-mobile) { align-items: center; padding: $space-md; }
+}
+
+.forum-modal {
+  background: white; border-radius: $radius-lg $radius-lg 0 0;
+  width: 100%; max-width: 100%; max-height: 92dvh;
+  @include column; align-items: stretch; box-shadow: $shadow-2xl;
+  animation: forumSlideUp .24s cubic-bezier(.34,1.15,.64,1);
+  @media (min-width: $bp-mobile) { border-radius: $radius-lg; max-width: 520px; max-height: 90vh; }
+  &--report { @media (min-width: $bp-mobile) { max-width: 480px; } }
+}
+
+.forum-modal-header {
+  @include flex-between; padding: $space-md; border-bottom: 1px solid rgba($serene-purple,.1);
+  &__left { @include center; gap: $space-sm; }
+  &__icon { color: $serene-purple; font-size: 1.05rem; }
+  h3 { @include type-display($weight: $fw-regular); font-size: $t-sub-des; color: $text-color-dark; margin: 0; }
+  @media (min-width: $bp-mobile) { padding: $space-lg $space-xl $space-md; }
+}
+
+.forum-modal-close { @include none; color: $gentle-amethyst; @include cursor; font-size: 1.2rem; padding: 6px; border-radius: $radius-sm; width: 32px; height: 32px; @include flex-center; border: 1.5px solid transparent; transition: all .18s; &:hover { background: rgba($serene-purple,.08); border-color: $border-color; color: $twilight-purple; } }
+
+.forum-modal-body {
+  flex: 1; overflow-y: auto; padding: $space-md; @include column; align-items: stretch; gap: $space-sm;
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-thumb { background: rgba($serene-purple,.22); border-radius: 2px; }
+  @media (min-width: $bp-mobile) { padding: $space-lg $space-xl; }
+}
+
+.forum-modal-footer { @include flex-between; gap: $space-md; padding: $space-sm $space-md; border-top: 1px solid rgba($serene-purple,.1); background: rgba($misty-lavender,.12); @media (min-width: $bp-mobile) { padding: $space-md $space-xl; } }
+
+// ─── LABELS ───────────────────────────────────────────────────────────────────
+.forum-label { @include type-display($weight: $fw-regular); font-size: $t-link-des; color: $twilight-purple; margin-top: $space-sm; &--optional { @include type-ui($t-forgot-des,$fw-regular); color: rgba($twilight-purple,.35); font-family: $font-secondary; } }
+
+// CATEGORY CHIPS
+.forum-cat-chips { display: flex; flex-wrap: wrap; gap: $space-xs; margin-bottom: $space-xs; }
+.forum-cat-chip  { padding: 5px $space-sm; border: 1.5px solid rgba($serene-purple,.18); border-radius: 99px; background: rgba($soft-pearl,.5); @include type-ui($t-forgot-des,$fw-regular); color: $gentle-amethyst; @include cursor; transition: all .16s; white-space: nowrap; &:hover { border-color: $serene-purple; color: $twilight-purple; background: rgba($serene-purple,.05); transform: translateY(-1px); } &.selected { background: $twilight-purple; border-color: $twilight-purple; color: $misty-lavender; font-weight: $fw-medium; box-shadow: 0 2px 8px rgba($twilight-purple,.22); transform: translateY(-1px); } }
+
+// REPORT MODAL
+.report-preview { @include center; gap: $space-sm; align-items: flex-start; background: rgba($twilight-purple,.03); border: 1px solid rgba($twilight-purple,.08); border-radius: $radius-md; padding: $space-sm $space-md; margin-bottom: $space-xs; i { color: $gentle-amethyst; flex-shrink: 0; } p { @include type-ui($t-forgot-des,$fw-regular); color: rgba($twilight-purple,.52); margin: 0; line-height: $lh-normal; font-style: italic; } }
+.report-reasons { @include column; gap: 5px; }
+.report-reason-btn { @include none; @include cursor; @include center; gap: $space-sm; width: 100%; padding: 10px $space-md; text-align: left; @include type-ui($t-but-des,$fw-regular); color: rgba($twilight-purple,.62); border: 1.5px solid rgba($twilight-purple,.08); border-radius: $radius-md; background: rgba($soft-pearl,.45); transition: all .16s; &:hover { border-color: rgba($twilight-purple,.2); color: $twilight-purple; background: rgba($soft-pearl,.9); transform: translateX(2px); } &--active { border-color: $twilight-purple; background: rgba($twilight-purple,.04); color: $twilight-purple; font-weight: $fw-medium; transform: translateX(2px); } &__check { @include icon-box(20px); border: 1.5px solid rgba($twilight-purple,.16); border-radius: $radius-round; flex-shrink: 0; background: transparent; transition: all .16s; font-size: .7rem; color: $soft-pearl; .report-reason-btn--active & { background: $twilight-purple; border-color: $twilight-purple; } } }
+
+// BUTTONS 
+.forum-btn-cancel { @include none; border: 1.5px solid rgba($serene-purple,.26); color: $serene-purple; padding: $space-sm $space-lg; border-radius: $radius-md; @include type-ui($t-but-des,$fw-regular); @include cursor; transition: all .18s; background: transparent; &:hover { background: rgba($serene-purple,.06); border-color: $serene-purple; } }
+.forum-btn-post   { background: $twilight-purple; color: $misty-lavender; border: none; padding: $space-sm $space-xl; border-radius: $radius-md; @include type-ui($t-but-des,$fw-medium); @include cursor; box-shadow: 0 3px 14px rgba($twilight-purple,.28); transition: all .18s; &:hover:not(:disabled) { background: $serene-purple; box-shadow: $shadow-purple-glow; transform: translateY(-1px); } &:disabled { opacity: .42; cursor: not-allowed; transform: none; } }
+.forum-btn-report { @include center; gap: $space-xs; background: #f59e0b; color: white; border: none; padding: $space-sm $space-xl; border-radius: $radius-md; @include type-ui($t-but-des,$fw-medium); @include cursor; transition: all .18s; box-shadow: 0 3px 10px rgba(245,158,11,.28); &:hover:not(:disabled) { background: #d97706; transform: translateY(-1px); } &:disabled { opacity: .42; cursor: not-allowed; } }
+
+// TOAST
+.forum-toast { position: fixed; bottom: $space-xl; left: 50%; transform: translateX(-50%); @include center; gap: $space-sm; padding: $space-md $space-xl; border-radius: $radius-lg; @include type-ui($t-but-des,$fw-medium); box-shadow: $shadow-2xl; z-index: 9999; animation: toast-in .28s cubic-bezier(.34,1.56,.64,1) both; white-space: nowrap; max-width: calc(100vw - #{$space-xxl}); &--success { background: $twilight-purple; color: $soft-pearl; i { color: #4ade80; } } &--error { background: #fef2f2; color: #b91c1c; border: 1px solid rgba(#ef4444,.26); i { color: #ef4444; } } }
+.like-error-toast { background: #fff8f8; border: 1px solid rgba(239,68,68,.28); color: #b91c1c; border-radius: $radius-sm; padding: $space-xs $space-md; @include type-ui($t-forgot-des,$fw-regular); animation: toast-in .2s ease; margin-bottom: $space-sm; }
+
+// ─── HIGHLIGHTED COMMENT ─────────────────────────────────────────────────────
+.comment-card.comment-highlighted { animation: commentGlow .8s ease; outline: 2px solid $twilight-purple; outline-offset: 2px; border-radius: $radius-sm; }

@@ -7,6 +7,7 @@ import usersRoutes from "./routes/users";
 import passwordRoutes from "./routes//password";
 import healthEventsRoutes from "./routes/healthEvents";
 import forumRoutes from "./routes/Forum";
+import notificationsRouter from "./routes/Notifications";
 import businessRoutes from "./routes/Business";
 import contactRouter from './routes/Contact';
 import adminRouter       from './routes/Admin';
@@ -14,6 +15,9 @@ import businessAuthRouter from './routes/Businessauth';
 import businessPasswordRouter from './routes/Businesspassword';
 import businessDashboardRouter from './routes/Businessdashboard';
 import listingsRouter from './routes/Listings';
+import buddiesRouter from "./routes/buddies";
+import dogsRouter from "./routes/Dogs";
+import reviewRouter from "./routes/Reviews";
 import multer from "multer";
 
 
@@ -48,13 +52,15 @@ app.use('/api/business', businessAuthRouter);
 app.use('/api/business/password', businessPasswordRouter);
 app.use('/api/business/dashboard', businessDashboardRouter);
 app.use('/api/listings', listingsRouter);
-
+app.use("/api/notifications", notificationsRouter);
+app.use("/api/buddies", buddiesRouter);
+app.use("/api/dogs", dogsRouter);
+app.use("/api/reviews", reviewRouter);
 
 // Health check 
 app.get("/api/health", (_, res) => res.json({ status: "ok", timestamp: new Date() }));
 
 // SERVICE FINDER ROUTES
-// GET /api/listings 
 app.get("/api/listings", async (req, res) => {
   try {
     const {

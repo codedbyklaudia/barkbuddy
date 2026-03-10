@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "./BusinessDashboard.scss";
+import { Settings, Camera, LayoutDashboard, PencilLine, LogOut, Lock, ChevronsRight,Trash2, Star   } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:4000/api";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// Types
 interface Business {
   id: number; email: string; personal_name: string; business_name: string;
   category: string; type: string; address: string; postcode: string;
@@ -56,7 +57,7 @@ const ForcePasswordChange: React.FC<{ onDone: () => void }> = ({ onDone }) => {
     <div className="biz-force-overlay">
       <div className="biz-force-modal">
         <div className="biz-force-modal__header">
-          <span>🔐</span>
+          <span><Lock /></span>
           <h2>Set your password</h2>
           <p>For security, please set a personal password before continuing. Your current password was set during registration.</p>
         </div>
@@ -150,13 +151,13 @@ const ProfileSection: React.FC<{ biz: Business; onSaved: () => void; onToast: (m
       {biz.category === "services" && (
         <>
           <div className="biz-field-group biz-field-group--full">
-            <label>Price list <span>(optional)</span></label>
+            <label>Price list </label>
             <textarea rows={3} placeholder="e.g. Full groom from £45, Nail trim £15…"
               value={form.priceList}
               onChange={e => setForm(p => ({ ...p, priceList: e.target.value }))} />
           </div>
           <div className="biz-field-group biz-field-group--full">
-            <label>Additional information <span>(optional)</span></label>
+            <label>Additional information</label>
             <textarea rows={3} placeholder="Opening hours, booking instructions, etc."
               value={form.additionalInfo}
               onChange={e => setForm(p => ({ ...p, additionalInfo: e.target.value }))} />
@@ -248,11 +249,11 @@ const PhotosSection: React.FC<{ bizId: number; onToast: (m: string, t: "success"
               <div className="biz-photo-card__actions">
                 {!p.is_primary && (
                   <button onClick={() => makePrimary(p.id)} className="biz-photo-action">
-                    Set as cover
+                    <Star size={"16"}/> Set as cover
                   </button>
                 )}
                 <button onClick={() => deletePhoto(p.id)} className="biz-photo-action biz-photo-action--delete">
-                  Delete
+                 <Trash2 size={"16"} /> Delete
                 </button>
               </div>
             </div>
@@ -409,10 +410,10 @@ const BusinessDashboard: React.FC = () => {
   }
 
   const navItems: { key: Section; label: string; icon: string }[] = [
-    { key: "overview", label: "Overview",    icon: "🏠" },
-    { key: "profile",  label: "Edit listing", icon: "✏️" },
-    { key: "photos",   label: "Photos",       icon: "📸" },
-    { key: "settings", label: "Settings",     icon: "⚙️" },
+    { key: "overview", label: "Overview",    icon: <LayoutDashboard /> },
+    { key: "profile",  label: "Edit listing", icon: <PencilLine /> },
+    { key: "photos",   label: "Photos",       icon: <Camera /> },
+    { key: "settings", label: "Settings",     icon: <Settings /> },
   ];
 
   return (
@@ -423,8 +424,7 @@ const BusinessDashboard: React.FC = () => {
       <aside className="biz-dash__sidebar">
         <div className="biz-dash__sidebar-top">
           <Link to="/" className="biz-dash__logo">
-            <img src="/images/paint/groomer.png" alt="" />
-            <span>BarkBuddy</span>
+            <img src="/images/logo.png" alt="Logo" />
           </Link>
 
           <div className="biz-dash__biz-card">
@@ -456,7 +456,7 @@ const BusinessDashboard: React.FC = () => {
           </nav>
         </div>
 
-        <button className="biz-dash__logout" onClick={logout}>Log out</button>
+        <button className="biz-dash__logout" onClick={logout}> <LogOut size={"16"} /> Log out</button>
       </aside>
 
       {/* Main content */}
@@ -471,22 +471,22 @@ const BusinessDashboard: React.FC = () => {
 
               <div className="biz-overview__cards">
                 <div className="biz-overview-card" onClick={() => setSection("profile")}>
-                  <span className="biz-overview-card__icon">✏️</span>
+                  <span className="biz-overview-card__icon"><PencilLine/></span>
                   <h3>Edit listing</h3>
                   <p>Update your description, contact details, prices, and address.</p>
-                  <span className="biz-overview-card__link">Edit →</span>
+                  <span className="biz-overview-card__link">Edit <ChevronsRight size={"16"}/></span>
                 </div>
                 <div className="biz-overview-card" onClick={() => setSection("photos")}>
-                  <span className="biz-overview-card__icon">📸</span>
+                  <span className="biz-overview-card__icon"><Camera /></span>
                   <h3>Manage photos</h3>
                   <p>Add photos to make your listing stand out. Up to 8 photos allowed.</p>
-                  <span className="biz-overview-card__link">Add photos →</span>
+                  <span className="biz-overview-card__link">Add photos <ChevronsRight size={"16"}/></span>
                 </div>
                 <div className="biz-overview-card" onClick={() => setSection("settings")}>
-                  <span className="biz-overview-card__icon">⚙️</span>
+                  <span className="biz-overview-card__icon"><Settings /></span>
                   <h3>Account settings</h3>
                   <p>Change your username or password.</p>
-                  <span className="biz-overview-card__link">Settings →</span>
+                  <span className="biz-overview-card__link">Settings <ChevronsRight size={"16"}/></span>
                 </div>
               </div>
 

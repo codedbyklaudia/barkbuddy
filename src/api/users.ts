@@ -25,6 +25,7 @@ export const getProfile = (token: string) =>
 export const updateUser = (token: string, data: {
   name?:            string;
   email?:           string;
+  bio?:             string;
   currentPassword?: string;
   newPassword?:     string;
 }) =>
@@ -80,23 +81,69 @@ export const uploadDogAvatar = (token: string, file: File) => {
   });
 };
 
-export const getNotifications = async (token: string) => {
-  const res = await fetch(`/api/notifications`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) throw await res.json();
-  return res.json(); // expects { notifications: AppNotification[] }
-};
+//Notifications!
+export const getNotifications = (token: string) =>
+  authRequest<{ notifications: any[]; unread_count: number }>("/notifications", token)
+    .then(data => ({
+      unread_count: data.unread_count,
+      notifications: data.notifications.map((n: any) => ({
+        id:             n.id,
+        type:           n.type,
+        actorName:      n.actor_name,
+        actorAvatar:    n.actor_avatar,
+        postId:         n.post_id,
+        postTitle:      n.post_title,
+        commentId:      n.comment_id, 
+        commentSnippet: n.comment_snippet,
+        isRead:         n.is_read,
+        createdAt:      n.created_at,
+      })),
+    }));
 
-export const markNotificationsRead = async (token: string, ids: string[]) => {
-  const res = await fetch(`/api/notifications/read`, {
-    method: "PATCH",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ ids }),
+export const markNotificationsRead = (token: string, ids: string[]) =>
+  authRequest<{ message: string }>("/notifications/read", token, {
+    method:  "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body:    JSON.stringify({ ids }),
   });
-  if (!res.ok) throw await res.json();
-  return res.json();
-};
+
+// Buddies 
+export const getBuddies = (token: string) =>
+  authRequest<{ buddies: any[]; pendingIn: any[]; pendingOut: any[] }>("/buddies", token);
+
+export const searchUsers = (token: string, q: string) =>
+  authRequest<{ users: any[] }>(`/users/search?q=${encodeURIComponent(q)}`, token)
+    .then(d => d.users ?? []);
+
+export const sendBuddyRequest = (token: string, userId: string) =>
+  authRequest<{ message: string }>("/buddies/request", token, {
+    method:  "POST",
+    headers: { "Content-Type": "application/json" },
+    body:    JSON.stringify({ userId }),
+  });
+
+export const acceptBuddy = (token: string, buddyId: string) =>
+  authRequest<{ message: string }>(`/buddies/${buddyId}/accept`, token, {
+    method: "POST",
+  });
+
+export const removeBuddy = (token: string, buddyId: string) =>
+  authRequest<{ message: string }>(`/buddies/${buddyId}`, token, {
+    method: "DELETE",
+  });
+
+export const getMyPosts = (token: string) =>
+  authRequest<{ posts: any[] }>("/forum/my-posts", token)
+    .then(d => d.posts ?? []);
+
+export const deletePost = (token: string, postId: string) =>
+  authRequest<{ message: string }>(`/posts/${postId}`, token, {
+    method: "DELETE",
+  });
+
+export const updatePost = (token: string, postId: string, data: Partial<Post>) =>
+  authRequest<{ post: any }>(`/posts/${postId}`, token, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });

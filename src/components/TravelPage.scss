@@ -1,160 +1,335 @@
 @import '../styles/variables';
 @import '../styles/mixins';
 
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(22px); }
-  to   { opacity: 1; transform: translateY(0);    }
+// Animations 
+@keyframes reveal-up {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes reveal-in {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes ticker {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+// Page
 .travel-page {
   background-color: $soft-pearl;
-  color: $text-color-dark;
+  color: $twilight-purple;
   min-height: 100vh;
 }
 
-.travel-breadcrumb {
-  background-color: $twilight-purple;
-  padding: $space-sm $space-5xl;
-  font-family: $font-secondary;
-  font-size: $t-forgot-des;
-  color: $misty-lavender;
-  letter-spacing: 0.03em;
-
-  &__link {
-    @include text-none;
-    color: $gentle-amethyst;
-    transition: color 0.2s ease;
-    &:hover { color: $soft-pearl; }
+// Hero
+.travel-hero {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  width: 100%;
+  overflow: hidden;
+  background: $twilight-purple;
+  background-image:
+    radial-gradient(ellipse at 75% 50%, rgba($serene-purple, 0.18) 0%, transparent 60%),
+    radial-gradient(ellipse at 20% 80%, rgba($serene-purple, 0.1) 0%, transparent 50%);
+  @media (max-width: $bp-tablet) {
+    grid-template-columns: 1fr !important;
   }
-
-  &__sep { margin: 0 $space-sm; opacity: 0.45; }
-  &__current { color: $misty-lavender; }
-
-  @media (max-width: $bp-tablet) { padding: $space-sm $space-lg; }
 }
 
-.travel-hero {
+// LEFT PANEL
+.travel-hero__left {
+  background: $twilight-purple;
   @include flex-between;
-  background-color: $twilight-purple;
-  padding: $space-sm $space-huge 0;
-  gap: $space-xl;
-  overflow: hidden;
+  padding: $space-xl clamp($space-xl, 5vw, 72px) 0;
   @include relative;
-  align-items: flex-end;
-
-  &__content {
-    padding-bottom: $space-5xl;
-    max-width: 600px;
-    animation: fadeUp 0.65s ease both;
+  border-right: none;
+  background-image:
+    radial-gradient(circle, rgba($soft-pearl, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+  min-height: 600px;
+  width: 100%;
+  min-width: 0;
+  @media (max-width: $bp-tablet) {
+    padding: $space-xl $space-lg $space-xl;
+    border-right: none;
+  background-image:
+    radial-gradient(circle, rgba($soft-pearl, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+    border-bottom: 1px solid rgba($twilight-purple, 0.1);
   }
+}
 
-  &__tag {
-    display: inline-block;
-    background: rgba($gentle-amethyst, 0.18);
-    color: $gentle-amethyst;
-    border: 1px solid rgba($gentle-amethyst, 0.32);
-    border-radius: 30px;
-    padding: $space-xs $space-md;
-    font-family: $font-secondary;
-    font-size: $t-forgot-des;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    margin-bottom: $space-lg;
-  }
+// Top label row
+.travel-hero__label-row {
+  @include flex-between;
+  margin-bottom: $space-5xl;
+  animation: reveal-in 0.6s ease both;
 
-  &__heading {
-    font-family: $font-primary;
-    font-size: clamp(2rem, 3.5vw, 3rem);
-    font-weight: $fw-regular;
-    color: $text-color-white;
-    line-height: $lh-tight;
-    margin-bottom: $space-lg;
+  @media (max-width: $bp-tablet) { margin-bottom: $space-xl; }
+}
 
-    em { font-style: italic; color: $gentle-amethyst; }
-  }
 
-  &__body {
-    font-family: $font-secondary;
-    font-size: $t-body-des;
-    color: $misty-lavender;
-    line-height: $lh-loose;
-    margin-bottom: $space-md;
+// Main heading block
+.travel-hero__heading-block {
+  flex: 1;
+  @include column;
+  justify-content: center;
+  padding-bottom: $space-xl;
+}
 
-    strong { color: $text-color-white; font-weight: $fw-medium; }
-  }
+.travel-hero__eyebrow {
+  font-family: $font-secondary;
+  font-size: 0.8rem;
+  color: rgba($soft-pearl, 0.55);
+  font-weight: $fw-medium;
+  letter-spacing: 0.04em;
+  margin-bottom: $space-md;
+  @include center;
+  gap: $space-sm;
+  animation: reveal-up 0.6s 0.1s ease both;
 
-  &__visual {
-    position: relative;
-    display: flex;
-    align-self: flex-end;
+  &::before {
+    content: '';
+    display: block;
+    width: 24px;
+    height: 1.5px;
+    background: rgba($soft-pearl, 0.3);
     flex-shrink: 0;
-    animation: fadeUp 0.65s 0.15s ease both;
+  }
+}
 
-    // Smooth fade on all edges — hides image background mismatch
-    &::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background:
-        linear-gradient(to top,  $twilight-purple 0%, transparent 55%),
-        linear-gradient(to right, $twilight-purple 0%, transparent 20%),
-        linear-gradient(to left,  $twilight-purple 0%, transparent 20%),
-        linear-gradient(to bottom, $twilight-purple 0%, transparent 25%);
-      pointer-events: none;
+.travel-hero__heading {
+  font-family: $font-primary;
+  font-size: clamp(2.8rem, 5.5vw, 5rem);
+  font-weight: $fw-bold;
+  color: $soft-pearl;
+  line-height: 1.0;
+  letter-spacing: -0.035em;
+  margin: 0 0 $space-xl;
+  animation: reveal-up 0.65s 0.15s ease both;
+
+  em {
+    font-style: italic;
+    color: rgba($misty-lavender, 0.85);
+    font-weight: $fw-regular;
+  }
+}
+
+.travel-hero__sub {
+  font-family: $font-secondary;
+  font-size: clamp(0.88rem, 1.4vw, 0.98rem);
+  color: rgba($soft-pearl, 0.5);
+  line-height: 1.7;
+  max-width: 360px;
+  margin-bottom: $space-xl;
+  animation: reveal-up 0.65s 0.2s ease both;
+
+  strong { color: $soft-pearl; }
+}
+
+// CTA row
+.travel-hero__ctas {
+  @include center;
+  gap: $space-md;
+  flex-wrap: wrap;
+  animation: reveal-up 0.65s 0.25s ease both;
+}
+
+.travel-hero__cta {
+  font-family: $font-secondary;
+  font-size: 0.8rem;
+  font-weight: $fw-bold;
+  letter-spacing: 0.04em;
+  @include cursor;
+  border: none;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: $space-sm;
+  transition: all 0.22s ease;
+
+  &--primary {
+    background: $soft-pearl;
+    color: $twilight-purple;
+    padding: 12px $space-xl;
+    border-radius: 4px;
+
+    &:hover {
+      background: $misty-lavender;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
     }
+
+    svg { transition: transform 0.2s ease; }
+    &:hover svg { transform: translateX(3px); }
   }
 
-  &__illustration {
-    width: 100%;
-    max-width: 700px;
-    height: auto;
+  &--ghost {
+    background: transparent;
+    color: rgba($soft-pearl, 0.5);
+    padding: 12px 0;
+    border-bottom: 1px solid rgba($soft-pearl, 0.2);
+    border-radius: 0;
+
+    &:hover { color: $soft-pearl; border-color: $soft-pearl; }
+  }
+}
+
+.travel-hero__ticker-wrap {
+  overflow: hidden;
+  border-top: 1px solid rgba($soft-pearl, 0.1);
+  padding: $space-md 0;
+  margin: 0 calc(-1 * clamp($space-xl, 5vw, 72px));
+  padding-left: clamp($space-xl, 5vw, 72px);
+  animation: fade-in 0.8s 0.5s ease both;
+}
+
+.travel-hero__ticker {
+  display: flex;
+  gap: $space-xl;
+  width: max-content;
+  animation: ticker 22s linear infinite;
+
+  &:hover { animation-play-state: paused; }
+}
+
+.travel-hero__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba($soft-pearl, 0.08);
+  border: 1px solid rgba($soft-pearl, 0.12);
+  border-radius: 40px;
+  padding: 6px 14px;
+  font-family: $font-secondary;
+  font-size: 0.7rem;
+  font-weight: $fw-medium;
+  color: rgba($soft-pearl, 0.6);
+  white-space: nowrap;
+  cursor: default;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+
+  &:hover {
+    background: rgba($soft-pearl, 0.18);
+    color: $soft-pearl;
+    border-color: rgba($soft-pearl, 0.25);
+    transform: translateY(-2px);
+  }
+
+  &__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+}
+
+// RIGHT PANEL — image
+.travel-hero__right {
+  @include relative;
+  overflow: hidden;
+  min-height: 600px;
+  width: 100%;
+  min-width: 0;
+
+  @media (max-width: $bp-tablet) { min-height: 320px; }
+}
+
+.travel-hero__image {
+  @include absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center 20%;
+  filter: saturate(0.85) brightness(0.96);
+}
+
+// Warm colour wash overlay on the image
+.travel-hero__right::before {
+  content: '';
+  @include absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(#f7f4f0, 0.08) 0%,
+    rgba($twilight-purple, 0.12) 100%
+  );
+  z-index: 1;
+  pointer-events: none;
+}
+.travel-hero__right::after {
+  content: '';
+  @include absolute;
+  inset: 0;
+  background:
+    linear-gradient(to right,  rgba($twilight-purple, 0.98) 0%, rgba($twilight-purple, 0.5) 25%, transparent 55%),
+    linear-gradient(to top,    rgba($twilight-purple, 0.7) 0%,  transparent 35%),
+    linear-gradient(to bottom, rgba($twilight-purple, 0.4) 0%,  transparent 25%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+// Small caption bottom-left of image
+.travel-hero__image-caption {
+  @include absolute;
+  bottom: $space-lg;
+  left: $space-lg;
+  z-index: 2;
+  font-family: $font-secondary;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: $soft-pearl;
+  @include center;
+  gap: $space-sm;
+  animation: fade-in 1s 0.8s ease both;
+
+  &::before {
+    content: '';
+    width: 16px; height: 1px;
+    background: rgba(white, 0.4);
     display: block;
   }
-
-  @media (max-width: $bp-laptop) {
-    padding: $space-xxl $space-xxl 0;
-  }
-
-  @media (max-width: $bp-tablet) {
-    @include flex-column;
-    padding: $space-xxl $space-lg 0;
-    align-items: flex-start;
-    gap: $space-md;
-
-    &__content { padding-bottom: $space-xxl; max-width: 100%; }
-    &__visual { justify-content: center; width: 100%; }
-    &__illustration { max-width: 240px; margin: 0 auto; }
-  }
-
-  @media (max-width: $bp-mobile) {
-    padding: $space-xl $space-md 0;
-
-    &__tag { font-size: $t-forgot-des; }
-    &__heading { font-size: $t-sub-des; }
-    &__body { font-size: $t-forgot-des; }
-    &__illustration { max-width: 180px; }
-  }
 }
 
+// Sections 
 .travel-section {
-  padding: $space-5xl $space-5xl;
+  padding: $space-5xl clamp($space-xl, 6vw, 80px);
+  background: $soft-pearl;
 
-  &--white { background-color: white; }
+  &--white {
+    background: $soft-pearl;
+    border-top: 1px solid rgba($twilight-purple, 0.07);
+    border-bottom: 1px solid rgba($twilight-purple, 0.07);
+  }
 
   &__inner { max-width: 1200px; @include margin-center; }
 
   &__heading {
     font-family: $font-primary;
     font-size: $t-tit-des;
-    font-weight: $fw-regular;
-    color: $text-color-dark;
+    font-weight: $fw-bold;
+    color: $twilight-purple;
+    letter-spacing: -0.02em;
     margin-bottom: $space-xxl;
 
     &::after {
       content: '';
       display: block;
-      width: 44px; height: 3px;
-      background-color: $serene-purple;
+      width: 44px; height: 2px;
+      background: $serene-purple;
       border-radius: 2px;
       margin-top: $space-sm;
     }
@@ -168,6 +343,7 @@
   @media (max-width: $bp-mobile) { padding: $space-xl $space-md; }
 }
 
+// Intent cards — unchanged from your original
 .intent-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -180,7 +356,6 @@
 .intent-card {
   @include none;
   @include column;
-
   align-items: flex-start;
   background-color: $soft-pearl;
   border: 1.5px solid $misty-lavender;
@@ -191,15 +366,14 @@
   text-align: left;
   width: 100%;
 
-  &:nth-child(1) { animation: fadeUp 0.5s 0.1s ease both; }
-  &:nth-child(2) { animation: fadeUp 0.5s 0.2s ease both; }
+  &:nth-child(1) { animation: reveal-up 0.5s 0.1s ease both; }
+  &:nth-child(2) { animation: reveal-up 0.5s 0.2s ease both; }
 
   &:hover, &:focus-visible {
     border-color: $serene-purple;
     transform: translateY(-4px);
     box-shadow: $shadow-card-hover;
     outline: none;
-
     .intent-card__arrow { background-color: $serene-purple; }
   }
 
@@ -209,7 +383,6 @@
     font-weight: $fw-regular;
     color: $text-color-dark;
     margin-bottom: $space-sm;
-
     @media (max-width: $bp-mobile) { font-size: $t-body-des; }
   }
 
@@ -219,11 +392,9 @@
     color: $serene-purple;
     line-height: $lh-normal;
     margin-bottom: $space-lg;
-
     @media (max-width: $bp-mobile) { margin-bottom: $space-md; }
   }
 
-  // Inner card — image covers this completely
   &__map {
     @include relative;
     width: 100%;
@@ -233,10 +404,9 @@
     margin-bottom: $space-sm;
 
     img {
-      position: absolute;
+      @include absolute;
       inset: 0;
-      width: 100%;
-      height: 100%;
+      width: 100%; height: 100%;
       display: block;
       object-fit: cover;
     }
@@ -255,11 +425,10 @@
 
   &__arrow {
     @include flex-center;
-    width: 38px;
-    height: 38px;
+    width: 38px; height: 38px;
     border-radius: $radius-round;
     background-color: $twilight-purple;
-    color: white;
+    color: $soft-pearl;
     flex-shrink: 0;
     transition: background-color 0.25s ease;
   }
@@ -272,6 +441,7 @@
   display: block;
 }
 
+// Article cards 
 .articles-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -289,9 +459,9 @@
   cursor: pointer;
   transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
 
-  &:nth-child(1) { animation: fadeUp 0.5s 0.05s ease both; }
-  &:nth-child(2) { animation: fadeUp 0.5s 0.15s ease both; }
-  &:nth-child(3) { animation: fadeUp 0.5s 0.25s ease both; }
+  &:nth-child(1) { animation: reveal-up 0.5s 0.05s ease both; }
+  &:nth-child(2) { animation: reveal-up 0.5s 0.15s ease both; }
+  &:nth-child(3) { animation: reveal-up 0.5s 0.25s ease both; }
 
   &:hover, &:focus-visible {
     transform: translateY(-5px);
@@ -302,7 +472,7 @@
     .article-card__arrow {
       background-color: $twilight-purple;
       border-color: $twilight-purple;
-      color: white;
+      color: $soft-pearl;
     }
   }
 
@@ -313,7 +483,6 @@
     display: block;
 
     svg, img { width: 100%; height: 100%; display: block; object-fit: cover; }
-
     @media (max-width: $bp-mobile) { aspect-ratio: 3 / 2; }
   }
 
@@ -336,10 +505,125 @@
     @include flex-center;
     width: 34px; height: 34px;
     border-radius: $radius-round;
-    background-color: white;
+    background-color: $soft-pearl;
     border: 1.5px solid $misty-lavender;
     color: $text-color-dark;
     flex-shrink: 0;
     transition: all 0.25s ease;
+  }
+}
+
+// FAQ
+.faq {
+  @include relative;
+  overflow: hidden;
+  padding: $space-xl clamp($space-lg, 5vw, $space-xxl);
+  background: rgba($twilight-purple, 0.85);
+
+  &::before {
+    content: '';
+    @include absolute;
+    inset: 0;
+    background-image: url("../../images/paw.svg");
+    background-size: 250px 250px;
+    background-repeat: repeat;
+    opacity: 0.115;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  &::after {
+    content: '';
+    @include absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 0% 0%, rgba($serene-purple, 0.12) 0%, transparent 55%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  & > * { @include relative; z-index: 1; }
+
+  @media (max-width: $bp-tablet) { padding: $space-xl $space-lg; }
+  @media (max-width: $bp-mobile) { padding: $space-lg $space-md; }
+
+  &__title {
+    font-family: $font-primary;
+    font-size: $t-tit-des;
+    font-weight: $fw-bold;
+    color: $soft-pearl;
+    letter-spacing: -0.03em;
+    margin-bottom: $space-sm;
+    line-height: 1.1;
+  }
+
+  &__subtitle {
+    font-family: $font-secondary;
+    font-size: $t-but-des;
+    color: $soft-pearl;
+    margin-bottom: $space-lg;
+    letter-spacing: 0.02em;
+  }
+
+  &__list {
+    max-width: 780px;
+    @include column;
+    gap: $space-sm;
+  }
+
+  &__item {
+    border: 1px solid rgba($soft-pearl, 0.2);
+    border-radius: $radius-lg;
+    background: rgba($soft-pearl, 0.04);
+    overflow: hidden;
+    transition: border-color 0.25s ease, background 0.25s ease;
+
+    &:hover { background: rgba($soft-pearl, 0.07); }
+
+    &--open {
+      border-color: rgba($serene-purple, 0.45);
+      background: rgba($soft-pearl, 0.06);
+
+      .faq__icon { transform: rotate(45deg); color: $soft-pearl; }
+      .faq__answer { max-height: 300px; opacity: 1; }
+    }
+  }
+
+  &__question {
+    width: 100%;
+    @include flex-between;
+    gap: $space-md;
+    padding: $space-lg;
+    @include none;
+    @include cursor;
+    text-align: left;
+    color: $soft-pearl;
+    font-family: $font-secondary;
+    font-size: $t-but-des;
+    font-weight: $fw-medium;
+    line-height: 1.5;
+    transition: color 0.2s ease;
+    &:hover { color: rgba($misty-lavender, 0.9); }
+  }
+
+  &__icon {
+    width: 20px; height: 20px;
+    flex-shrink: 0;
+    color: $soft-pearl;
+    transition: transform 0.3s ease, color 0.2s ease;
+  }
+
+  &__answer {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-height 0.35s ease, opacity 0.3s ease;
+
+    p {
+      font-family: $font-secondary;
+      font-size: $t-forgot-des;
+      color: $soft-pearl;
+      line-height: 1.75;
+      padding: 0 $space-lg $space-lg;
+    }
   }
 }

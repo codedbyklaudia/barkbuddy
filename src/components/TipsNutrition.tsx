@@ -10,10 +10,10 @@ const tips: Tip[] = [
     title: "How to read a dog food label",
     summary: "Marketing terms are designed to appeal to owners, not indicate nutritional quality. Here's how to cut through the noise.",
     points: [
-      { text: "Ingredients are listed by weight before processing — but 'ingredient splitting' lets manufacturers keep cheap fillers lower on the list by dividing them into separate entries." },
-      { text: "Named meat source in the top ingredients is a good sign — 'chicken' or 'salmon' rather than 'animal derivatives'." },
-      { text: "Meat meal (e.g. 'chicken meal') is a concentrated protein source — not inherently bad despite sounding less appealing." },
-      { text: "Look for FEDIAF (UK/EU) or AAFCO (US) compliance — 'Complete' means it meets all nutritional requirements as a sole diet." },
+      { text: "Ingredients are listed by weight before processing - but 'ingredient splitting' lets manufacturers keep cheap fillers lower on the list by dividing them into separate entries." },
+      { text: "Named meat source in the top ingredients is a good sign - 'chicken' or 'salmon' rather than 'animal derivatives'." },
+      { text: "Meat meal (e.g. 'chicken meal') is a concentrated protein source - not inherently bad despite sounding less appealing." },
+      { text: "Look for FEDIAF (UK/EU) or AAFCO (US) compliance - 'Complete' means it meets all nutritional requirements as a sole diet." },
       { text: "Marketing terms to ignore: premium, super premium, natural, grain-free, human-grade — none have regulatory definitions." },
     ],
     callout: { label: "Grain-free warning", text: "Grain-free diets are under FDA investigation for a possible link to dilated cardiomyopathy. Grain-free does not mean better quality — grains are replaced with potato or lentils, which have similar effects." },
@@ -134,7 +134,7 @@ const tips: Tip[] = [
       { text: "Best evidence for: post-antibiotic recovery (replenishing gut bacteria), stress-related GI upset, during dietary transitions, and acute diarrhoea." },
       { text: "Use dog-specific products — Protexin, FortiFlora, and Proviable are well-regarded options." },
       { text: "Plain unsweetened yogurt with live cultures provides some benefit for dogs without dairy sensitivity." },
-      { text: "Evidence for long-term preventive use in healthy dogs is limited — most useful in specific situations rather than routine supplementation." },
+      { text: "Evidence for long-term preventive use in healthy dogs is limited - most useful in specific situations rather than routine supplementation." },
     ],
     callout: { label: "Postbiotics", text: "Postbiotics (metabolites produced by gut bacteria) are emerging as a promising area of canine health research. Watch this space." },
   },
@@ -144,11 +144,11 @@ const tips: Tip[] = [
     title: "Hydration",
     summary: "Most dogs don't drink enough water. Chronic mild dehydration affects kidney function, digestion, and energy levels.",
     points: [
-      { text: "A rough guideline: dogs need approximately 50–60ml of water per kilogram of body weight daily — more in hot weather and after exercise." },
+      { text: "A rough guideline: dogs need approximately 50-60ml of water per kilogram of body weight daily — more in hot weather and after exercise." },
       { text: "Fresh water in a clean bowl at all times. Some dogs prefer running water — pet fountains can significantly increase intake." },
-      { text: "Wet food provides significant moisture (70–80%) and can meaningfully improve hydration, especially for dogs who don't drink much." },
+      { text: "Wet food provides significant moisture (70-80%) and can meaningfully improve hydration, especially for dogs who don't drink much." },
       { text: "Signs of dehydration: dry or sticky gums, skin that doesn't spring back immediately when gently pinched, lethargy." },
-      { text: "Sudden increase in water consumption is a sign of several conditions including diabetes, kidney disease, and Cushing's — worth a vet check." },
+      { text: "Sudden increase in water consumption is a sign of several conditions including diabetes, kidney disease, and Cushing's - worth a vet check." },
     ],
   },
   {
@@ -157,10 +157,10 @@ const tips: Tip[] = [
     title: "Food allergies and intolerances",
     summary: "True food allergies are less common than owners think but do occur. The diagnostic process requires patience.",
     points: [
-      { text: "Most common triggers are protein sources — chicken, beef, dairy, wheat, soy." },
+      { text: "Most common triggers are protein sources - chicken, beef, dairy, wheat, soy." },
       { text: "Signs: chronic itching (especially paws, ears, belly), recurrent ear infections, loose stools, vomiting, skin rashes." },
-      { text: "Diagnosis requires an elimination diet: a novel protein/hydrolysed protein diet fed strictly for 8–12 weeks with no other food, treats, or flavoured supplements." },
-      { text: "Over-the-counter hypoallergenic foods don't work for elimination diets — cross-contamination in manufacturing means they can still trigger reactions." },
+      { text: "Diagnosis requires an elimination diet: a novel protein/hydrolysed protein diet fed strictly for 8-12 weeks with no other food, treats, or flavoured supplements." },
+      { text: "Over-the-counter hypoallergenic foods don't work for elimination diets - cross-contamination in manufacturing means they can still trigger reactions." },
       { text: "Once symptoms resolve, reintroduce individual ingredients one at a time to identify the specific trigger." },
     ],
     callout: { label: "Don't self-diagnose", text: "Environmental allergies (grass, dust mites) are more common than food allergies and present similarly. A vet assessment before elimination dieting saves time and money." },
@@ -172,24 +172,24 @@ const tips: Tip[] = [
     summary: "Obesity is the most common preventable health problem in UK dogs. Even modest weight loss produces measurable health improvements.",
     points: [
       { text: "Obesity worsens arthritis, increases cancer risk, causes breathing difficulties, raises diabetes risk, and significantly reduces life expectancy." },
-      { text: "Start with body condition scoring — ideal dogs have easily palpable ribs, a visible waist, and a slight abdominal tuck." },
-      { text: "Reduce daily food by 10–15% and reassess body condition after 4 weeks. Weigh on the same scales monthly." },
+      { text: "Start with body condition scoring - ideal dogs have easily palpable ribs, a visible waist, and a slight abdominal tuck." },
+      { text: "Reduce daily food by 10-15% and reassess body condition after 4 weeks. Weigh on the same scales monthly." },
       { text: "Low-calorie snacks: carrot sticks, cucumber, blueberries. All volume, minimal calories." },
-      { text: "Increase exercise gradually — don't start a heavy exercise programme before weight loss begins in obese dogs." },
+      { text: "Increase exercise gradually - don't start a heavy exercise programme before weight loss begins in obese dogs." },
       { text: "Prescription weight management diets from your vet provide lower calories while maintaining satiety through high fibre content." },
     ],
   },
   {
     id: "multivitamins",
     icon: ICON,
-    title: "Multivitamins — when to use them",
+    title: "Multivitamins - when to use them",
     summary: "Dogs on complete and balanced commercial diets do not need multivitamins. Indiscriminate supplementation can cause harm.",
     points: [
-      { text: "Fat-soluble vitamins (A, D, E, K) accumulate in the body — supplementing without deficiency can cause toxicity." },
+      { text: "Fat-soluble vitamins (A, D, E, K) accumulate in the body - supplementing without deficiency can cause toxicity." },
       { text: "Only supplement vitamins if there's a diagnosed deficiency confirmed by a vet." },
-      { text: "Dogs on home-cooked diets often need supplementation — but tailored to the specific recipe by a veterinary nutritionist." },
+      { text: "Dogs on home-cooked diets often need supplementation - but tailored to the specific recipe by a veterinary nutritionist." },
       { text: "Calcium supplementation in puppies eating complete puppy food causes serious developmental orthopaedic disease." },
-      { text: "If your dog is eating a complete food and their coat, weight, and energy are good — they're getting what they need." },
+      { text: "If your dog is eating a complete food and their coat, weight, and energy are good - they're getting what they need." },
     ],
   },
   {
@@ -201,7 +201,7 @@ const tips: Tip[] = [
       { text: "Classic triggers: fatty food, table scraps, getting into the bin, high-fat treats." },
       { text: "Signs: vomiting, diarrhoea, hunched posture, reluctance to eat, abdominal pain. Severe cases are life-threatening." },
       { text: "Long-term management: low-fat diet (under 10% fat on dry matter basis), no table scraps, no fatty treats, consistent feeding." },
-      { text: "Breeds at higher risk: Miniature Schnauzers, Cocker Spaniels, some terrier breeds — should eat low-fat diets as a precaution." },
+      { text: "Breeds at higher risk: Miniature Schnauzers, Cocker Spaniels, some terrier breeds - should eat low-fat diets as a precaution." },
       { text: "During recovery: small, frequent meals of highly digestible low-fat food as directed by your vet." },
     ],
     callout: { label: "Never ignore symptoms", text: "Acute pancreatitis can deteriorate rapidly. Any dog showing vomiting alongside a hunched, painful posture should see a vet the same day." },
@@ -209,14 +209,14 @@ const tips: Tip[] = [
   {
     id: "raw-bones",
     icon: ICON,
-    title: "Raw bones — the full picture",
-    summary: "Raw bones are genuinely beneficial for dental health and mental enrichment — but they come with real risks that need to be managed.",
+    title: "Raw bones - the full picture",
+    summary: "Raw bones are genuinely beneficial for dental health and mental enrichment - but they come with real risks that need to be managed.",
     points: [
-      { text: "Never give cooked bones — cooking makes them brittle. They splinter into sharp shards that can perforate the gut." },
+      { text: "Never give cooked bones - cooking makes them brittle. They splinter into sharp shards that can perforate the gut." },
       { text: "Appropriate raw bones: large raw beef marrow bones or raw meaty bones (chicken wings, lamb ribs) that are size-appropriate." },
-      { text: "Always supervise — take the bone away if it becomes small enough to swallow whole or if your dog becomes possessive." },
+      { text: "Always supervise - take the bone away if it becomes small enough to swallow whole or if your dog becomes possessive." },
       { text: "Not appropriate for: dogs with pancreatitis (marrow is very fatty), dogs who gulp food without chewing, dogs with dental disease (may fracture teeth)." },
-      { text: "Risk of bacterial contamination — handle with food hygiene precautions, particularly in households with vulnerable people." },
+      { text: "Risk of bacterial contamination - handle with food hygiene precautions, particularly in households with vulnerable people." },
     ],
     callout: { label: "Dental alternatives", text: "If raw bones aren't suitable, VOHC-approved dental chews provide comparable dental benefit with less risk." },
   },
@@ -226,13 +226,13 @@ const tips: Tip[] = [
     title: "Feeding routine and schedule",
     summary: "Consistent feeding times support digestive health, help with house training, and reduce food-related anxiety.",
     points: [
-      { text: "Twice daily feeding works well for most adult dogs — morning and evening, roughly 12 hours apart." },
+      { text: "Twice daily feeding works well for most adult dogs - morning and evening, roughly 12 hours apart." },
       { text: "Puppies under 6 months need 3 meals daily; puppies under 3 months ideally 4 meals." },
-      { text: "Feed at the same times each day — this regulates digestion and makes toilet habits more predictable." },
-      { text: "Don't leave food down all day for free feeding — this makes it harder to monitor intake and can contribute to weight gain." },
+      { text: "Feed at the same times each day - this regulates digestion and makes toilet habits more predictable." },
+      { text: "Don't leave food down all day for free feeding - this makes it harder to monitor intake and can contribute to weight gain." },
       { text: "For dogs with GDV (bloat) risk (deep-chested breeds like Great Danes, Standard Poodles), avoid vigorous exercise for 1 hour before and after meals." },
     ],
-    callout: { label: "Food anxiety", text: "Dogs who eat extremely fast may benefit from a slow feeder or puzzle bowl — gulping increases the risk of bloat and reduces satiety." },
+    callout: { label: "Food anxiety", text: "Dogs who eat extremely fast may benefit from a slow feeder or puzzle bowl - gulping increases the risk of bloat and reduces satiety." },
   },
 ];
 
@@ -241,8 +241,8 @@ const TipsNutrition: React.FC = () => (
     category="nutrition"
     title="Nutrition"
     titleAccent="& feeding"
-    subtitle="Clear, unbiased guidance on dog nutrition — understanding ingredients labels, choosing the right food, and building a feeding routine that keeps your dog healthy long-term."
-    heroIcon="/images/paint/pet-shop.png"
+    subtitle="Clear, unbiased guidance on dog nutrition - understanding ingredients labels, choosing the right food, and building a feeding routine that keeps your dog healthy long-term."
+    heroIcon="../images/Illustrations/nutrition-art(1).png"
     tips={tips}
   />
 );

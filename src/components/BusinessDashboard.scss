@@ -3,13 +3,10 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-// ─── Loading screen ───────────────────────────────────────────────────────────
+// Loading screen 
 .biz-dash-loading {
   min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  @include flex-column;
   gap: $space-lg;
   background: $soft-pearl;
   font-family: $font-secondary;
@@ -26,21 +23,19 @@
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-// ─── Force password change overlay ───────────────────────────────────────────
+// Force password change overlay 
 .biz-force-overlay {
   position: fixed; inset: 0;
   background: rgba($twilight-purple, 0.6);
   backdrop-filter: blur(4px);
   z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   padding: $space-lg;
   font-family: $font-secondary;
 }
 
 .biz-force-modal {
-  background: #fff;
+  background: $soft-pearl;
   border-radius: $radius-lg;
   padding: $space-xxl clamp(1.5rem, 4vw, 2.5rem);
   width: 100%;
@@ -55,7 +50,7 @@
 
     h2 {
       font-family: $font-primary;
-      font-size: 1.5rem;
+      font-size: $t-sub-des;
       font-weight: $fw-regular;
       color: $twilight-purple;
       margin-bottom: $space-md;
@@ -79,8 +74,7 @@
   }
 
   form {
-    display: flex;
-    flex-direction: column;
+    @include column;
     gap: $space-lg;
 
     button {
@@ -104,8 +98,7 @@
 }
 
 .biz-force-field {
-  display: flex;
-  flex-direction: column;
+  @include column;
   gap: $space-xs;
 
   label {
@@ -136,7 +129,7 @@
   }
 }
 
-// ─── Toast ────────────────────────────────────────────────────────────────────
+// Toast 
 .biz-toast {
   position: fixed;
   top: $space-xl;
@@ -161,13 +154,13 @@
   to   { transform: translateX(-50%) translateY(0);    opacity: 1; }
 }
 
-// ─── Dashboard shell ──────────────────────────────────────────────────────────
+// Dashboard shell 
 .biz-dash {
   min-height: 100dvh;
   display: grid;
-  grid-template-columns: 260px 1fr;
+  grid-template-columns: 400px 1fr;
   font-family: $font-secondary;
-  background: #f4f3fa;
+  background: $soft-pearl;
 
   @media (max-width: $bp-tablet) {
     grid-template-columns: 1fr;
@@ -186,11 +179,11 @@
   top: 0;
   min-height: 100dvh;
   height: 100dvh;
-  overflow-y: auto;
+  overflow-y: hidden;
 
   &::before {
     content: '';
-    position: absolute; inset: 0;
+    @include absolute; inset: 0;
     background: radial-gradient(ellipse 80% 50% at 0% 0%, rgba($serene-purple, 0.2) 0%, transparent 60%);
     pointer-events: none;
   }
@@ -205,11 +198,10 @@
 }
 
 .biz-dash__sidebar-top {
-  display: flex;
-  flex-direction: column;
+  @include column;
+  @include relative;
   gap: 0;
-  position: relative;
-  z-index: 1;
+  z-index: 10;
 
   @media (max-width: $bp-tablet) {
     flex-direction: row;
@@ -220,32 +212,23 @@
 }
 
 .biz-dash__logo {
-  display: flex;
-  align-items: center;
+  @include center;
+  margin: 0 auto;
   gap: $space-sm;
   text-decoration: none;
   padding: 0 $space-xl $space-xl;
 
   img {
-    width: 24px; height: 24px;
+    width: 90px; height: 90px;
     object-fit: contain;
-    filter: brightness(0) invert(1);
-    opacity: 0.5;
-  }
-
-  span {
-    font-family: $font-primary;
-    font-size: 1rem;
-    color: rgba($misty-lavender, 0.5);
-    letter-spacing: 0.08em;
+   
   }
 
   @media (max-width: $bp-tablet) { padding: 0; }
 }
 
 .biz-dash__biz-card {
-  display: flex;
-  align-items: center;
+  @include center;
   gap: $space-md;
   padding: $space-lg $space-xl;
   border-top: 1px solid rgba($misty-lavender, 0.08);
@@ -263,12 +246,10 @@
   width: 40px; height: 40px;
   border-radius: 50%;
   background: rgba($serene-purple, 0.3);
-  color: $soft-pearl;
-  font-size: 1.1rem;
+  color: $text-color-white;
+  font-size: $t-but-des;
   font-weight: $fw-bold;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   flex-shrink: 0;
 }
 
@@ -276,7 +257,7 @@
   font-size: $t-body-des;
   font-weight: $fw-bold;
   color: $soft-pearl;
-  line-height: 1.2;
+  line-height: $lh-normal;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -285,18 +266,17 @@
 
 .biz-dash__biz-username {
   font-size: $t-body-mob;
-  color: rgba($misty-lavender, 0.4);
+  color: $text-color-white;
   font-family: monospace;
 }
 
 .biz-dash__badge {
-  display: flex;
-  align-items: center;
+  @include center;
   gap: $space-sm;
   padding: $space-sm $space-xl;
   margin-bottom: $space-md;
   font-size: $t-body-mob;
-  color: rgba($misty-lavender, 0.35);
+  color: $text-color-white;
   text-transform: capitalize;
 }
 
@@ -310,8 +290,7 @@
 
 // Nav
 .biz-dash__nav {
-  display: flex;
-  flex-direction: column;
+  @include column;
   padding: 0 $space-md;
 
   @media (max-width: $bp-tablet) {
@@ -322,26 +301,24 @@
 }
 
 .biz-dash__nav-item {
-  display: flex;
-  align-items: center;
   gap: $space-md;
   padding: $space-md $space-lg;
   border-radius: $radius-md;
-  border: none;
-  background: none;
+  @include none;
+  @include center;
+  @include cursor;
   font-family: $font-secondary;
   font-size: $t-body-des;
-  color: rgba($misty-lavender, 0.5);
-  cursor: pointer;
+  color: $text-color-white;
   text-align: left;
   transition: all 0.18s;
   width: 100%;
 
-  &:hover { background: rgba($misty-lavender, 0.07); color: rgba($misty-lavender, 0.8); }
+  &:hover { background: rgba($misty-lavender, 0.07); color: $misty-lavender; }
 
   &--active {
     background: rgba($serene-purple, 0.18);
-    color: $soft-pearl;
+    color: $serene-purple;
     font-weight: $fw-bold;
   }
 
@@ -355,24 +332,26 @@
 
 .biz-dash__logout {
   background: none;
-  border: 1px solid rgba($misty-lavender, 0.1);
+  border: 1px solid rgba($serene-purple, 0.4);
   border-radius: $radius-lg;
-  color: rgba($misty-lavender, 0.35);
+  align-self: flex-end;
+  justify-self: flex-end;
+  color: $text-color-white;
   font-family: $font-secondary;
   font-size: $t-body-des;
   padding: $space-sm $space-xl;
   margin: $space-xl;
-  cursor: pointer;
+  @include cursor;
   transition: all 0.2s;
-  position: relative;
+  @include relative;
   z-index: 1;
 
-  &:hover { border-color: rgba($misty-lavender, 0.25); color: rgba($misty-lavender, 0.6); }
+  &:hover { border-color: rgba($misty-lavender, 0.25); color: $serene-purple; }
 
   @media (max-width: $bp-tablet) { margin: 0; padding: $space-xs $space-md; }
 }
 
-// ─── Main content ─────────────────────────────────────────────────────────────
+// Main content 
 .biz-dash__main {
   overflow-y: auto;
 }
@@ -432,7 +411,7 @@
     transform: translateY(-2px);
   }
 
-  &__icon { font-size: 1.5rem; }
+  &__icon { font-size: $t-sub-des; color: $twilight-purple; }
 
   h3 {
     font-family: $font-primary;
@@ -452,7 +431,14 @@
   &__link {
     font-size: $t-body-des;
     font-weight: $fw-bold;
-    color: $serene-purple;
+    border-radius: $radius-md;
+    max-width: 90%;
+    margin-left: 5%;
+    justify-content: space-between;
+    text-align: center;
+    padding: $space-xs $space-sm;
+    background-color: $twilight-purple;
+    color: $soft-pearl;
     margin-top: $space-sm;
   }
 }
@@ -660,7 +646,7 @@
 
   &__grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: $space-lg;
   }
 }
@@ -669,11 +655,12 @@
   position: relative;
   border-radius: $radius-lg;
   overflow: hidden;
-  background: rgba($twilight-purple, 0.04);
+  background: $twilight-purple;
+  color: $soft-pearl;
   border: 2px solid transparent;
   transition: all 0.2s;
 
-  &--primary { border-color: $serene-purple; }
+  &--primary { border-color: $twilight-purple; }
 
   img {
     width: 100%;
@@ -685,18 +672,19 @@
   &__badge {
     position: absolute;
     top: $space-sm; left: $space-sm;
-    background: $serene-purple;
-    color: #fff;
+    background: $twilight-purple;
+    color: $soft-pearl;
     font-size: $t-body-mob;
     font-weight: $fw-bold;
-    padding: 2px 8px;
+    padding: 3px 9px;
     border-radius: $radius-lg;
   }
 
   &__actions {
     @include column;
     gap: 1px;
-    background: rgba($twilight-purple, 0.9);
+    background: $twilight-purple;
+    color: $soft-pearl;
     padding: $space-sm;
     opacity: 0;
     transition: opacity 0.2s;
@@ -706,10 +694,10 @@
 }
 
 .biz-photo-action {
-  background: rgba(#fff, 0.1);
+  background: transparent;
   border: none;
   border-radius: $radius-sm;
-  color: #fff;
+  color: $soft-pearl;
   font-family: $font-secondary;
   font-size: $t-body-mob;
   padding: $space-xs $space-sm;
@@ -717,14 +705,13 @@
   text-align: left;
   transition: background 0.15s;
 
-  &:hover { background: rgba(#fff, 0.2); }
+  &:hover { background: rgba($twilight-purple, 0.2); }
   &--delete:hover { background: rgba(#dc2626, 0.6); }
 }
 
-// ─── Settings ─────────────────────────────────────────────────────────────────
+// Settings 
 .biz-settings {
-  display: flex;
-  flex-direction: column;
+  @include column;
   gap: $space-xl;
 }
 

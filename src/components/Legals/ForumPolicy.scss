@@ -1,0 +1,328 @@
+@import '../../styles/variables';
+@import '../../styles/mixins';
+
+// Animations
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+// Page wrapper
+.policy-page {
+  background: $soft-pearl;
+  min-height: 100vh;
+  color: $twilight-purple;
+}
+
+// Hero
+.policy-hero {
+  background: $twilight-purple;
+  background-image:
+    radial-gradient(ellipse at 80% 20%, rgba($serene-purple, 0.2) 0%, transparent 55%),
+    radial-gradient(ellipse at 10% 80%, rgba($serene-purple, 0.12) 0%, transparent 50%),
+    radial-gradient(circle, rgba($soft-pearl, 0.04) 1px, transparent 1px);
+  background-size: auto, auto, 24px 24px;
+  padding: $space-xxxl clamp($space-lg, 6vw, 80px) $space-xxl;
+  @include relative;
+  overflow: hidden;
+
+  &__inner {
+    max-width: 820px;
+    animation: fade-up 0.7s ease both;
+  }
+
+  &__eyebrow {
+    @include center;
+    gap: $space-sm;
+    margin-bottom: $space-lg;
+    animation: fade-up 0.6s 0.1s ease both;
+
+    span {
+      @include type-ui($t-forgot-des, $fw-bold);
+      @include label-caps(0.2em);
+      color: rgba($soft-pearl, 0.45);
+    }
+
+    &::before {
+      content: '';
+      display: block;
+      width: 28px;
+      height: 1.5px;
+      background: rgba($soft-pearl, 0.25);
+      flex-shrink: 0;
+    }
+  }
+
+  &__title {
+    @include type-display($weight: $fw-bold);
+    font-size: clamp(2.4rem, 5vw, 4rem);
+    color: $soft-pearl;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin: 0 0 $space-lg;
+    animation: fade-up 0.65s 0.15s ease both;
+
+    em {
+      font-style: italic;
+      color: rgba($serene-purple, 0.8);
+      font-weight: $fw-regular;
+    }
+  }
+
+  &__meta {
+    @include center;
+    gap: $space-md;
+    flex-wrap: wrap;
+    animation: fade-up 0.65s 0.25s ease both;
+  }
+
+  &__badge {
+    @include center;
+    gap: $space-xs;
+    @include glass(0.07, 0.12);
+    padding: 7px $space-md;
+    border-radius: 40px;
+    @include type-ui($t-forgot-des, $fw-medium);
+    color: rgba($soft-pearl, 0.65);
+
+    i { font-size: $t-forgot-des; color: $serene-purple; }
+  }
+}
+
+// Layout
+.policy-layout {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: $space-xxl;
+  max-width: 100%;
+  @include margin-center;
+  padding: $space-xxl clamp($space-lg, 4vw, $space-xxl);
+  align-items: start;
+
+  @media (max-width: $bp-laptop) {
+    grid-template-columns: 1fr;
+    gap: $space-xl;
+  }
+}
+
+// Sticky sidebar nav
+.policy-nav {
+  position: sticky;
+  top: 100px;
+  @include column;
+  gap: $space-xs;
+
+  @media (max-width: $bp-laptop) { display: none; }
+
+  &__label {
+    @include type-ui($t-but-des, $fw-bold);
+    @include label-caps(0.18em);
+    color: rgba($twilight-purple, 0.35);
+    margin-bottom: $space-sm;
+    padding-left: $space-sm;
+  }
+
+  &__link {
+    @include type-ui($t-link-des, $fw-medium);
+    color: rgba($twilight-purple, 0.5);
+    text-decoration: none;
+    padding: 7px $space-sm;
+    border-radius: $radius-md;
+    text-align: left;
+    background-color: transparent;
+    border-left: 2px solid transparent;
+    transition: all 0.2s ease;
+    line-height: 1.4;
+
+    &:hover {
+      color: $twilight-purple;
+      background: rgba($serene-purple, 0.07);
+      border-left-color: $serene-purple;
+    }
+
+    &--active {
+      color: $twilight-purple;
+      background: rgba($serene-purple, 0.08);
+      border-left-color: $twilight-purple;
+      font-weight: $fw-bold;
+    }
+  }
+}
+
+// Main content
+.policy-content {
+  @include column;
+  gap: 0;
+  animation: fade-up 0.7s 0.2s ease both;
+}
+
+// Each section
+.policy-section {
+  padding: $space-xxl 0;
+  border-bottom: 1px solid rgba($twilight-purple, 0.07);
+
+  &:last-child { border-bottom: none; }
+
+  &__number {
+    @include type-ui(0.65rem, $fw-bold);
+    @include label-caps(0.15em);
+    color: $serene-purple;
+    margin-bottom: $space-sm;
+  }
+
+  &__title {
+    @include type-display($weight: $fw-bold);
+    font-size: clamp(1.2rem, 2.5vw, 1.6rem);
+    color: $twilight-purple;
+    letter-spacing: -0.02em;
+    margin: 0 0 $space-lg;
+    line-height: 1.2;
+  }
+
+  &__body {
+    @include column;
+    gap: $space-md;
+  }
+
+  p {
+    @include type-ui($t-body-des, $fw-regular);
+    color: rgba($twilight-purple, 0.7);
+    line-height: $lh-loose;
+    margin: 0;
+  }
+
+  strong {
+    color: $twilight-purple;
+    font-weight: $fw-bold;
+  }
+
+  // Highlighted callout box
+  &__callout {
+    background: rgba($serene-purple, 0.07);
+    border: 1px solid rgba($serene-purple, 0.18);
+    border-left: 3px solid $serene-purple;
+    border-radius: $radius-md;
+    padding: $space-md $space-lg;
+
+    p {
+      color: rgba($twilight-purple, 0.8);
+      font-weight: $fw-medium;
+    }
+  }
+
+  // Warning callout
+  &__callout--warning {
+    background: rgba(#dc2626, 0.04);
+    border-color: rgba(#dc2626, 0.15);
+    border-left-color: #dc2626;
+
+    p { color: rgba(#7f1d1d, 0.85); }
+  }
+}
+
+// List styles
+.policy-list {
+  @include column;
+  gap: $space-xs;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+
+  &__item {
+    @include center;
+    gap: $space-sm;
+    align-items: flex-start;
+    @include type-ui($t-body-des, $fw-regular);
+    color: rgba($twilight-purple, 0.7);
+    line-height: $lh-loose;
+
+    &::before {
+      content: '';
+      display: block;
+      width: 6px;
+      height: 6px;
+      border-radius: $radius-round;
+      background: $serene-purple;
+      flex-shrink: 0;
+      margin-top: 10px;
+    }
+  }
+}
+
+// Sub-section
+.policy-subsection {
+  @include column;
+  gap: $space-sm;
+  background: rgba($misty-lavender, 0.18);
+  border-radius: $radius-lg;
+  padding: $space-lg;
+
+  &__title {
+    @include type-ui($t-but-des, $fw-bold);
+    @include label-caps(0.08em);
+    color: $twilight-purple;
+    margin-bottom: $space-xs;
+  }
+}
+
+// Contact info block
+.policy-contact {
+  @include glass(0.03, 0.08);
+  background: rgba($twilight-purple, 0.03);
+  border: 1px solid rgba($twilight-purple, 0.1);
+  border-radius: $radius-lg;
+  padding: $space-lg;
+  @include column;
+  gap: $space-sm;
+
+  &__row {
+    @include center;
+    gap: $space-sm;
+    @include type-ui($t-body-des, $fw-medium);
+    color: rgba($twilight-purple, 0.65);
+
+    i { color: $serene-purple; font-size: 0.9rem; }
+
+    a {
+      color: $serene-purple;
+      text-decoration: none;
+      font-weight: $fw-bold;
+      &:hover { text-decoration: underline; }
+    }
+  }
+}
+
+// Effective date bar
+.policy-date-bar {
+  background: $twilight-purple;
+  padding: $space-md clamp($space-lg, 6vw, 80px);
+  @include flex-between;
+  flex-wrap: wrap;
+  gap: $space-sm;
+
+  p {
+    @include type-ui($t-forgot-des, $fw-medium);
+    color: rgba($soft-pearl, 0.45);
+    margin: 0;
+
+    strong { color: rgba($soft-pearl, 0.7); }
+  }
+
+  &__back {
+    @include none;
+    @include cursor;
+    @include center;
+    gap: $space-xs;
+    @include type-ui(0.78rem, $fw-bold);
+    color: rgba($soft-pearl, 0.5);
+    text-decoration: none;
+    transition: color 0.2s;
+
+    &:hover { color: $soft-pearl; }
+  }
+}

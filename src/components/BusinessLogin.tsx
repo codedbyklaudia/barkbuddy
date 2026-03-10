@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./BusinessLogin.scss";
+import { Undo2 } from 'lucide-react';
+
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:4000/api";
 
@@ -51,11 +53,11 @@ const BusinessLogin: React.FC = () => {
       {/* Left — brand panel */}
       <aside className="biz-login__panel">
         <div className="biz-login__panel-inner">
-          <img src="/images/paint/groomer.png" alt="" className="biz-login__brand-icon" />
+          <img src="/images/logo.png" alt="BarkBuddy for business" className="biz-login__brand-icon" />
           <div className="biz-login__brand">
             <h1>BarkBuddy<br /><em>for Business</em></h1>
             <p>Manage your listing, update your details, and connect with dog owners in your area.</p>
-            <Link to="/" className="biz-login__home-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg> Back to BarkBuddy</Link>
+            <Link to="/" className="biz-login__home-link"><Undo2 size={"16"} /> Back to BarkBuddy</Link>
           </div>
         </div>
       </aside>

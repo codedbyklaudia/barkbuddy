@@ -40,16 +40,14 @@ const HomePage: React.FC = () => {
           <p className="app-features__description">
             Download BarkBuddy App to access personalised, age-specific nutrition and care recommendations + your walk & health tracker!
           </p>
-          <button className="btn btn--download">
+          <button className="btn1 btn1--download">
             Download the app
-            <svg className="btn__icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M7 10l5 5 5-5M12 15V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+            <i className="bi bi-download"></i>
           </button>
         </div>
         <div className="app-features__preview">
           <div className="app-features__phone-mockup">
-            <img src="../../images/google_store_ad.png" alt="BarkBuddy App Preview" />
+            <img src="../../images/google-store.png" alt="BarkBuddy App Preview" />
             <div className="app-features__labels">
               <span className="feature-label feature-label--training">Reminders</span>
               <span className="feature-label feature-label--health">Health tracker</span>
@@ -160,10 +158,7 @@ const HomePage: React.FC = () => {
             Share tips, ask questions, and connect with fellow dog parents. Understand the journey.
           </p>
           <button className="btn btn--primary">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            Join Now
+            Join Now <i className="bi bi-chat"></i>
           </button>
         </div>
       </section>
