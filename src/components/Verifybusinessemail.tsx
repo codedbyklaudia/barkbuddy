@@ -12,21 +12,18 @@ const VerifyBusinessEmail: React.FC = () => {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    // With HashRouter, the email link is: /#/business/verify-email?token=...
-    // When opened directly from email, query string lives in window.location.hash
-    // When navigated internally, it lives in location.search
-    // Try both to be safe.
     let token: string | null = null;
 
-    // 1. Try location.search first (internal navigation)
+    // 1. Try location.search first (internal navigation via React Router)
     if (location.search) {
       token = new URLSearchParams(location.search).get("token");
     }
 
-    // 2. Fallback: parse query from the hash itself (direct link from email)
+    // 2. Fallback: parse query from the hash itself (direct link click from email)
+    //    e.g. window.location.hash = "#/business/verify-email?token=abc123"
     if (!token) {
-      const hash = window.location.hash; // e.g. "#/business/verify-email?token=abc"
-      const qIndex = hash.indexOf("?");
+      const hash    = window.location.hash;
+      const qIndex  = hash.indexOf("?");
       if (qIndex !== -1) {
         token = new URLSearchParams(hash.slice(qIndex)).get("token");
       }
@@ -38,12 +35,22 @@ const VerifyBusinessEmail: React.FC = () => {
       return;
     }
 
-    fetch(`${API_BASE}/business/verify-email?token=${encodeURIComponent(token)}`)
+    // FIX: URLSearchParams.get() already URL-decodes the token value.
+    // Do NOT wrap it in encodeURIComponent — that double-encodes it and the
+    // backend query finds no matching row, returning 400 "invalid or expired".
+    fetch(`${API_BASE}/business/verify-email?token=${token}`)
       .then(res => res.json())
       .then(data => {
-        if (data.verified) {
+        // FIX: handle all common success shapes backends may return
+        const isVerified =
+          data.verified === true ||
+          data.success  === true ||
+          data.ok       === true ||
+          data.status   === "verified";
+
+        if (isVerified) {
           setStatus("success");
-          setMessage(data.message);
+          setMessage(data.message || "Your email has been successfully verified!");
         } else {
           setStatus("error");
           setMessage(data.message || "Verification failed. Please contact us.");

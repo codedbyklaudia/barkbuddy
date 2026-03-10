@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import './Footer.scss';
 
 const Footer: React.FC = () => {
@@ -8,7 +9,7 @@ const Footer: React.FC = () => {
         {/* Logo Section */}
         <div className="footer__brand">
           <div className="footer__logo">
-            <span className="footer__logo-text">BarkBuddy</span>
+            <img src="../../images/logo.png" alt="BarkBuddy" className="footer__logo-img" />
           </div>
           <div className="footer__social">
             <a href="#" className="footer__social-link" aria-label="TikTok">
@@ -34,29 +35,30 @@ const Footer: React.FC = () => {
           <div className="footer__column">
             <h3 className="footer__column-title">Explore</h3>
             <ul className="footer__list">
-              <li><a href="#care-tips">Dog Care</a></li>
-              <li><a href="#dog-friendly">Dog-friendly activities</a></li>
-              <li><a href="#services">Service Finder</a></li>
-              <li><a href="#travel">Travel Guide</a></li>
+              <li><Link to="/care-tips">Dog Care</Link></li>
+              <li><Link to="/service-finder">BarkBuddy Discover</Link></li>
+              <li><Link to="/travel-page">Travel Guide</Link></li>
+              <li><Link to="/about">About BarkBuddy</Link></li>
+              <li><Link to="/contact">Contact BarkBuddy</Link></li>
             </ul>
           </div>
 
           <div className="footer__column">
             <h3 className="footer__column-title">BarkBuddy Hub</h3>
             <ul className="footer__list">
-              <li><a href="#how-it-works">About BarkBuddy</a></li>
-              <li><a href="#faq">FAQ</a></li>
-              <li><a href="#businesses">For Businesses</a></li>
-              <li><a href="#forum">Parents Forum</a></li>
+        
+              <li><Link to="/faq">FAQ</Link></li>
+              <li><a href="/register-business">For Businesses</a></li>
+              <li><Link to="/forum-page">Parents Forum</Link></li>
             </ul>
           </div>
 
           <div className="footer__column">
             <h3 className="footer__column-title">Legal documents</h3>
             <ul className="footer__list">
-              <li><a href="#forum-policy">Forum Policy</a></li>
-              <li><a href="#terms">Terms and conditions</a></li>
-              <li><a href="#privacy-policy">Privacy Policy</a></li>
+              <li><Link to="/forumpolicy">Forum Policy</Link></li>
+              <li><Link to="/terms">Terms of service</Link></li>
+              <li><Link to="/privacy-policy">Privacy Policy</Link></li>
             </ul>
           </div>
         </div>
@@ -64,7 +66,7 @@ const Footer: React.FC = () => {
 
       {/* Copyright */}
       <div className="footer__bottom">
-        <p>BarkBuddy 2026. Copyright reserved. <span className="footer__heart">PROUDLY</span> founded and created with 💜 by <a href="#" className="footer__creator">codedbyklaudia</a></p>
+        <p>© BarkBuddy 2026. Copyright reserved. <span className="footer__heart">PROUDLY</span> founded and created with 💜 by <a href="#" className="footer__creator">codedbyklaudia</a></p>
       </div>
     </footer>
   );

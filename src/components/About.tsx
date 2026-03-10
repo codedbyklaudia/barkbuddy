@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import "./About.scss";
 import Footer from "./Footer";
 
-// ─── Feature item 
+// ─── Feature item ─────────────────────────────────────────────────────────────
 interface FeatureItemProps {
   icon: string;
   text: string;
@@ -15,7 +15,7 @@ const FeatureItem: React.FC<FeatureItemProps> = ({ icon, text }) => (
   </li>
 );
 
-// ─── Vision item 
+// Vision item
 const VisionItem: React.FC<{ text: string; index: number }> = ({ text, index }) => (
   <div className="about-vision-item" style={{ animationDelay: `${index * 0.1}s` }}>
     <div className="about-vision-item__num">{String(index + 1).padStart(2, "0")}</div>
@@ -23,33 +23,67 @@ const VisionItem: React.FC<{ text: string; index: number }> = ({ text, index }) 
   </div>
 );
 
-// ─── Page 
+// Page
 const About: React.FC = () => {
   return (
     <div className="about-page">
 
-      {/* ── Hero  */}
+      {/* Hero — two-column */}
       <section className="about-hero">
-        <div className="about-hero__bg-glow" aria-hidden="true" />
-        <div className="about-hero__inner">
-          <div className="about-hero__eyebrow">
-            <img src="/images/paint/dog-friendly.png" alt="" />
-            Our Story
+
+        {/* Left — text */}
+        <div className="about-hero__left">
+          <div className="about-hero__heading-block">
+
+            <p className="about-hero__eyebrow">About BarkBuddy</p>
+
+            <h1 className="about-hero__title">
+              Built with love, for <em>dog parents.</em>
+            </h1>
+
+            <p className="about-hero__sub">
+              Built from real experiences, real frustrations,<br />
+              and real love for dogs.
+            </p>
+
+            <div className="about-hero__ctas">
+              <Link to="/register" className="about-hero__cta about-hero__cta--primary">
+                Join for free
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </Link>
+              <Link to="/" className="about-hero__cta about-hero__cta--ghost">
+                Explore the platform
+              </Link>
+            </div>
+
           </div>
-          <h1 className="about-hero__title">
-            About<br /><em>BarkBuddy</em>
-          </h1>
-          <p className="about-hero__sub">
-            Built from real experiences, real frustrations,<br />
-            and real love for dogs.
-          </p>
         </div>
-        <div className="about-hero__paw" aria-hidden="true">
-          <img src="/images/paint/dog-friendly.png" alt="" />
+
+        {/* Right — photo */}
+        <div className="about-hero__right" aria-hidden="true">
+          <img
+            src="../images/Illustrations/paw-hand.png"
+            alt=""
+            className="about-hero__image"
+          />
         </div>
+
+        {/* Wave */}
+        <svg
+          className="about-hero__wave"
+          viewBox="0 0 1440 72"
+          preserveAspectRatio="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <path d="M0,72 L0,36 Q360,0 720,36 Q1080,72 1440,36 L1440,72 Z" fill="#F8F6F4" />
+        </svg>
+
       </section>
 
-      {/* ── Story section  */}
+      {/* Story section  */}
       <section className="about-story">
         <div className="about-story__inner">
 
@@ -94,29 +128,27 @@ const About: React.FC = () => {
         </div>
       </section>
 
-      {/* ── Divider  */}
+      {/* Divider  */}
       <div className="about-divider" aria-hidden="true">
         <div className="about-divider__line" />
         <img src="/images/paint/dog-friendly.png" alt="" className="about-divider__icon" />
         <div className="about-divider__line" />
       </div>
 
-      {/* ── Mission  */}
+      {/* Mission  */}
       <section className="about-mission">
         <div className="about-mission__inner">
 
-          {/* Photo — left */}
           <div className="about-story__photo-wrap about-story__photo-wrap--left">
             <div className="about-photo about-photo--landscape">
               <div className="about-photo__placeholder">
-                <img src="/images/paint/dog-friendly.png" alt="" />
+                <img src="../images/Nox-pic.png" alt="Founder dog picture" />
                 <p>A walk, park moment, or playful picture</p>
               </div>
               <div className="about-photo__frame" aria-hidden="true" />
             </div>
           </div>
 
-          {/* Text — right */}
           <div className="about-mission__text">
             <span className="about-section-label">The Mission</span>
             <h2 className="about-section-title">
@@ -137,7 +169,7 @@ const About: React.FC = () => {
         </div>
       </section>
 
-      {/* ── How it works  */}
+      {/* ── How it works ─────────────────────────────────────────────────────── */}
       <section className="about-how">
         <div className="about-how__inner">
           <div className="about-how__header">
@@ -152,7 +184,6 @@ const About: React.FC = () => {
 
           <div className="about-how__tiers">
 
-            {/* Tier 1 */}
             <div className="about-tier about-tier--free">
               <div className="about-tier__header">
                 <div className="about-tier__icon">
@@ -164,21 +195,19 @@ const About: React.FC = () => {
                 </div>
               </div>
               <ul className="about-tier__list">
-                <FeatureItem icon="/images/icons/grooming.svg" text="Dog care tips" />
-                <FeatureItem icon="/images/icons/plane.svg"    text="Travel guide" />
-                <FeatureItem icon="/images/icons/dog-friendly.svg" text="Dog-friendly locations" />
-                <FeatureItem icon="/images/icons/services.svg" text="Local services directory" />
+                <FeatureItem icon="/images/icons/grooming.svg"      text="Dog care tips" />
+                <FeatureItem icon="/images/icons/plane.svg"         text="Travel guide" />
+                <FeatureItem icon="/images/icons/dog-friendly.svg"  text="Dog-friendly locations" />
+                <FeatureItem icon="/images/icons/services.svg"      text="Local services directory" />
               </ul>
             </div>
 
-            {/* Arrow connector */}
             <div className="about-how__arrow" aria-hidden="true">
               <svg viewBox="0 0 40 40" fill="none" width="40" height="40">
                 <path d="M8 20h24M22 12l10 8-10 8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
 
-            {/* Tier 2 */}
             <div className="about-tier about-tier--account">
               <div className="about-tier__header">
                 <div className="about-tier__icon">
@@ -190,12 +219,12 @@ const About: React.FC = () => {
                 </div>
               </div>
               <ul className="about-tier__list">
-                <FeatureItem icon="/images/icons/health.svg"     text="Age-personalised care tips" />
-                <FeatureItem icon="/images/icons/grooming.svg"   text="Health calendar & reminders" />
-                <FeatureItem icon="/images/icons/services.svg"   text="Custom recommendations" />
-                <FeatureItem icon="/images/icons/dog-friendly.svg" text="Save favourite services" />
-                <FeatureItem icon="/images/icons/more.svg"       text="Community forum" />
-                <FeatureItem icon="/images/icons/care.svg"       text="Android app with walk tracker" />
+                <FeatureItem icon="/images/icons/health.svg"          text="Age-personalised care tips" />
+                <FeatureItem icon="/images/icons/grooming.svg"        text="Health calendar & reminders" />
+                <FeatureItem icon="/images/icons/services.svg"        text="Custom recommendations" />
+                <FeatureItem icon="/images/icons/dog-friendly.svg"    text="Save favourite services" />
+                <FeatureItem icon="/images/icons/more.svg"            text="Community forum" />
+                <FeatureItem icon="/images/icons/care.svg"            text="Android app with walk tracker" />
               </ul>
             </div>
 
@@ -203,7 +232,7 @@ const About: React.FC = () => {
         </div>
       </section>
 
-      {/* ── Vision  */}
+      {/* ── Vision ───────────────────────────────────────────────────────────── */}
       <section className="about-vision">
         <div className="about-vision__inner">
           <div className="about-vision__header">
@@ -236,7 +265,7 @@ const About: React.FC = () => {
         </div>
       </section>
 
-      {/* ── Closing  */}
+      {/* ── Closing ──────────────────────────────────────────────────────────── */}
       <section className="about-closing">
         <div className="about-closing__inner">
           <div className="about-closing__paw" aria-hidden="true">
@@ -265,8 +294,8 @@ const About: React.FC = () => {
           </div>
         </div>
       </section>
-     <Footer />
 
+      <Footer />
     </div>
   );
 };

@@ -3,97 +3,120 @@
 
 .footer {
   background-color: $soft-pearl;
-  padding: clamp($space-xl, 6vh, $space-xxl) clamp($space-lg, 5vw, $space-xxl);
+  padding: $space-xxl clamp($space-lg, 5vw, $space-xxl) $space-lg;
+  border-top: 1px solid rgba($misty-lavender, 0.5);
 
   @media (max-width: $bp-tablet) {
-    padding: $space-lg $space-md;
+    padding: $space-xl $space-lg $space-lg;
+  }
+
+  @media (max-width: $bp-mobile) {
+    padding: $space-lg $space-md $space-md;
   }
 
   &__container {
     max-width: 1200px;
     margin: 0 auto;
     display: grid;
-    grid-template-columns: 1.5fr 2fr;
-    gap: clamp($space-xl, 5vw, $space-xxl * 1.5);
+    // Logo column is compact, links take the rest
+    grid-template-columns: 220px 1fr;
+    gap: clamp($space-xl, 4vw, $space-xxl);
     padding-bottom: $space-xl;
     border-bottom: 1px solid rgba($misty-lavender, 0.5);
+    align-items: start;
 
-    @media (max-width: $bp-laptop) {
+    @media (max-width: $bp-tablet) {
       grid-template-columns: 1fr;
       gap: $space-xl;
     }
   }
 
+  // ── Brand column ────────────────────────────────────────────
   &__brand {
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
     gap: $space-lg;
+
+    @media (max-width: $bp-tablet) {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    @media (max-width: $bp-mobile) {
+      flex-direction: column;
+      align-items: center;
+    }
   }
 
   &__logo {
     display: flex;
     align-items: center;
-    gap: $space-sm;
   }
 
-  &__logo-text {
-    font-family: $font-primary;
-    font-size: clamp(1.5rem, 3vw, 2rem);
-    font-weight: $fw-bold;
-    color: $twilight-purple;
+  &__logo-img {
+    height: 180px;
+    width: auto;
+    display: block;
+    object-fit: contain;
   }
 
   &__social {
     display: flex;
-    gap: $space-md;
+    gap: $space-sm;
   }
 
   &__social-link {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     border-radius: $radius-round;
-    background-color: $twilight-purple;
-    color: $text-color-white;
+    background-color: rgba($misty-lavender, 0.2);
+    color: $text-color-dark;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease;
+    transition: all 0.25s ease;
     text-decoration: none;
 
     &:hover {
       background-color: $serene-purple;
-      transform: translateY(-3px);
-      box-shadow: $shadow-md;
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba($serene-purple, 0.25);
     }
 
     svg {
-      width: 20px;
-      height: 20px;
+      width: 17px;
+      height: 17px;
     }
   }
 
+  // Links grid 
   &__links {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: $space-xl;
 
-    @media (max-width: $bp-tablet) {
+    @media (max-width: $bp-mobile) {
       grid-template-columns: 1fr;
       gap: $space-lg;
+      text-align: center;
     }
   }
 
   &__column {
-    display: flex;
-    flex-direction: column;
+    @include column;
     gap: $space-md;
   }
 
   &__column-title {
-    font-family: $font-secondary;
-    font-size: clamp(1rem, 2vw, 1.125rem);
+    font-family: $font-primary;
+    font-size: $t-but-des;
     font-weight: $fw-bold;
-    color: $text-color-dark;
+    letter-spacing: 0.14em;
+    color: $serene-purple;
+    text-transform: uppercase;
     margin-bottom: $space-xs;
   }
 
@@ -101,43 +124,40 @@
     list-style: none;
     padding: 0;
     margin: 0;
-    display: flex;
-    flex-direction: column;
+    @include column;
     gap: $space-sm;
 
-    li {
-      a {
-        font-family: $font-secondary;
-        font-size: clamp(0.9rem, 1.8vw, 1rem);
-        color: $text-color-dark;
-        text-decoration: none;
-        transition: all 0.3s ease;
-        display: inline-block;
-        position: relative;
+    li a {
+      font-family: $font-secondary;
+      font-size: $t-link-des;
+      color: rgba($text-color-dark, 0.7);
+      text-decoration: none;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0;
+
+      &::after {
+        content: '🐾';
+        font-size: 0.7rem;
+        opacity: 0;
+        transform: translateX(-4px);
+        transition: all 0.2s ease;
+        margin-left: 4px;
+      }
+
+      &:hover {
+        color: $serene-purple;
 
         &::after {
-          content: '🐾';
-          position: absolute;
-          right: -20px;
-          opacity: 0;
-          transform: translateX(-5px);
-          transition: all 0.3s ease;
-          font-size: 0.8rem;
-        }
-
-        &:hover {
-          color: $serene-purple;
-          padding-left: $space-xs;
-
-          &::after {
-            opacity: 1;
-            transform: translateX(0);
-          }
+          opacity: 1;
+          transform: translateX(0);
         }
       }
     }
   }
 
+  // Bottom bar 
   &__bottom {
     max-width: 1200px;
     margin: 0 auto;
@@ -146,26 +166,23 @@
 
     p {
       font-family: $font-secondary;
-      font-size: clamp(0.8rem, 1.5vw, 0.9rem);
-      color: $text-color-dark;
-      opacity: 0.8;
-
-      @media (max-width: $bp-tablet) {
-        font-size: 0.8rem;
-      }
+      font-size: $t-forgot-des;
+      color: rgba($text-color-dark, 0.5);
+      line-height: 1.6;
     }
   }
 
   &__heart {
     font-weight: $fw-bold;
     color: $twilight-purple;
+    letter-spacing: 0.04em;
   }
 
   &__creator {
     color: $serene-purple;
     text-decoration: none;
     font-weight: $fw-medium;
-    transition: all 0.3s ease;
+    transition: color 0.2s ease;
 
     &:hover {
       color: $twilight-purple;

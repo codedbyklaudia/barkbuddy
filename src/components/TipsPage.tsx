@@ -1,8 +1,9 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "./TipsPage.scss";
+import Footer from './Footer';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// Types 
 export type TipPoint = {
   text: string;
   sub?: string[];
@@ -36,7 +37,14 @@ const NAV = [
   { label: "Nutrition", path: "/tips/nutrition", icon: "/images/icons/nutrition.svg" },
 ];
 
-// ─── Search icon ──────────────────────────────────────────────────────────────
+const CATEGORY_LABELS: Record<TipCategory, string> = {
+  grooming:  "Grooming",
+  health:    "Health",
+  training:  "Training",
+  nutrition: "Nutrition",
+};
+
+// ─── Icons ────────────────────────────────────────────────────────────────────
 const SearchIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
     width="18" height="18" aria-hidden="true">
@@ -58,15 +66,22 @@ const ChevronIcon = () => (
   </svg>
 );
 
-// ─── Single expandable tip card ───────────────────────────────────────────────
-const TipCard: React.FC<{ tip: Tip; category: TipCategory; index: number }> = ({
-  tip, category, index,
-}) => {
-  const [open, setOpen]       = useState(false);
-  const bodyRef               = useRef<HTMLDivElement>(null);
-  const [height, setHeight]   = useState<number>(0);
+const ChevronRightIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
 
-  // Measure content height for smooth CSS transition
+// ─── Single expandable tip card ───────────────────────────────────────────────
+const TipCard: React.FC<{ tip: Tip; category: TipCategory; index: number; forceOpen?: boolean }> = ({
+  tip, category, index, forceOpen,
+}) => {
+  const [localOpen, setLocalOpen] = useState(false);
+  const bodyRef                   = useRef<HTMLDivElement>(null);
+  const [height, setHeight]       = useState<number>(0);
+
+  const open = forceOpen ?? localOpen;
+
   useEffect(() => {
     if (bodyRef.current) setHeight(bodyRef.current.scrollHeight);
   }, [open, tip]);
@@ -76,10 +91,9 @@ const TipCard: React.FC<{ tip: Tip; category: TipCategory; index: number }> = ({
       className={`tip-card tip-card--${category} ${open ? "tip-card--open" : ""}`}
       style={{ animationDelay: `${index * 0.045}s` }}
     >
-      {/* Header — always visible */}
       <button
         className="tip-card__header"
-        onClick={() => setOpen(o => !o)}
+        onClick={() => setLocalOpen(o => !o)}
         aria-expanded={open}
         aria-controls={`tip-body-${tip.id}`}
       >
@@ -95,7 +109,6 @@ const TipCard: React.FC<{ tip: Tip; category: TipCategory; index: number }> = ({
         </div>
       </button>
 
-      {/* Expandable body */}
       <div
         id={`tip-body-${tip.id}`}
         className="tip-card__body"
@@ -103,26 +116,19 @@ const TipCard: React.FC<{ tip: Tip; category: TipCategory; index: number }> = ({
         aria-hidden={!open}
       >
         <div ref={bodyRef} className="tip-card__body-inner">
-          {/* Summary paragraph at top of expanded */}
           <p className="tip-card__body-intro">{tip.summary}</p>
-
-          {/* Points */}
           <ul className="tip-card__points">
             {tip.points.map((p, i) => (
               <li key={i} className="tip-card__point">
                 <span className="tip-card__point-text">{p.text}</span>
                 {p.sub && (
                   <ul className="tip-card__sub-points">
-                    {p.sub.map((s, j) => (
-                      <li key={j}>{s}</li>
-                    ))}
+                    {p.sub.map((s, j) => <li key={j}>{s}</li>)}
                   </ul>
                 )}
               </li>
             ))}
           </ul>
-
-          {/* Callout box */}
           {tip.callout && (
             <div className="tip-card__callout">
               <span className="tip-card__callout-label">{tip.callout.label}</span>
@@ -156,28 +162,50 @@ const TipsPage: React.FC<TipsPageProps> = ({
   return (
     <div className={`tips-page tips-page--${category}`}>
 
-      {/* ── Hero ─────────────────────────────────────────────────────────── */}
+      {/* ── Hero — two-column layout matching TravelPage ─────────────────── */}
       <section className="tips-hero">
-        <div className="tips-hero__inner">
-          <div className="tips-hero__eyebrow">
-            <img src={heroIcon} alt="" className="tips-hero__eyebrow-icon" />
-            Dog Tips
-          </div>
-          <h1 className="tips-hero__title">
-            {title}<br /><em>{titleAccent}</em>
-          </h1>
-          <p className="tips-hero__sub">{subtitle}</p>
-          <div className="tips-hero__meta">
-            <span className="tips-hero__count">
-              <strong>{tips.length}</strong> tips
-            </span>
+
+        {/* Left — text */}
+        <div className="tips-hero__left">
+          <div className="tips-hero__heading-block">
+
+            <p className="tips-hero__eyebrow">
+              Dog Tips
+            </p>
+
+            <h1 className="tips-hero__title">
+              <span>{title}</span>
+              <span><em>{titleAccent}</em></span>
+            </h1>
+
+            <p className="tips-hero__sub">{subtitle}</p>
+
+            <div className="tips-hero__meta">
+              <div className="tips-hero__stat">
+                <span className="tips-hero__stat-value">{tips.length}</span>
+                <span className="tips-hero__stat-label">Tips</span>
+              </div>
+              <div className="tips-hero__stat">
+                <span className="tips-hero__stat-value">Free</span>
+                <span className="tips-hero__stat-label">Always</span>
+              </div>
+              <span className="tips-hero__pill">
+                {CATEGORY_LABELS[category]}
+              </span>
+            </div>
+
           </div>
         </div>
 
-        {/* Large decorative icon */}
-        <div className="tips-hero__deco" aria-hidden="true">
-          <img src={heroIcon} alt="" />
+        {/* Right — illustration as full-cover image */}
+        <div className="tips-hero__right" aria-hidden="true">
+          <img
+            src={heroIcon}
+            alt=""
+            className="tips-hero__deco-img"
+          />
         </div>
+
       </section>
 
       {/* ── Category nav ─────────────────────────────────────────────────── */}
@@ -196,7 +224,7 @@ const TipsPage: React.FC<TipsPageProps> = ({
         </div>
       </nav>
 
-      {/* ── Search + controls ─────────────────────────────────────────────── */}
+      {/* ── Search + controls ────────────────────────────────────────────── */}
       <div className="tips-controls">
         <div className="tips-search">
           <label htmlFor="tips-search-input" className="tips-search__icon">
@@ -224,42 +252,51 @@ const TipsPage: React.FC<TipsPageProps> = ({
         </div>
 
         <div className="tips-controls__right">
-          {query && (
-            <span className="tips-controls__count">
-              {filtered.length} result{filtered.length !== 1 ? "s" : ""}
-            </span>
-          )}
           <button
             className="tips-controls__expand"
             onClick={() => setExpandAll(e => !e)}
           >
             {expandAll ? "Collapse all" : "Expand all"}
+            <ChevronRightIcon />
           </button>
         </div>
       </div>
 
-      {/* ── Tips grid ─────────────────────────────────────────────────────── */}
+      {/* ── Tips grid ────────────────────────────────────────────────────── */}
       <div className="tips-body">
         {filtered.length === 0 ? (
           <div className="tips-empty">
             <img src={heroIcon} alt="" />
             <h3>No tips found</h3>
-            <p>Try a different search term — or <button onClick={() => setQuery("")}>clear the search</button></p>
+            <p>
+              Try a different search term — or{" "}
+              <button onClick={() => setQuery("")}>clear the search</button>
+            </p>
           </div>
         ) : (
-          <div className="tips-grid" key={query /* re-mount on search to reset open states */}>
-            {filtered.map((tip, i) => (
-              <TipCard
-                key={tip.id}
-                tip={tip}
-                category={category}
-                index={i}
-              />
-            ))}
-          </div>
+          <>
+            <div className="tips-body__label">
+              <span>
+                {query
+                  ? `${filtered.length} result${filtered.length !== 1 ? "s" : ""}`
+                  : `${tips.length} ${category} tips`}
+              </span>
+            </div>
+            <div className="tips-grid" key={query}>
+              {filtered.map((tip, i) => (
+                <TipCard
+                  key={tip.id}
+                  tip={tip}
+                  category={category}
+                  index={i}
+                  forceOpen={expandAll ? true : undefined}
+                />
+              ))}
+            </div>
+          </>
         )}
       </div>
-
+        <Footer />
     </div>
   );
 };

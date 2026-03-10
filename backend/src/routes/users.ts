@@ -39,16 +39,28 @@ const uploadToCloudinary = (buffer: Buffer, folder: string): Promise<string> =>
     Readable.from(buffer).pipe(stream);
   });
 
+// ─── Helper: recalculate profile_complete ────────────────────────────────────
+const calcProfileComplete = (user: {
+  name?: string; bio?: string; avatar_url?: string;
+}, hasDog: boolean, dogHasPersonality: boolean): number => {
+  let score = 0;
+  if (user.name?.trim())     score += 20;
+  if (user.bio?.trim())      score += 20;
+  if (user.avatar_url)       score += 20;
+  if (hasDog)                score += 20;
+  if (dogHasPersonality)     score += 20;
+  return score;
+};
+
 // ─── All routes require auth ──────────────────────────────────────────────────
 router.use(authenticate);
 
 // ─── GET /api/users/me ────────────────────────────────────────────────────────
-// Full user + dog profile
 router.get("/me", async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userResult = await pool.query(
-      `SELECT id, name, email, profile_complete, avatar_url,
-              email_notifications, preferences, created_at, updated_at
+      `SELECT id, name, email, bio, profile_complete, avatar_url,
+        email_notifications, preferences, created_at, updated_at
        FROM users WHERE id = $1`,
       [req.user!.userId]
     );
@@ -71,6 +83,7 @@ router.get("/me", async (req: AuthRequest, res: Response): Promise<void> => {
         id:                 user.id,
         name:               user.name,
         email:              user.email,
+        bio:                user.bio ?? "",
         profileComplete:    user.profile_complete,
         avatarUrl:          user.avatar_url,
         emailNotifications: user.email_notifications,
@@ -95,11 +108,11 @@ router.get("/me", async (req: AuthRequest, res: Response): Promise<void> => {
   }
 });
 
-// ─── PATCH /api/users/me ──────────────────────────────────────────────────────
-// Edit name, email, password
+// PATCH /api/users/me 
 router.patch("/me", [
   body("name").optional().trim().isLength({ min: 2, max: 100 }).withMessage("Name must be 2–100 characters"),
   body("email").optional().isEmail().withMessage("Please enter a valid email").normalizeEmail(),
+  body("bio").optional().trim().isLength({ max: 200 }).withMessage("Bio must be 200 characters or less"),
   body("currentPassword").optional().notEmpty().withMessage("Current password is required to change password"),
   body("newPassword").optional()
     .isLength({ min: 8 }).withMessage("Password must be at least 8 characters")
@@ -118,17 +131,17 @@ router.patch("/me", [
     return;
   }
 
-  const { name, email, currentPassword, newPassword } = req.body;
+  const { name, email, bio, currentPassword, newPassword } = req.body;
   const userId = req.user!.userId;
 
   try {
     const userResult = await pool.query(
-      "SELECT id, email, password_hash FROM users WHERE id = $1",
+      "SELECT id, name, email, bio, avatar_url, password_hash FROM users WHERE id = $1",
       [userId]
     );
     const user = userResult.rows[0];
 
-    // ── If changing password, verify current password first ──
+    // If changing password, verify current password first
     if (newPassword) {
       if (!currentPassword) {
         res.status(400).json({
@@ -147,7 +160,7 @@ router.patch("/me", [
       }
     }
 
-    // ── Check email not taken by another user ──
+    // Check if email already exists
     if (email && email !== user.email) {
       const existing = await pool.query(
         "SELECT id FROM users WHERE email = $1 AND id != $2",
@@ -162,7 +175,7 @@ router.patch("/me", [
       }
     }
 
-    // ── Build update query dynamically ──
+    // Build update query dynamically
     const updates: string[] = [];
     const params: any[]     = [];
 
@@ -171,9 +184,10 @@ router.patch("/me", [
       updates.push(`${field} = $${params.length}`);
     };
 
-    if (name)        addUpdate("name",          name);
-    if (email)       addUpdate("email",         email);
-    if (newPassword) addUpdate("password_hash", await bcrypt.hash(newPassword, 12));
+    if (name)             addUpdate("name",          name);
+    if (email)            addUpdate("email",         email);
+    if (bio !== undefined) addUpdate("bio",           bio.trim());
+    if (newPassword)      addUpdate("password_hash", await bcrypt.hash(newPassword, 12));
 
     if (updates.length === 0) {
       res.status(400).json({ message: "No changes provided" });
@@ -184,19 +198,42 @@ router.patch("/me", [
     const result = await pool.query(
       `UPDATE users SET ${updates.join(", ")}, updated_at = NOW()
        WHERE id = $${params.length}
-       RETURNING id, name, email, profile_complete, avatar_url, updated_at`,
+       RETURNING id, name, email, bio, avatar_url, profile_complete, updated_at`,
       params
+    );
+
+    const updatedUser = result.rows[0];
+
+    // Recalculate profile_complete after update
+    const dogResult = await pool.query(
+      "SELECT id, personality FROM dogs WHERE user_id = $1 LIMIT 1",
+      [userId]
+    );
+    const dog              = dogResult.rows[0] ?? null;
+    const hasDog           = !!dog;
+    const dogHasPersonality = !!(dog?.personality?.length);
+
+    const newProfileComplete = calcProfileComplete(
+      { name: updatedUser.name, bio: updatedUser.bio, avatar_url: updatedUser.avatar_url },
+      hasDog,
+      dogHasPersonality
+    );
+
+    await pool.query(
+      "UPDATE users SET profile_complete = $1 WHERE id = $2",
+      [newProfileComplete, userId]
     );
 
     res.json({
       message: "Profile updated successfully",
       user: {
-        id:              result.rows[0].id,
-        name:            result.rows[0].name,
-        email:           result.rows[0].email,
-        profileComplete: result.rows[0].profile_complete,
-        avatarUrl:       result.rows[0].avatar_url,
-        updatedAt:       result.rows[0].updated_at,
+        id:              updatedUser.id,
+        name:            updatedUser.name,
+        email:           updatedUser.email,
+        bio:             updatedUser.bio ?? "",
+        profileComplete: newProfileComplete,
+        avatarUrl:       updatedUser.avatar_url,
+        updatedAt:       updatedUser.updated_at,
       },
     });
   } catch (err) {
@@ -206,7 +243,6 @@ router.patch("/me", [
 });
 
 // ─── POST /api/users/me/avatar ────────────────────────────────────────────────
-// Upload user profile photo
 router.post("/me/avatar", upload.single("avatar"), async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     if (!req.file) {
@@ -221,7 +257,28 @@ router.post("/me/avatar", upload.single("avatar"), async (req: AuthRequest, res:
       [avatarUrl, req.user!.userId]
     );
 
-    res.json({ message: "Avatar updated", avatarUrl });
+    // Recalculate profile_complete now that avatar exists
+    const userResult = await pool.query(
+      "SELECT name, bio FROM users WHERE id = $1",
+      [req.user!.userId]
+    );
+    const dogResult = await pool.query(
+      "SELECT id, personality FROM dogs WHERE user_id = $1 LIMIT 1",
+      [req.user!.userId]
+    );
+    const u                = userResult.rows[0];
+    const dog              = dogResult.rows[0] ?? null;
+    const newProfileComplete = calcProfileComplete(
+      { name: u.name, bio: u.bio, avatar_url: avatarUrl },
+      !!dog,
+      !!(dog?.personality?.length)
+    );
+    await pool.query(
+      "UPDATE users SET profile_complete = $1 WHERE id = $2",
+      [newProfileComplete, req.user!.userId]
+    );
+
+    res.json({ message: "Avatar updated", avatarUrl, profileComplete: newProfileComplete });
   } catch (err) {
     console.error("POST /users/me/avatar error:", err);
     res.status(500).json({ message: "Failed to upload image" });
@@ -229,7 +286,6 @@ router.post("/me/avatar", upload.single("avatar"), async (req: AuthRequest, res:
 });
 
 // ─── PATCH /api/users/me/preferences ─────────────────────────────────────────
-// Save preferences and email notification settings
 router.patch("/me/preferences", async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { emailNotifications, preferences } = req.body;
@@ -264,7 +320,6 @@ router.patch("/me/preferences", async (req: AuthRequest, res: Response): Promise
 });
 
 // ─── PATCH /api/users/me/dog ──────────────────────────────────────────────────
-// Edit dog details
 router.patch("/me/dog", async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { name, breed, gender, dob, lifeStage, personality } = req.body;
@@ -297,18 +352,37 @@ router.patch("/me/dog", async (req: AuthRequest, res: Response): Promise<void> =
       params
     );
 
+    const dog = result.rows[0];
+
+    // Recalculate profile_complete now that dog personality may have changed
+    const userResult = await pool.query(
+      "SELECT name, bio, avatar_url FROM users WHERE id = $1",
+      [req.user!.userId]
+    );
+    const u = userResult.rows[0];
+    const newProfileComplete = calcProfileComplete(
+      { name: u.name, bio: u.bio, avatar_url: u.avatar_url },
+      true,
+      !!(dog.personality?.length)
+    );
+    await pool.query(
+      "UPDATE users SET profile_complete = $1 WHERE id = $2",
+      [newProfileComplete, req.user!.userId]
+    );
+
     res.json({
       message: "Dog profile updated",
       dog: {
-        id:          result.rows[0].id,
-        name:        result.rows[0].name,
-        gender:      result.rows[0].gender,
-        breed:       result.rows[0].breed,
-        dob:         result.rows[0].dob,
-        lifeStage:   result.rows[0].life_stage,
-        personality: result.rows[0].personality,
-        avatarUrl:   result.rows[0].avatar_url,
+        id:          dog.id,
+        name:        dog.name,
+        gender:      dog.gender,
+        breed:       dog.breed,
+        dob:         dog.dob,
+        lifeStage:   dog.life_stage,
+        personality: dog.personality,
+        avatarUrl:   dog.avatar_url,
       },
+      profileComplete: newProfileComplete,
     });
   } catch (err) {
     console.error("PATCH /users/me/dog error:", err);
@@ -317,7 +391,6 @@ router.patch("/me/dog", async (req: AuthRequest, res: Response): Promise<void> =
 });
 
 // ─── POST /api/users/me/dog/avatar ────────────────────────────────────────────
-// Upload dog profile photo
 router.post("/me/dog/avatar", upload.single("avatar"), async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     if (!req.file) {
@@ -336,6 +409,266 @@ router.post("/me/dog/avatar", upload.single("avatar"), async (req: AuthRequest, 
   } catch (err) {
     console.error("POST /users/me/dog/avatar error:", err);
     res.status(500).json({ message: "Failed to upload image" });
+  }
+});
+
+// ─── POST /api/users/me/dogs ───────────────────────────────────────────────────
+router.post("/me/dogs", [
+  body("name").notEmpty().trim().isLength({ min: 2, max: 100 }).withMessage("Dog name must be 2–100 characters"),
+  body("gender").isIn(["male", "female"]).withMessage("Gender must be male or female"),
+  body("breed").trim().isLength({ min: 2, max: 100 }).withMessage("Breed must be 2–100 characters"),
+  body("dob").optional().isISO8601().withMessage("DOB must be a valid date"),
+  body("life_stage").isIn(["puppy", "adult", "senior"]).withMessage("Invalid life stage"),
+  body("personality").optional().isArray().withMessage("Personality must be an array"),
+], upload.none(), async (req: AuthRequest, res: Response): Promise<void> => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    res.status(400).json({ message: "Validation failed", errors: errors.array().reduce((acc: Record<string, string>, err: any) => {
+      acc[err.path] = err.msg;
+      return acc;
+    }, {}) });
+    return;
+  }
+
+  const { name, gender, breed, dob, life_stage, personality = [] } = req.body;
+  const userId = req.user!.userId;
+
+  try {
+    // Check if user already has 5 dogs max (prevent spam)
+    const countResult = await pool.query("SELECT COUNT(*) FROM dogs WHERE user_id = $1", [userId]);
+    if (parseInt(countResult.rows[0].count) >= 5) {
+      res.status(400).json({ message: "Maximum 5 dogs allowed per user" });
+      return;
+    }
+
+    const result = await pool.query(
+      `INSERT INTO dogs (user_id, name, gender, breed, dob, life_stage, personality, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+       RETURNING id, name, gender, breed, dob, life_stage, personality, avatar_url`,
+      [userId, name, gender, breed, dob || null, life_stage, JSON.stringify(personality)]
+    );
+
+    res.json({ message: "Dog added successfully", dog: result.rows[0] });
+  } catch (err) {
+    console.error("POST /users/me/dogs error:", err);
+    res.status(500).json({ message: "Something went wrong." });
+  }
+});
+
+// ─── GET /api/users/me/dogs ─────────────────────────────────────────────────────
+router.get("/me/dogs", async (req: AuthRequest, res: Response): Promise<void> => {
+  const userId = req.user!.userId;
+
+  try {
+    const result = await pool.query(
+      `SELECT id, name, gender, breed, dob, life_stage, personality, avatar_url
+       FROM dogs WHERE user_id = $1 ORDER BY created_at ASC`,
+      [userId]
+    );
+
+    res.json({ dogs: result.rows });
+  } catch (err) {
+    console.error("GET /users/me/dogs error:", err);
+    res.status(500).json({ message: "Something went wrong." });
+  }
+});
+
+// ─── PATCH /api/users/me/dogs/:dogId ────────────────────────────────────────────
+router.patch("/me/dogs/:dogId", async (req: AuthRequest, res: Response): Promise<void> => {
+  const dogId = req.params.dogId;
+  const userId = req.user!.userId;
+  const { name, breed, gender, dob, life_stage, personality } = req.body;
+
+  const updates: string[] = [];
+  const params: any[] = [];
+
+  const addUpdate = (field: string, val: any) => {
+    params.push(val);
+    updates.push(`${field} = $${params.length}`);
+  };
+
+  if (name) addUpdate("name", name);
+  if (breed) addUpdate("breed", breed);
+  if (gender) addUpdate("gender", gender);
+  if (dob !== undefined) addUpdate("dob", dob || null);
+  if (life_stage) addUpdate("life_stage", life_stage);
+  if (personality !== undefined) addUpdate("personality", JSON.stringify(personality));
+
+  if (updates.length === 0) {
+    res.status(400).json({ message: "No changes provided" });
+    return;
+  }
+
+  try {
+    params.push(userId, dogId);
+    const result = await pool.query(
+      `UPDATE dogs SET ${updates.join(", ")}, updated_at = NOW()
+       WHERE user_id = $${params.length - 1} AND id = $${params.length}
+       RETURNING id, name, gender, breed, dob, life_stage, personality, avatar_url`,
+      params
+    );
+
+    if (result.rows.length === 0) {
+      res.status(404).json({ message: "Dog not found" });
+      return;
+    }
+
+    res.json({ message: "Dog updated", dog: result.rows[0] });
+  } catch (err) {
+    console.error("PATCH /users/me/dogs/:dogId error:", err);
+    res.status(500).json({ message: "Something went wrong." });
+  }
+});
+
+// DELETE /api/users/me/dogs/:dogId 
+router.delete("/me/dogs/:dogId", async (req: AuthRequest, res: Response): Promise<void> => {
+  const dogId = req.params.dogId;
+  const userId = req.user!.userId;
+
+  try {
+    const result = await pool.query(
+      "DELETE FROM dogs WHERE id = $1 AND user_id = $2 RETURNING id",
+      [dogId, userId]
+    );
+
+    if (result.rows.length === 0) {
+      res.status(404).json({ message: "Dog not found" });
+      return;
+    }
+
+    res.json({ message: "Dog removed" });
+  } catch (err) {
+    console.error("DELETE /users/me/dogs/:dogId error:", err);
+    res.status(500).json({ message: "Something went wrong." });
+  }
+});
+
+// POST /api/users/me/dogs/:dogId/avatar 
+router.post("/me/dogs/:dogId/avatar", upload.single("avatar"), async (req: AuthRequest, res: Response): Promise<void> => {
+  if (!req.file) {
+    res.status(400).json({ message: "No image provided" });
+    return;
+  }
+
+  const dogId = req.params.dogId;
+  const userId = req.user!.userId;
+
+  try {
+    const avatarUrl = await uploadToCloudinary(req.file.buffer, "barkbuddy/dogs");
+
+    await pool.query(
+      "UPDATE dogs SET avatar_url = $1, updated_at = NOW() WHERE id = $2 AND user_id = $3",
+      [avatarUrl, dogId, userId]
+    );
+
+    res.json({ message: "Dog avatar updated", avatarUrl });
+  } catch (err) {
+    console.error("POST /users/me/dogs/:dogId/avatar error:", err);
+    res.status(500).json({ message: "Failed to upload image" });
+  }
+});
+
+
+// GET /api/users/search?q= 
+router.get("/search", async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const query = (req.query.q as string || "").trim();
+
+    if (!query || query.length < 2) {
+      res.json({ users: [] });
+      return;
+    }
+
+    const searchTerm = `%${query.toLowerCase()}%`;
+
+    const result = await pool.query(
+      `SELECT
+        u.id,
+        u.name,
+        u.avatar_url   AS "avatarUrl",
+        u.bio,
+        u.created_at   AS "memberSince",
+        d.name         AS "dogName",
+        d.breed        AS "dogBreed",
+        d.avatar_url   AS "dogAvatarUrl",
+        d.life_stage   AS "dogLifeStage"
+       FROM users u
+       LEFT JOIN dogs d ON d.user_id = u.id
+       WHERE u.id != $1
+         AND (
+           LOWER(u.name) LIKE $2
+           OR LOWER(d.name) LIKE $2
+         )
+       ORDER BY u.name ASC
+       LIMIT 20`,
+      [req.user!.userId, searchTerm]
+    );
+
+    if (result.rows.length === 0) {
+      res.json({ users: [] });
+      return;
+    }
+
+    const foundUserIds = result.rows.map((r) => r.id);
+  
+    const buddyStatusResult = await pool.query(
+      `SELECT
+         br.id,
+         br.status,
+         br.sender_id,
+         br.receiver_id
+       FROM buddy_requests br
+       WHERE (br.sender_id = $1 OR br.receiver_id = $1)
+         AND (br.sender_id = ANY($2::uuid[]) OR br.receiver_id = ANY($2::uuid[]))`,
+      [req.user!.userId, foundUserIds]
+    );
+
+    
+    const statusMap = new Map<string, { requestId: string; status: string; isSender: boolean }>();
+
+    for (const row of buddyStatusResult.rows) {
+      const targetId = row.sender_id === req.user!.userId
+        ? row.receiver_id
+        : row.sender_id;
+
+      statusMap.set(targetId, {
+        requestId: row.id,
+        status:    row.status,
+        isSender:  row.sender_id === req.user!.userId,
+      });
+    }
+
+   
+    const users = result.rows.map((row) => {
+      const buddyInfo = statusMap.get(row.id);
+
+      let status: "none" | "pending_out" | "pending_in" | "buddy" = "none";
+      if (buddyInfo) {
+        if (buddyInfo.status === "accepted")  status = "buddy";
+        else if (buddyInfo.isSender)          status = "pending_out";
+        else                                  status = "pending_in";
+      }
+
+      return {
+        id:           row.id,
+        name:         row.name,
+        avatarUrl:    row.avatarUrl,
+        bio:          row.bio ?? "",
+        memberSince:  row.memberSince
+          ? new Date(row.memberSince).toLocaleDateString("en-GB", { month: "short", year: "numeric" })
+          : null,
+        dogName:      row.dogName,
+        dogBreed:     row.dogBreed,
+        dogAvatarUrl: row.dogAvatarUrl,
+        dogLifeStage: row.dogLifeStage,
+        status,
+      };
+    });
+
+    res.json({ users });
+  } catch (err) {
+    console.error("GET /users/search error:", err);
+    res.status(500).json({ message: "Something went wrong." });
   }
 });
 

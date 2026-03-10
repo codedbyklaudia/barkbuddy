@@ -15,6 +15,7 @@ import Navigation from './components/Navigation';
 
 import HomePage from './components/HomePage';
 import ServiceFinder from './components/ServiceFinder';
+import ServiceDetailPage from './components/ServiceDetailPage';
 import TravelPage from './components/TravelPage';
 import RegisterPage from './components/Register';
 import LoginPage from './components/Login';
@@ -34,6 +35,14 @@ import TipsGrooming   from './components/TipsGrooming';
 import TipsHealth     from './components/TipsHealth';
 import TipsTraining   from './components/TipsTraining';
 import TipsNutrition  from './components/TipsNutrition';
+import ForumPage  from './components/ForumPage';
+//Policies
+import ForumPolicy  from './components/Legals/ForumPolicy';
+import Terms  from './components/Legals/Terms';
+import PrivacyPolicy  from './components/Legals/Privacy';
+import Faqpage  from './components/Legals/Faqpage';
+import ScrollToTop from './components/ScrollToTop';
+
 
 function AppContent() {
   const location = useLocation();
@@ -61,11 +70,17 @@ function AppContent() {
 
   return (
     <div className="App">
+      <ScrollToTop />
       {showNav && <Navigation />}
 
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/service-finder" element={<ServiceFinder />} />
+        <Route path="/forumpolicy" element={<ForumPolicy />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/faq" element={<Faqpage/>} />
+        <Route path="/activity/:id" element={<ServiceDetailPage />} />
 
         <Route
           path="/travel-page"
@@ -83,6 +98,7 @@ function AppContent() {
         <Route path="/business/verify-email" element={<VerifyBusinessEmail />} />
         <Route path="/about"   element={<About />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/forum-page" element={<ForumPage />} />
         <Route path="/admin"   element={<AdminPanel />} />
         <Route path="/business/login"           element={<BusinessLogin />} />
         <Route path="/business/forgot-password" element={<BusinessForgotPassword />} />

@@ -1,7 +1,6 @@
 @import '../styles/mixins';
 @import '../styles/variables';
 
-//Hero section with title and CTA buttons
 .hero {
   background: $twilight-purple;
   min-height: 70vh;
@@ -73,7 +72,7 @@
     }
   }
 
-  &__cta-buttons {
+  &__home-buttons {
     display: flex;
     gap: $space-md;
     flex-wrap: wrap;
@@ -90,10 +89,8 @@
 
   &__image {
     flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
+    @include flex-center;
+    @include relative;
 
     @media (max-width: $bp-laptop) {
       width: 100%;
@@ -102,13 +99,13 @@
 }
 
 //Buttons
-.btn {
+.btn1 {
   font-family: $font-secondary;
   font-size: $t-link-des;
   padding: $space-md $space-xl;
   border-radius: $radius-lg;
   border: none;
-  cursor: pointer;
+  @include cursor;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -137,24 +134,27 @@
     transform: translateX(4px);
   }
 
-  &--primary {
-    background-color: $serene-purple;
+  &--1 {
+  background-color: $misty-lavender;
+  color: $text-color-dark;
+  box-shadow: $shadow-lg;
+
+
+  &:hover {
+    background-color: darken($serene-purple, 8%);
+    transform: translateY(-2px);
     color: $text-color-white;
-    box-shadow: $shadow-md;
-
-    &:hover {
-      background-color: darken($serene-purple, 10%);
-      transform: translateY(-2px);
-      box-shadow: $shadow-lg;
-    }
+    box-shadow: $shadow-lg;
   }
+}
 
-  &--secondary {
+  &--2 {
     background-color: $soft-pearl;
-    color: $twilight-purple;
+    color: $text-color-dark;
 
     &:hover {
-      background-color: darken($soft-pearl, 5%);
+      background-color: darken($gentle-amethyst, 8%);
+      color: $text-color-white;
       transform: translateY(-2px);
       box-shadow: $shadow-md;
     }

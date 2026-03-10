@@ -34,18 +34,14 @@ const HeroSection: React.FC = () => {
           Care, Services, Travel & Activities
         </h1>
         <p className="hero__subtitle">Begin a lifetime of happiness with your dog!</p>
-        <div className="hero__cta-buttons">
-          <button className="btn btn--primary">
+        <div className="hero__home-buttons">
+          <button className="btn1 btn1--1">
             Service Finder
-            <svg className="btn__icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+            <i className="bi bi-chevron-double-right"></i>
           </button>
-          <button className="btn btn--secondary">
+          <button className="btn1 btn1--2">
             Explore Activities
-            <svg className="btn__icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+            <i className="bi bi-chevron-double-right"></i>
           </button>
         </div>
       </div>

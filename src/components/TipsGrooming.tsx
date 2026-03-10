@@ -1,7 +1,7 @@
 import React from "react";
 import TipsPage, { type Tip } from "./TipsPage";
 
-const ICON = "/images/paint/groomer.png";
+const ICON = "../images/illustrations/Grooming.png";
 
 const tips: Tip[] = [
   {
@@ -128,9 +128,9 @@ const TipsGrooming: React.FC = () => (
   <TipsPage
     category="grooming"
     title="Grooming"
-    titleAccent="guides"
+    titleAccent="guide"
     subtitle="Practical, detailed grooming advice for every coat type - from daily brushing routines to knowing when to call in a professional."
-    heroIcon="/images/paint/groomer.png"
+    heroIcon="../images/Illustrations/grooming-art(1).png"
     tips={tips}
   />
 );

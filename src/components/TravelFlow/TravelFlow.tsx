@@ -193,12 +193,7 @@ const IconTips: React.FC = () => (
     <path d="M9 21h6M10 17v4M14 17v4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
   </svg>
 );
-const IconChecklist: React.FC = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <path d="M9 11l3 3L22 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
+
 
 // Step metadata
 const STEP_META: Record<string, { icon: React.ReactNode; accent: string }> = {
@@ -229,7 +224,7 @@ const ContentCardCarousel: React.FC<ContentCardCarouselProps> = ({
 
   const total = cards?.length ?? 0;
 
-  // Clamp / reset index whenever cards array changes length
+  // reset index whenever cards array changes length
   React.useEffect(() => {
     if (!total) {
       setIdx(0);

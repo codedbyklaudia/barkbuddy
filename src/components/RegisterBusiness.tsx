@@ -423,13 +423,13 @@ const ActivityStep2: React.FC<{ data: ActivityFormData; errors: ValidationErrors
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18" aria-hidden="true">
           <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="1" fill="currentColor"/>
         </svg>
-        <p>Without proof we can't list your venue. Questions? <a href="mailto:hello@barkbuddy.com">hello@barkbuddy.com</a></p>
+        <p>Without proof we can't list your venue. Questions? <a href="mailto:paws@barkbuddy.co.uk">paws@barkbuddy.co.uk</a></p>
       </div>
     </div>
   );
 };
 
-// ─── Validation ───────────────────────────────────────────────────────────────
+// Validation 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function validateService(d: ServiceFormData): ValidationErrors {

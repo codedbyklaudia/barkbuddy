@@ -4,7 +4,7 @@ import { geocodeUKAddress } from "../utils/geocode";
 
 const router = Router();
 
-// ─── Geocode a search location string ────────────────────────────────────────
+// Geocode a search location string 
 async function geocodeSearchLocation(location: string): Promise<{ lat: number; lng: number } | null> {
   const trimmed = location.trim();
   if (!trimmed) return null;
@@ -59,6 +59,7 @@ const distExpr = (latP: string, lngP: string) => `
 `;
 
 // ─── GET /api/listings/services ──────────────────────────────────────────────
+// IMPORTANT: Specific routes MUST come BEFORE generic /:id route!
 router.get("/services", async (req: Request, res: Response) => {
   const {
     search   = "",
@@ -284,9 +285,79 @@ router.get("/activities/:id", async (req: Request, res: Response) => {
   } catch { res.status(500).json({ message: "Failed to load activity." }); }
 });
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// NEW: GET /api/listings/:id (UNIFIED - works for both services and activities)
+// IMPORTANT: This MUST be LAST because it matches ANY /:id pattern
+// ═══════════════════════════════════════════════════════════════════════════════
+router.get("/:id", async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    // Get business details (works for both services and activities)
+    const businessResult = await pool.query(
+      `SELECT 
+        id, business_name, type, category, address, postcode,
+        lat, lng, contact_phone, contact_email, website,
+        description, approved_at, status,
+        (approved_at > NOW() - INTERVAL '30 days') AS is_new
+       FROM business_accounts 
+       WHERE id = $1 AND status = 'approved' AND deleted_at IS NULL`,
+      [id]
+    );
+
+    if (businessResult.rows.length === 0) {
+      res.status(404).json({ error: 'Business not found' });
+      return;
+    }
+
+    const business = businessResult.rows[0];
+
+    // Get photos
+    const photosResult = await pool.query(
+      `SELECT id, cloudinary_url, caption, is_primary 
+       FROM business_photos 
+       WHERE business_id = $1 
+       ORDER BY is_primary DESC, created_at ASC`,
+      [id]
+    );
+
+    // Get reviews for this business
+    const reviewsResult = await pool.query(
+      `SELECT 
+        id, user_name, user_email, rating, comment, created_at
+       FROM reviews 
+       WHERE business_id = $1 AND deleted_at IS NULL 
+       ORDER BY created_at DESC`,
+      [id]
+    );
+
+    // Get statistics (average rating and total reviews)
+    const statsResult = await pool.query(
+      `SELECT 
+        AVG(rating)::NUMERIC(3,2) as average_rating, 
+        COUNT(*) as total_reviews
+       FROM reviews 
+       WHERE business_id = $1 AND deleted_at IS NULL`,
+      [id]
+    );
+
+    const statistics = statsResult.rows[0] || { average_rating: 0, total_reviews: 0 };
+
+    // Return unified response
+    res.json({
+      business: business,
+      photos: photosResult.rows,
+      reviews: reviewsResult.rows,
+      statistics: statistics
+    });
+
+  } catch (err) {
+    console.error("Error fetching listing details:", err);
+    res.status(500).json({ error: 'Failed to fetch listing details' });
+  }
+});
+
 // ─── POST /api/listings/geocode-existing ──────────────────────────────────────
-// One-off: geocode all existing businesses missing lat/lng
-// Call: POST /api/listings/geocode-existing with header x-admin-secret
 router.post("/geocode-existing", async (req: Request, res: Response) => {
   if (req.headers["x-admin-secret"] !== process.env.ADMIN_SECRET) {
     res.status(401).json({ message: "Unauthorised" }); return;
@@ -305,7 +376,7 @@ router.post("/geocode-existing", async (req: Request, res: Response) => {
         );
         success++;
       } else { failed++; }
-      await new Promise(r => setTimeout(r, 50)); // be polite to postcodes.io
+      await new Promise(r => setTimeout(r, 50)); 
     }
     res.json({ message: `Geocoded ${success}. Failed: ${failed}.`, success, failed });
   } catch (err) {

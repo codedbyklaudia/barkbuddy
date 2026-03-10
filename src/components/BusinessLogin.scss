@@ -41,7 +41,7 @@
 }
 
 .biz-login__home-link {
-  margin-top: $space-huge;
+  margin-top: $space-xxl;
   font-size: $t-body-des;
   color: rgba($misty-lavender, 0.65);
   @include text-none;
@@ -122,7 +122,7 @@
 .biz-login__form-side {
   background: $soft-pearl;
   @include flex-center;
-  padding: clamp(2rem, 5vw, 4rem) clamp(1.5rem, 5vw, 4rem);
+  padding: $space-md $space-lg;
 }
 
 .biz-login__form-inner {

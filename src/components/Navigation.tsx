@@ -8,7 +8,7 @@ const NutritionIcon = () => <img src='../../images/icons/nutrition.svg' alt="Nut
 const TrainingIcon  = () => <img src='../../images/icons/training.svg'  alt="Training"   className="menu-icon" />;
 const HealthIcon    = () => <img src='../../images/icons/health.svg'    alt="Health"     className="menu-icon" />;
 
-// ─── Avatar User Menu ─────────────────────────────────────────────────────────
+// Avatar User Menu 
 const UserMenu: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -170,7 +170,7 @@ const Navigation: React.FC = () => {
         {/* Logo */}
         <div className="navigation__logo">
           <Link to="/">
-            <span className="navigation__brand">BarkBuddy</span>
+            <img src="../images/logo.png" alt="BarkBuddy" className="navigation__logo-img" />
           </Link>
         </div>
 
@@ -184,7 +184,7 @@ const Navigation: React.FC = () => {
             onMouseLeave={handleMouseLeave}
           >
             <a href="#care-tips" className="navigation__menu-link">
-              <img src="../../images/icons/care.svg" alt="Dog-Care" />
+              <i className="bi bi-suit-heart"></i>
               Dog Care
               <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor" className="dropdown-arrow">
                 <path d="M6 8L2 4h8L6 8z"/>
@@ -211,28 +211,18 @@ const Navigation: React.FC = () => {
           {/* Service Finder */}
           <li className="navigation__menu-item">
             <Link to="/service-finder" className="navigation__menu-link">
-              <img src="../../images/icons/services.svg" alt="Services Icon" />
-              Service finder
+              <i className="bi bi-shop"></i>
+             BarkBuddy Discover
             </Link>
           </li>
 
           {/* Travel */}
           <li className="navigation__menu-item">
             <Link to="/travel-page" className="navigation__menu-link">
-              <img src="../../images/icons/plane.svg" alt="Travel" />
-              Travel
+              <i className="bi bi-airplane"></i>
+               Travel
             </Link>
           </li>
-
-          {/* Dog-Friendly */}
-          <li className="navigation__menu-item">
-            <a href="#dog-friendly" className="navigation__menu-link">
-              <img src="../../images/icons/dog-friendly.svg" alt="Dog-Friendly" />
-              Dog-Friendly
-            </a>
-          </li>
-
-
 
           {/* More Dropdown */}
           <li
@@ -241,7 +231,7 @@ const Navigation: React.FC = () => {
             onMouseLeave={handleMouseLeave}
           >
             <a href="#more" className="navigation__menu-link">
-              <img src="../../images/icons/more.svg" alt="More" />
+              <i className="bi bi-grid"></i>
               More
               <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor" className="dropdown-arrow">
                 <path d="M6 8L2 4h8L6 8z"/>
@@ -253,10 +243,10 @@ const Navigation: React.FC = () => {
                 onMouseEnter={handleDropdownEnter}
                 onMouseLeave={handleDropdownLeave}
               >
-                <a href="#about">About BarkBuddy</a>
-                <a href="#contact">Contact BarkBuddy</a>
+                <a href="#about"><i className="bi bi-bookmark-heart-fill"></i> About BarkBuddy</a>
+                <a href="#contact"><i className="bi bi-telephone"></i> Contact BarkBuddy</a>
                 <Link to="/register-business" className="navigation__secondary-highlight">
-                  <img src="../../images/icons/services.svg" alt="Business" />
+                  <i className="bi bi-briefcase"></i>
                   BarkBuddy for Business
                 </Link>
               </div>
@@ -273,12 +263,12 @@ const Navigation: React.FC = () => {
           ) : (
             <>
               <Link to="/login" className="btn--nav btn-login">
-                <img src="../../images/icons/open.svg" alt="Login to BarkBuddy" />
-                Login
+                <i className="bi bi-box-arrow-in-right"></i>
+                 Login
               </Link>
               <Link to="/register" className="btn--nav btn-register">
-                <img src="../../images/icons/open.svg" alt="Register to BarkBuddy" />
-                Register
+                <i className="bi bi-box-arrow-in-right"></i>
+                 Register
               </Link>
             </>
           )}
@@ -300,14 +290,13 @@ const Navigation: React.FC = () => {
       {/* Mobile Menu */}
       <div className={`navigation__mobile ${isMenuOpen ? 'navigation__mobile--open' : ''}`}>
         <ul>
-
+      
           {/* Care Tips Mobile */}
           <li>
             <button
               className="navigation__mobile-toggle"
-              onClick={() => handleDropdownClick('care-mobile')}
-            >
-              Dog Care
+              onClick={() => handleDropdownClick('care-mobile')} 
+            > <i className="bi bi-suit-heart"></i> Dog Care
               <svg
                 width="12" height="12" viewBox="0 0 12 12" fill="currentColor"
                 className={`dropdown-arrow ${activeDropdown === 'care-mobile' ? 'dropdown-arrow--open' : ''}`}
@@ -334,22 +323,12 @@ const Navigation: React.FC = () => {
 
           {/* Service Finder Mobile */}
           <li>
-            <Link to="/service-finder" onClick={toggleMenu}>Service finder</Link>
+            <Link to="/service-finder" onClick={toggleMenu}><i className="bi bi-shop"></i> BarkBuddy Discover</Link>
           </li>
 
           {/* Travel Mobile */}
           <li>
-            <Link to="/travel-page" onClick={toggleMenu}>Travel</Link>
-          </li>
-
-          {/* Dog-Friendly Mobile */}
-          <li>
-            <a href="#dog-friendly" onClick={toggleMenu}>Dog-Friendly</a>
-          </li>
-
-          {/* Forum Mobile */}
-          <li>
-            <Link to="/forum" onClick={toggleMenu}>Forum</Link>
+            <Link to="/travel-page" onClick={toggleMenu}><i className="bi bi-airplane"></i> Travel</Link>
           </li>
 
           {/* More Mobile */}
@@ -357,7 +336,7 @@ const Navigation: React.FC = () => {
             <button
               className="navigation__mobile-toggle"
               onClick={() => handleDropdownClick('more-mobile')}
-            >
+            > <i className="bi bi-grid"></i>
               More
               <svg
                 width="12" height="12" viewBox="0 0 12 12" fill="currentColor"
@@ -368,10 +347,9 @@ const Navigation: React.FC = () => {
             </button>
             {activeDropdown === 'more-mobile' && (
               <div className="navigation__mobile-submenu">
-                <a href="#about" onClick={toggleMenu}>About BarkBuddy</a>
                 <a href="#contact" onClick={toggleMenu}>Contact BarkBuddy</a>
                 <Link to="/register-business" onClick={toggleMenu} className="navigation__mobile-highlight">
-                  <img src="../../images/icons/shop.svg" alt="Business" />
+                  <i className="bi bi-briefcase"></i>
                   BarkBuddy for Business 
                 </Link>
               </div>
@@ -388,11 +366,11 @@ const Navigation: React.FC = () => {
             ) : (
               <li className="navigation__mobile-buttons">
                 <Link to="/login" className="btn--nav btn-login" onClick={toggleMenu}>
-                  <img src="../../images/icons/open.svg" alt="Login to BarkBuddy" />
+                  <i className="bi bi-box-arrow-in-right"></i>
                   Login
                 </Link>
                 <Link to="/register" className="btn--nav btn-register" onClick={toggleMenu}>
-                  <img src="../../images/icons/open.svg" alt="Register to BarkBuddy" />
+                  <i className="bi bi-box-arrow-in-right"></i>
                   Register
                 </Link>
               </li>

@@ -111,7 +111,6 @@ router.patch("/username", async (req: Request, res: Response): Promise<void> => 
     return;
   }
 
-  // Validate format: lowercase letters, numbers, hyphens only, 3–30 chars
   const clean = username.trim().toLowerCase();
   if (!/^[a-z0-9-]{3,30}$/.test(clean)) {
     res.status(400).json({
@@ -121,7 +120,6 @@ router.patch("/username", async (req: Request, res: Response): Promise<void> => 
   }
 
   try {
-    // Check not already taken
     const { rows: existing } = await pool.query(
       "SELECT id FROM business_accounts WHERE username = $1 AND id != $2",
       [clean, payload.sub]

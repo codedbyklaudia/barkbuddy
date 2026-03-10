@@ -14,7 +14,7 @@ const CLIENT_URL  = process.env.CLIENT_URL  || "http://localhost:5173";
 const GMAIL_USER  = process.env.GMAIL_USER;
 const GMAIL_PASS  = process.env.GMAIL_APP_PASSWORD;
 
-// ─── Gmail transporter (same pattern as password.ts) ─────────────────────────
+// ─── Gmail transporter ────────────────────────────────────────────────────────
 const transporter = nodemailer.createTransport({
   host:   "smtp.gmail.com",
   port:   465,
@@ -26,7 +26,6 @@ const transporter = nodemailer.createTransport({
   tls: { rejectUnauthorized: false },
 });
 
-// Verify transporter config on startup so misconfiguration is caught early
 transporter.verify((error) => {
   if (error) {
     console.error("❌ Business mailer config error:", error);
@@ -35,10 +34,10 @@ transporter.verify((error) => {
   }
 });
 
-// Token helper
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 const generateToken = () => crypto.randomBytes(32).toString("hex");
 
-// Multer — memory storage for Cloudinary
+// ─── Multer — memory storage for Cloudinary ───────────────────────────────────
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB
@@ -49,7 +48,7 @@ const upload = multer({
   },
 });
 
-// Validators 
+// ─── Validators ───────────────────────────────────────────────────────────────
 const accountValidators = [
   body("email").trim().isEmail().withMessage("Enter a valid email"),
   body("personalName").trim().notEmpty().withMessage("Name is required"),
@@ -74,7 +73,7 @@ function formatErrors(result: ReturnType<typeof validationResult>) {
   }, {});
 }
 
-// Send verification email
+// ─── Email ────────────────────────────────────────────────────────────────────
 async function sendVerificationEmail(
   to: string,
   personalName: string,
@@ -83,7 +82,7 @@ async function sendVerificationEmail(
   isActivity: boolean
 ): Promise<void> {
   await transporter.sendMail({
-    from:    `" 🐾 BarkBuddy for Business" <${GMAIL_USER}>`,
+    from:    `"🐾 BarkBuddy for Business" <${GMAIL_USER}>`,
     to,
     subject: isActivity
       ? `Verify your email - Application for ${businessName} at BarkBuddy`
@@ -92,7 +91,6 @@ async function sendVerificationEmail(
   });
 }
 
-// Email HTML template
 const generateVerificationEmailHtml = (
   name: string,
   businessName: string,
@@ -113,10 +111,10 @@ const generateVerificationEmailHtml = (
 
           <!-- Header -->
           <tr>
-            <td style="background:linear-gradient(135deg,##3a2f51 0%,#DED6F0 100%); padding:36px 40px; text-align:center;">
-              <h1 style="color:#3a2f51; font-size: 25px; font-weight:500; letter-spacing:0.04em; margin:0; "> BarkBuddy for Business </h1>
+            <td style="background:linear-gradient(135deg,#3a2f51 0%,#DED6F0 100%); padding:36px 40px; text-align:center;">
+              <h1 style="color:#3a2f51; font-size:25px; font-weight:500; letter-spacing:0.04em; margin:0;"> BarkBuddy for Business </h1>
               <p style="color:rgba(237,233,254,0.65);font-size:13px;margin:6px 0 0;">
-                ${isActivity ? "We receive your application!" : "Not far from now!"}
+                ${isActivity ? "We received your application!" : "Not far from now!"}
               </p>
             </td>
           </tr>
@@ -134,17 +132,18 @@ const generateVerificationEmailHtml = (
                 We've received your application and our team will review your documentation within <strong>72 hours</strong>.
               </p>
               <p style="color:#3a2f51;font-size:14px;line-height:1.7;margin:0 0 24px;">
-                If you will be successful, you will receive an email with your username.
-                But first, to allow us to do so, please verify your email address by clicking the button below.
+                If successful, you will receive an email with your username.
+                But first, please verify your email address by clicking the button below.
               </p>
               ` : `
               <p style="color:#3a2f51;font-size:14px;line-height:1.7;margin:0 0 16px;">
-                You're almost live on BarkBuddy! Please allow us 24 hours to review your business. We may contact you if we need another informations.
-                If we don't - don't worry, that means is all perfect to go and we will send you an email with your username and instructions how to login.
-                First thing first, please verify your email address for <strong>${businessName}</strong> so we can start to do verification process.
+                You're almost live on BarkBuddy! Please allow us 24 hours to review your business.
+                We may contact you if we need any additional information.
+                If we don't — that means everything looks perfect, and we'll send you an email with your username and login instructions.
+                First, please verify your email address for <strong>${businessName}</strong> so we can start the verification process.
               </p>
               <p style="color:#3a2f51;font-size:14px;line-height:1.7;margin:0 0 24px;">
-                Click the button below to verify your email - this link expires in <strong>24 hours</strong>.
+                Click the button below to verify your email — this link expires in <strong>24 hours</strong>.
               </p>
               `}
 
@@ -168,28 +167,27 @@ const generateVerificationEmailHtml = (
                 ${verifyUrl}
               </p>
 
-              <!-- What happens next — activity only -->
               ${isActivity ? `
               <div style="background:#3a2f51; border:1px solid #f7f7f7; border-radius:10px; padding:18px 20px; margin:0 0 24px;">
-                <p style="color: #3a2f51; font-size:13px; font-weight:600; margin:0 0 10px;"> What happens next? </p>
+                <p style="color:#f7f7f7; font-size:13px; font-weight:600; margin:0 0 10px;">What happens next?</p>
                 <table cellpadding="0" cellspacing="0">
                   <tr>
                     <td style="padding:4px 10px 4px 0;font-size:13px;color:#6b7280;">✅</td>
-                    <td style="padding:4px 0;font-size:13px;color: #3a2f51;">You verify your email (now)</td>
+                    <td style="padding:4px 0;font-size:13px;color:#f7f7f7;">You verify your email (now)</td>
                   </tr>
                   <tr>
                     <td style="padding:4px 10px 4px 0;font-size:13px;color:#6b7280;">🔍</td>
-                    <td style="padding:4px 0;font-size:13px;color: #3a2f51;">Our Barky Team reviews your dog-friendly document (this process will take us up to 72 hours, so get some coffee and relax :))</td>
+                    <td style="padding:4px 0;font-size:13px;color:#f7f7f7;">Our Barky Team reviews your dog-friendly document (up to 72 hours — get some coffee and relax!)</td>
                   </tr>
                   <tr>
                     <td style="padding:4px 10px 4px 0;font-size:13px;color:#6b7280;">📬</td>
-                    <td style="padding:4px 0;font-size:13px;color: #3a2f51;">You get an email with the outcome and instructions!</td>
+                    <td style="padding:4px 0;font-size:13px;color:#f7f7f7;">You get an email with the outcome and instructions!</td>
                   </tr>
                 </table>
               </div>
               ` : ""}
 
-              <p style="color: #3a2f51; font-size:12px; line-height:1.5; margin:0; border-top: 1px solid #727272; padding-top:20px;">
+              <p style="color:#3a2f51; font-size:12px; line-height:1.5; margin:0; border-top:1px solid #727272; padding-top:20px;">
                 If you didn't create a BarkBuddy Business account, you can safely ignore this email.
               </p>
             </td>
@@ -197,7 +195,7 @@ const generateVerificationEmailHtml = (
 
           <!-- Footer -->
           <tr>
-            <td style="background: #3a2f51; padding:20px 40px; text-align:center; border-top: 1px solid #f7f7f7;">
+            <td style="background:#3a2f51; padding:20px 40px; text-align:center; border-top:1px solid #f7f7f7;">
               <p style="color:#f7f7f7; font-size:11px; margin:0;">
                 © ${new Date().getFullYear()} BarkBuddy · Made with ♥ for dog lovers
               </p>
@@ -212,7 +210,7 @@ const generateVerificationEmailHtml = (
 </html>
 `;
 
-// POST /api/business/register/service
+// ─── POST /api/business/register/service ──────────────────────────────────────
 router.post(
   "/register/service",
   upload.single("photo"),
@@ -248,7 +246,7 @@ router.post(
 
       const passwordHash = await bcrypt.hash(password, 12);
 
-      // Geocode address for map display (non-blocking)
+      // Geocode address (non-blocking)
       const coords = await geocodeUKAddress(address, postcode).catch(() => null);
 
       await client.query("BEGIN");
@@ -277,27 +275,8 @@ router.post(
         [businessId, priceList || null, additionalInfo || null]
       );
 
-      // Upload photo to Cloudinary and save as primary photo
-      if (req.file) {
-        try {
-          const photoResult: any = await new Promise((resolve, reject) => {
-            const stream = cloudinary.uploader.upload_stream(
-              { folder: "barkbuddy/business-photos", public_id: `biz_${businessId}_cover` },
-              (error, result) => error ? reject(error) : resolve(result)
-            );
-            stream.end(docFile.buffer);
-          });
-          await client.query(
-            `INSERT INTO business_photos (business_id, cloudinary_id, cloudinary_url, is_primary)
-             VALUES ($1, $2, $3, true)`,
-            [businessId, photoResult.public_id, photoResult.secure_url]
-          );
-        } catch (photoErr) {
-          console.error("Photo upload error (service):", photoErr);
-        }
-      }
-
       // Create verification token — 24 hour expiry
+      // FIX: token is inserted BEFORE photo upload so a photo error doesn't rollback the token
       const token     = generateToken();
       const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
@@ -309,7 +288,29 @@ router.post(
 
       await client.query("COMMIT");
 
-      // Send verification email (non-blocking — don't fail registration if email fails)
+      // Upload photo to Cloudinary AFTER commit (non-critical — failure won't rollback registration)
+      // FIX: was using undefined `docFile.buffer` — correct variable is `req.file`
+      if (req.file) {
+        try {
+          const photoResult: any = await new Promise((resolve, reject) => {
+            const stream = cloudinary.uploader.upload_stream(
+              { folder: "barkbuddy/business-photos", public_id: `biz_${businessId}_cover` },
+              (error, result) => error ? reject(error) : resolve(result)
+            );
+            stream.end(req.file!.buffer); // FIX: was docFile.buffer (ReferenceError)
+          });
+          await pool.query(
+            `INSERT INTO business_photos (business_id, cloudinary_id, cloudinary_url, is_primary)
+             VALUES ($1, $2, $3, true)`,
+            [businessId, photoResult.public_id, photoResult.secure_url]
+          );
+        } catch (photoErr) {
+          console.error("Photo upload error (service):", photoErr);
+          // Non-fatal — registration already committed
+        }
+      }
+
+      // Send verification email (non-blocking)
       const verifyUrl = `${CLIENT_URL}/#/business/verify-email?token=${token}`;
       try {
         await sendVerificationEmail(email, personalName, businessName, verifyUrl, false);
@@ -319,7 +320,6 @@ router.post(
         console.error("   Code:", emailErr?.code);
         console.error("   Message:", emailErr?.message);
         console.error("   Response:", emailErr?.response);
-        // Account is created — email failure is logged but not fatal
       }
 
       res.status(201).json({
@@ -337,7 +337,7 @@ router.post(
   }
 );
 
-// POST /api/business/register/activity
+// ─── POST /api/business/register/activity ─────────────────────────────────────
 router.post(
   "/register/activity",
   upload.fields([{ name: "document", maxCount: 1 }, { name: "photo", maxCount: 1 }]),
@@ -379,10 +379,10 @@ router.post(
 
       const passwordHash = await bcrypt.hash(password, 12);
 
-      // Geocode address for map display (non-blocking)
+      // Geocode address (non-blocking)
       const coords = await geocodeUKAddress(address, postcode).catch(() => null);
 
-      // Upload document to Cloudinary
+      // Upload document to Cloudinary BEFORE transaction (required for registration)
       let cloudinaryResult: any;
       try {
         cloudinaryResult = await new Promise((resolve, reject) => {
@@ -446,9 +446,11 @@ router.post(
         [businessId, token, expiresAt]
       );
 
-      // Upload photo to Cloudinary
-      if (req.files && (req.files as any).photo) {
-        const photoFile = (req.files as any).photo[0];
+      await client.query("COMMIT");
+
+      // Upload photo to Cloudinary AFTER commit (non-critical)
+      if (files?.photo?.[0]) {
+        const photoFile = files.photo[0];
         try {
           const photoResult: any = await new Promise((resolve, reject) => {
             const stream = cloudinary.uploader.upload_stream(
@@ -457,25 +459,26 @@ router.post(
             );
             stream.end(photoFile.buffer);
           });
-          await client.query(
+          await pool.query(
             `INSERT INTO business_photos (business_id, cloudinary_id, cloudinary_url, is_primary)
              VALUES ($1, $2, $3, true)`,
             [businessId, photoResult.public_id, photoResult.secure_url]
           );
         } catch (photoErr) {
           console.error("Photo upload error (activity):", photoErr);
+          // Non-fatal — registration already committed
         }
       }
 
-      await client.query("COMMIT");
-
-      // Send verification email
+      // Send verification email (non-blocking)
       const verifyUrl = `${CLIENT_URL}/#/business/verify-email?token=${token}`;
       try {
         await sendVerificationEmail(email, personalName, businessName, verifyUrl, true);
         console.log("✅ Verification email sent (activity) to:", email);
       } catch (emailErr: any) {
         console.error("❌ Verification email failed (activity) to:", email);
+        console.error("   Code:", emailErr?.code);
+        console.error("   Message:", emailErr?.message);
       }
 
       res.status(201).json({
@@ -493,8 +496,10 @@ router.post(
   }
 );
 
-// GET /api/business/verify-email
+// ─── GET /api/business/verify-email ───────────────────────────────────────────
 router.get("/verify-email", async (req: Request, res: Response): Promise<void> => {
+  // FIX: token arrives already URL-decoded from URLSearchParams.get() on the frontend
+  // Do NOT re-encode it. Use as-is.
   const { token } = req.query as { token: string };
 
   if (!token) {
@@ -502,8 +507,10 @@ router.get("/verify-email", async (req: Request, res: Response): Promise<void> =
     return;
   }
 
+  // FIX: use a dedicated client so BEGIN/COMMIT run on the same connection
+  const client = await pool.connect();
   try {
-    const tokenResult = await pool.query(
+    const tokenResult = await client.query(
       `SELECT bvt.id, bvt.business_id, ba.email, ba.personal_name, ba.business_name, ba.email_verified
        FROM business_verification_tokens bvt
        JOIN business_accounts ba ON ba.id = bvt.business_id
@@ -514,58 +521,42 @@ router.get("/verify-email", async (req: Request, res: Response): Promise<void> =
     );
 
     if (tokenResult.rows.length === 0) {
-      res.status(400).json({ message: "This verification link is invalid or has expired. Please contact us at paws@barkbuddy.co.uk" });
+      res.status(400).json({
+        message: "This verification link is invalid or has expired. Please contact us at paws@barkbuddy.co.uk",
+      });
       return;
     }
 
     const { id: tokenId, business_id: businessId, email_verified } = tokenResult.rows[0];
 
-    // Idempotent — already verified is fine
+    // Idempotent — already verified is fine, just return success
     if (!email_verified) {
-      await pool.query("BEGIN");
-      await pool.query(
+      await client.query("BEGIN");
+      await client.query(
         "UPDATE business_accounts SET email_verified = true, updated_at = NOW() WHERE id = $1",
         [businessId]
       );
-      await pool.query(
+      await client.query(
         "UPDATE business_verification_tokens SET used = true WHERE id = $1",
         [tokenId]
       );
-      await pool.query("COMMIT");
+      await client.query("COMMIT");
     }
 
     res.json({
-      message: "Email verified successfully! Our barkies will review your application now - we'll be in touch within 72 hours.",
       verified: true,
+      message:  "Email verified successfully! Our barkies will review your application now — we'll be in touch within 72 hours.",
     });
   } catch (err) {
+    await client.query("ROLLBACK").catch(() => {});
     console.error("Verify email error:", err);
     res.status(500).json({ message: "Something went wrong. Please try again or contact paws@barkbuddy.co.uk" });
+  } finally {
+    client.release();
   }
 });
 
-// Test-email
-// router.get("/test-email", async (req: Request, res: Response): Promise<void> => {
-//   const to = (req.query.to as string) || GMAIL_USER;
-//   try {
-//     await transporter.sendMail({
-//       from:    `"BarkBuddy 🐾" <${GMAIL_USER}>`,
-//       to,
-//       subject: "BarkBuddy business mailer test",
-//       html:    "<p>Gmail is configured correctly! 🐾</p>",
-//     });
-//     res.json({ ok: true, message: `Test email sent to ${to}` });
-//   } catch (err: any) {
-//     res.status(500).json({
-//       ok:       false,
-//       code:     err?.code,
-//       message:  err?.message,
-//       response: err?.response,
-//     });
-//   }
-// });
-
-// Check email 
+// ─── GET /api/business/check-email ────────────────────────────────────────────
 router.get("/check-email", async (req: Request, res: Response): Promise<void> => {
   const { email } = req.query as { email: string };
   if (!email) { res.json({ available: false }); return; }
