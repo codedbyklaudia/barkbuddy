@@ -19,7 +19,7 @@ cloudinary.config({
 // ─── Multer — memory storage (we stream to Cloudinary) ───────────────────────
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits:  { fileSize: 5 * 1024 * 1024 }, // 5MB max
+  limits:  { fileSize: 5 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
     if (file.mimetype.startsWith("image/")) cb(null, true);
     else cb(new Error("Only image files are allowed"));
@@ -60,7 +60,7 @@ router.get("/me", async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userResult = await pool.query(
       `SELECT id, name, email, bio, profile_complete, avatar_url,
-        email_notifications, preferences, created_at, updated_at
+              email_notifications, preferences, created_at, updated_at
        FROM users WHERE id = $1`,
       [req.user!.userId]
     );
@@ -72,11 +72,23 @@ router.get("/me", async (req: AuthRequest, res: Response): Promise<void> => {
 
     const user = userResult.rows[0];
 
+    // ── FIX: order by is_main so the primary dog always comes first,
+    //         and alias columns to camelCase so the frontend gets them correctly
     const dogResult = await pool.query(
-      `SELECT id, name, gender, breed, dob, life_stage, personality, avatar_url
-       FROM dogs WHERE user_id = $1 LIMIT 1`,
+      `SELECT
+         id, name, gender, breed, dob,
+         life_stage  AS "lifeStage",
+         personality,
+         avatar_url  AS "avatarUrl",
+         is_main     AS "isMain"
+       FROM dogs
+       WHERE user_id = $1
+       ORDER BY is_main DESC, created_at ASC
+       LIMIT 1`,
       [user.id]
     );
+
+    const dog = dogResult.rows[0] ?? null;
 
     res.json({
       user: {
@@ -91,16 +103,8 @@ router.get("/me", async (req: AuthRequest, res: Response): Promise<void> => {
         createdAt:          user.created_at,
         updatedAt:          user.updated_at,
       },
-      dog: dogResult.rows[0] ? {
-        id:          dogResult.rows[0].id,
-        name:        dogResult.rows[0].name,
-        gender:      dogResult.rows[0].gender,
-        breed:       dogResult.rows[0].breed,
-        dob:         dogResult.rows[0].dob,
-        lifeStage:   dogResult.rows[0].life_stage,
-        personality: dogResult.rows[0].personality,
-        avatarUrl:   dogResult.rows[0].avatar_url,
-      } : null,
+      // dog already has camelCase keys from the aliases above
+      dog,
     });
   } catch (err) {
     console.error("GET /users/me error:", err);
@@ -108,7 +112,7 @@ router.get("/me", async (req: AuthRequest, res: Response): Promise<void> => {
   }
 });
 
-// PATCH /api/users/me 
+// ─── PATCH /api/users/me ─────────────────────────────────────────────────────
 router.patch("/me", [
   body("name").optional().trim().isLength({ min: 2, max: 100 }).withMessage("Name must be 2–100 characters"),
   body("email").optional().isEmail().withMessage("Please enter a valid email").normalizeEmail(),
@@ -141,58 +145,39 @@ router.patch("/me", [
     );
     const user = userResult.rows[0];
 
-    // If changing password, verify current password first
     if (newPassword) {
       if (!currentPassword) {
-        res.status(400).json({
-          message: "Validation failed",
-          errors: { currentPassword: "Current password is required to set a new password" },
-        });
+        res.status(400).json({ message: "Validation failed", errors: { currentPassword: "Current password is required to set a new password" } });
         return;
       }
       const valid = await bcrypt.compare(currentPassword, user.password_hash);
       if (!valid) {
-        res.status(400).json({
-          message: "Validation failed",
-          errors: { currentPassword: "Current password is incorrect" },
-        });
+        res.status(400).json({ message: "Validation failed", errors: { currentPassword: "Current password is incorrect" } });
         return;
       }
     }
 
-    // Check if email already exists
     if (email && email !== user.email) {
       const existing = await pool.query(
         "SELECT id FROM users WHERE email = $1 AND id != $2",
         [email, userId]
       );
       if (existing.rows.length > 0) {
-        res.status(409).json({
-          message: "Validation failed",
-          errors: { email: "This email is already in use" },
-        });
+        res.status(409).json({ message: "Validation failed", errors: { email: "This email is already in use" } });
         return;
       }
     }
 
-    // Build update query dynamically
     const updates: string[] = [];
     const params: any[]     = [];
+    const addUpdate = (field: string, val: any) => { params.push(val); updates.push(`${field} = $${params.length}`); };
 
-    const addUpdate = (field: string, val: any) => {
-      params.push(val);
-      updates.push(`${field} = $${params.length}`);
-    };
-
-    if (name)             addUpdate("name",          name);
-    if (email)            addUpdate("email",         email);
+    if (name)              addUpdate("name",          name);
+    if (email)             addUpdate("email",         email);
     if (bio !== undefined) addUpdate("bio",           bio.trim());
-    if (newPassword)      addUpdate("password_hash", await bcrypt.hash(newPassword, 12));
+    if (newPassword)       addUpdate("password_hash", await bcrypt.hash(newPassword, 12));
 
-    if (updates.length === 0) {
-      res.status(400).json({ message: "No changes provided" });
-      return;
-    }
+    if (updates.length === 0) { res.status(400).json({ message: "No changes provided" }); return; }
 
     params.push(userId);
     const result = await pool.query(
@@ -204,25 +189,17 @@ router.patch("/me", [
 
     const updatedUser = result.rows[0];
 
-    // Recalculate profile_complete after update
     const dogResult = await pool.query(
       "SELECT id, personality FROM dogs WHERE user_id = $1 LIMIT 1",
       [userId]
     );
-    const dog              = dogResult.rows[0] ?? null;
-    const hasDog           = !!dog;
-    const dogHasPersonality = !!(dog?.personality?.length);
-
+    const dog               = dogResult.rows[0] ?? null;
     const newProfileComplete = calcProfileComplete(
       { name: updatedUser.name, bio: updatedUser.bio, avatar_url: updatedUser.avatar_url },
-      hasDog,
-      dogHasPersonality
+      !!dog,
+      !!(dog?.personality?.length)
     );
-
-    await pool.query(
-      "UPDATE users SET profile_complete = $1 WHERE id = $2",
-      [newProfileComplete, userId]
-    );
+    await pool.query("UPDATE users SET profile_complete = $1 WHERE id = $2", [newProfileComplete, userId]);
 
     res.json({
       message: "Profile updated successfully",
@@ -245,38 +222,20 @@ router.patch("/me", [
 // ─── POST /api/users/me/avatar ────────────────────────────────────────────────
 router.post("/me/avatar", upload.single("avatar"), async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    if (!req.file) {
-      res.status(400).json({ message: "No image provided" });
-      return;
-    }
+    if (!req.file) { res.status(400).json({ message: "No image provided" }); return; }
 
     const avatarUrl = await uploadToCloudinary(req.file.buffer, "barkbuddy/users");
+    await pool.query("UPDATE users SET avatar_url = $1, updated_at = NOW() WHERE id = $2", [avatarUrl, req.user!.userId]);
 
-    await pool.query(
-      "UPDATE users SET avatar_url = $1, updated_at = NOW() WHERE id = $2",
-      [avatarUrl, req.user!.userId]
-    );
-
-    // Recalculate profile_complete now that avatar exists
-    const userResult = await pool.query(
-      "SELECT name, bio FROM users WHERE id = $1",
-      [req.user!.userId]
-    );
-    const dogResult = await pool.query(
-      "SELECT id, personality FROM dogs WHERE user_id = $1 LIMIT 1",
-      [req.user!.userId]
-    );
-    const u                = userResult.rows[0];
-    const dog              = dogResult.rows[0] ?? null;
+    const userResult = await pool.query("SELECT name, bio FROM users WHERE id = $1", [req.user!.userId]);
+    const dogResult  = await pool.query("SELECT id, personality FROM dogs WHERE user_id = $1 LIMIT 1", [req.user!.userId]);
+    const u                  = userResult.rows[0];
+    const dog                = dogResult.rows[0] ?? null;
     const newProfileComplete = calcProfileComplete(
       { name: u.name, bio: u.bio, avatar_url: avatarUrl },
-      !!dog,
-      !!(dog?.personality?.length)
+      !!dog, !!(dog?.personality?.length)
     );
-    await pool.query(
-      "UPDATE users SET profile_complete = $1 WHERE id = $2",
-      [newProfileComplete, req.user!.userId]
-    );
+    await pool.query("UPDATE users SET profile_complete = $1 WHERE id = $2", [newProfileComplete, req.user!.userId]);
 
     res.json({ message: "Avatar updated", avatarUrl, profileComplete: newProfileComplete });
   } catch (err) {
@@ -289,22 +248,14 @@ router.post("/me/avatar", upload.single("avatar"), async (req: AuthRequest, res:
 router.patch("/me/preferences", async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { emailNotifications, preferences } = req.body;
-
     const updates: string[] = [];
     const params: any[]     = [];
-
-    const addUpdate = (field: string, val: any) => {
-      params.push(val);
-      updates.push(`${field} = $${params.length}`);
-    };
+    const addUpdate = (field: string, val: any) => { params.push(val); updates.push(`${field} = $${params.length}`); };
 
     if (typeof emailNotifications === "boolean") addUpdate("email_notifications", emailNotifications);
     if (preferences) addUpdate("preferences", JSON.stringify(preferences));
 
-    if (updates.length === 0) {
-      res.status(400).json({ message: "No changes provided" });
-      return;
-    }
+    if (updates.length === 0) { res.status(400).json({ message: "No changes provided" }); return; }
 
     params.push(req.user!.userId);
     await pool.query(
@@ -320,17 +271,13 @@ router.patch("/me/preferences", async (req: AuthRequest, res: Response): Promise
 });
 
 // ─── PATCH /api/users/me/dog ──────────────────────────────────────────────────
+// Updates the primary (is_main = true) dog
 router.patch("/me/dog", async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { name, breed, gender, dob, lifeStage, personality } = req.body;
-
     const updates: string[] = [];
     const params: any[]     = [];
-
-    const addUpdate = (field: string, val: any) => {
-      params.push(val);
-      updates.push(`${field} = $${params.length}`);
-    };
+    const addUpdate = (field: string, val: any) => { params.push(val); updates.push(`${field} = $${params.length}`); };
 
     if (name)        addUpdate("name",        name);
     if (breed)       addUpdate("breed",       breed);
@@ -339,51 +286,32 @@ router.patch("/me/dog", async (req: AuthRequest, res: Response): Promise<void> =
     if (lifeStage)   addUpdate("life_stage",  lifeStage);
     if (personality) addUpdate("personality", personality);
 
-    if (updates.length === 0) {
-      res.status(400).json({ message: "No changes provided" });
-      return;
-    }
+    if (updates.length === 0) { res.status(400).json({ message: "No changes provided" }); return; }
 
+    // ── FIX: target only the primary dog (is_main = true)
     params.push(req.user!.userId);
     const result = await pool.query(
       `UPDATE dogs SET ${updates.join(", ")}, updated_at = NOW()
-       WHERE user_id = $${params.length}
-       RETURNING id, name, gender, breed, dob, life_stage, personality, avatar_url`,
+       WHERE user_id = $${params.length} AND is_main = true
+       RETURNING
+         id, name, gender, breed, dob,
+         life_stage  AS "lifeStage",
+         personality,
+         avatar_url  AS "avatarUrl",
+         is_main     AS "isMain"`,
       params
     );
 
     const dog = result.rows[0];
-
-    // Recalculate profile_complete now that dog personality may have changed
-    const userResult = await pool.query(
-      "SELECT name, bio, avatar_url FROM users WHERE id = $1",
-      [req.user!.userId]
-    );
+    const userResult = await pool.query("SELECT name, bio, avatar_url FROM users WHERE id = $1", [req.user!.userId]);
     const u = userResult.rows[0];
     const newProfileComplete = calcProfileComplete(
       { name: u.name, bio: u.bio, avatar_url: u.avatar_url },
-      true,
-      !!(dog.personality?.length)
+      true, !!(dog.personality?.length)
     );
-    await pool.query(
-      "UPDATE users SET profile_complete = $1 WHERE id = $2",
-      [newProfileComplete, req.user!.userId]
-    );
+    await pool.query("UPDATE users SET profile_complete = $1 WHERE id = $2", [newProfileComplete, req.user!.userId]);
 
-    res.json({
-      message: "Dog profile updated",
-      dog: {
-        id:          dog.id,
-        name:        dog.name,
-        gender:      dog.gender,
-        breed:       dog.breed,
-        dob:         dog.dob,
-        lifeStage:   dog.life_stage,
-        personality: dog.personality,
-        avatarUrl:   dog.avatar_url,
-      },
-      profileComplete: newProfileComplete,
-    });
+    res.json({ message: "Dog profile updated", dog, profileComplete: newProfileComplete });
   } catch (err) {
     console.error("PATCH /users/me/dog error:", err);
     res.status(500).json({ message: "Something went wrong." });
@@ -391,17 +319,16 @@ router.patch("/me/dog", async (req: AuthRequest, res: Response): Promise<void> =
 });
 
 // ─── POST /api/users/me/dog/avatar ────────────────────────────────────────────
+// Uploads avatar for the primary dog via Cloudinary
 router.post("/me/dog/avatar", upload.single("avatar"), async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    if (!req.file) {
-      res.status(400).json({ message: "No image provided" });
-      return;
-    }
+    if (!req.file) { res.status(400).json({ message: "No image provided" }); return; }
 
     const avatarUrl = await uploadToCloudinary(req.file.buffer, "barkbuddy/dogs");
 
+    // ── FIX: target only the primary dog (is_main = true)
     await pool.query(
-      "UPDATE dogs SET avatar_url = $1, updated_at = NOW() WHERE user_id = $2",
+      "UPDATE dogs SET avatar_url = $1, updated_at = NOW() WHERE user_id = $2 AND is_main = true",
       [avatarUrl, req.user!.userId]
     );
 
@@ -412,7 +339,7 @@ router.post("/me/dog/avatar", upload.single("avatar"), async (req: AuthRequest, 
   }
 });
 
-// ─── POST /api/users/me/dogs ───────────────────────────────────────────────────
+// ─── POST /api/users/me/dogs ──────────────────────────────────────────────────
 router.post("/me/dogs", [
   body("name").notEmpty().trim().isLength({ min: 2, max: 100 }).withMessage("Dog name must be 2–100 characters"),
   body("gender").isIn(["male", "female"]).withMessage("Gender must be male or female"),
@@ -423,10 +350,7 @@ router.post("/me/dogs", [
 ], upload.none(), async (req: AuthRequest, res: Response): Promise<void> => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    res.status(400).json({ message: "Validation failed", errors: errors.array().reduce((acc: Record<string, string>, err: any) => {
-      acc[err.path] = err.msg;
-      return acc;
-    }, {}) });
+    res.status(400).json({ message: "Validation failed", errors: errors.array().reduce((acc: Record<string, string>, err: any) => { acc[err.path] = err.msg; return acc; }, {}) });
     return;
   }
 
@@ -434,7 +358,6 @@ router.post("/me/dogs", [
   const userId = req.user!.userId;
 
   try {
-    // Check if user already has 5 dogs max (prevent spam)
     const countResult = await pool.query("SELECT COUNT(*) FROM dogs WHERE user_id = $1", [userId]);
     if (parseInt(countResult.rows[0].count) >= 5) {
       res.status(400).json({ message: "Maximum 5 dogs allowed per user" });
@@ -455,17 +378,15 @@ router.post("/me/dogs", [
   }
 });
 
-// ─── GET /api/users/me/dogs ─────────────────────────────────────────────────────
+// ─── GET /api/users/me/dogs ───────────────────────────────────────────────────
 router.get("/me/dogs", async (req: AuthRequest, res: Response): Promise<void> => {
   const userId = req.user!.userId;
-
   try {
     const result = await pool.query(
       `SELECT id, name, gender, breed, dob, life_stage, personality, avatar_url
        FROM dogs WHERE user_id = $1 ORDER BY created_at ASC`,
       [userId]
     );
-
     res.json({ dogs: result.rows });
   } catch (err) {
     console.error("GET /users/me/dogs error:", err);
@@ -473,31 +394,24 @@ router.get("/me/dogs", async (req: AuthRequest, res: Response): Promise<void> =>
   }
 });
 
-// ─── PATCH /api/users/me/dogs/:dogId ────────────────────────────────────────────
+// ─── PATCH /api/users/me/dogs/:dogId ─────────────────────────────────────────
 router.patch("/me/dogs/:dogId", async (req: AuthRequest, res: Response): Promise<void> => {
-  const dogId = req.params.dogId;
+  const dogId  = req.params.dogId;
   const userId = req.user!.userId;
   const { name, breed, gender, dob, life_stage, personality } = req.body;
 
   const updates: string[] = [];
-  const params: any[] = [];
+  const params: any[]     = [];
+  const addUpdate = (field: string, val: any) => { params.push(val); updates.push(`${field} = $${params.length}`); };
 
-  const addUpdate = (field: string, val: any) => {
-    params.push(val);
-    updates.push(`${field} = $${params.length}`);
-  };
-
-  if (name) addUpdate("name", name);
-  if (breed) addUpdate("breed", breed);
-  if (gender) addUpdate("gender", gender);
-  if (dob !== undefined) addUpdate("dob", dob || null);
-  if (life_stage) addUpdate("life_stage", life_stage);
+  if (name)                    addUpdate("name",        name);
+  if (breed)                   addUpdate("breed",       breed);
+  if (gender)                  addUpdate("gender",      gender);
+  if (dob !== undefined)       addUpdate("dob",         dob || null);
+  if (life_stage)              addUpdate("life_stage",  life_stage);
   if (personality !== undefined) addUpdate("personality", JSON.stringify(personality));
 
-  if (updates.length === 0) {
-    res.status(400).json({ message: "No changes provided" });
-    return;
-  }
+  if (updates.length === 0) { res.status(400).json({ message: "No changes provided" }); return; }
 
   try {
     params.push(userId, dogId);
@@ -508,10 +422,7 @@ router.patch("/me/dogs/:dogId", async (req: AuthRequest, res: Response): Promise
       params
     );
 
-    if (result.rows.length === 0) {
-      res.status(404).json({ message: "Dog not found" });
-      return;
-    }
+    if (result.rows.length === 0) { res.status(404).json({ message: "Dog not found" }); return; }
 
     res.json({ message: "Dog updated", dog: result.rows[0] });
   } catch (err) {
@@ -520,9 +431,9 @@ router.patch("/me/dogs/:dogId", async (req: AuthRequest, res: Response): Promise
   }
 });
 
-// DELETE /api/users/me/dogs/:dogId 
+// ─── DELETE /api/users/me/dogs/:dogId ────────────────────────────────────────
 router.delete("/me/dogs/:dogId", async (req: AuthRequest, res: Response): Promise<void> => {
-  const dogId = req.params.dogId;
+  const dogId  = req.params.dogId;
   const userId = req.user!.userId;
 
   try {
@@ -530,12 +441,7 @@ router.delete("/me/dogs/:dogId", async (req: AuthRequest, res: Response): Promis
       "DELETE FROM dogs WHERE id = $1 AND user_id = $2 RETURNING id",
       [dogId, userId]
     );
-
-    if (result.rows.length === 0) {
-      res.status(404).json({ message: "Dog not found" });
-      return;
-    }
-
+    if (result.rows.length === 0) { res.status(404).json({ message: "Dog not found" }); return; }
     res.json({ message: "Dog removed" });
   } catch (err) {
     console.error("DELETE /users/me/dogs/:dogId error:", err);
@@ -543,24 +449,19 @@ router.delete("/me/dogs/:dogId", async (req: AuthRequest, res: Response): Promis
   }
 });
 
-// POST /api/users/me/dogs/:dogId/avatar 
+// ─── POST /api/users/me/dogs/:dogId/avatar ────────────────────────────────────
 router.post("/me/dogs/:dogId/avatar", upload.single("avatar"), async (req: AuthRequest, res: Response): Promise<void> => {
-  if (!req.file) {
-    res.status(400).json({ message: "No image provided" });
-    return;
-  }
+  if (!req.file) { res.status(400).json({ message: "No image provided" }); return; }
 
-  const dogId = req.params.dogId;
+  const dogId  = req.params.dogId;
   const userId = req.user!.userId;
 
   try {
     const avatarUrl = await uploadToCloudinary(req.file.buffer, "barkbuddy/dogs");
-
     await pool.query(
       "UPDATE dogs SET avatar_url = $1, updated_at = NOW() WHERE id = $2 AND user_id = $3",
       [avatarUrl, dogId, userId]
     );
-
     res.json({ message: "Dog avatar updated", avatarUrl });
   } catch (err) {
     console.error("POST /users/me/dogs/:dogId/avatar error:", err);
@@ -568,87 +469,59 @@ router.post("/me/dogs/:dogId/avatar", upload.single("avatar"), async (req: AuthR
   }
 });
 
-
-// GET /api/users/search?q= 
+// ─── GET /api/users/search ────────────────────────────────────────────────────
 router.get("/search", async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const query = (req.query.q as string || "").trim();
-
-    if (!query || query.length < 2) {
-      res.json({ users: [] });
-      return;
-    }
+    if (!query || query.length < 2) { res.json({ users: [] }); return; }
 
     const searchTerm = `%${query.toLowerCase()}%`;
 
     const result = await pool.query(
       `SELECT
-        u.id,
-        u.name,
-        u.avatar_url   AS "avatarUrl",
-        u.bio,
-        u.created_at   AS "memberSince",
-        d.name         AS "dogName",
-        d.breed        AS "dogBreed",
-        d.avatar_url   AS "dogAvatarUrl",
-        d.life_stage   AS "dogLifeStage"
+         u.id,
+         u.name,
+         u.avatar_url   AS "avatarUrl",
+         u.bio,
+         u.created_at   AS "memberSince",
+         d.name         AS "dogName",
+         d.breed        AS "dogBreed",
+         d.avatar_url   AS "dogAvatarUrl",
+         d.life_stage   AS "dogLifeStage"
        FROM users u
-       LEFT JOIN dogs d ON d.user_id = u.id
+       LEFT JOIN dogs d ON d.user_id = u.id AND d.is_main = true
        WHERE u.id != $1
-         AND (
-           LOWER(u.name) LIKE $2
-           OR LOWER(d.name) LIKE $2
-         )
+         AND (LOWER(u.name) LIKE $2 OR LOWER(d.name) LIKE $2)
        ORDER BY u.name ASC
        LIMIT 20`,
       [req.user!.userId, searchTerm]
     );
 
-    if (result.rows.length === 0) {
-      res.json({ users: [] });
-      return;
-    }
+    if (result.rows.length === 0) { res.json({ users: [] }); return; }
 
     const foundUserIds = result.rows.map((r) => r.id);
-  
     const buddyStatusResult = await pool.query(
-      `SELECT
-         br.id,
-         br.status,
-         br.sender_id,
-         br.receiver_id
+      `SELECT br.id, br.status, br.sender_id, br.receiver_id
        FROM buddy_requests br
        WHERE (br.sender_id = $1 OR br.receiver_id = $1)
          AND (br.sender_id = ANY($2::uuid[]) OR br.receiver_id = ANY($2::uuid[]))`,
       [req.user!.userId, foundUserIds]
     );
 
-    
     const statusMap = new Map<string, { requestId: string; status: string; isSender: boolean }>();
-
     for (const row of buddyStatusResult.rows) {
-      const targetId = row.sender_id === req.user!.userId
-        ? row.receiver_id
-        : row.sender_id;
-
-      statusMap.set(targetId, {
-        requestId: row.id,
-        status:    row.status,
-        isSender:  row.sender_id === req.user!.userId,
-      });
+      const targetId = row.sender_id === req.user!.userId ? row.receiver_id : row.sender_id;
+      statusMap.set(targetId, { requestId: row.id, status: row.status, isSender: row.sender_id === req.user!.userId });
     }
 
-   
     const users = result.rows.map((row) => {
       const buddyInfo = statusMap.get(row.id);
-
       let status: "none" | "pending_out" | "pending_in" | "buddy" = "none";
       if (buddyInfo) {
-        if (buddyInfo.status === "accepted")  status = "buddy";
-        else if (buddyInfo.isSender)          status = "pending_out";
-        else                                  status = "pending_in";
+        if (buddyInfo.status === "accepted") status = "buddy";
+        else if (buddyInfo.isSender)         status = "pending_out";
+        else                                 status = "pending_in";
       }
-
       return {
         id:           row.id,
         name:         row.name,

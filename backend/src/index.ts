@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import path from "path";
 import { Pool } from "pg";
 import authRoutes from "./routes/auth";
 import usersRoutes from "./routes/users";
@@ -18,28 +19,33 @@ import listingsRouter from './routes/Listings';
 import buddiesRouter from "./routes/buddies";
 import dogsRouter from "./routes/Dogs";
 import reviewRouter from "./routes/Reviews";
+import profileRouter from "./routes/ProfileRoutes";
 import multer from "multer";
-
 
 dotenv.config();
 
 const app  = express();
 const PORT = process.env.PORT || 4000;
 
-// DB Pool (for service finder routes) 
+// DB Pool (for service finder routes)
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
 });
 
-// Middleware 
+// Middleware
 app.use(cors({
   origin: process.env.NODE_ENV === "production" ? process.env.CLIENT_URL : true,
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Auth routes 
+// ─── Static file serving — user & dog uploads ─────────────────────────────────
+// This makes /uploads/users/... and /uploads/dogs/... URLs actually work.
+// Files are saved to <project-root>/uploads/ by multer in the route handlers.
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+
+// Auth routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/password", passwordRoutes);
@@ -56,8 +62,9 @@ app.use("/api/notifications", notificationsRouter);
 app.use("/api/buddies", buddiesRouter);
 app.use("/api/dogs", dogsRouter);
 app.use("/api/reviews", reviewRouter);
+app.use("/api/users", profileRouter);
 
-// Health check 
+// Health check
 app.get("/api/health", (_, res) => res.json({ status: "ok", timestamp: new Date() }));
 
 // SERVICE FINDER ROUTES
@@ -77,7 +84,7 @@ app.get("/api/listings", async (req, res) => {
 
     const offset = (parseInt(page) - 1) * parseInt(limit);
 
-    const params: any[]    = [];
+    const params: any[]        = [];
     const conditions: string[] = ["l.is_active = true"];
 
     const addParam = (val: any) => {
@@ -162,7 +169,7 @@ app.get("/api/listings", async (req, res) => {
   }
 });
 
-// GET /api/listings/new 
+// GET /api/listings/new
 app.get("/api/listings/new", async (_req, res) => {
   try {
     const result = await pool.query(`
@@ -197,7 +204,7 @@ app.get("/api/listings/:id", async (req, res) => {
   }
 });
 
-// GET /api/categories 
+// GET /api/categories
 app.get("/api/categories", async (_req, res) => {
   try {
     const result = await pool.query(`
@@ -210,7 +217,7 @@ app.get("/api/categories", async (_req, res) => {
   }
 });
 
-// GET /api/autocomplete 
+// GET /api/autocomplete
 app.get("/api/autocomplete", async (req, res) => {
   const q = (req.query.q as string) || "";
   if (q.length < 2) { res.json([]); return; }
@@ -231,11 +238,13 @@ app.get("/api/autocomplete", async (req, res) => {
     res.status(500).json({ error: "Autocomplete failed" });
   }
 });
+
 // 404
 app.use((_req, res) => res.status(404).json({ message: "Route not found" }));
 
-// Start 
+// Start
 app.listen(PORT, () => {
   console.log(`🚀 BarkBuddy server running on http://localhost:${PORT}`);
 });
+
 export default app;
