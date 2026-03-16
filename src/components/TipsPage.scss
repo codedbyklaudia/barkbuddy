@@ -136,11 +136,11 @@
   }
 }
 
-// Title — matches travel-hero__heading
+// Title
 .tips-hero__title {
   font-family: $font-primary;
   font-size: clamp(2.8rem, 5.5vw, 5rem);
-  font-weight: $fw-bold;
+  font-weight: $fw-regular;
   color: $soft-pearl;
   line-height: 1.0;
   letter-spacing: -0.035em;
@@ -156,7 +156,7 @@
   }
 }
 
-// Subtitle — matches travel-hero__sub
+// Subtitle
 .tips-hero__sub {
   font-family: $font-secondary;
   font-size: clamp(0.88rem, 1.4vw, 0.98rem);

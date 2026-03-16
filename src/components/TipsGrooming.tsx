@@ -1,7 +1,7 @@
 import React from "react";
 import TipsPage, { type Tip } from "./TipsPage";
 
-const ICON = "../images/illustrations/Grooming.png";
+const ICON = "../images/icons/grooming.svg";
 
 const tips: Tip[] = [
   {

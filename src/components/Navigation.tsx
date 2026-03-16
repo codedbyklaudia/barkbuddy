@@ -347,7 +347,8 @@ const Navigation: React.FC = () => {
             </button>
             {activeDropdown === 'more-mobile' && (
               <div className="navigation__mobile-submenu">
-                <a href="#contact" onClick={toggleMenu}>Contact BarkBuddy</a>
+                <Link to="/about" onClick={toggleMenu}> <i className="bi bi-bookmark-heart-fill"></i> About BarkBuddy</Link>
+                <Link to="/contact" onClick={toggleMenu}><i className="bi bi-telephone"></i> Contact BarkBuddy</Link>
                 <Link to="/register-business" onClick={toggleMenu} className="navigation__mobile-highlight">
                   <i className="bi bi-briefcase"></i>
                   BarkBuddy for Business 

@@ -109,7 +109,7 @@
 .travel-hero__heading {
   font-family: $font-primary;
   font-size: clamp(2.8rem, 5.5vw, 5rem);
-  font-weight: $fw-bold;
+  font-weight: $fw-regular;
   color: $soft-pearl;
   line-height: 1.0;
   letter-spacing: -0.035em;
@@ -146,7 +146,7 @@
 .travel-hero__cta {
   font-family: $font-secondary;
   font-size: 0.8rem;
-  font-weight: $fw-bold;
+  font-weight: $fw-regular;
   letter-spacing: 0.04em;
   @include cursor;
   border: none;
@@ -320,7 +320,7 @@
   &__heading {
     font-family: $font-primary;
     font-size: $t-tit-des;
-    font-weight: $fw-bold;
+    font-weight: $fw-regular;
     color: $twilight-purple;
     letter-spacing: -0.02em;
     margin-bottom: $space-xxl;
@@ -549,7 +549,7 @@
   &__title {
     font-family: $font-primary;
     font-size: $t-tit-des;
-    font-weight: $fw-bold;
+    font-weight: $fw-regular;
     color: $soft-pearl;
     letter-spacing: -0.03em;
     margin-bottom: $space-sm;

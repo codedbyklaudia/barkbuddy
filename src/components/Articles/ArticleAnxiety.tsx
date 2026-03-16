@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import './Article.scss';
 import Footer from '../Footer';
+import { Link } from 'react-router-dom';
+import { Shirt, Music, Leaf, ScanFace, Volleyball, Clock9, PawPrint,ChevronsRight  } from 'lucide-react';
+
 
 interface ArticlePageProps {
   onBack?: () => void;
@@ -40,7 +43,7 @@ const ArticleAnxiety: React.FC<ArticlePageProps> = ({ onBack }) => {
           <span className="article-hero__dot" />
           <span className="article-hero__read">7 min read</span>
           <span className="article-hero__dot" />
-          <span className="article-hero__date">February 2026</span>
+          <span className="article-hero__date">April 2026</span>
         </div>
         <h1 className="article-hero__title">
           Anxiety in dogs<br />
@@ -76,8 +79,8 @@ const ArticleAnxiety: React.FC<ArticlePageProps> = ({ onBack }) => {
             <h3>Signs of travel anxiety to watch for</h3>
             <div className="article-signs-grid">
               {[
-                { level: 'Mild', color: '#d97706', signs: ['Yawning excessively', 'Lip licking', 'Whale eye (whites showing)', 'Refusing to enter carrier'] },
-                { level: 'Moderate', color: '#ea580c', signs: ['Panting without heat', 'Trembling or shaking', 'Whining or vocalising', 'Drooling heavily'] },
+                { level: 'Mild', color: '#58f396', signs: ['Yawning excessively', 'Lip licking', 'Whale eye (whites showing)', 'Refusing to enter carrier'] },
+                { level: 'Moderate', color: '#f5d922', signs: ['Panting without heat', 'Trembling or shaking', 'Whining or vocalising', 'Drooling heavily'] },
                 { level: 'Severe', color: '#dc2626', signs: ['Attempting to escape', 'Vomiting', 'Toileting accidents', 'Unresponsive to commands'] },
               ].map((group, i) => (
                 <div className="article-signs-card" key={i} style={{ borderTopColor: group.color }}>
@@ -131,12 +134,12 @@ const ArticleAnxiety: React.FC<ArticlePageProps> = ({ onBack }) => {
 
           <div className="article-tips">
             {[
-              { emoji: '👕', title: 'Worn clothing in the carrier', body: 'A T-shirt you\'ve slept in placed inside the carrier gives your dog your scent - one of the most powerful natural calming signals available.' },
-              { emoji: '🎵', title: 'Calming music or white noise', body: 'Studies show that classical music and specifically composed dog-calming music (like iCalmDog) measurably reduce stress indicators in kennelled dogs. Use during the journey.' },
-              { emoji: '🌿', title: 'Adaptil spray', body: 'Spray the inside of the carrier with Adaptil (dog-appeasing pheromone) 15 minutes before your dog gets in. It mimics the calming pheromones mother dogs produce for puppies.' },
-              { emoji: '🤐', title: 'Stay calm yourself', body: 'Dogs read your emotional state constantly. Anxious, fussing owners reinforce the idea that something is wrong. Practice your most bored, relaxed energy.' },
-              { emoji: '🧸', title: 'Familiar toy or blanket', body: 'Something that smells of home provides enormous comfort. Don\'t wash it before the trip.' },
-              { emoji: '⏰', title: 'Tire them out beforehand', body: 'A long walk or play session 2–3 hours before travel uses up nervous energy and makes rest more likely during the journey.' },
+              { emoji: <Shirt />, title: 'Worn clothing in the carrier', body: 'A T-shirt you\'ve slept in placed inside the carrier gives your dog your scent - one of the most powerful natural calming signals available.' },
+              { emoji: <Music />, title: 'Calming music or white noise', body: 'Studies show that classical music and specifically composed dog-calming music (like iCalmDog) measurably reduce stress indicators in kennelled dogs. Use during the journey.' },
+              { emoji: <Leaf />, title: 'Adaptil spray', body: 'Spray the inside of the carrier with Adaptil (dog-appeasing pheromone) 15 minutes before your dog gets in. It mimics the calming pheromones mother dogs produce for puppies.' },
+              { emoji: <ScanFace />, title: 'Stay calm yourself', body: 'Dogs read your emotional state constantly. Anxious, fussing owners reinforce the idea that something is wrong. Practice your most bored, relaxed energy.' },
+              { emoji: <Volleyball />, title: 'Familiar toy or blanket', body: 'Something that smells of home provides enormous comfort. Don\'t wash it before the trip.' },
+              { emoji: <Clock9 />, title: 'Tire them out beforehand', body: 'A long walk or play session 2–3 hours before travel uses up nervous energy and makes rest more likely during the journey.' },
             ].map((tip, i) => (
               <div className="article-tip" key={i}>
                 <span className="article-tip__emoji">{tip.emoji}</span>
@@ -163,11 +166,13 @@ const ArticleAnxiety: React.FC<ArticlePageProps> = ({ onBack }) => {
           </p>
 
           <div className="article-callout">
-            <span className="article-callout__icon">🐾</span>
+            <span className="article-callout__icon"><PawPrint /></span>
             <div>
-              <strong>Find a vet near you</strong>
+              <strong>Find a behaviorist near you!</strong>
               <p>Looking for a vet who specialises in behavioural anxiety? Use BarkBuddy's service finder to find qualified professionals near you.</p>
-              <button className="article-callout__btn" onClick={onBack}>Find a vet →</button>
+              <Link to="/service-finder" className="article-callout__btn">
+                Find a behaviourist near you <ChevronsRight />
+              </Link>
             </div>
           </div>
         </section>

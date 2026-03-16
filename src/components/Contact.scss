@@ -16,9 +16,7 @@
   0%, 100% { box-shadow: 0 0 0 3px rgba(#34d399, 0.2); }
   50%       { box-shadow: 0 0 0 6px rgba(#34d399, 0.06); }
 }
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
+@keyframes spin { to { transform: rotate(360deg); } }
 @keyframes successIn {
   from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -38,10 +36,12 @@
   overflow-x: hidden;
 }
 
-// ─── Hero ─────────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+// HERO
+// ═══════════════════════════════════════════════════════════════════════════════
 .contact-hero {
-  display: grid !important;
-  grid-template-columns: 1fr 1fr !important;
+  display: grid;
+  grid-template-columns: 1fr;          // mobile: single column
   width: 100%;
   position: relative;
   overflow: hidden;
@@ -50,26 +50,31 @@
     radial-gradient(ellipse at 75% 50%, rgba($serene-purple, 0.18) 0%, transparent 60%),
     radial-gradient(ellipse at 20% 80%, rgba($serene-purple, 0.1)  0%, transparent 50%);
 
-  @media (max-width: $bp-tablet) {
-    grid-template-columns: 1fr !important;
+  @media (min-width: $bp-tablet) {
+    grid-template-columns: 1fr 1fr;    // tablet+: two columns
   }
 }
 
-// Left panel
+// ── Left panel ────────────────────────────────────────────────────────────────
 .contact-hero__left {
   background: $twilight-purple;
   display: flex;
   align-items: stretch;
-  padding: $space-xl clamp($space-xl, 5vw, 72px) 0;
+  padding: $space-xl $space-lg 0;      // mobile
   position: relative;
   background-image: radial-gradient(circle, rgba($soft-pearl, 0.04) 1px, transparent 1px);
   background-size: 24px 24px;
-  min-height: 560px;
+  min-height: 400px;
   min-width: 0;
 
-  @media (max-width: $bp-tablet) {
-    padding: $space-xl $space-lg $space-xl;
-    min-height: auto;
+  @media (min-width: $bp-tablet) {
+    padding: $space-xl clamp($space-xl, 4vw, 56px) 0;
+    min-height: 520px;
+  }
+
+  @media (min-width: $bp-laptop) {
+    padding: $space-xl clamp($space-xl, 5vw, 72px) 0;
+    min-height: 560px;
   }
 }
 
@@ -78,12 +83,14 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding-bottom: clamp(4rem, 7vw, 6rem);
+  // extra bottom clearance so content sits above the wave
+  padding-bottom: clamp(3.5rem, 7vw, 6rem);
 }
 
+// Eyebrow — dash prefix
 .contact-hero__eyebrow {
   font-family: $font-secondary;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: rgba($soft-pearl, 0.55);
   font-weight: $fw-medium;
   letter-spacing: 0.04em;
@@ -94,25 +101,33 @@
   align-self: flex-start;
   animation: reveal-up 0.6s 0.05s ease both;
 
+  @media (min-width: $bp-tablet) { font-size: 0.8rem; }
+
   &::before {
     content: '';
     display: block;
-    width: 24px;
-    height: 1.5px;
+    width: 24px; height: 1.5px;
     background: rgba($soft-pearl, 0.3);
     flex-shrink: 0;
   }
 }
 
+// Title
 .contact-hero__title {
   font-family: $font-primary;
-  font-size: clamp(2.8rem, 5.5vw, 5rem);
+  font-size: clamp(2.4rem, 9vw, 3.4rem);
   font-weight: $fw-bold;
   color: $soft-pearl;
   line-height: 1.0;
-  letter-spacing: -0.035em;
-  margin: 0 0 $space-xl;
+  letter-spacing: -0.03em;
+  margin: 0 0 $space-lg;
   animation: reveal-up 0.65s 0.12s ease both;
+
+  @media (min-width: $bp-tablet) {
+    font-size: clamp(2.8rem, 5.5vw, 5rem);
+    letter-spacing: -0.035em;
+    margin-bottom: $space-xl;
+  }
 
   em {
     font-style: italic;
@@ -121,27 +136,38 @@
   }
 }
 
+// Subtitle
 .contact-hero__sub {
   font-family: $font-secondary;
-  font-size: clamp(0.88rem, 1.4vw, 0.98rem);
+  font-size: 0.9rem;
   color: rgba($soft-pearl, 0.5);
-  line-height: 1.75;
-  max-width: 360px;
-  margin-bottom: $space-xl;
+  line-height: 1.7;
+  max-width: 100%;
+  margin-bottom: $space-lg;
   animation: reveal-up 0.65s 0.2s ease both;
+
+  @media (min-width: $bp-tablet) {
+    font-size: clamp(0.88rem, 1.4vw, 0.98rem);
+    line-height: 1.75;
+    max-width: 360px;
+    margin-bottom: $space-xl;
+  }
 }
 
+// CTA row
 .contact-hero__ctas {
   display: flex;
   align-items: center;
-  gap: $space-md;
+  gap: $space-sm;
   flex-wrap: wrap;
   animation: reveal-up 0.65s 0.27s ease both;
+
+  @media (min-width: $bp-tablet) { gap: $space-md; }
 }
 
 .contact-hero__cta {
   font-family: $font-secondary;
-  font-size: 0.8rem;
+  font-size: 0.76rem;
   font-weight: $fw-bold;
   letter-spacing: 0.04em;
   cursor: pointer;
@@ -152,11 +178,15 @@
   gap: $space-sm;
   transition: all 0.22s ease;
 
+  @media (min-width: $bp-tablet) { font-size: 0.8rem; }
+
   &--primary {
     background: $soft-pearl;
     color: $twilight-purple;
-    padding: 12px $space-xl;
+    padding: 10px $space-lg;
     border-radius: 4px;
+
+    @media (min-width: $bp-tablet) { padding: 12px $space-xl; }
 
     &:hover {
       background: $misty-lavender;
@@ -170,22 +200,31 @@
   &--ghost {
     background: transparent;
     color: rgba($soft-pearl, 0.5);
-    padding: 12px 0;
+    padding: 10px 0;
     border-bottom: 1px solid rgba($soft-pearl, 0.2);
     border-radius: 0;
+    // allow long email to wrap on tiny screens
+    word-break: break-all;
+    line-height: 1.4;
+
+    @media (min-width: 400px)     { word-break: normal; }
+    @media (min-width: $bp-tablet) { padding: 12px 0; }
+
     &:hover { color: $soft-pearl; border-color: $soft-pearl; }
   }
 }
 
-// Right panel
+// ── Right panel ───────────────────────────────────────────────────────────────
 .contact-hero__right {
   position: relative;
   overflow: hidden;
-  min-height: 560px;
+  min-height: 200px;                   // mobile: short image strip
   min-width: 0;
 
-  @media (max-width: $bp-tablet) { min-height: 280px; }
+  @media (min-width: $bp-tablet) { min-height: 520px; }
+  @media (min-width: $bp-laptop) { min-height: 560px; }
 
+  // Warm colour wash
   &::before {
     content: '';
     position: absolute; inset: 0;
@@ -194,20 +233,27 @@
     pointer-events: none;
   }
 
+  // Mobile: top + bottom vignette only; tablet+: full 3-layer left-edge blend
   &::after {
     content: '';
     position: absolute; inset: 0;
     background:
-      linear-gradient(to right,  rgba($twilight-purple, 0.98) 0%, rgba($twilight-purple, 0.5) 25%, transparent 55%),
-      linear-gradient(to top,    rgba($twilight-purple, 0.7)  0%, transparent 35%),
-      linear-gradient(to bottom, rgba($twilight-purple, 0.4)  0%, transparent 25%);
+      linear-gradient(to bottom, rgba($twilight-purple, 0.65) 0%, transparent 35%),
+      linear-gradient(to top,    rgba($twilight-purple, 0.5)  0%, transparent 30%);
     z-index: 1;
     pointer-events: none;
+
+    @media (min-width: $bp-tablet) {
+      background:
+        linear-gradient(to right,  rgba($twilight-purple, 0.98) 0%, rgba($twilight-purple, 0.5) 25%, transparent 55%),
+        linear-gradient(to top,    rgba($twilight-purple, 0.7)  0%, transparent 35%),
+        linear-gradient(to bottom, rgba($twilight-purple, 0.4)  0%, transparent 25%);
+    }
   }
 }
 
 .contact-hero__image {
-  @include absolute;
+  position: absolute;
   top: 0; left: 0;
   width: 100%; height: 100%;
   display: block;
@@ -217,6 +263,7 @@
   animation: fade-in 0.8s 0.3s ease both;
 }
 
+// Wave — spans full hero width, absolute over both columns
 .contact-hero__wave {
   position: absolute;
   bottom: -1px; left: 0;
@@ -226,40 +273,65 @@
   z-index: 10;
 }
 
-// Body — form + sidebar 
+// ═══════════════════════════════════════════════════════════════════════════════
+// BODY — form + sidebar
+// ═══════════════════════════════════════════════════════════════════════════════
 .contact-body {
-  padding: clamp(3rem, 5vw, 5rem) clamp(1.5rem, 5vw, 3rem);
+  padding: clamp(2rem, 6vw, 4rem) $space-md;   // mobile
+
+  @media (min-width: $bp-tablet) {
+    padding: clamp(2.5rem, 5vw, 4rem) $space-xl;
+  }
+
+  @media (min-width: $bp-laptop) {
+    padding: clamp(3rem, 5vw, 5rem) clamp(1.5rem, 5vw, 3rem);
+  }
 
   &__inner {
     max-width: 1100px;
     margin: 0 auto;
     display: grid;
-    grid-template-columns: 1fr 340px;
-    gap: $space-xxl;
-    align-items: start;
+    grid-template-columns: 1fr;               // mobile + tablet: stacked
+    gap: $space-xl;
 
-    @media (max-width: $bp-laptop) {
-      grid-template-columns: 1fr;
+    @media (min-width: $bp-tablet) {
+      gap: $space-xxl;
+    }
+
+    @media (min-width: $bp-laptop) {
+      grid-template-columns: 1fr 320px;       // laptop+: form + sidebar
+      align-items: start;
+    }
+
+    @media (min-width: 1200px) {
+      grid-template-columns: 1fr 340px;
     }
   }
 }
 
-// Form card
+// ═══════════════════════════════════════════════════════════════════════════════
+// FORM CARD
+// ═══════════════════════════════════════════════════════════════════════════════
 .contact-form-card {
   background: $soft-pearl;
   border: 1.5px solid rgba($twilight-purple, 0.07);
   border-radius: $radius-lg;
-  padding: clamp(2rem, 4vw, 3rem);
+  padding: $space-lg;                          // mobile
   box-shadow: 0 2px 20px rgba($twilight-purple, 0.05);
   animation: reveal-up 0.55s 0.1s ease both;
+
+  @media (min-width: $bp-tablet) { padding: clamp(1.5rem, 3vw, 2.5rem); }
+  @media (min-width: $bp-laptop) { padding: clamp(2rem, 4vw, 3rem); }
 }
 
 .contact-form-header {
-  margin-bottom: $space-xxl;
+  margin-bottom: $space-xl;
+
+  @media (min-width: $bp-tablet) { margin-bottom: $space-xxl; }
 
   &__title {
     font-family: $font-primary;
-    font-size: clamp(1.6rem, 2.5vw, 2.2rem);
+    font-size: clamp(1.4rem, 5vw, 2.2rem);
     font-weight: $fw-regular;
     color: $twilight-purple;
     letter-spacing: 0.02em;
@@ -273,6 +345,7 @@
   }
 }
 
+// Error banner
 .contact-error {
   background: rgba(#dc2626, 0.06);
   border: 1px solid rgba(#dc2626, 0.18);
@@ -284,26 +357,39 @@
   line-height: 1.5;
 }
 
+// Form
 .contact-form {
   display: flex;
   flex-direction: column;
-  gap: $space-xl;
+  gap: $space-lg;
 
+  @media (min-width: $bp-tablet) { gap: $space-xl; }
+
+  // Name + email: stacked on mobile, side-by-side on wider screens
   &__row {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: $space-lg;
+    grid-template-columns: 1fr;
+    gap: $space-md;
 
-    @media (max-width: $bp-tablet) { grid-template-columns: 1fr; }
+    @media (min-width: 520px) {
+      grid-template-columns: 1fr 1fr;
+      gap: $space-lg;
+    }
   }
 
+  // Submit + privacy note
   &__footer {
     display: flex;
-    align-items: center;
-    gap: $space-xl;
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: stretch;
+    gap: $space-md;
 
-    @media (max-width: $bp-mobile) { flex-direction: column; align-items: stretch; }
+    @media (min-width: $bp-tablet) {
+      flex-direction: row;
+      align-items: center;
+      gap: $space-xl;
+      flex-wrap: wrap;
+    }
   }
 
   &__privacy {
@@ -314,6 +400,7 @@
   }
 }
 
+// ── Form fields ───────────────────────────────────────────────────────────────
 .contact-field {
   display: flex;
   flex-direction: column;
@@ -337,11 +424,13 @@
     border-radius: $radius-md;
     padding: $space-md $space-lg;
     font-family: $font-secondary;
-    font-size: $t-body-des;
+    font-size: 16px;                   // 16px prevents iOS auto-zoom on focus
     color: $twilight-purple;
     outline: none;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    min-height: 48px;
+    min-height: 48px;                  // comfortable tap target
+
+    @media (min-width: $bp-tablet) { font-size: $t-body-des; }
 
     &::placeholder { color: rgba($twilight-purple, 0.28); }
 
@@ -354,8 +443,10 @@
 
   &__textarea {
     resize: vertical;
-    min-height: 152px;
+    min-height: 130px;
     line-height: 1.75;
+
+    @media (min-width: $bp-tablet) { min-height: 152px; }
   }
 
   &__count {
@@ -383,7 +474,7 @@
   }
 }
 
-// Submit button — matches travel CTA primary
+// ── Submit button ─────────────────────────────────────────────────────────────
 .contact-submit {
   display: inline-flex;
   align-items: center;
@@ -398,10 +489,16 @@
   transition: all 0.22s ease;
   background: $twilight-purple;
   color: rgba($soft-pearl, 0.9);
-  padding: 14px $space-xxl;
+  padding: 14px $space-xl;
   border-radius: 4px;
   min-height: 48px;
   white-space: nowrap;
+  width: 100%;                         // mobile: full width
+
+  @media (min-width: $bp-tablet) {
+    width: auto;
+    padding: 14px $space-xxl;
+  }
 
   svg { transition: transform 0.2s ease; }
 
@@ -413,7 +510,6 @@
   }
 
   &:active:not(:disabled) { transform: translateY(0); }
-
   &:disabled { opacity: 0.65; cursor: not-allowed; }
 
   &__spinner {
@@ -426,20 +522,32 @@
   }
 }
 
-// ─── Sidebar ──────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+// SIDEBAR
+// ═══════════════════════════════════════════════════════════════════════════════
 .contact-sidebar {
   display: flex;
   flex-direction: column;
   gap: $space-lg;
   animation: reveal-up 0.55s 0.2s ease both;
 
+  // Between tablet and laptop: lay sidebar cards out side-by-side
+  @media (min-width: $bp-tablet) and (max-width: #{$bp-laptop - 1px}) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+
   &__card {
     background: #fff;
     border: 1.5px solid rgba($twilight-purple, 0.07);
     border-radius: $radius-lg;
-    padding: $space-xl;
+    padding: $space-lg;
     box-shadow: 0 2px 16px rgba($twilight-purple, 0.04);
 
+    @media (min-width: $bp-laptop) { padding: $space-xl; }
+
+    // Dark "get in touch" card
     &--dark {
       background: $twilight-purple;
       border-color: transparent;
@@ -473,7 +581,7 @@
 
   &__title {
     font-family: $font-primary;
-    font-size: clamp(1rem, 1.6vw, 1.2rem);
+    font-size: clamp(0.95rem, 2vw, 1.2rem);
     font-weight: $fw-regular;
     color: $twilight-purple;
     letter-spacing: 0.02em;
@@ -507,7 +615,7 @@
     font-weight: $fw-medium;
     color: rgba($misty-lavender, 0.85);
     text-decoration: none;
-    padding: $space-sm $space-lg;
+    padding: $space-sm $space-md;
     background: rgba($soft-pearl, 0.07);
     border: 1px solid rgba($soft-pearl, 0.12);
     border-radius: $radius-md;
@@ -515,6 +623,10 @@
     position: relative;
     z-index: 1;
     margin-bottom: $space-md;
+    // wrap long email on tiny screens
+    word-break: break-all;
+
+    @media (min-width: 400px) { word-break: normal; }
 
     &:hover {
       background: rgba($soft-pearl, 0.13);
@@ -541,7 +653,6 @@
     animation: dotPulse 2s ease-in-out infinite;
   }
 
-  // Social links — full-width rows with icon + label
   &__socials {
     display: flex;
     flex-direction: column;
@@ -565,7 +676,7 @@
   }
 }
 
-// Social buttons — row style with label
+// ── Social buttons ────────────────────────────────────────────────────────────
 .contact-social-btn {
   display: flex;
   align-items: center;
@@ -580,9 +691,9 @@
   font-size: $t-body-des;
   font-weight: $fw-medium;
   transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.15s;
+  min-height: 44px;                    // comfortable mobile tap target
 
   svg { flex-shrink: 0; }
-
   span { flex: 1; }
 
   &:hover {
@@ -593,15 +704,22 @@
   }
 }
 
-// ─── Success state ────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+// SUCCESS STATE
+// ═══════════════════════════════════════════════════════════════════════════════
 .contact-success {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: $space-xl;
-  padding: $space-xxl $space-xl;
+  gap: $space-lg;
+  padding: $space-xl $space-md;
   animation: successIn 0.5s ease;
+
+  @media (min-width: $bp-tablet) {
+    gap: $space-xl;
+    padding: $space-xxl $space-xl;
+  }
 
   &__icon {
     color: #059669;
@@ -610,7 +728,7 @@
 
   &__title {
     font-family: $font-primary;
-    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    font-size: clamp(1.4rem, 5vw, 2.2rem);
     font-weight: $fw-regular;
     color: $twilight-purple;
     letter-spacing: 0.02em;
@@ -620,7 +738,9 @@
     font-size: $t-body-des;
     color: rgba($twilight-purple, 0.5);
     line-height: 1.75;
-    max-width: 360px;
+    max-width: 300px;
+
+    @media (min-width: $bp-tablet) { max-width: 360px; }
   }
 
   &__reset {
@@ -634,6 +754,9 @@
     color: rgba($twilight-purple, 0.45);
     cursor: pointer;
     transition: all 0.2s;
+    width: 100%;
+
+    @media (min-width: $bp-tablet) { width: auto; }
 
     &:hover { border-color: $twilight-purple; color: $twilight-purple; }
   }

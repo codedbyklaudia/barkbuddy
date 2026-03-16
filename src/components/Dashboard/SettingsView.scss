@@ -1,0 +1,719 @@
+
+@import '../../styles/variables';
+@import '../../styles/mixins';
+
+.sv-page {
+  @include column;
+  gap: $space-sm;
+  max-width: 720px;
+  margin: 0 auto;
+  padding-bottom: $space-xxl;
+
+  @media (min-width: $bp-tablet) {
+    gap: $space-md;
+  }
+}
+
+// Avatar Card 
+.sv-avatar-card { margin-bottom: $space-xs; }
+
+.sv-avatar-layout {
+  display: flex;
+  align-items: center;
+  gap: $space-lg;
+  padding: $space-lg $space-xl;
+
+  @media (max-width: $bp-mobile) {
+    gap: $space-md;
+    padding: $space-md;
+  }
+}
+
+.sv-avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+  cursor: pointer;
+  border-radius: 50%;
+
+  &:hover .sv-avatar-overlay { opacity: 1; }
+}
+
+.sv-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba($twilight-purple, 0.1);
+  border: 2px solid rgba($twilight-purple, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: $font-primary;
+  font-size: 1.6rem;
+  font-weight: $fw-medium;
+  color: $twilight-purple;
+  overflow: hidden;
+
+  img { width: 100%; height: 100%; object-fit: cover; }
+
+  @media (min-width: $bp-tablet) {
+    width: 80px;
+    height: 80px;
+  }
+}
+
+.sv-avatar-overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.42);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  opacity: 0;
+  transition: opacity 0.18s;
+}
+
+.sv-avatar-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.sv-avatar-name {
+  font-family: $font-primary;
+  font-size: 1.2rem;
+  font-weight: $fw-medium;
+  color: $text-color-dark;
+  margin-bottom: 3px;
+  letter-spacing: 0.01em;
+
+  @media (min-width: $bp-tablet) { font-size: 1.35rem; }
+}
+
+.sv-avatar-sub {
+  font-family: $font-secondary;
+  font-size: $t-but-des;
+  color: $gentle-amethyst;
+  line-height: 1.5;
+}
+
+.sv-progress-row {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  margin-top: $space-sm;
+  max-width: 240px;
+}
+
+.sv-progress-label {
+  font-family: $font-secondary;
+  font-size: 0.75rem;
+  color: $gentle-amethyst;
+  white-space: nowrap;
+}
+
+.sv-progress-bar {
+  flex: 1;
+  height: 4px;
+  background: rgba($gentle-amethyst, 0.18);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.sv-progress-fill {
+  height: 100%;
+  background: $twilight-purple;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.sv-progress-pct {
+  font-family: $font-secondary;
+  font-size: 0.75rem;
+  font-weight: $fw-bold;
+  color: $twilight-purple;
+  min-width: 28px;
+  text-align: right;
+}
+
+// ─── Section ──────────────────────────────────────────────────────────────────
+.sv-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sv-section-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: $font-secondary;
+  font-size: 0.73rem;
+  font-weight: $fw-bold;
+  color: $gentle-amethyst;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  padding: 0 $space-xs;
+}
+
+.sv-section-icon {
+  display: flex;
+  color: $gentle-amethyst;
+}
+
+// ─── Card ─────────────────────────────────────────────────────────────────────
+.sv-card {
+  background: $soft-pearl;
+  border: 1px solid rgba($gentle-amethyst, 0.18);
+  border-radius: $radius-lg;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.04);
+}
+
+// ─── Row ──────────────────────────────────────────────────────────────────────
+.sv-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-md;
+  padding: 13px $space-xl;
+  border-bottom: 1px solid rgba($gentle-amethyst, 0.1);
+
+  &.no-border { border-bottom: none; }
+
+  @media (max-width: $bp-mobile) {
+    padding: 12px $space-md;
+    gap: $space-sm;
+  }
+}
+
+.sv-row-meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sv-row-label {
+  font-family: $font-secondary;
+  font-size: $t-but-des;
+  color: $text-color-dark;
+  font-weight: $fw-medium;
+}
+
+.sv-row-hint {
+  font-family: $font-secondary;
+  font-size: 0.78rem;
+  color: $gentle-amethyst;
+  line-height: 1.4;
+}
+
+.sv-row-right {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  flex-shrink: 0;
+}
+
+.sv-row-value {
+  font-family: $font-secondary;
+  font-size: $t-but-des;
+  color: $gentle-amethyst;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+
+  @media (max-width: $bp-mobile) { max-width: 110px; }
+}
+
+.sv-row-action {
+  font-family: $font-secondary;
+  font-size: $t-but-des;
+  font-weight: $fw-medium;
+  color: $twilight-purple;
+  background: none;
+  border: none;
+  padding: 5px 10px;
+  border-radius: $radius-sm;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+  outline: none;
+  flex-shrink: 0;
+
+  &:hover { background: rgba($twilight-purple, 0.06); }
+
+  &.danger {
+    color: #dc2626;
+    &:hover { background: rgba(#dc2626, 0.05); }
+  }
+}
+
+// ─── Toggle ───────────────────────────────────────────────────────────────────
+.sv-toggle {
+  width: 40px;
+  height: 22px;
+  border-radius: 11px;
+  background: rgba($gentle-amethyst, 0.22);
+  border: none;
+  outline: none;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  transition: background 0.22s ease;
+
+  &.on { background: $twilight-purple; }
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+}
+
+.sv-toggle-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  transition: transform 0.22s ease;
+
+  .sv-toggle.on & { transform: translateX(18px); }
+}
+
+// ─── Dog Rows ─────────────────────────────────────────────────────────────────
+.sv-dog-row {
+  display: flex;
+  align-items: center;
+  gap: $space-md;
+  padding: 13px $space-xl;
+  border-bottom: 1px solid rgba($gentle-amethyst, 0.1);
+
+  @media (max-width: $bp-mobile) { padding: 12px $space-md; gap: $space-sm; }
+}
+
+.sv-dog-avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.sv-dog-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba($twilight-purple, 0.08);
+  border: 1.5px solid rgba($twilight-purple, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: $font-secondary;
+  font-size: 0.9rem;
+  font-weight: $fw-bold;
+  color: $twilight-purple;
+  overflow: hidden;
+
+  img { width: 100%; height: 100%; object-fit: cover; }
+}
+
+.sv-dog-avatar-loading {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.sv-dog-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sv-dog-name {
+  font-family: $font-secondary;
+  font-size: $t-but-des;
+  font-weight: $fw-bold;
+  color: $text-color-dark;
+}
+
+.sv-dog-gender { color: $gentle-amethyst; font-weight: $fw-regular; }
+
+.sv-dog-meta {
+  font-family: $font-secondary;
+  font-size: 0.78rem;
+  color: $gentle-amethyst;
+}
+
+.sv-dog-stage {
+  font-size: 0.72rem;
+  font-weight: $fw-bold;
+  padding: 1px 6px;
+  border-radius: 10px;
+  text-transform: capitalize;
+
+  &.stage-puppy  { background: rgba($serene-purple, 0.12); color: $twilight-purple; }
+  &.stage-adult  { background: rgba($twilight-purple, 0.1); color: $twilight-purple; }
+  &.stage-senior { background: rgba($gentle-amethyst, 0.12); color: $twilight-purple; }
+}
+
+.sv-dog-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.sv-dog-btn {
+  font-family: $font-secondary;
+  font-size: $t-but-des;
+  font-weight: $fw-medium;
+  background: none;
+  border: 1px solid rgba($gentle-amethyst, 0.25);
+  border-radius: $radius-sm;
+  padding: 4px 12px;
+  color: $gentle-amethyst;
+  cursor: pointer;
+  transition: all 0.15s;
+  outline: none;
+
+  &:hover { border-color: $twilight-purple; color: $twilight-purple; background: rgba($twilight-purple, 0.04); }
+
+  &.primary {
+    background: $twilight-purple;
+    border-color: $twilight-purple;
+    color: white;
+    &:hover { background: darken($twilight-purple, 7%); }
+  }
+}
+
+.sv-dogs-empty {
+  padding: $space-lg $space-xl;
+  font-family: $font-secondary;
+  font-size: $t-but-des;
+  color: $gentle-amethyst;
+  font-style: italic;
+}
+
+.sv-add-dog-row {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  padding: 13px $space-xl;
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  outline: none;
+  transition: background 0.15s;
+
+  &:hover { background: rgba($twilight-purple, 0.03); }
+
+  @media (max-width: $bp-mobile) { padding: 12px $space-md; }
+}
+
+.sv-add-dog-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba($gentle-amethyst, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $gentle-amethyst;
+  flex-shrink: 0;
+  transition: background 0.15s;
+
+  .sv-add-dog-row:hover & { background: rgba($twilight-purple, 0.1); color: $twilight-purple; }
+}
+
+.sv-add-dog-label {
+  font-family: $font-secondary;
+  font-size: $t-but-des;
+  color: $gentle-amethyst;
+  transition: color 0.15s;
+
+  .sv-add-dog-row:hover & { color: $twilight-purple; }
+}
+
+// ─── Preferences ─────────────────────────────────────────────────────────────
+.sv-pref-master {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-md;
+  padding: $space-md $space-sm;
+  background: rgba($twilight-purple, 0.04);
+  border-radius: $radius-sm;
+  margin-bottom: $space-md;
+  border: 1px solid rgba($twilight-purple, 0.1);
+}
+
+.sv-pref-list {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+  transition: opacity 0.2s;
+  &.disabled { opacity: 0.4; pointer-events: none; }
+}
+
+.sv-pref-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-md;
+  padding: $space-xs 0;
+  border-bottom: 1px solid rgba($gentle-amethyst, 0.08);
+  &:last-child { border-bottom: none; }
+}
+
+.sv-pref-label {
+  font-family: $font-secondary;
+  font-size: $t-but-des;
+  font-weight: $fw-medium;
+  color: $text-color-dark;
+  margin-bottom: 1px;
+}
+
+.sv-pref-hint {
+  font-family: $font-secondary;
+  font-size: 0.76rem;
+  color: $gentle-amethyst;
+}
+
+// ─── Modal ────────────────────────────────────────────────────────────────────
+.sv-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  padding: 0;
+  animation: svFadeIn 0.15s ease;
+
+  @media (min-width: $bp-mobile) {
+    align-items: center;
+    padding: $space-md;
+  }
+}
+
+@keyframes svFadeIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes svSlideUp { from { transform: translateY(16px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+.sv-modal {
+  background: $soft-pearl;
+  border-radius: 16px 16px 0 0;
+  width: 100%;
+  max-width: 100%;
+  max-height: 90dvh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.16), 0 32px 64px rgba(0,0,0,0.12);
+  animation: svSlideUp 0.22s cubic-bezier(0.34, 1.2, 0.64, 1);
+
+  @media (min-width: $bp-mobile) {
+    border-radius: $radius-lg;
+    max-width: 480px;
+    max-height: 88vh;
+  }
+}
+
+.sv-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $space-md $space-xl;
+  border-bottom: 1px solid rgba($gentle-amethyst, 0.12);
+  font-family: $font-primary;
+  font-size: $t-link-des;
+  font-weight: $fw-regular;
+  color: $text-color-dark;
+  letter-spacing: 0.02em;
+}
+
+.sv-modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: $gentle-amethyst;
+  padding: 4px;
+  border-radius: $radius-sm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  &:hover { color: $text-color-dark; background: rgba($gentle-amethyst, 0.1); }
+}
+
+.sv-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: $space-md $space-xl;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-thumb { background: rgba($gentle-amethyst, 0.3); border-radius: 2px; }
+}
+
+.sv-label {
+  display: block;
+  font-family: $font-secondary;
+  font-size: $t-but-des;
+  font-weight: $fw-bold;
+  color: $twilight-purple;
+  margin-top: $space-sm;
+  margin-bottom: 3px;
+  letter-spacing: 0.02em;
+}
+
+.sv-optional {
+  font-weight: $fw-regular;
+  color: $gentle-amethyst;
+  font-size: 0.8rem;
+  margin-left: 4px;
+}
+
+.sv-input {
+  width: 100%;
+  padding: 9px $space-md;
+  border: 1.5px solid rgba($gentle-amethyst, 0.3);
+  border-radius: $radius-sm;
+  font-family: $font-secondary;
+  font-size: $t-but-des;
+  color: $text-color-dark;
+  background: $soft-pearl;
+  outline: none;
+  transition: border-color 0.18s, box-shadow 0.18s;
+
+  &:focus { border-color: $twilight-purple; box-shadow: 0 0 0 3px rgba($twilight-purple, 0.08); }
+  &.error { border-color: #e05252; }
+
+  &::placeholder { color: rgba($gentle-amethyst, 0.55); }
+}
+
+.sv-textarea { resize: none; line-height: 1.55; }
+
+.sv-char-hint {
+  font-family: $font-secondary;
+  font-size: 0.76rem;
+  color: $gentle-amethyst;
+  text-align: right;
+}
+
+.sv-field-err {
+  font-family: $font-secondary;
+  font-size: 0.78rem;
+  color: #e05252;
+  margin-top: 1px;
+}
+
+.sv-modal-divider {
+  font-family: $font-secondary;
+  font-size: $t-but-des;
+  font-weight: $fw-bold;
+  color: $twilight-purple;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-top: $space-sm;
+  padding-top: $space-sm;
+  border-top: 1px solid rgba($gentle-amethyst, 0.15);
+
+  span { font-weight: $fw-regular; text-transform: none; color: $gentle-amethyst; letter-spacing: 0; margin-left: 4px; }
+}
+
+.sv-modal-error   { background: #fff5f5; border: 1px solid #fecaca; color: #b91c1c; border-radius: $radius-sm; padding: 8px 12px; font-size: $t-but-des; font-family: $font-secondary; }
+.sv-modal-success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; border-radius: $radius-sm; padding: 8px 12px; font-size: $t-but-des; font-family: $font-secondary; }
+
+.sv-pw-wrap { position: relative; }
+.sv-pw-eye {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer; color: $gentle-amethyst;
+  display: flex; padding: 4px;
+  &:hover { color: $twilight-purple; }
+}
+
+.sv-radio-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
+.sv-radio-btn {
+  padding: 5px 14px;
+  border: 1.5px solid rgba($gentle-amethyst, 0.25);
+  border-radius: 50px;
+  background: none;
+  font-family: $font-secondary;
+  font-size: $t-but-des;
+  color: $gentle-amethyst;
+  cursor: pointer;
+  transition: all 0.15s;
+  outline: none;
+  &:hover { border-color: $twilight-purple; color: $twilight-purple; }
+  &.selected { border-color: $twilight-purple; background: rgba($twilight-purple, 0.08); color: $twilight-purple; font-weight: $fw-bold; }
+}
+
+.sv-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.sv-chip {
+  padding: 4px 12px;
+  border: 1.5px solid rgba($gentle-amethyst, 0.25);
+  border-radius: 50px;
+  background: none;
+  font-family: $font-secondary;
+  font-size: $t-but-des;
+  color: $gentle-amethyst;
+  cursor: pointer;
+  text-transform: capitalize;
+  transition: all 0.15s;
+  outline: none;
+  &:hover { border-color: $twilight-purple; }
+  &.selected { border-color: $twilight-purple; background: rgba($twilight-purple, 0.08); color: $twilight-purple; font-weight: $fw-bold; }
+}
+
+.sv-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  padding: $space-md $space-xl;
+  border-top: 1px solid rgba($gentle-amethyst, 0.12);
+}
+
+.sv-btn-cancel {
+  background: none;
+  border: 1px solid rgba($gentle-amethyst, 0.3);
+  border-radius: 50px;
+  padding: 7px 18px;
+  font-family: $font-secondary;
+  font-size: $t-but-des;
+  color: $gentle-amethyst;
+  cursor: pointer;
+  transition: all 0.15s;
+  outline: none;
+  &:hover { border-color: $gentle-amethyst; color: $text-color-dark; }
+}
+
+.sv-btn-save {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: $twilight-purple;
+  border: none;
+  border-radius: 50px;
+  padding: 7px 20px;
+  font-family: $font-secondary;
+  font-size: $t-but-des;
+  font-weight: $fw-bold;
+  color: white;
+  cursor: pointer;
+  transition: all 0.18s;
+  outline: none;
+
+  &:hover:not(:disabled) { background: darken($twilight-purple, 7%); }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}

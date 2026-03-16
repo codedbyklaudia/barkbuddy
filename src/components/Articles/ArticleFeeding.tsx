@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './Article.scss';
+import { Droplet, Box, IceCreamBowl, Droplets, Bone, PawPrint } from 'lucide-react';
+
 import Footer from '../Footer';
 
 interface ArticlePageProps {
@@ -102,11 +104,11 @@ const ArticleFeeding: React.FC<ArticlePageProps> = ({ onBack }) => {
 
           <div className="article-tips">
             {[
-              { emoji: '💧', title: 'Collapsible silicone bowl', body: 'Takes up zero space, clips to your bag, and means you can offer water anywhere - at the gate, mid-flight, or at baggage claim.' },
-              { emoji: '🧊', title: 'Frozen broth cubes', body: 'Freeze low-sodium chicken or beef broth into small cubes the night before. They\'re a soothing, hydrating treat that won\'t upset the stomach.' },
-              { emoji: '🥣', title: 'Dry kibble in a zip bag', body: 'Pre-portion a meal in a sealed bag so you\'re not wrestling with a full bag of food at the destination airport.' },
-              { emoji: '🧴', title: 'Electrolyte drops', body: 'Canine electrolyte drops (like Oralade) can be added to water if your dog refuses to drink. Useful for anxious dogs who go off water when stressed.' },
-              { emoji: '🧁', title: 'High-value treats', body: 'Small, smelly treats (cheese, chicken, liver) are your boarding secret weapon. Use them to reward calm behaviour during security and boarding.' },
+              { emoji: <Droplet />, title: 'Collapsible silicone bowl', body: 'Takes up zero space, clips to your bag, and means you can offer water anywhere - at the gate, mid-flight, or at baggage claim.' },
+              { emoji: <Box />, title: 'Frozen broth cubes', body: 'Freeze low-sodium chicken or beef broth into small cubes the night before. They\'re a soothing, hydrating treat that won\'t upset the stomach.' },
+              { emoji: <IceCreamBowl />, title: 'Dry kibble in a zip bag', body: 'Pre-portion a meal in a sealed bag so you\'re not wrestling with a full bag of food at the destination airport.' },
+              { emoji: <Droplets />, title: 'Electrolyte drops', body: 'Canine electrolyte drops (like Oralade) can be added to water if your dog refuses to drink. Useful for anxious dogs who go off water when stressed.' },
+              { emoji: <Bone/>, title: 'High-value treats', body: 'Small, smelly treats (cheese, chicken, liver) are your boarding secret weapon. Use them to reward calm behaviour during security and boarding.' },
             ].map((tip, i) => (
               <div className="article-tip" key={i}>
                 <span className="article-tip__emoji">{tip.emoji}</span>
@@ -154,7 +156,7 @@ const ArticleFeeding: React.FC<ArticlePageProps> = ({ onBack }) => {
           </p>
           <div className="article-tips">
             {[
-              { emoji: '🐾', title: 'Flat-faced breeds', body: 'Feed even earlier - 8 hours before - and ensure your vet clears them to fly. Consider whether travel by car or train is a safer option.' },
+              { emoji: <PawPrint />, title: 'Flat-faced breeds', body: 'Feed even earlier - 8 hours before - and ensure your vet clears them to fly. Consider whether travel by car or train is a safer option.' },
               { emoji: '🐕', title: 'Large breeds', body: 'If your dog is too big for cabin travel, consider the implications for cargo carefully. Many owners opt for alternative transport.' },
               { emoji: '🐩', title: 'Senior dogs', body: 'Older dogs dehydrate faster and handle stress less well. Pack extra water, stick rigidly to the fasting schedule, and allow more settle time after landing.' },
             ].map((tip, i) => (

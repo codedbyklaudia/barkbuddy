@@ -1,9 +1,7 @@
-// ═══════════════════════════════════════════════════════════════════════════════
-// PURPOSE: API client for managing dogs (both main and extra)
-// ═══════════════════════════════════════════════════════════════════════════════
-
 const BASE = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
 
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 export interface DogProfile {
   id:          string;
   name:        string;
@@ -13,11 +11,26 @@ export interface DogProfile {
   lifeStage:   string;
   personality: string[];
   avatarUrl?:  string;
+  isMain?:     boolean;
+}
+
+export interface DogDetails {
+  weight?:         string;
+  bodyCondition?:  string;
+  activityLevel?:  string;
+  neutered?:       string;
+  allergies?:      string;
+  healthIssues?:   string;
+  medications?:    string;
+  eatingStyle?:    string;
+  treatsPerDay?:   string;
+  feedingTimes?:   string;
 }
 
 export interface DogsResponse {
-  mainDog: DogProfile | null;
-  extraDogs: DogProfile[];
+  mainDog:    DogProfile | null;
+  extraDogs:  DogProfile[];
+  dogs:       DogProfile[];   // full flat list, sorted main-first
 }
 
 const authHeaders = (token: string) => ({
@@ -36,15 +49,15 @@ export const getAllDogs = async (token: string): Promise<DogsResponse> => {
   return data;
 };
 
-// ─── POST create new extra dog ───────────────────────────────────────────────
+// ─── POST create new dog ──────────────────────────────────────────────────────
 export const createExtraDog = async (
   token: string,
   dog: {
-    name: string;
-    breed: string;
-    gender: string;
-    dob?: string;
-    lifeStage: string;
+    name:        string;
+    breed:       string;
+    gender:      string;
+    dob?:        string;
+    lifeStage:   string;
     personality: string[];
   }
 ): Promise<{ dog: DogProfile }> => {
@@ -58,11 +71,11 @@ export const createExtraDog = async (
   return data;
 };
 
-// ─── PATCH update extra dog ─────────────────────────────────────────────────
+// ─── PATCH update any dog ────────────────────────────────────────────────────
 export const updateExtraDog = async (
   token: string,
   id: string,
-  dog: Partial<DogProfile>
+  dog: Partial<Omit<DogProfile, "id" | "isMain">>
 ): Promise<{ dog: DogProfile }> => {
   const res = await fetch(`${BASE}/dogs/${id}`, {
     method: "PATCH",
@@ -74,7 +87,7 @@ export const updateExtraDog = async (
   return data;
 };
 
-// ─── DELETE remove extra dog ────────────────────────────────────────────────
+// ─── DELETE remove extra dog ─────────────────────────────────────────────────
 export const deleteExtraDog = async (token: string, id: string): Promise<void> => {
   const res = await fetch(`${BASE}/dogs/${id}`, {
     method: "DELETE",
@@ -83,19 +96,48 @@ export const deleteExtraDog = async (token: string, id: string): Promise<void> =
   if (!res.ok) throw await res.json();
 };
 
-// ─── UPLOAD dog avatar ──────────────────────────────────────────────────────
-export const uploadDogAvatarNew = async (
+// ─── POST upload avatar for any dog ──────────────────────────────────────────
+export const uploadDogAvatarById = async (
   token: string,
   dogId: string,
   file: File
 ): Promise<{ avatarUrl: string }> => {
   const formData = new FormData();
   formData.append("avatar", file);
-
   const res = await fetch(`${BASE}/dogs/${dogId}/avatar`, {
     method: "POST",
     headers: { Authorization: `Bearer ${token}` },
     body: formData,
+  });
+  const data = await res.json();
+  if (!res.ok) throw data;
+  return data;
+};
+
+// ─── GET dog details (Details / Medical / Eating) ────────────────────────────
+export const getDogDetails = async (
+  token: string,
+  dogId: string
+): Promise<{ details: DogDetails }> => {
+  const res = await fetch(`${BASE}/dogs/${dogId}/details`, {
+    method: "GET",
+    headers: authHeaders(token),
+  });
+  const data = await res.json();
+  if (!res.ok) throw data;
+  return data;
+};
+
+// PUT upsert dog details 
+export const saveDogDetails = async (
+  token: string,
+  dogId: string,
+  details: DogDetails
+): Promise<{ details: DogDetails }> => {
+  const res = await fetch(`${BASE}/dogs/${dogId}/details`, {
+    method: "PUT",
+    headers: authHeaders(token),
+    body: JSON.stringify(details),
   });
   const data = await res.json();
   if (!res.ok) throw data;

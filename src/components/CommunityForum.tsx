@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import "./CommunityForum.scss";
 import { useAuth } from "../context/AuthContext";
 import {
@@ -7,11 +7,11 @@ import {
   type ForumPost, type ForumComment,
 } from "../api/Forum";
 
-// Types 
+// ─── Types ────────────────────────────────────────────────────────────────────
 interface ForumCommentWithLikes extends ForumComment {
-  likes_count?: number;
-  liked_by_me?: boolean;
-  parent_id?:   string | null;
+  likesCount?: number;
+  likedByMe?: boolean;
+  parentId?:   string | null;
   replies?:     ForumCommentWithLikes[];
 }
 
@@ -19,59 +19,81 @@ interface CommunityForumProps {
   initialPostId?:      string | null;
   initialCommentId?:   string | null;
   onDeepLinkConsumed?: () => void;
+  userAvatar?:         string;
+  userName?:           string;
 }
 
+// ─── Constants ────────────────────────────────────────────────────────────────
 const CATEGORIES = ["All","General","Teething","Travel","Vets","Allergies","Training","Nutrition","Grooming","Dog-friendly","Health","Other"];
 
-const formatDate = (d: string) =>
-  new Date(d).toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" }).replace(/\//g, ".");
+const CAT_COLORS: Record<string, { color: string; bg: string }> = {
+  General:      { color: "#7c3aed", bg: "#ede9fe" },
+  Teething:     { color: "#be185d", bg: "#fce7f3" },
+  Travel:       { color: "#0891b2", bg: "#e0f2fe" },
+  Vets:         { color: "#ef4444", bg: "#fee2e2" },
+  Allergies:    { color: "#d97706", bg: "#fef3c7" },
+  Training:     { color: "#059669", bg: "#d1fae5" },
+  Nutrition:    { color: "#b45309", bg: "#fef3c7" },
+  Grooming:     { color: "#8b5cf6", bg: "#ede9fe" },
+  "Dog-friendly": { color: "#0d9488", bg: "#ccfbf1" },
+  Health:       { color: "#dc2626", bg: "#fee2e2" },
+  Other:        { color: "#6366f1", bg: "#eef2ff" },
+};
 
-const UserAvatar: React.FC<{ name: string; url?: string; size?: number }> = ({ name, url, size = 32 }) => (
-  <div className="forum-avatar" style={{ width: size, height: size }}>
+const getCatStyle = (cat: string) => CAT_COLORS[cat] ?? { color: "#7c3aed", bg: "#ede9fe" };
+
+const formatDate = (d?: string | null) => {
+  if (!d) return "";
+  // Postgres sometimes returns "2026-03-16 14:22:00" without T — normalise it
+  const parsed = new Date(d.replace(" ", "T"));
+  if (isNaN(parsed.getTime())) return "";
+  const diff = Date.now() - parsed.getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1)   return "just now";
+  if (mins < 60)  return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24)   return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 7)   return `${days}d ago`;
+  return parsed.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+};
+
+// ─── Small components ─────────────────────────────────────────────────────────
+const Avatar: React.FC<{ name?: string; url?: string; size?: number }> = ({ name, url, size = 36 }) => (
+  <div className="cf-avatar" style={{ width: size, height: size, fontSize: size * 0.38 }}>
     {url
-      ? <img src={url} alt={name} />
-      : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width={size * 0.6} height={size * 0.6}>
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-          <circle cx="12" cy="7" r="4"/>
-        </svg>
-    }
+      ? <img src={url} alt={name ?? "User"} />
+      : <span>{(name ?? "?").charAt(0).toUpperCase()}</span>}
   </div>
 );
 
-const CommentIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="16" height="16">
-    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-  </svg>
-);
-
-const ReplyIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="13" height="13">
-    <polyline points="9 17 4 12 9 7"/>
-    <path d="M20 18v-2a4 4 0 0 0-4-4H4"/>
-  </svg>
-);
-
-const HeartIcon: React.FC<{ filled?: boolean; size?: number }> = ({ filled, size = 14 }) => (
-  <svg viewBox="0 0 24 24" width={size} height={size}
+const HeartIcon: React.FC<{ filled?: boolean }> = ({ filled }) => (
+  <svg viewBox="0 0 24 24" width="14" height="14"
     fill={filled ? "currentColor" : "none"} stroke="currentColor"
     strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
   </svg>
 );
 
-// New Post Modal 
-const NewPostModal: React.FC<{
-  token: string; onPost: (post: ForumPost) => void; onClose: () => void;
-}> = ({ token, onPost, onClose }) => {
+// ─── Compose Box ──────────────────────────────────────────────────────────────
+const ComposeBox: React.FC<{
+  token: string;
+  userAvatar?: string;
+  userName?: string;
+  onPost: (post: ForumPost) => void;
+}> = ({ token, userAvatar, userName, onPost }) => {
+  const [open, setOpen]       = useState(false);
   const [form, setForm]       = useState({ title: "", content: "", category: "General" });
   const [errors, setErrors]   = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const textareaRef           = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => { if (open) textareaRef.current?.focus(); }, [open]);
 
   const validate = () => {
     const e: Record<string, string> = {};
-    if (!form.title.trim() || form.title.length < 3)      e.title    = "Title must be at least 3 characters";
-    if (!form.content.trim() || form.content.length < 10) e.content  = "Please write a bit more (min 10 chars)";
-    if (!form.category)                                   e.category = "Please choose a category";
+    if (!form.title.trim() || form.title.length < 3)      e.title   = "Title must be at least 3 characters";
+    if (!form.content.trim() || form.content.length < 10) e.content = "Write a bit more (min 10 chars)";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -82,424 +104,360 @@ const NewPostModal: React.FC<{
     try {
       const res = await createPost(token, form);
       onPost(res.post);
-      onClose();
+      setForm({ title: "", content: "", category: "General" });
+      setOpen(false);
     } catch (err: any) {
-      if (err.errors) setErrors(err.errors);
-      else setErrors({ general: err.message || "Something went wrong" });
+      setErrors(err.errors ?? { general: err.message || "Something went wrong" });
     } finally { setLoading(false); }
   };
 
   return (
-    <div className="forum-modal-overlay" onClick={onClose}>
-      <div className="forum-modal" onClick={e => e.stopPropagation()}>
-        <div className="forum-modal-header">
-          <h3>Start a Discussion</h3>
-          <button className="forum-modal-close" onClick={onClose}>✕</button>
-        </div>
-        <div className="forum-modal-body">
-          {errors.general && <div className="forum-modal-error">{errors.general}</div>}
-          <label className="forum-label">Category</label>
-          <div className="forum-cat-chips">
-            {CATEGORIES.filter(c => c !== "All").map(c => (
-              <button key={c} className={`forum-cat-chip ${form.category === c ? "selected" : ""}`}
-                onClick={() => setForm({ ...form, category: c })}>{c}</button>
-            ))}
+    <div className={`cf-compose ${open ? "cf-compose--open" : ""}`}>
+      {!open && (
+        <div className="cf-compose-trigger" onClick={() => setOpen(true)}>
+          <Avatar name={userName ?? "U"} url={userAvatar} size={38} />
+          <div className="cf-compose-trigger-inner">
+            <span className="cf-compose-placeholder">
+              What's on your mind? Share with the pack…
+            </span>
+            <span className="cf-compose-trigger-hint">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="13" height="13"><path d="M12 5v14M5 12h14"/></svg>
+              New post
+            </span>
           </div>
-          {errors.category && <span className="forum-field-error">{errors.category}</span>}
-          <label className="forum-label">Title</label>
-          <input className={`forum-input ${errors.title ? "error" : ""}`}
-            placeholder="What's your question or topic?" value={form.title} maxLength={200}
-            onChange={e => setForm({ ...form, title: e.target.value })} />
-          {errors.title && <span className="forum-field-error">{errors.title}</span>}
-          <label className="forum-label">Description</label>
-          <textarea className={`forum-input forum-textarea ${errors.content ? "error" : ""}`}
-            placeholder="Share more details, context or advice…" value={form.content} rows={5}
-            onChange={e => setForm({ ...form, content: e.target.value })} />
-          {errors.content && <span className="forum-field-error">{errors.content}</span>}
         </div>
-        <div className="forum-modal-footer">
-          <button className="forum-btn-cancel" onClick={onClose}>Cancel</button>
-          <button className="forum-btn-post" onClick={handleSubmit} disabled={loading}>
-            {loading ? "Posting…" : "Post Discussion"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Reply Box
-const ReplyBox: React.FC<{
-  replyingTo: string; onSubmit: (content: string) => Promise<void>; onCancel: () => void;
-}> = ({ replyingTo, onSubmit, onCancel }) => {
-  const [value, setValue]     = useState("");
-  const [posting, setPosting] = useState(false);
-  const textareaRef           = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => { textareaRef.current?.focus(); }, []);
-
-  const handleSubmit = async () => {
-    if (!value.trim()) return;
-    setPosting(true);
-    try { await onSubmit(value.trim()); setValue(""); }
-    finally { setPosting(false); }
-  };
-
-  return (
-    <div className="reply-box">
-      <div className="reply-box-label">
-        <ReplyIcon /> Replying to <strong>{replyingTo}</strong>
-      </div>
-      <textarea
-        ref={textareaRef}
-        className="forum-input forum-textarea reply-textarea"
-        placeholder={`Reply to ${replyingTo}…`}
-        value={value} rows={2}
-        onChange={e => setValue(e.target.value)}
-        onKeyDown={e => { if (e.key === "Enter" && e.ctrlKey) handleSubmit(); }}
-      />
-      <div className="reply-box-footer">
-        <span className="comment-hint">Ctrl + Enter to post</span>
-        <div className="reply-box-actions">
-          <button className="forum-btn-cancel reply-cancel" onClick={onCancel}>Cancel</button>
-          <button className="forum-btn-post reply-submit" onClick={handleSubmit} disabled={posting || !value.trim()}>
-            {posting ? "Posting…" : "Reply"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Single Comment 
-const CommentItem: React.FC<{
-  comment:        ForumCommentWithLikes;
-  token?:         string;
-  userId?:        string;
-  isReply?:       boolean;
-  likedIds:       Set<string>;
-  likePending:    Set<string>;
-  highlightId?:   string | null;
-  onLike:         (id: string) => void;
-  onDelete:       (id: string) => void;
-  onReply:        (comment: ForumCommentWithLikes) => void;
-  replyingToId?:  string;
-  onSubmitReply:  (parentId: string, content: string) => Promise<void>;
-  onCancelReply:  () => void;
-}> = ({
-  comment, token, userId, isReply = false,
-  likedIds, likePending, highlightId,
-  onLike, onDelete, onReply,
-  replyingToId, onSubmitReply, onCancelReply,
-}) => {
-  const ref           = useRef<HTMLDivElement>(null);
-  const isLiked       = likedIds.has(comment.id);
-  const isPending     = likePending.has(comment.id);
-  const likesCount    = comment.likes_count ?? 0;
-  const isReplying    = replyingToId === comment.id;
-  const isHighlighted = highlightId === comment.id;
-
-  // Auto-scroll to highlighted comment after load
-  useEffect(() => {
-    if (isHighlighted && ref.current) {
-      const timer = setTimeout(() => {
-        ref.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-      }, 350);
-      return () => clearTimeout(timer);
-    }
-  }, [isHighlighted]);
-
-  return (
-    <div
-      ref={ref}
-      id={`comment-${comment.id}`}
-      className={[
-        "comment-card",
-        isReply       ? "comment-reply"       : "",
-        isHighlighted ? "comment-highlighted" : "",
-      ].filter(Boolean).join(" ")}
-    >
-      <div className="comment-header">
-        <UserAvatar name={comment.user_name} url={comment.user_avatar} size={isReply ? 24 : 28} />
-        <div className="comment-meta">
-          <span className="comment-name">{comment.user_name}</span>
-          <span className="comment-date">{formatDate(comment.created_at)}</span>
-        </div>
-        {userId && comment.user_id === userId && (
-          <button className="comment-delete-btn" onClick={() => onDelete(comment.id)} title="Delete">✕</button>
-        )}
-      </div>
-
-      <p className="comment-content">{comment.content}</p>
-
-      <div className="comment-actions">
-        <button
-          className={`comment-like-btn${isLiked ? " is-liked" : ""}${isPending ? " is-pending" : ""}`}
-          onClick={() => onLike(comment.id)}
-          disabled={!token || isPending}
-          aria-pressed={isLiked}
-          title={!token ? "Log in to like" : isLiked ? "Remove like" : "Like"}
-        >
-          <span className={`like-heart-icon${isLiked ? " beating" : ""}`}>
-            <HeartIcon filled={isLiked} size={13} />
-          </span>
-          <span className="like-count">{likesCount}</span>
-          <span className="like-label">{isPending ? "…" : isLiked ? "Liked" : "Like"}</span>
-        </button>
-
-        {!isReply && token && (
-          <button
-            className={`comment-reply-btn${isReplying ? " is-active" : ""}`}
-            onClick={() => isReplying ? onCancelReply() : onReply(comment)}
-          >
-            <ReplyIcon />
-            <span>{isReplying ? "Cancel" : "Reply"}</span>
-            {(comment.replies?.length ?? 0) > 0 && !isReplying && (
-              <span className="reply-count">{comment.replies!.length}</span>
-            )}
-          </button>
-        )}
-      </div>
-
-      {isReplying && (
-        <ReplyBox
-          replyingTo={comment.user_name}
-          onSubmit={content => onSubmitReply(comment.id, content)}
-          onCancel={onCancelReply}
-        />
       )}
 
-      {!isReply && comment.replies && comment.replies.length > 0 && (
-        <div className="replies-list">
-          {comment.replies.map(reply => (
-            <CommentItem
-              key={reply.id}
-              comment={reply}
-              token={token}
-              userId={userId}
-              isReply={true}
-              likedIds={likedIds}
-              likePending={likePending}
-              highlightId={highlightId}
-              onLike={onLike}
-              onDelete={onDelete}
-              onReply={onReply}
-              replyingToId={replyingToId}
-              onSubmitReply={onSubmitReply}
-              onCancelReply={onCancelReply}
-            />
-          ))}
+      {open && (
+        <div className="cf-compose-body">
+          {/* Author row */}
+          <div className="cf-compose-author-row">
+            <Avatar name={userName ?? "U"} url={userAvatar} size={42} />
+            <div className="cf-compose-author-info">
+              <span className="cf-compose-author-name">{userName ?? "You"}</span>
+              {/* Inline category selector */}
+              <div className="cf-compose-cat-select">
+                <span className="cf-compose-cat-label">Posting in:</span>
+                <div className="cf-compose-cats">
+                  {CATEGORIES.filter(c => c !== "All").map(c => {
+                    const s = getCatStyle(c);
+                    return (
+                      <button key={c}
+                        className={`cf-cat-pill ${form.category === c ? "active" : ""}`}
+                        style={form.category === c ? { background: s.bg, color: s.color, borderColor: s.color } : {}}
+                        onClick={() => setForm({ ...form, category: c })}>
+                        {c}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+            <button className="cf-compose-close" onClick={() => { setOpen(false); setErrors({}); }} title="Close">
+              <svg viewBox="0 0 16 16" fill="none" width="14" height="14">
+                <path d="M2 2l12 12M14 2L2 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            </button>
+          </div>
+
+          {errors.general && <div className="cf-error-banner">{errors.general}</div>}
+
+          <input
+            className={`cf-compose-input ${errors.title ? "error" : ""}`}
+            placeholder="Give your post a title…"
+            value={form.title}
+            maxLength={200}
+            onChange={e => setForm({ ...form, title: e.target.value })}
+          />
+          {errors.title && <span className="cf-field-error">{errors.title}</span>}
+
+          <textarea
+            ref={textareaRef}
+            className={`cf-compose-textarea ${errors.content ? "error" : ""}`}
+            placeholder="Share details, ask a question, or offer advice…"
+            value={form.content}
+            rows={5}
+            onChange={e => setForm({ ...form, content: e.target.value })}
+          />
+          {errors.content && <span className="cf-field-error">{errors.content}</span>}
+
+          <div className="cf-compose-footer">
+            <span className="cf-compose-char-count">{form.content.length} chars</span>
+            <button className="cf-btn-post" onClick={handleSubmit} disabled={loading}>
+              {loading ? "Posting…" : "Post to Forum"}
+            </button>
+          </div>
         </div>
       )}
     </div>
   );
 };
 
-// Post Detail
-const PostDetail: React.FC<{
-  postId:           string;
-  token?:           string;
-  userId?:          string;
-  targetCommentId?: string | null;
-  onBack:           () => void;
-}> = ({ postId, token, userId, targetCommentId, onBack }) => {
-  const [post,        setPost]        = useState<ForumPost | null>(null);
+// ─── Inline comment thread ────────────────────────────────────────────────────
+const InlineComments: React.FC<{
+  postId:   string;
+  token?:   string;
+  userId?:  string;
+  targetId?: string | null;
+}> = ({ postId, token, userId, targetId }) => {
   const [comments,    setComments]    = useState<ForumCommentWithLikes[]>([]);
   const [loading,     setLoading]     = useState(true);
   const [newComment,  setNewComment]  = useState("");
   const [posting,     setPosting]     = useState(false);
-  const [error,       setError]       = useState("");
-  const [likeError,   setLikeError]   = useState("");
   const [likedIds,    setLikedIds]    = useState<Set<string>>(new Set());
   const [likePending, setLikePending] = useState<Set<string>>(new Set());
-  const [replyingTo,  setReplyingTo]  = useState<ForumCommentWithLikes | null>(null);
-  const [highlightId, setHighlightId] = useState<string | null>(targetCommentId ?? null);
-  const bottomRef = useRef<HTMLDivElement>(null);
-
-  // Fade out highlight after 3 s
-  useEffect(() => {
-    if (!targetCommentId) return;
-    setHighlightId(targetCommentId);
-    const t = setTimeout(() => setHighlightId(null), 3000);
-    return () => clearTimeout(t);
-  }, [targetCommentId]);
+  const [replyTo,     setReplyTo]     = useState<ForumCommentWithLikes | null>(null);
+  const [replyText,   setReplyText]   = useState("");
+  const highlightRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    getPost(postId)
-      .then(({ post, comments }) => {
-        setPost(post);
-        const typed = comments as ForumCommentWithLikes[];
-        setComments(typed);
-        const all = [...typed, ...typed.flatMap(c => c.replies ?? [])];
-        setLikedIds(new Set(all.filter(c => c.liked_by_me).map(c => c.id)));
-      })
-      .catch(() => setError("Failed to load post"))
-      .finally(() => setLoading(false));
+    getPost(postId).then(({ comments }) => {
+      const typed = comments as ForumCommentWithLikes[];
+      setComments(typed);
+      const all = [...typed, ...typed.flatMap(c => c.replies ?? [])];
+      setLikedIds(new Set(all.filter(c => c.likedByMe).map(c => c.id)));
+    }).finally(() => setLoading(false));
   }, [postId]);
+
+  useEffect(() => {
+    if (targetId && highlightRef.current) {
+      setTimeout(() => highlightRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 300);
+    }
+  }, [targetId, loading]);
+
+  const handleLike = async (id: string) => {
+    if (!token || likePending.has(id)) return;
+    const isLiked = likedIds.has(id);
+    const update  = (list: ForumCommentWithLikes[], d: number): ForumCommentWithLikes[] =>
+      list.map(c => c.id === id
+        ? { ...c, likesCount: Math.max(0, (c.likesCount ?? 0) + d) }
+        : { ...c, replies: update(c.replies ?? [], d) });
+
+    setLikedIds(prev => { const n = new Set(prev); isLiked ? n.delete(id) : n.add(id); return n; });
+    setComments(prev => update(prev, isLiked ? -1 : 1));
+    setLikePending(prev => new Set(prev).add(id));
+    try {
+      const res = isLiked ? await unlikeComment(token, id) : await likeComment(token, id);
+      if (res?.likesCount !== undefined) {
+        setComments(prev => update(prev, 0).map(c =>
+          c.id === id ? { ...c, likesCount: res.likesCount }
+            : { ...c, replies: (c.replies ?? []).map(r => r.id === id ? { ...r, likesCount: res.likesCount } : r) }
+        ));
+      }
+    } catch {
+      setLikedIds(prev => { const n = new Set(prev); isLiked ? n.add(id) : n.delete(id); return n; });
+      setComments(prev => update(prev, isLiked ? 1 : -1));
+    } finally {
+      setLikePending(prev => { const n = new Set(prev); n.delete(id); return n; });
+    }
+  };
 
   const handleAddComment = async () => {
     if (!token || !newComment.trim()) return;
     setPosting(true);
     try {
       const res = await addComment(token, postId, newComment.trim());
-      setComments(prev => [...prev, { ...res.comment, likes_count: 0, liked_by_me: false, replies: [] }]);
+      setComments(prev => [...prev, { ...res.comment, likesCount: 0, likedByMe: false, replies: [] }]);
       setNewComment("");
-      setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
-    } catch (err: any) {
-      setError(err.message || "Failed to post comment");
-    } finally { setPosting(false); }
-  };
-
-  const handleSubmitReply = async (parentId: string, content: string) => {
-    if (!token) return;
-    try {
-      const res = await addComment(token, postId, content, parentId);
-      setComments(prev =>
-        prev.map(c => c.id === parentId
-          ? { ...c, replies: [...(c.replies ?? []), { ...res.comment, likes_count: 0, liked_by_me: false }] }
-          : c
-        )
-      );
-      setReplyingTo(null);
-    } catch (err: any) {
-      setError(err.message || "Failed to post reply");
-    }
-  };
-
-  const handleDeleteComment = async (id: string) => {
-    if (!token) return;
-    try {
-      await deleteComment(token, id);
-      setComments(prev =>
-        prev.filter(c => c.id !== id).map(c => ({
-          ...c,
-          replies: (c.replies ?? []).filter(r => r.id !== id),
-        }))
-      );
     } catch { /* silent */ }
+    finally { setPosting(false); }
   };
 
-  const handleLikeComment = async (id: string) => {
-    if (!token || likePending.has(id)) return;
-    setLikeError("");
-    const isLiked = likedIds.has(id);
-
-    const updateCount = (list: ForumCommentWithLikes[], delta: number): ForumCommentWithLikes[] =>
-      list.map(c => {
-        if (c.id === id) return { ...c, likes_count: Math.max(0, (c.likes_count ?? 0) + delta) };
-        if (c.replies?.length) return { ...c, replies: updateCount(c.replies, delta) };
-        return c;
-      });
-
-    setLikedIds(prev => { const n = new Set(prev); isLiked ? n.delete(id) : n.add(id); return n; });
-    setComments(prev => updateCount(prev, isLiked ? -1 : 1));
-    setLikePending(prev => new Set(prev).add(id));
-
+  const handleReply = async (parentId: string) => {
+    if (!token || !replyText.trim()) return;
+    setPosting(true);
     try {
-      const result = isLiked ? await unlikeComment(token, id) : await likeComment(token, id);
-      if (result?.likes_count !== undefined) {
-        setComments(prev => prev.map(c => {
-          if (c.id === id) return { ...c, likes_count: result.likes_count };
-          if (c.replies?.length) return { ...c, replies: c.replies.map(r => r.id === id ? { ...r, likes_count: result.likes_count } : r) };
-          return c;
-        }));
-      }
-    } catch (err: any) {
-      setLikedIds(prev => { const n = new Set(prev); isLiked ? n.add(id) : n.delete(id); return n; });
-      setComments(prev => updateCount(prev, isLiked ? 1 : -1));
-      setLikeError(err?.message ?? "Could not save like — please try again");
-      setTimeout(() => setLikeError(""), 3500);
-    } finally {
-      setLikePending(prev => { const n = new Set(prev); n.delete(id); return n; });
-    }
+      const res = await addComment(token, postId, replyText.trim(), parentId);
+      setComments(prev => prev.map(c =>
+        c.id === parentId
+          ? { ...c, replies: [...(c.replies ?? []), { ...res.comment, likesCount: 0, likedByMe: false }] }
+          : c
+      ));
+      setReplyText("");
+      setReplyTo(null);
+    } catch { /* silent */ }
+    finally { setPosting(false); }
   };
 
-  const totalComments = comments.reduce((acc, c) => acc + 1 + (c.replies?.length ?? 0), 0);
+  const handleDelete = async (id: string) => {
+    if (!token) return;
+    await deleteComment(token, id);
+    setComments(prev => prev.filter(c => c.id !== id).map(c => ({
+      ...c, replies: (c.replies ?? []).filter(r => r.id !== id),
+    })));
+  };
 
-  if (loading) return <div className="forum-loading">Loading post…</div>;
-  if (error || !post) return <div className="forum-loading" style={{ color: "#ef4444" }}>{error || "Post not found"}</div>;
+  const renderComment = (c: ForumCommentWithLikes, isReply = false) => {
+    const isLiked   = likedIds.has(c.id);
+    const isPending = likePending.has(c.id);
+    const isTarget  = targetId === c.id;
+
+    return (
+      <div key={c.id}
+        ref={isTarget ? highlightRef : undefined}
+        className={`cf-comment ${isReply ? "cf-comment--reply" : ""} ${isTarget ? "cf-comment--highlight" : ""}`}>
+        <Avatar name={c.userName} url={c.userAvatar} size={isReply ? 22 : 26} />
+        <div className="cf-comment-body">
+          <div className="cf-comment-header">
+            <span className="cf-comment-name">{c.userName}</span>
+            <span className="cf-comment-time">{formatDate(c.createdAt)}</span>
+            {userId && c.userId === userId && (
+              <button className="cf-comment-delete" onClick={() => handleDelete(c.id)} title="Delete">✕</button>
+            )}
+          </div>
+          <p className="cf-comment-text">{c.content}</p>
+          <div className="cf-comment-actions">
+            <button
+              className={`cf-like-btn ${isLiked ? "liked" : ""}`}
+              onClick={() => handleLike(c.id)}
+              disabled={!token || isPending}>
+              <HeartIcon filled={isLiked} />
+              <span>{c.likesCount ?? 0}</span>
+            </button>
+            {!isReply && token && (
+              <button className="cf-reply-btn" onClick={() => setReplyTo(replyTo?.id === c.id ? null : c)}>
+                Reply
+              </button>
+            )}
+          </div>
+          {replyTo?.id === c.id && (
+            <div className="cf-reply-box">
+              <textarea className="cf-reply-input" placeholder={`Reply to ${c.userName}…`}
+                value={replyText} rows={2}
+                onChange={e => setReplyText(e.target.value)}
+                autoFocus />
+              <div className="cf-reply-actions">
+                <button className="cf-btn-cancel" onClick={() => { setReplyTo(null); setReplyText(""); }}>Cancel</button>
+                <button className="cf-btn-post small" onClick={() => handleReply(c.id)}
+                  disabled={posting || !replyText.trim()}>
+                  {posting ? "…" : "Reply"}
+                </button>
+              </div>
+            </div>
+          )}
+          {!isReply && (c.replies ?? []).length > 0 && (
+            <div className="cf-replies">
+              {(c.replies ?? []).map(r => renderComment(r, true))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  if (loading) return <div className="cf-comments-loading">Loading comments…</div>;
 
   return (
-    <div className="post-detail">
-      <button className="forum-back-btn" onClick={onBack}>← Back to Forum</button>
+    <div className="cf-comments">
+      {comments.length === 0
+        ? <p className="cf-comments-empty">No comments yet — be the first! 🐾</p>
+        : <div className="cf-comments-list">{comments.map(c => renderComment(c))}</div>}
 
-      <div className="post-detail-card">
-        <div className="post-detail-header">
-          <span className="post-category-badge">{post.category}</span>
-          <h2 className="post-detail-title">{post.title}</h2>
-          <div className="post-detail-meta">
-            <UserAvatar name={post.user_name} url={post.user_avatar} size={28} />
-            <span className="post-meta-name">{post.user_name}</span>
-            <span className="post-meta-dot">·</span>
-            <span className="post-meta-date">{formatDate(post.created_at)}</span>
+      {token ? (
+        <div className="cf-comment-compose">
+          <textarea className="cf-reply-input" placeholder="Write a comment…"
+            value={newComment} rows={2}
+            onChange={e => setNewComment(e.target.value)}
+            onKeyDown={e => { if (e.key === "Enter" && e.ctrlKey) handleAddComment(); }} />
+          <div className="cf-reply-actions">
+            <span className="cf-hint">Ctrl + Enter</span>
+            <button className="cf-btn-post small" onClick={handleAddComment}
+              disabled={posting || !newComment.trim()}>
+              {posting ? "Posting…" : "Post"}
+            </button>
           </div>
         </div>
-        <p className="post-detail-content">{post.content}</p>
-      </div>
-
-      <div className="comments-section">
-        <h3 className="comments-title">
-          <CommentIcon /> {totalComments} {totalComments === 1 ? "Comment" : "Comments"}
-        </h3>
-
-        {likeError && <div className="like-error-toast">{likeError}</div>}
-
-        {comments.length === 0 ? (
-          <p className="comments-empty">No comments yet. Be the first to reply!</p>
-        ) : (
-          <div className="comments-list">
-            {comments.map(c => (
-              <CommentItem
-                key={c.id}
-                comment={c}
-                token={token}
-                userId={userId}
-                likedIds={likedIds}
-                likePending={likePending}
-                highlightId={highlightId}
-                onLike={handleLikeComment}
-                onDelete={handleDeleteComment}
-                onReply={setReplyingTo}
-                replyingToId={replyingTo?.id}
-                onSubmitReply={handleSubmitReply}
-                onCancelReply={() => setReplyingTo(null)}
-              />
-            ))}
-            <div ref={bottomRef} />
-          </div>
-        )}
-
-        {token ? (
-          <div className="comment-compose">
-            <textarea
-              className="forum-input forum-textarea"
-              placeholder="Write a reply…"
-              value={newComment} rows={3}
-              onChange={e => setNewComment(e.target.value)}
-              onKeyDown={e => { if (e.key === "Enter" && e.ctrlKey) handleAddComment(); }}
-            />
-            <div className="comment-compose-footer">
-              <span className="comment-hint">Ctrl + Enter to post</span>
-              <button className="forum-btn-post" onClick={handleAddComment} disabled={posting || !newComment.trim()}>
-                {posting ? "Posting…" : "Post Reply"}
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="comment-login-prompt">
-            <a href="/login">Log in</a> to join the discussion.
-          </div>
-        )}
-      </div>
+      ) : (
+        <p className="cf-login-prompt">
+          <a href="/login">Log in</a> to join the conversation.
+        </p>
+      )}
     </div>
   );
 };
 
-// Community Forum Main
+// ─── Feed Card ────────────────────────────────────────────────────────────────
+const FeedCard: React.FC<{
+  post:       ForumPost;
+  token?:     string;
+  userId?:    string;
+  expanded?:  boolean;
+  targetCommentId?: string | null;
+  onExpand:   () => void;
+  onDelete:   (id: string) => void;
+}> = ({ post, token, userId, expanded, targetCommentId, onExpand, onDelete }) => {
+  const cat = getCatStyle(post.category);
+
+  return (
+    <article
+      className={`cf-card ${expanded ? "cf-card--expanded" : ""}`}
+      style={{ "--cat-color": cat.color, "--cat-bg": cat.bg } as React.CSSProperties}
+    >
+      {/* Left accent strip */}
+      <div className="cf-card-strip" />
+
+      <div className="cf-card-inner">
+        {/* Header */}
+        <div className="cf-card-top">
+          <Avatar name={post.userName} url={post.userAvatar} size={36} />
+          <div className="cf-card-meta">
+            <span className="cf-card-author">{post.userName}</span>
+            <span className="cf-card-time">{formatDate(post.createdAt)}</span>
+          </div>
+          <span className="cf-card-cat-badge"
+            style={{ background: cat.bg, color: cat.color }}>
+            {post.category}
+          </span>
+          {userId && token && (post as any).userId === userId && (
+            <button className="cf-card-delete" onClick={e => { e.stopPropagation(); onDelete(post.id); }}
+              title="Delete post">✕</button>
+          )}
+        </div>
+
+        {/* Title + body */}
+        <div className="cf-card-content" onClick={onExpand} style={{ cursor: "pointer" }}>
+          <h3 className="cf-card-title">{post.title}</h3>
+          <p className={`cf-card-body ${expanded ? "" : "cf-card-body--clamped"}`}>
+            {post.content}
+          </p>
+        </div>
+
+        {/* Footer bar */}
+        <div className="cf-card-footer">
+          <button className="cf-card-comments-btn" onClick={onExpand}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="14" height="14">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            <span>{post.commentsCount} {post.commentsCount === 1 ? "comment" : "comments"}</span>
+          </button>
+          <button className="cf-card-expand-btn" onClick={onExpand}>
+            {expanded ? "Collapse" : "Read & reply →"}
+          </button>
+        </div>
+
+        {/* Inline thread */}
+        {expanded && (
+          <div className="cf-card-thread">
+            <InlineComments
+              postId={post.id}
+              token={token}
+              userId={userId}
+              targetId={targetCommentId}
+            />
+          </div>
+        )}
+      </div>
+    </article>
+  );
+};
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 const CommunityForum: React.FC<CommunityForumProps> = ({
   initialPostId,
   initialCommentId,
   onDeepLinkConsumed,
+  userAvatar: propUserAvatar,
+  userName:   propUserName,
 }) => {
   const { token, user } = useAuth();
   const [posts,          setPosts]          = useState<ForumPost[]>([]);
@@ -508,181 +466,136 @@ const CommunityForum: React.FC<CommunityForumProps> = ({
   const [search,         setSearch]         = useState("");
   const [searchInput,    setSearchInput]    = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
-  const [showNewPost,    setShowNewPost]    = useState(false);
-  const [selectedPost,   setSelectedPost]   = useState<string | null>(null);
-  const [targetComment,  setTargetComment]  = useState<string | null>(null);
-  const [total,          setTotal]          = useState(0);
+  const [expandedId,     setExpandedId]     = useState<string | null>(initialPostId ?? null);
+  const [targetComment,  setTargetComment]  = useState<string | null>(initialCommentId ?? null);
 
-  // Auto-open post from notification deep-link
+  // Deep-link: auto-expand the post from notification
   useEffect(() => {
     if (initialPostId) {
-      setSelectedPost(initialPostId);
+      setExpandedId(initialPostId);
       setTargetComment(initialCommentId ?? null);
       onDeepLinkConsumed?.();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialPostId]);
 
-  const fetchPosts = async (cat: string, q: string) => {
+  const fetchPosts = useCallback(async (cat: string, q: string) => {
     setLoading(true);
     try {
       const res = await getPosts({ category: cat, search: q });
       setPosts(res.posts);
-      setTotal(res.total);
-    } catch {
-      setError("Failed to load posts");
-    } finally { setLoading(false); }
-  };
+    } catch { setError("Failed to load posts"); }
+    finally  { setLoading(false); }
+  }, []);
 
-  useEffect(() => { fetchPosts(activeCategory, search); }, [activeCategory, search]);
+  useEffect(() => { fetchPosts(activeCategory, search); }, [activeCategory, search, fetchPosts]);
 
-  const handleNewPost = (post: ForumPost) => {
-    setPosts(prev => [post, ...prev]);
-    setTotal(t => t + 1);
-  };
+  const handleNewPost = (post: ForumPost) => setPosts(prev => [post, ...prev]);
 
-  const handleDeletePost = async (id: string) => {
+  const handleDelete = async (id: string) => {
     if (!token) return;
-    try {
-      await deletePost(token, id);
-      setPosts(prev => prev.filter(p => p.id !== id));
-      setTotal(t => t - 1);
-    } catch { /* silent */ }
+    try { await deletePost(token, id); setPosts(prev => prev.filter(p => p.id !== id)); }
+    catch { /* silent */ }
   };
 
-  const handleBack = () => {
-    setSelectedPost(null);
-    setTargetComment(null);
+  const handleExpand = (id: string) => {
+    setExpandedId(prev => prev === id ? null : id);
+    if (id !== expandedId) setTargetComment(null);
   };
 
-  if (selectedPost) return (
-    <PostDetail
-      postId={selectedPost}
-      token={token || undefined}
-      userId={(user as any)?.id}
-      targetCommentId={targetComment}
-      onBack={handleBack}
-    />
-  );
+  const userId = (user as any)?.id;
 
   return (
-    <div className="community-forum">
-      <div className="forum-hero">
-        <div className="forum-hero-text">
-          <h1 className="forum-hero-title">Dog-Parents Forum</h1>
-          <div className="forum-search-bar">
-            <span className="forum-search-cat-all">
-              All
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="12" height="12">
-                <polyline points="6 9 12 15 18 9"/>
-              </svg>
-            </span>
-            <input
-              className="forum-search-input"
-              placeholder="Search for advice..."
-              value={searchInput}
-              onChange={e => setSearchInput(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && setSearch(searchInput)}
-            />
-            <button className="forum-search-btn" onClick={() => setSearch(searchInput)}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
-                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-              </svg>
+    <div className="cf-root">
+
+      {/* ── Header ── */}
+      <div className="cf-header">
+        <div className="cf-header-text">
+          <h1 className="cf-title">Community Feed</h1>
+          <p className="cf-subtitle">Dog parents helping dog parents</p>
+        </div>
+
+        {/* Search */}
+        <div className="cf-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input
+            className="cf-search-input"
+            placeholder="Search discussions…"
+            value={searchInput}
+            onChange={e => setSearchInput(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && setSearch(searchInput)}
+          />
+          {searchInput && (
+            <button className="cf-search-clear" onClick={() => { setSearchInput(""); setSearch(""); }}>✕</button>
+          )}
+        </div>
+      </div>
+
+      {/* ── Category filter ── */}
+      <div className="cf-cats">
+        {CATEGORIES.map(c => {
+          const s = getCatStyle(c);
+          return (
+            <button key={c}
+              className={`cf-cat-tab ${activeCategory === c ? "active" : ""}`}
+              style={activeCategory === c && c !== "All"
+                ? { background: s.bg, color: s.color, borderColor: s.color }
+                : activeCategory === c
+                  ? {}
+                  : {}}
+              onClick={() => setActiveCategory(c)}>
+              {c}
             </button>
-          </div>
-          <p className="forum-hero-sub">
-            Hello and welcome to our Buddy's Forum!<br />
-            Search for an advice, or add a new post to start discussion.
-          </p>
-        </div>
-        <div className="forum-hero-illustration" aria-hidden="true">
-          <img src="../../images/forum-hero.svg" alt=""
-            onError={e => (e.currentTarget.style.display = "none")} />
-        </div>
+          );
+        })}
       </div>
 
-      {/* Mobile: native select dropdown */}
-      <div className="forum-cats-mobile">
-        <select
-          className="forum-cats-select"
-          value={activeCategory}
-          onChange={e => setActiveCategory(e.target.value)}
-          aria-label="Filter by category"
-        >
-          {CATEGORIES.map(c => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
-      </div>
+      {/* ── Compose box ── */}
+      {token && (
+        <ComposeBox
+          token={token}
+          userAvatar={propUserAvatar ?? (user as any)?.avatarUrl ?? (user as any)?.avatar_url}
+          userName={propUserName ?? (user as any)?.name}
+          onPost={handleNewPost}
+        />
+      )}
 
-      {/* Tablet+: pill tabs */}
-      <div className="forum-cats">
-        {CATEGORIES.map(c => (
-          <button key={c} className={`forum-cat-tab ${activeCategory === c ? "active" : ""}`}
-            onClick={() => setActiveCategory(c)}>{c}</button>
-        ))}
-      </div>
-
-      <div className="forum-table-wrap">
+      {/* ── Feed ── */}
+      <div className="cf-feed">
         {loading ? (
-          <div className="forum-loading">Loading posts…</div>
+          <div className="cf-feed-loading">
+            {[1,2,3].map(i => <div key={i} className="cf-skeleton" style={{ animationDelay: `${i * 0.1}s` }} />)}
+          </div>
         ) : error ? (
-          <div className="forum-loading" style={{ color: "#ef4444" }}>{error}</div>
+          <div className="cf-feed-error">{error}</div>
+        ) : posts.length === 0 ? (
+          <div className="cf-feed-empty">
+            <div className="cf-empty-paw">🐾</div>
+            <p>No discussions yet {search ? `matching "${search}"` : "in this category"}.</p>
+            {token && <p className="cf-empty-sub">Be the first to start one!</p>}
+          </div>
         ) : (
-          <>
-            <table className="forum-table">
-              <thead>
-                <tr>
-                  <th className="col-title">Title</th>
-                  <th className="col-user">User</th>
-                  <th className="col-date">Date added</th>
-                  <th className="col-cat">Category</th>
-                  <th className="col-comments">Comments</th>
-                  <th className="col-action" />
-                </tr>
-              </thead>
-              <tbody>
-                {posts.length === 0 ? (
-                  <tr><td colSpan={6} className="forum-empty-row">No posts found. Be the first to start a discussion!</td></tr>
-                ) : (
-                  posts.map(post => (
-                    <tr key={post.id} className="forum-row" onClick={() => setSelectedPost(post.id)}>
-                      <td className="col-title"><span className="forum-row-title">{post.title}</span></td>
-                      <td className="col-user"><UserAvatar name={post.user_name} url={post.user_avatar} size={30} /></td>
-                      <td className="col-date">{formatDate(post.created_at)}</td>
-                      <td className="col-cat"><span className="forum-cat-label">{post.category}</span></td>
-                      <td className="col-comments">{post.comments_count}</td>
-                      <td className="col-action" onClick={e => e.stopPropagation()}>
-                        <div className="forum-row-actions">
-                          <button className="forum-open-btn" onClick={() => setSelectedPost(post.id)} title="Open post">
-                            <i className="bi bi-box-arrow-right" />
-                          </button>
-                          {token && (user as any)?.id === post.user_id && (
-                            <button className="forum-delete-row-btn"
-                              onClick={() => handleDeletePost(post.id)} title="Delete post"><i className="bi bi-trash3"></i></button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-            {total > 0 && <p className="forum-count">{total} discussion{total !== 1 ? "s" : ""}</p>}
-          </>
+          posts.map((post, i) => (
+            <div key={post.id} style={{ animationDelay: `${i * 0.05}s` }} className="cf-card-wrapper">
+              <FeedCard
+                post={post}
+                token={token ?? undefined}
+                userId={userId}
+                expanded={expandedId === post.id}
+                targetCommentId={expandedId === post.id ? targetComment : null}
+                onExpand={() => handleExpand(post.id)}
+                onDelete={handleDelete}
+              />
+            </div>
+          ))
         )}
       </div>
 
-      <div className="forum-cta">
-        <p className="forum-cta-text">Can't find a topic that you looking for?</p>
-        <button className="forum-cta-btn"
-          onClick={() => token ? setShowNewPost(true) : (window.location.href = "/login")}>
-          <i className="bi bi-file-earmark-plus"></i> Start a discussion
-        </button>
-      </div>
-
-      {showNewPost && token && (
-        <NewPostModal token={token} onPost={handleNewPost} onClose={() => setShowNewPost(false)} />
+      {/* ── Count ── */}
+      {!loading && posts.length > 0 && (
+        <p className="cf-feed-count">{posts.length} discussion{posts.length !== 1 ? "s" : ""}</p>
       )}
     </div>
   );

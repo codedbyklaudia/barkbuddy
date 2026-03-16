@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
+import { PawPrint , Star, ChartPie   } from 'lucide-react';
 import "./RegisterBusiness.scss";
 
 type BusinessCategory = "activities" | "services" | "";
@@ -22,31 +23,30 @@ interface ActivityFormData {
 
 type ValidationErrors = Record<string, string>;
 
+// Email check state — shared across both form types
+type EmailCheckState = "idle" | "checking" | "available" | "taken" | "error";
+
 const ACTIVITY_TYPES = [
-  { key: "hotel",      label: "Dog Hotel",   icon: "/images/paint/hotel.png",      desc: "Boarding & accommodation" },
-  { key: "cafe",       label: "Dog Café",    icon: "/images/paint/cafe.png",       desc: "Dog-friendly café"        },
-  { key: "restaurant", label: "Restaurant",  icon: "/images/paint/restaurant.png", desc: "Dog-welcoming dining"     },
-  { key: "park",       label: "Dog Park",    icon: "/images/paint/park.png",       desc: "Outdoor dog spaces"       },
-  { key: "beach",      label: "Beach/Trail", icon: "/images/paint/beach.png",      desc: "Nature & outdoor access"  },
-  { key: "pub",        label: "Pub/Bar",     icon: "/images/paint/pub.png",        desc: "Dog-friendly drinks"      },
-  { key: "shop",       label: "Retail Shop", icon: "/images/paint/shop.png",       desc: "Dog-welcoming stores"     },
-  { key: "other",      label: "Other",       icon: "/images/paint/other.png",      desc: "Other dog-friendly venue" },
+  { key: "hotel",      label: "Dog Hotel",   icon: "../images/icons_1/hotel_icon.png",      desc: "Boarding & accommodation" },
+  { key: "cafe",       label: "Dog Café",    icon: "../images/icons_1/cafe_icon.png",       desc: "Dog-friendly café"        },
+  { key: "restaurant", label: "Restaurant",  icon: "../images/icons_1/restaurant_icon.png", desc: "Dog-welcoming dining"     },
+  { key: "park",       label: "Dog Park",    icon: "../images/icons_1/park_icon.png",       desc: "Outdoor dog spaces"       },
+  { key: "beach",      label: "Beach/Trail", icon: "../images/icons_1/beach_icon.png",      desc: "Nature & outdoor access"  },
+  { key: "pub",        label: "Pub/Bar",     icon: "../images/icons_1/pub_icon.png",        desc: "Dog-friendly drinks"      },
+  { key: "shop",       label: "Retail Shop", icon: "../images/icons_1/shop_icon.png",       desc: "Dog-welcoming stores"     },
 ];
 
 const SERVICE_TYPES = [
-  { key: "groomer",      label: "Groomer",      icon: "/images/paint/groomer.png",      desc: "Grooming & styling" },
-  { key: "vet",          label: "Veterinary",   icon: "/images/paint/vet.png",          desc: "Medical care"       },
-  { key: "pet_shop",     label: "Pet Shop",     icon: "/images/paint/pet-shop.png",     desc: "Supplies & products"},
-  { key: "behaviourist", label: "Behaviourist", icon: "/images/paint/behaviourist.png", desc: "Behaviour therapy"  },
-  { key: "trainer",      label: "Dog Trainer",  icon: "/images/paint/trainer.png",      desc: "Training & classes" },
-  { key: "walker",       label: "Dog Walker",   icon: "/images/paint/walker.png",       desc: "Walking services"   },
-  { key: "sitter",       label: "Dog Sitter",   icon: "/images/paint/sitter.png",       desc: "In-home sitting"    },
-  { key: "daycare",      label: "Day Care",     icon: "/images/paint/daycare.png",      desc: "Day boarding"       },
+  { key: "groomer",      label: "Groomer",      icon: "../images/icons_1/grooming_icon.png",      desc: "Grooming & styling services" },
+  { key: "vet",          label: "Veterinary",   icon: "../images/icons_1/vet_icon.png",          desc: "Medical care & surgeries"       },
+  { key: "pet_shop",     label: "Pet Shop",     icon: "../images/icons_1/petshop_icon.png",     desc: "Supplies & products for dogs"},
+  { key: "behaviourist", label: "Behaviourist", icon: "../images/icons_1/trainer_icon.png", desc: "Behaviour therapy & dog trainers"  },
 ];
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-// ─── Small helpers ────────────────────────────────────────────────────────────
+// Small helpers 
 const FieldError: React.FC<{ error?: string }> = ({ error }) =>
   error ? (
     <span className="rb-field-error" role="alert">
@@ -68,6 +68,33 @@ const EyeIcon: React.FC<{ visible: boolean }> = ({ visible }) =>
       <line x1="1" y1="1" x2="23" y2="23"/>
     </svg>
   );
+
+// ─── Email status indicator ───────────────────────────────────────────────────
+const EmailStatus: React.FC<{ state: EmailCheckState }> = ({ state }) => {
+  if (state === "idle") return null;
+  if (state === "checking") return (
+    <span className="rb-email-status rb-email-status--checking" aria-live="polite">
+      <span className="rb-email-status__spinner" aria-hidden="true" />
+      Checking availability…
+    </span>
+  );
+  if (state === "available") return (
+    <span className="rb-email-status rb-email-status--available" aria-live="polite">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="14" height="14" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+      Email is available
+    </span>
+  );
+  if (state === "taken") return (
+    <span className="rb-email-status rb-email-status--taken" role="alert">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="1" fill="currentColor"/>
+      </svg>
+      An account with this email already exists.{" "}
+      <Link to="/business/login" className="rb-email-status__login-link">Sign in instead?</Link>
+    </span>
+  );
+  return null; // "error" state — silent, will be caught at submit
+};
 
 // ─── Step Indicator ───────────────────────────────────────────────────────────
 const StepIndicator: React.FC<{ current: number; total: number; labels: string[] }> = ({ current, total, labels }) => (
@@ -110,20 +137,102 @@ const Textarea: React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement> & { h
   <textarea className={`rb-textarea ${hasError ? "rb-input--error" : ""}`} {...props} />
 );
 
-const PasswordField: React.FC<{ label: string; value: string; onChange: (v: string) => void; error?: string; placeholder?: string }> = (
-  { label, value, onChange, error, placeholder }
-) => {
-  const [show, setShow] = useState(false);
+// ─── Password strength helpers ────────────────────────────────────────────────
+type StrengthLevel = "empty" | "weak" | "fair" | "strong";
+
+function getPasswordStrength(pw: string): StrengthLevel {
+  if (!pw) return "empty";
+  let score = 0;
+  if (pw.length >= 8)  score++;
+  if (pw.length >= 12) score++;
+  if (/[A-Z]/.test(pw)) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  if (score <= 1) return "weak";
+  if (score <= 3) return "fair";
+  return "strong";
+}
+
+const STRENGTH_LABEL: Record<StrengthLevel, string> = {
+  empty:  "",
+  weak:   "Weak — add numbers, symbols or uppercase",
+  fair:   "Fair — getting better!",
+  strong: "Strong password",
+};
+
+const PasswordStrengthBar: React.FC<{ strength: StrengthLevel; touched: boolean }> = ({ strength, touched }) => {
+  if (!touched || strength === "empty") return null;
   return (
-    <Field label={label} error={error}>
+    <div className="rb-pw-strength" aria-live="polite">
+      <div className={`rb-pw-strength__bar rb-pw-strength__bar--${strength}`}>
+        <span /><span /><span />
+      </div>
+      <span className={`rb-pw-strength__label rb-pw-strength__label--${strength}`}>
+        {STRENGTH_LABEL[strength]}
+      </span>
+    </div>
+  );
+};
+
+const PasswordMatchStatus: React.FC<{ password: string; confirm: string; touched: boolean }> = ({ password, confirm, touched }) => {
+  if (!touched || !confirm) return null;
+  const matches = password === confirm;
+  return (
+    <span className={`rb-pw-match ${matches ? "rb-pw-match--ok" : "rb-pw-match--no"}`} aria-live="polite">
+      {matches
+        ? <><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="13" height="13"><polyline points="20 6 9 17 4 12"/></svg> Passwords match</>
+        : <><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="13" height="13"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Passwords don't match</>
+      }
+    </span>
+  );
+};
+
+// ─── Password field — now shows strength bar (primary) or match status (confirm) ─
+const PasswordField: React.FC<{
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  error?: string;
+  placeholder?: string;
+  // For the "confirm" variant — pass the primary password to compare against
+  compareTo?: string;
+}> = ({ label, value, onChange, error, placeholder, compareTo }) => {
+  const [show,    setShow]    = useState(false);
+  const [touched, setTouched] = useState(false);
+
+  const isConfirm  = compareTo !== undefined;
+  const strength   = !isConfirm ? getPasswordStrength(value) : "empty";
+  const hasError   = !!error || (touched && isConfirm && value.length > 0 && value !== compareTo);
+  const isValid    = touched && isConfirm ? value === compareTo && value.length > 0
+                                          : touched && strength === "strong";
+
+  return (
+    <div className="rb-field">
+      <label className="rb-label">{label}</label>
       <div className="rb-pw-wrap">
-        <Input type={show ? "text" : "password"} value={value} placeholder={placeholder || "Min 8 characters"}
-          onChange={e => onChange(e.target.value)} hasError={!!error} autoComplete="new-password" />
+        <Input
+          type={show ? "text" : "password"}
+          value={value}
+          placeholder={placeholder || "Min 8 characters"}
+          onChange={e => onChange(e.target.value)}
+          onBlur={() => setTouched(true)}
+          hasError={hasError && !error ? false : !!error}
+          className={isValid && !error ? "rb-input--valid" : ""}
+          autoComplete="new-password"
+        />
         <button type="button" className="rb-pw-eye" onClick={() => setShow(!show)} aria-label={show ? "Hide password" : "Show password"}>
           <EyeIcon visible={show} />
         </button>
       </div>
-    </Field>
+
+      {/* Hard validation error from submit takes priority */}
+      {error
+        ? <FieldError error={error} />
+        : isConfirm
+          ? <PasswordMatchStatus password={compareTo!} confirm={value} touched={touched} />
+          : <PasswordStrengthBar strength={strength} touched={touched} />
+      }
+    </div>
   );
 };
 
@@ -194,26 +303,50 @@ const PhotoUpload: React.FC<{ photo: File | null; error?: string; onPhotoChange:
   );
 };
 
-// ─── Shared field groups ──────────────────────────────────────────────────────
-const AccountFields: React.FC<{ email: string; personalName: string; password: string; confirmPassword: string; errors: ValidationErrors; onChange: (k: string, v: string) => void }> = (
-  { email, personalName, password, confirmPassword, errors, onChange }
-) => (
+// ─── Account Fields — now accepts emailCheckState + onEmailBlur ───────────────
+const AccountFields: React.FC<{
+  email: string;
+  personalName: string;
+  password: string;
+  confirmPassword: string;
+  errors: ValidationErrors;
+  emailCheckState: EmailCheckState;
+  onChange: (k: string, v: string) => void;
+  onEmailBlur: () => void;
+}> = ({ email, personalName, password, confirmPassword, errors, emailCheckState, onChange, onEmailBlur }) => (
   <>
     <div className="rb-field-row">
       <Field label="Your full name" error={errors.personalName}>
         <Input type="text" value={personalName} placeholder="e.g. Sarah Johnson" autoComplete="name"
           onChange={e => onChange("personalName", e.target.value)} hasError={!!errors.personalName} />
       </Field>
-      <Field label="Email address" error={errors.email}>
-        <Input type="email" value={email} placeholder="hello@yourbusiness.com" autoComplete="email"
-          onChange={e => onChange("email", e.target.value)} hasError={!!errors.email} />
-      </Field>
+
+      {/* Email field — has inline live-check feedback */}
+      <div className="rb-field">
+        <label className="rb-label">Email address</label>
+        <Input
+          type="email"
+          value={email}
+          placeholder="hello@yourbusiness.com"
+          autoComplete="email"
+          onChange={e => onChange("email", e.target.value)}
+          onBlur={onEmailBlur}
+          hasError={!!errors.email || emailCheckState === "taken"}
+          className={emailCheckState === "available" ? "rb-input--valid" : ""}
+        />
+        {/* Show inline status UNLESS a hard validation error is already showing */}
+        {!errors.email
+          ? <EmailStatus state={emailCheckState} />
+          : <FieldError error={errors.email} />
+        }
+      </div>
     </div>
     <div className="rb-field-row">
       <PasswordField label="Password" value={password} placeholder="Create a strong password"
         onChange={v => onChange("password", v)} error={errors.password} />
       <PasswordField label="Confirm password" value={confirmPassword} placeholder="Repeat your password"
-        onChange={v => onChange("confirmPassword", v)} error={errors.confirmPassword} />
+        onChange={v => onChange("confirmPassword", v)} error={errors.confirmPassword}
+        compareTo={password} />
     </div>
   </>
 );
@@ -258,14 +391,21 @@ const ContactFields: React.FC<{ contactPhone: string; contactEmail: string; webs
 const ServiceStep1: React.FC<{
   data: ServiceFormData;
   errors: ValidationErrors;
+  emailCheckState: EmailCheckState;
   onChange: (k: keyof ServiceFormData, v: string) => void;
   onPhotoChange: (f: File | null) => void;
-}> = ({ data, errors, onChange, onPhotoChange }) => (
+  onEmailBlur: () => void;
+}> = ({ data, errors, emailCheckState, onChange, onPhotoChange, onEmailBlur }) => (
   <div className="rb-form-section">
     <div className="rb-section-block">
       <h3 className="rb-section-heading">Your Account</h3>
-      <AccountFields email={data.email} personalName={data.personalName} password={data.password} confirmPassword={data.confirmPassword}
-        errors={errors} onChange={(k, v) => onChange(k as keyof ServiceFormData, v)} />
+      <AccountFields
+        email={data.email} personalName={data.personalName}
+        password={data.password} confirmPassword={data.confirmPassword}
+        errors={errors} emailCheckState={emailCheckState}
+        onChange={(k, v) => onChange(k as keyof ServiceFormData, v)}
+        onEmailBlur={onEmailBlur}
+      />
     </div>
     <div className="rb-section-block">
       <h3 className="rb-section-heading">Business Details</h3>
@@ -311,14 +451,21 @@ const ServiceStep1: React.FC<{
 const ActivityStep1: React.FC<{
   data: ActivityFormData;
   errors: ValidationErrors;
+  emailCheckState: EmailCheckState;
   onChange: (k: keyof ActivityFormData, v: string) => void;
   onPhotoChange: (f: File | null) => void;
-}> = ({ data, errors, onChange, onPhotoChange }) => (
+  onEmailBlur: () => void;
+}> = ({ data, errors, emailCheckState, onChange, onPhotoChange, onEmailBlur }) => (
   <div className="rb-form-section">
     <div className="rb-section-block">
       <h3 className="rb-section-heading">Your Account</h3>
-      <AccountFields email={data.email} personalName={data.personalName} password={data.password} confirmPassword={data.confirmPassword}
-        errors={errors} onChange={(k, v) => onChange(k as keyof ActivityFormData, v)} />
+      <AccountFields
+        email={data.email} personalName={data.personalName}
+        password={data.password} confirmPassword={data.confirmPassword}
+        errors={errors} emailCheckState={emailCheckState}
+        onChange={(k, v) => onChange(k as keyof ActivityFormData, v)}
+        onEmailBlur={onEmailBlur}
+      />
     </div>
     <div className="rb-section-block">
       <h3 className="rb-section-heading">Venue Details</h3>
@@ -348,7 +495,7 @@ const ActivityStep1: React.FC<{
   </div>
 );
 
-// ─── Activity Step 2 ──────────────────────────────────────────────────────────
+// Activity Step 2 
 const ActivityStep2: React.FC<{ data: ActivityFormData; errors: ValidationErrors; onFileChange: (f: File | null) => void }> = ({ data, errors, onFileChange }) => {
   const fileRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -369,10 +516,10 @@ const ActivityStep2: React.FC<{ data: ActivityFormData; errors: ValidationErrors
       <div className="rb-doc-examples">
         <p className="rb-doc-examples__title">Accepted documents:</p>
         <ul>
-          <li>📄 PDF or image of your dog-friendly policy</li>
-          <li>🪧 Photo of your "Dogs Welcome" sign at the entrance</li>
-          <li>🍽️ Screenshot of your menu noting dogs are welcome</li>
-          <li>📋 Any official statement or certificate</li>
+          <li><i className="bi bi-file-earmark-pdf"></i> PDF or image of your dog-friendly policy</li>
+          <li><i className="bi bi-camera"></i> Photo of your "Dogs Welcome" sign at the entrance</li>
+          <li><i className="bi bi-image"></i> Screenshot of your menu noting dogs are welcome</li>
+          <li><i className="bi bi-file-earmark-check-fill"></i> Any official statement or certificate</li>
         </ul>
       </div>
       <div
@@ -429,9 +576,7 @@ const ActivityStep2: React.FC<{ data: ActivityFormData; errors: ValidationErrors
   );
 };
 
-// Validation 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
+// ─── Validation ───────────────────────────────────────────────────────────────
 function validateService(d: ServiceFormData): ValidationErrors {
   const e: ValidationErrors = {};
   if (!d.personalName.trim())  e.personalName  = "Name is required";
@@ -474,21 +619,21 @@ function validateActivity1(d: ActivityFormData): ValidationErrors {
   return e;
 }
 
-//  Success 
+// ─── Success
 const SuccessScreen: React.FC<{ category: BusinessCategory; businessName: string }> = ({ category, businessName }) => (
   <div className="rb-success">
-    <span className="rb-success__icon" aria-hidden="true"><img src="../../images/icons/success.png" alt="Success Picture" /></span>
+    <span className="rb-success__icon" aria-hidden="true"><img src="../images/icons_1/success_message.png" alt="Success Picture" /></span>
     <h2 className="rb-success__title">{category === "services" ? "You're registered!" : "Application submitted!"}</h2>
     <p className="rb-success__text">
       {category === "services"
-        ? `Welcome, ${businessName}! Please check your email to verify your account so we can begin reviewing your details. The review process takes up to 24 hours. Once approved, you'll receive your login details to access and manage your dashboard. We’ll contact you if we need any additional information.`
-        : `Thank you for applying, ${businessName}! Please check your email to verify your submission so we can begin reviewing your details. The review process takes up to 72 hours. You’ll receive an email with the outcome once the review is complete. We’ll be in touch if we need any additional information.`}
+        ? `Welcome, ${businessName}! Please check your email to verify your account so we can begin reviewing your details. The review process takes up to 24 hours. Once approved, you'll receive your login details to access and manage your dashboard. We'll contact you if we need any additional information.`
+        : `Thank you for applying, ${businessName}! Please check your email to verify your submission so we can begin reviewing your details. The review process takes up to 72 hours. You'll receive an email with the outcome once the review is complete. We'll be in touch if we need any additional information.`}
     </p>
-    <Link to="/" className="rb-success__btn">↩ Back to BarkBuddy</Link>
+    <Link to="/" className="rb-success__btn"><i className="bi bi-chevron-double-left"></i> Back to BarkBuddy</Link>
   </div>
 );
 
-// Main Page 
+// ─── Main Page
 const RegisterBusinessPage: React.FC = () => {
   const [category, setCategory] = useState<BusinessCategory>("");
   const [step,     setStep]     = useState(0);
@@ -496,6 +641,11 @@ const RegisterBusinessPage: React.FC = () => {
   const [apiError, setApiError] = useState("");
   const [loading,  setLoading]  = useState(false);
   const [done,     setDone]     = useState(false);
+
+  // Live email availability state
+  const [emailCheckState, setEmailCheckState] = useState<EmailCheckState>("idle");
+  const emailCheckController = useRef<AbortController | null>(null);
+
   const mainRef = useRef<HTMLElement>(null);
 
   const [serviceData, setServiceData] = useState<ServiceFormData>({
@@ -513,23 +663,67 @@ const RegisterBusinessPage: React.FC = () => {
     document: null, photo: null,
   });
 
-  // Refs always hold the latest data so handleNext never validates stale state
   const serviceDataRef  = useRef(serviceData);
   const activityDataRef = useRef(activityData);
   serviceDataRef.current  = serviceData;
   activityDataRef.current = activityData;
 
-  // String fields patch
+  // ── Email live check ─────────────────────────────────────────────────────────
+  const checkEmailNow = useCallback(async (email: string) => {
+    // Cancel any in-flight check
+    emailCheckController.current?.abort();
+
+    // Don't fire if email is empty or invalid format
+    if (!email.trim() || !EMAIL_RE.test(email)) {
+      setEmailCheckState("idle");
+      return;
+    }
+
+    const controller = new AbortController();
+    emailCheckController.current = controller;
+    setEmailCheckState("checking");
+
+    try {
+      const res  = await fetch(
+        `${API_BASE}/business/check-email?email=${encodeURIComponent(email)}`,
+        { signal: controller.signal }
+      );
+      const data = await res.json();
+
+      if (controller.signal.aborted) return;
+
+      if (data.available === true) {
+        setEmailCheckState("available");
+      } else {
+        setEmailCheckState("taken");
+        // Also surface as a field error so it's unmissable
+        setErrors(prev => ({ ...prev, email: "An account with this email already exists." }));
+      }
+    } catch (err: any) {
+      if (err.name === "AbortError") return;
+      setEmailCheckState("error");
+    }
+  }, []);
+
+  // Reset email check when email field changes
   const patchService = (k: keyof ServiceFormData, v: string) => {
     setServiceData(p => ({ ...p, [k]: v }));
-    setErrors(p => { const e = { ...p }; delete e[k]; return e; });
-  };
-  const patchActivity = (k: keyof ActivityFormData, v: string) => {
-    setActivityData(p => ({ ...p, [k]: v }));
-    setErrors(p => { const e = { ...p }; delete e[k]; return e; });
+    setErrors(p => { const e = { ...p }; delete e[k as string]; return e; });
+    if (k === "email") {
+      setEmailCheckState("idle");
+      emailCheckController.current?.abort();
+    }
   };
 
-  // File patches — separate so File objects never go through string patchers
+  const patchActivity = (k: keyof ActivityFormData, v: string) => {
+    setActivityData(p => ({ ...p, [k]: v }));
+    setErrors(p => { const e = { ...p }; delete e[k as string]; return e; });
+    if (k === "email") {
+      setEmailCheckState("idle");
+      emailCheckController.current?.abort();
+    }
+  };
+
   const patchServicePhoto = (f: File | null) => {
     setServiceData(p => ({ ...p, photo: f }));
     setErrors(p => { const e = { ...p }; delete e.photo; return e; });
@@ -543,6 +737,14 @@ const RegisterBusinessPage: React.FC = () => {
     setErrors(p => { const e = { ...p }; delete e.document; return e; });
   };
 
+  // onBlur handler — fires the actual API check
+  const handleEmailBlur = useCallback(() => {
+    const email = category === "services"
+      ? serviceDataRef.current.email
+      : activityDataRef.current.email;
+    checkEmailNow(email);
+  }, [category, checkEmailNow]);
+
   const scrollToTop = () => {
     mainRef.current?.scrollTo({ top: 0, behavior: "smooth" });
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -552,13 +754,11 @@ const RegisterBusinessPage: React.FC = () => {
     setLoading(true); setApiError("");
     try {
       const form = new FormData();
-      // Append all string fields
       (Object.keys(serviceData) as (keyof ServiceFormData)[]).forEach(k => {
-        if (k === "photo") return; // handled separately
+        if (k === "photo") return;
         const v = serviceData[k];
         if (v !== null && v !== undefined) form.append(k, v as string);
       });
-      // Append photo file
       if (serviceData.photo) form.append("photo", serviceData.photo);
 
       const res  = await fetch(`${API_BASE}/business/register/service`, { method: "POST", body: form });
@@ -574,22 +774,13 @@ const RegisterBusinessPage: React.FC = () => {
     } finally { setLoading(false); }
   };
 
-  const checkEmailAvailable = async (email: string): Promise<boolean> => {
-    try {
-      const res  = await fetch(`${API_BASE}/business/check-email?email=${encodeURIComponent(email)}`);
-      const data = await res.json();
-      return data.available === true;
-    } catch { return true; }
-  };
-
   const submitActivity = async () => {
     if (!activityData.document) { setErrors({ document: "Please upload a document proving your venue is dog-friendly" }); return; }
     setLoading(true); setApiError("");
     try {
       const form = new FormData();
-      // Append all string fields
       (Object.keys(activityData) as (keyof ActivityFormData)[]).forEach(k => {
-        if (k === "document" || k === "photo") return; // handled separately
+        if (k === "document" || k === "photo") return;
         const v = activityData[k];
         if (v !== null && v !== undefined) form.append(k, v as string);
       });
@@ -615,6 +806,25 @@ const RegisterBusinessPage: React.FC = () => {
     if (category === "services" && step === 1) {
       const errs = validateService(serviceDataRef.current);
       if (Object.keys(errs).length) { setErrors(errs); scrollToTop(); return; }
+      // Block if email is taken or still being checked
+      if (emailCheckState === "taken") {
+        setErrors(prev => ({ ...prev, email: "An account with this email already exists." }));
+        scrollToTop();
+        return;
+      }
+      if (emailCheckState === "checking") {
+        setApiError("Please wait — we're checking email availability.");
+        return;
+      }
+      // If user never blurred the email (emailCheckState === "idle" and email is valid), run the check now
+      if (emailCheckState === "idle" && EMAIL_RE.test(serviceDataRef.current.email)) {
+        setLoading(true);
+        await checkEmailNow(serviceDataRef.current.email);
+        setLoading(false);
+        // After the async check, re-read the state via ref won't work — re-validate on next click
+        // So we abort here and let the user see the result
+        return;
+      }
       submitService();
       return;
     }
@@ -622,12 +832,19 @@ const RegisterBusinessPage: React.FC = () => {
     if (category === "activities" && step === 1) {
       const errs = validateActivity1(activityDataRef.current);
       if (Object.keys(errs).length) { setErrors(errs); scrollToTop(); return; }
-      setLoading(true);
-      const available = await checkEmailAvailable(activityDataRef.current.email);
-      setLoading(false);
-      if (!available) {
-        setErrors({ email: "An account with this email already exists. Please log in or use a different email." });
+      if (emailCheckState === "taken") {
+        setErrors(prev => ({ ...prev, email: "An account with this email already exists." }));
         scrollToTop();
+        return;
+      }
+      if (emailCheckState === "checking") {
+        setApiError("Please wait — we're checking email availability.");
+        return;
+      }
+      if (emailCheckState === "idle" && EMAIL_RE.test(activityDataRef.current.email)) {
+        setLoading(true);
+        await checkEmailNow(activityDataRef.current.email);
+        setLoading(false);
         return;
       }
       setErrors({});
@@ -640,6 +857,13 @@ const RegisterBusinessPage: React.FC = () => {
       if (!activityData.document) { setErrors({ document: "Please upload a document proving your venue is dog-friendly" }); return; }
       submitActivity();
     }
+  };
+
+  // Reset email check state when returning to step 0
+  const handleReset = () => {
+    setStep(0); setCategory(""); setErrors({}); setApiError("");
+    setEmailCheckState("idle");
+    emailCheckController.current?.abort();
   };
 
   const stepLabels   = category === "services" ? ["Your Details"] : ["Your Details", "Dog-Friendly Proof"];
@@ -662,7 +886,7 @@ const RegisterBusinessPage: React.FC = () => {
                 Join thousands of venues and service providers already connecting with dog owners across the UK.
               </p>
             </div>
-            <Link to="/" className="biz-login__home-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg> Back to BarkBuddy</Link>
+            <Link to="/" className="biz-login__home-link"><i className="bi bi-chevron-double-left"></i> Back to BarkBuddy</Link>
           </div>
           <div className="rb-hero__right">
             <h2 className="rb-hero__right-heading">
@@ -670,8 +894,8 @@ const RegisterBusinessPage: React.FC = () => {
             </h2>
             <div className="rb-cat-grid">
               {[
-                { cat: "activities" as BusinessCategory, icon: "/images/paint/dog-friendly.png", title: "Activities & Venues", desc: "Hotels, cafés, restaurants, parks, beaches — places where dogs are welcome", tags: ["Hotel","Café","Restaurant","Park","+more"] },
-                { cat: "services"   as BusinessCategory, icon: "/images/paint/services.png",     title: "Services",            desc: "Groomers, vets, trainers, behaviourists — professionals who care for dogs",  tags: ["Groomer","Vet","Trainer","Walker","+more"] },
+                { cat: "activities" as BusinessCategory, icon: "../images/icons_1/Activities.png", title: "Activities & Venues", desc: "Hotels, cafés, restaurants, parks, beaches - places where dogs are welcome", tags: ["Hotel","Café","Restaurant","Park","+more"] },
+                { cat: "services"   as BusinessCategory, icon: "../images/icons_1/Services.png",     title: "Services",            desc: "Groomers, vets, trainers, behaviourists - professionals who care for dogs",  tags: ["Groomer","Vet","Trainer","Pet Shops"] },
               ].map(c => (
                 <button key={c.cat} className={`rb-cat-card rb-cat-card--${c.cat}`}
                   onClick={() => { setCategory(c.cat); setStep(1); }} aria-label={`Register as ${c.title}`}>
@@ -689,7 +913,7 @@ const RegisterBusinessPage: React.FC = () => {
             </div>
             <div className="rb-hero__login">
               <p>Already have a business account?</p>
-              <Link to="/business/login" className="rb-hero__login-btn">Sign in here</Link>
+              <Link to="/business/login" className="rb-hero__login-btn">Sign in here <i className="bi bi-box-arrow-in-right"></i></Link>
             </div>
           </div>
         </div>
@@ -701,7 +925,7 @@ const RegisterBusinessPage: React.FC = () => {
             <div className="rb-sidebar__inner">
               <div className="rb-sidebar__category">
                 <div className="rb-sidebar__cat-img">
-                  <img src={category === "services" ? "/images/paint/services.png" : "/images/paint/dog-friendly.png"} alt="" aria-hidden="true" />
+                  <img src={category === "services" ? "../images/icons_1/Services.png" : "../images/icons_1/Activities.png"} alt="" aria-hidden="true" />
                 </div>
                 <div>
                   <p className="rb-sidebar__cat-label">Registering as</p>
@@ -713,21 +937,21 @@ const RegisterBusinessPage: React.FC = () => {
                 <p className="rb-sidebar__perks-title">What you get</p>
                 <ul role="list">
                   {[
-                    { icon: "/images/paint/directory.png", text: "Listed on BarkBuddy's directory" },
-                    { icon: "/images/paint/dog-owners.png", text: "Reach thousands of dog owners"  },
-                    { icon: "/images/paint/reviews.png",   text: "Community reviews & ratings"     },
-                    { icon: "/images/paint/enquiries.png", text: "Direct booking enquiries"        },
-                    { icon: "/images/paint/free.png",      text: "Always free to list"             },
+                    { icon: <i className="bi bi-pin-map"></i>, text: "Listed on BarkBuddy's directory" },
+                    { icon:  <PawPrint  />, text: "Reach thousands of dog owners"  },
+                    { icon: <Star />,   text: "Community reviews & ratings"     },
+                    { icon: <ChartPie  />, text: "Direct booking enquiries"        },
+                    { icon: <i className="bi bi-pin-map"></i>,      text: "Always free to list"},
                   ].map(({ icon, text }) => (
                     <li key={text}>
-                      <span className="rb-sidebar__perk-icon" aria-hidden="true"><img src={icon} alt="" /></span>
+                      <span className="rb-sidebar__perk-icon" aria-hidden="true">{icon}</span>
                       <span>{text}</span>
                     </li>
                   ))}
                 </ul>
               </div>
               <div className="rb-sidebar__footer">
-                <button className="rb-sidebar__change" onClick={() => { setStep(0); setCategory(""); setErrors({}); setApiError(""); }}>
+                <button className="rb-sidebar__change" onClick={handleReset}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
                   Change category
                 </button>
@@ -743,15 +967,17 @@ const RegisterBusinessPage: React.FC = () => {
                   {step === 1 ? (category === "services" ? "Tell us about your service" : "Tell us about your venue") : "Verify your dog-friendly status"}
                 </h1>
                 <p className="rb-main__sub">
-                  {step === 1 ? "Fill in your details below — you can always update them from your dashboard later." : "One last step! We need to confirm your venue genuinely welcomes dogs."}
+                  {step === 1 ? "Fill in your details below - you can always update them from your dashboard later." : "One last step! We need to confirm your venue genuinely welcomes dogs."}
                 </p>
               </div>
 
               {category === "services"   && step === 1 && (
-                <ServiceStep1  data={serviceData}  errors={errors} onChange={patchService}  onPhotoChange={patchServicePhoto} />
+                <ServiceStep1  data={serviceData}  errors={errors} emailCheckState={emailCheckState}
+                  onChange={patchService}  onPhotoChange={patchServicePhoto} onEmailBlur={handleEmailBlur} />
               )}
               {category === "activities" && step === 1 && (
-                <ActivityStep1 data={activityData} errors={errors} onChange={patchActivity} onPhotoChange={patchActivityPhoto} />
+                <ActivityStep1 data={activityData} errors={errors} emailCheckState={emailCheckState}
+                  onChange={patchActivity} onPhotoChange={patchActivityPhoto} onEmailBlur={handleEmailBlur} />
               )}
               {category === "activities" && step === 2 && (
                 <ActivityStep2 data={activityData} errors={errors} onFileChange={patchFile} />
@@ -771,11 +997,18 @@ const RegisterBusinessPage: React.FC = () => {
                     Back
                   </button>
                 )}
-                <button className={`rb-btn-next ${loading ? "rb-btn-next--loading" : ""}`} onClick={handleNext} disabled={loading} type="button" aria-busy={loading}>
-                  {loading
-                    ? <><span className="rb-spinner" aria-hidden="true" />Processing…</>
+                <button
+                  className={`rb-btn-next ${loading ? "rb-btn-next--loading" : ""} ${emailCheckState === "taken" ? "rb-btn-next--blocked" : ""}`}
+                  onClick={handleNext}
+                  disabled={loading || emailCheckState === "checking"}
+                  type="button"
+                  aria-busy={loading}
+                >
+                  {loading || emailCheckState === "checking"
+                    ? <><span className="rb-spinner" aria-hidden="true" />{emailCheckState === "checking" ? "Checking email…" : "Processing…"}</>
                     : <>{category === "services" && step === 1 ? "Create Account" : category === "activities" && step === 2 ? "Submit Application" : "Continue"}
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="16" height="16" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+                        <i className="bi bi-chevron-double-right"></i>
+
                       </>
                   }
                 </button>

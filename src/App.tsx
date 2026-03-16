@@ -21,7 +21,7 @@ import RegisterPage from './components/Register';
 import LoginPage from './components/Login';
 import ForgotPasswordPage from './components/ForgotPassword';
 import ResetPasswordPage from './components/ResetPassword';
-import Dashboard from './components/Dashboard';
+import Dashboard from './components/Dashboard/Dashboard';
 import RegisterBusiness from './components/RegisterBusiness';
 import VerifyBusinessEmail from './components/Verifybusinessemail';
 import About from './components/About';
@@ -49,7 +49,6 @@ function AppContent() {
 
   const [isTravelFlowActive, setIsTravelFlowActive] = useState(false);
 
-  // Reset flow state whenever the user navigates away from travel page
   useEffect(() => {
     if (location.pathname !== '/travel-page') {
       setIsTravelFlowActive(false);
@@ -65,7 +64,6 @@ function AppContent() {
   const isAuthPage     = authPages.includes(location.pathname);
   const isBusinessPage = location.pathname.startsWith('/register-business');
   const isDashboard    = location.pathname === '/dashboard';
-  // Hide nav only when the travel flow wizard is open, not on the travel landing page
   const showNav = !isAuthPage && !isBusinessPage && !isDashboard && !isTravelFlowActive;
 
   return (

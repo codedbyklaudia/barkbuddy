@@ -19,12 +19,10 @@
   border-radius: 0 2px 2px 0;
 }
 
-// ── Article nav ─────────────────────────────────────────────────────────────
+// Article nav
 .article-nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: $space-sm $space-md;            // mobile: tight
+  @include flex-between;
+  padding: $space-sm $space-md;           
   border-bottom: 1px solid rgba($twilight-purple, 0.07);
   position: sticky;
   top: 0;
@@ -48,7 +46,7 @@
     border: none;
     font-family: $font-secondary;
     font-size: 0.78rem;
-    font-weight: $fw-bold;
+    font-weight: $fw-regular;
     color: rgba($twilight-purple, 0.5);
     cursor: pointer;
     letter-spacing: 0.04em;
@@ -66,7 +64,7 @@
   &__tag {
     font-family: $font-secondary;
     font-size: 0.6rem;
-    font-weight: $fw-bold;
+    font-weight: $fw-regular;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: $gentle-amethyst;
@@ -113,7 +111,7 @@
   &__category {
     font-family: $font-secondary;
     font-size: 0.6rem;
-    font-weight: $fw-bold;
+    font-weight: $fw-regular;
     letter-spacing: 0.16em;
     text-transform: uppercase;
     color: $gentle-amethyst;
@@ -137,8 +135,8 @@
 
   &__title {
     font-family: $font-primary;
-    font-size: clamp(1.9rem, 6vw, 4.8rem);  // starts smaller on mobile
-    font-weight: $fw-bold;
+    font-size: clamp(1.9rem, 6vw, 4.8rem); 
+    font-weight: $fw-regular;
     color: $twilight-purple;
     line-height: 1.0;
     letter-spacing: -0.03em;
@@ -241,14 +239,14 @@
   }
 }
 
-// ── Section ──────────────────────────────────────────────────────────────────
+// Section 
 .article-section {
   margin-bottom: clamp($space-xl, 5vh, 64px);
 
   &__heading {
     font-family: $font-primary;
     font-size: clamp(1.3rem, 4.5vw, 2.1rem);
-    font-weight: $fw-bold;
+    font-weight: $fw-regular;
     color: $twilight-purple;
     letter-spacing: -0.03em;
     margin: 0 0 $space-md;
@@ -276,14 +274,14 @@
   }
 }
 
-// ── Pull quote ─────────────────────────────────────────────────────────────
+// Pull quote 
 .article-pullquote {
   font-family: $font-primary;
   font-size: clamp(1.05rem, 3.5vw, 1.8rem);
   font-style: italic;
   color: $twilight-purple;
   border-left: 3px solid $gentle-amethyst;
-  padding: $space-md $space-lg;            // mobile
+  padding: $space-md $space-lg;  
   margin: $space-xl 0;
   background: rgba($misty-lavender, 0.25);
   border-radius: 0 10px 10px 0;
@@ -346,7 +344,7 @@
     display: block;
     font-family: $font-secondary;
     font-size: 0.84rem;
-    font-weight: $fw-bold;
+    font-weight: $fw-regular;
     color: $twilight-purple;
     margin-bottom: 3px;
   }
@@ -360,15 +358,14 @@
   }
 }
 
-// ── Product pick cards ────────────────────────────────────────────────────────
+// Product pick cards 
 .article-pick {
-  display: flex;                           // mobile: single column flex
-  flex-direction: column;
+  @include column;
   gap: $space-sm;
-  background: white;
+  background: $soft-pearl;
   border: 1px solid rgba($twilight-purple, 0.08);
   border-radius: 14px;
-  padding: $space-md;                      // mobile
+  padding: $space-md;                  
   margin-bottom: $space-md;
   transition: all 0.25s ease;
 
@@ -649,15 +646,14 @@
   }
 }
 
-// ── Callout box ───────────────────────────────────────────────────────────────
+//Callout box 
 .article-callout {
-  display: flex;
-  flex-direction: column;                  // mobile: stacked
+  @include column;                  
   gap: $space-md;
   background: rgba($twilight-purple, 0.04);
   border: 1px solid rgba($twilight-purple, 0.12);
-  border-radius: 14px;
-  padding: $space-lg $space-md;           // mobile
+  border-radius: $radius-lg;
+  padding: $space-lg $space-md;        
   margin: $space-lg 0;
 
   @media (min-width: $bp-tablet) {
@@ -682,32 +678,35 @@
   strong {
     display: block;
     font-family: $font-secondary;
-    font-size: 0.88rem;
-    font-weight: $fw-bold;
+    font-size: $t-forgot-des;
+    font-weight: $fw-regular;
     color: $twilight-purple;
     margin-bottom: $space-xs;
   }
 
   p {
     font-family: $font-secondary;
-    font-size: 0.86rem;
+    font-size: 0.9rem;
     color: rgba($twilight-purple, 0.6);
-    line-height: 1.65;
+    line-height: $lh-normal;
     margin: 0 0 $space-md;
   }
 
   &__btn {
     display: inline-flex;
     align-items: center;
+    gap: $space-xs;
+    align-items: center;
     background: $twilight-purple;
-    color: $soft-pearl;
+    color: $soft-pearl !important;
     border: none;
     padding: 9px $space-lg;
-    border-radius: 40px;
+    border-radius: $radius-lg;
     font-family: $font-secondary;
-    font-size: 0.78rem;
-    font-weight: $fw-bold;
-    cursor: pointer;
+    font-size: 0.87rem;
+    @include cursor;
+    text-decoration: none;
+    font-weight: $fw-regular;
     letter-spacing: 0.03em;
     transition: all 0.22s ease;
 
@@ -719,7 +718,7 @@
   }
 }
 
-// ── Highlight box (anxiety signs) ─────────────────────────────────────────────
+// Highlight box (anxiety signs)
 .article-highlight-box {
   background: rgba($twilight-purple, 0.03);
   border: 1px solid rgba($twilight-purple, 0.1);

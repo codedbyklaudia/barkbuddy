@@ -1,19 +1,28 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { useNavigate } from 'react-router-dom';
 import "./Dashboard.scss";
-import { useAuth } from "../context/AuthContext";
-import BuddyCalendar from "./Buddy_Calendar";
-import CommunityForum from "./CommunityForum";
+import { useAuth } from "../../context/AuthContext";
+import BuddyCalendar from "../Buddy_Calendar";
+import CommunityForum from "../CommunityForum";
 import DashboardView from './DashboardView';
-import logoSrc from "../../images/logo.png";
+import Sidebar from './Sidebar';
+import SettingsView from './SettingsView';
+import logoSrc from "../../../images/logo.png";
 
 import {
   getProfile, updateUser, uploadUserAvatar,
-  updateDog, uploadDogAvatar, updatePreferences,
+  updateDog, updatePreferences,
   getNotifications, markNotificationsRead,
-} from "../api/users";
+} from "../../api/users";
+
+import {
+  getAllDogs, createExtraDog, deleteExtraDog, updateExtraDog,
+  uploadDogAvatarById, getDogDetails, saveDogDetails,
+} from "../../api/Dogs";
+
+import type { DogDetails } from "../../api/Dogs";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+
 interface UserProfile {
   id:                 string;
   name:               string;
@@ -36,28 +45,7 @@ interface DogProfile {
   lifeStage:   string;
   personality: string[];
   avatarUrl?:  string;
-}
-
-interface Buddy {
-  id:          string;
-  userId:      string;
-  name:        string;
-  avatarUrl?:  string;
-  bio?:        string;
-  dogName?:    string;
-  dogBreed?:   string;
-  dogAvatar?:  string;
-  joinedAt:    string;
-  buddySince?: string;
-}
-
-interface BuddyUser {
-  id:         string;
-  name:       string;
-  avatarUrl?: string;
-  bio?:       string;
-  dogName?:   string;
-  status?:    "none" | "pending_out" | "pending_in" | "buddy";
+  isMain?:     boolean;
 }
 
 export type NotifType = "new_comment" | "comment_liked";
@@ -73,6 +61,8 @@ export interface AppNotification {
   isRead:           boolean;
   createdAt:        string;
 }
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 async function safeGetNotifications(token: string): Promise<AppNotification[]> {
   try { const res = await getNotifications(token); return res.notifications ?? []; }
@@ -106,16 +96,18 @@ function calcProfileComplete(user: UserProfile, dog: DogProfile | null): number 
   return Math.min(score, 100);
 }
 
-// ─── Nav ──────────────────────────────────────────────────────────────────────
+// ─── Nav Items (shared reference) ─────────────────────────────────────────────
+
 const NAV_ITEMS = [
-  { key: "home",     label: "Dashboard",       icon: "home"     },
-  { key: "settings", label: "Settings",        icon: "settings" },
-  { key: "dog",      label: "My Dog",          icon: "dog"      },
-  { key: "calendar", label: "Buddy Calendar",  icon: "calendar" },
-  { key: "forum",    label: "Forum",           icon: "forum"    },
+  { key: "home",     label: "Dashboard",      icon: "home"     },
+  { key: "settings", label: "Settings",       icon: "settings" },
+  { key: "dog",      label: "My Dog",         icon: "dog"      },
+  { key: "calendar", label: "Buddy Calendar", icon: "calendar" },
+  { key: "forum",    label: "Forum",          icon: "forum"    },
 ];
 
 // ─── Icon ─────────────────────────────────────────────────────────────────────
+
 const Icon: React.FC<{ name: string; size?: number }> = ({ name, size = 18 }) => {
   const icons: Record<string, React.ReactNode> = {
     home: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg>,
@@ -171,6 +163,7 @@ const Icon: React.FC<{ name: string; size?: number }> = ({ name, size = 18 }) =>
 };
 
 // ─── Notifications Panel ──────────────────────────────────────────────────────
+
 const NotificationsPanel: React.FC<{
   notifications: AppNotification[]; loading: boolean;
   onClose: () => void; onMarkAllRead: () => void;
@@ -223,6 +216,7 @@ const NotificationsPanel: React.FC<{
 };
 
 // ─── Avatar Upload ────────────────────────────────────────────────────────────
+
 const AvatarUpload: React.FC<{
   url?: string; name: string; size?: "sm" | "lg" | "hero";
   onUpload: (file: File) => Promise<void>; uploading?: boolean;
@@ -245,6 +239,7 @@ const AvatarUpload: React.FC<{
 };
 
 // ─── Dog Photo Hero ───────────────────────────────────────────────────────────
+
 const DogPhotoHero: React.FC<{
   url?: string; name: string; onUpload: (file: File) => Promise<void>; uploading?: boolean;
 }> = ({ url, name, onUpload, uploading }) => {
@@ -266,6 +261,7 @@ const DogPhotoHero: React.FC<{
 };
 
 // ─── Bio Editor ───────────────────────────────────────────────────────────────
+
 const BioEditor: React.FC<{
   bio?: string; token: string;
   onSave: (bio: string, profileComplete: number) => void;
@@ -330,6 +326,7 @@ const BioEditor: React.FC<{
 };
 
 // ─── Edit User Modal ──────────────────────────────────────────────────────────
+
 const EditUserModal: React.FC<{
   user: UserProfile; token: string;
   onSave: (updated: Partial<UserProfile>) => void; onClose: () => void;
@@ -415,6 +412,7 @@ const EditUserModal: React.FC<{
 };
 
 // ─── Edit Dog Modal ───────────────────────────────────────────────────────────
+
 const EditDogModal: React.FC<{
   dog: DogProfile; token: string;
   onSave: (updated: DogProfile) => void; onClose: () => void;
@@ -423,18 +421,24 @@ const EditDogModal: React.FC<{
   const [loading, setLoading] = useState(false);
   const [errors, setErrors]   = useState<Record<string, string>>({});
   const [success, setSuccess] = useState("");
-  const PERSONALITIES = ["high-energy","playful","gentle","lazy","adventurous","cuddly","independent","anxious"];
-  const toggleP = (p: string) => setForm((prev) => ({ ...prev, personality: prev.personality.includes(p) ? prev.personality.filter((x) => x !== p) : [...prev.personality, p] }));
+
+
   const handleSave = async () => {
     if (!form.name.trim()) { setErrors({ name: "Dog name is required" }); return; }
     setLoading(true);
     try {
-      const res = await updateDog(token, form);
-      setSuccess("Saved!"); onSave(res.dog); setTimeout(onClose, 800);
+      if (dog.isMain) {
+        const res = await updateDog(token, form);
+        setSuccess("Saved!"); onSave({ ...res.dog, isMain: true }); setTimeout(onClose, 800);
+      } else {
+        const res = await updateExtraDog(token, dog.id, form);
+        setSuccess("Saved!"); onSave({ ...res.dog, isMain: false }); setTimeout(onClose, 800);
+      }
     } catch (err: any) {
       setErrors(err.errors ?? { general: err.message || "Something went wrong" });
     } finally { setLoading(false); }
   };
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
@@ -469,11 +473,25 @@ const EditDogModal: React.FC<{
             ))}
           </div>
           <label className="modal-label">Personality</label>
-          <div className="modal-chips">
-            {PERSONALITIES.map((p) => (
-              <button key={p} className={`modal-chip ${form.personality.includes(p) ? "selected" : ""}`} onClick={() => toggleP(p)}>{p}</button>
-            ))}
-          </div>
+          {PERSONALITY_CATEGORIES.map(cat => (
+            <div key={cat.id} className="modal-personality-cat">
+              <p className="modal-personality-question">{cat.question}</p>
+              <div className="modal-personality-grid">
+                {cat.options.map(opt => {
+                  const isSel = form.personality.includes(opt.key);
+                  return (
+                    <button key={opt.key}
+                      className={`modal-personality-btn ${isSel ? "selected" : ""}`}
+                      onClick={() => setForm(prev => ({ ...prev, personality: setSelected(prev.personality, cat.id, opt.key) }))}>
+                      <img src={opt.img} alt={opt.label}
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                      <span>{opt.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
         <div className="modal-footer">
           <button className="modal-btn-cancel" onClick={onClose}>Cancel</button>
@@ -487,6 +505,7 @@ const EditDogModal: React.FC<{
 };
 
 // ─── Preferences Modal ────────────────────────────────────────────────────────
+
 const PreferencesModal: React.FC<{
   user: UserProfile; token: string;
   onSave: (data: Partial<UserProfile>) => void; onClose: () => void;
@@ -550,6 +569,7 @@ const PreferencesModal: React.FC<{
 };
 
 // ─── Logo ─────────────────────────────────────────────────────────────────────
+
 const BarkBuddyLogo: React.FC<{ size?: "sm" | "md" | "lg" }> = ({ size = "md" }) => {
   const [imgFailed, setImgFailed] = useState(false);
   if (imgFailed) {
@@ -563,26 +583,8 @@ const BarkBuddyLogo: React.FC<{ size?: "sm" | "md" | "lg" }> = ({ size = "md" })
   return <img src={logoSrc} alt="BarkBuddy" className={`bb-logo-img bb-logo-${size}`} onError={() => setImgFailed(true)} />;
 };
 
-// ─── Sidebar ──────────────────────────────────────────────────────────────────
-const Sidebar: React.FC<{ active: string; onNav: (k: string) => void; onLogout: () => void }> = ({ active, onNav, onLogout }) => (
-  <aside className="db-sidebar">
-    <nav className="db-nav" aria-label="Main navigation">
-      {NAV_ITEMS.map((item) => (
-        <button key={item.key} className={`db-nav-item ${active === item.key ? "active" : ""}`}
-          onClick={() => onNav(item.key)} aria-current={active === item.key ? "page" : undefined}>
-          <Icon name={item.icon} size={18} />
-          <span>{item.label}</span>
-        </button>
-      ))}
-    </nav>
-    <div className="db-sidebar-divider" />
-    <button className="db-nav-item db-logout" onClick={onLogout}>
-      <Icon name="logout" size={18} /><span>Log Out</span>
-    </button>
-  </aside>
-);
-
 // ─── Mobile Drawer ────────────────────────────────────────────────────────────
+
 const MobileDrawer: React.FC<{
   open: boolean; active: string; onNav: (k: string) => void;
   onClose: () => void; onLogout: () => void; user: UserProfile | null;
@@ -631,16 +633,15 @@ const MobileDrawer: React.FC<{
 };
 
 // ─── Top Bar ──────────────────────────────────────────────────────────────────
+
 const TopBar: React.FC<{
   user: UserProfile | null; label: string; unreadCount: number;
   notifOpen: boolean; onMenuOpen: () => void; onToggleNotif: () => void;
 }> = ({ user, label, unreadCount, notifOpen, onMenuOpen, onToggleNotif }) => {
-  const navigate = useNavigate();
   return (
     <header className="db-topbar">
       <div className="db-topbar-left">
         <BarkBuddyLogo size="lg" />
-        <button className="db-topbar-platform-btn" onClick={() => navigate('/')}>Go to BarkBuddy</button>
       </div>
       <h1 className="db-topbar-title">{label}</h1>
       <div className="db-topbar-right">
@@ -665,6 +666,7 @@ const TopBar: React.FC<{
 };
 
 // ─── Dog Helpers ──────────────────────────────────────────────────────────────
+
 function calcAge(dob?: string): string {
   if (!dob) return "Unknown";
   const birth = new Date(dob), now = new Date();
@@ -708,13 +710,8 @@ const CARE_TIPS: Record<string, { icon: string; title: string; tip: string }[]> 
   ],
 };
 
-// ─── Dog Details ──────────────────────────────────────────────────────────────
-interface DogDetails {
-  weight?: string; bodyCondition?: string; activityLevel?: string;
-  neutered?: string; allergies?: string; healthIssues?: string;
-  medications?: string; eatingStyle?: string; treatsPerDay?: string; feedingTimes?: string;
-}
-const DOG_DETAILS_KEY = "barkbuddy_dog_details";
+// ─── Dog Details Section ──────────────────────────────────────────────────────
+
 interface DetailsModalProps { details: DogDetails; onSave: (d: DogDetails) => void; onClose: () => void; }
 
 const DetailsModal: React.FC<DetailsModalProps> = ({ details, onSave, onClose }) => {
@@ -793,16 +790,46 @@ const DetailCardIllustration: React.FC<{ type: "details" | "medical" | "eating" 
   );
 };
 
-const DogDetailsSection: React.FC<{ dogName: string; dogId?: string }> = ({ dogName, dogId }) => {
-  const storageKey = dogId ? `barkbuddy_dog_details_${dogId}` : DOG_DETAILS_KEY;
-  const loadDetails = (): DogDetails => { try { return JSON.parse(localStorage.getItem(storageKey) || "{}"); } catch { return {}; } };
-  const saveDetails = (d: DogDetails) => localStorage.setItem(storageKey, JSON.stringify(d));
-  const [details, setDetails] = useState<DogDetails>(() => loadDetails());
+const DogDetailsSection: React.FC<{ dogName: string; dogId: string; token: string }> = ({ dogName, dogId, token }) => {
+  const [details,   setDetails]   = useState<DogDetails>({});
+  const [fetching,  setFetching]  = useState(true);
   const [openModal, setOpenModal] = useState<"details" | "medical" | "eating" | null>(null);
-  const handleSave = (updated: DogDetails) => { const merged = { ...details, ...updated }; setDetails(merged); saveDetails(merged); };
+
+  useEffect(() => {
+    if (!dogId || !token) return;
+    getDogDetails(token, dogId)
+      .then(({ details: d }) => setDetails(d))
+      .catch(console.error)
+      .finally(() => setFetching(false));
+  }, [dogId, token]);
+
+  const handleSave = async (updated: DogDetails) => {
+    const merged = { ...details, ...updated };
+    setDetails(merged);
+    try {
+      const { details: saved } = await saveDogDetails(token, dogId, merged);
+      setDetails(saved);
+    } catch (err) {
+      console.error("Failed to save dog details:", err);
+      setDetails(details);
+    }
+  };
+
+  if (fetching) {
+    return (
+      <div className="dog-details-section">
+        <h2 className="dog-details-heading">{dogName}'s details</h2>
+        <div className="dog-details-grid">
+          {[0,1,2].map((i) => <div key={i} className="detail-card" style={{ height: 260, opacity: 0.3, background: "rgba(0,0,0,0.04)" }} />)}
+        </div>
+      </div>
+    );
+  }
+
   const hasDetails = details.weight || details.bodyCondition || details.activityLevel || details.neutered;
   const hasMedical = details.allergies || details.healthIssues || details.medications;
   const hasEating  = details.eatingStyle || details.treatsPerDay || details.feedingTimes;
+
   return (
     <div className="dog-details-section">
       <h2 className="dog-details-heading">{dogName}'s details</h2>
@@ -835,13 +862,70 @@ const DogDetailsSection: React.FC<{ dogName: string; dogId?: string }> = ({ dogN
   );
 };
 
-// ─── Extra Dogs ───────────────────────────────────────────────────────────────
-interface ExtraDog { id: string; name: string; breed: string; gender: string; dob?: string; lifeStage: string; personality: string[]; avatarUrl?: string; }
-const EXTRA_DOGS_KEY = "barkbuddy_extra_dogs";
-function loadExtraDogs(): ExtraDog[] { try { return JSON.parse(localStorage.getItem(EXTRA_DOGS_KEY) || "[]"); } catch { return []; } }
-function saveExtraDogs(dogs: ExtraDog[]) { localStorage.setItem(EXTRA_DOGS_KEY, JSON.stringify(dogs)); }
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result as string); r.onerror = () => rej(new Error("Read failed")); r.readAsDataURL(file); });
+// ─── Add Dog Wizard ───────────────────────────────────────────────────────────
+
+interface AddDogFormData { name: string; breed: string; dob: string; lifeStage: string; dobLocked: boolean; personality: string[]; gender: string; }
+const ADD_LIFE_STAGES = [{ key: "puppy", label: "Puppy", age: "0–1 yrs" }, { key: "adult", label: "Adult", age: "1–7 yrs" }, { key: "senior", label: "Senior", age: "7+ yrs" }] as const;
+// ─── Personality categories (Butternut Box style) ────────────────────────────
+// Each category is single-select. PNG images drop in at ../images/personality/
+interface PersonalityOption { key: string; label: string; img: string; }
+interface PersonalityCategory { id: string; question: string; options: PersonalityOption[]; }
+
+const PERSONALITY_CATEGORIES: PersonalityCategory[] = [
+  {
+    id: "fav_game",
+    question: "What's their favourite game?",
+    options: [
+      { key: "game_fetch",   label: "Ball chaser",  img: "../images/personality/ball.png"    },
+      { key: "game_tug",     label: "Tug of war",         img: "../images/personality/tug.png"     },
+      { key: "game_chase",   label: "Chasing sticks",          img: "../images/personality/chase.png"   },
+      { key: "game_hide",    label: "Hide & seek",        img: "../images/personality/hide.png"    },
+      { key: "game_chill",   label: "Just chilling",      img: "../images/personality/chill.png"   },
+    ],
+  },
+  {
+    id: "fav_thing",
+    question: "What do they love most?",
+    options: [
+      { key: "loves_cuddles", label: "Cuddles",           img: "../images/personality/cuddles.png" },
+      { key: "loves_treats",  label: "Tricks for treats", img: "../images/personality/treats.png"  },
+      { key: "loves_walks",   label: "Walkies",           img: "../images/personality/walks.png"   },
+      { key: "loves_friends", label: "Making friends",    img: "../images/personality/friends.png" },
+      { key: "loves_sleep",   label: "Sleeping",          img: "../images/personality/sleep.png"   },
+    ],
+  },
+  {
+    id: "personality",
+    question: "How would you describe them?",
+    options: [
+      { key: "pers_energetic", label: "High-energy",      img: "../images/personality/energetic.png" },
+      { key: "pers_gentle",    label: "Gentle",     img: "../images/personality/gentle.png"    },
+      { key: "pers_cuddly",    label: "Cuddly",           img: "../images/personality/cuddly.png"    },
+      { key: "pers_playful",   label: "Playful",          img: "../images/personality/playful.png"   },
+      { key: "pers_stubborn",  label: "A little stubborn",img: "../images/personality/stubborn.png"  },
+    ],
+  },
+];
+
+// Helper: given the personality array, get the selected key for a category
+const getSelected = (personality: string[], catId: string): string => {
+  const cat = PERSONALITY_CATEGORIES.find(c => c.id === catId);
+  if (!cat) return "";
+  return cat.options.find(o => personality.includes(o.key))?.key ?? "";
+};
+
+// Helper: set one selection per category (replace any existing key from that cat)
+const setSelected = (personality: string[], catId: string, key: string): string[] => {
+  const cat = PERSONALITY_CATEGORIES.find(c => c.id === catId);
+  if (!cat) return personality;
+  const catKeys = cat.options.map(o => o.key);
+  return [...personality.filter(p => !catKeys.includes(p)), key];
+};
+
+function calcLifeStageFromDob(dob: string): string {
+  const birth = new Date(dob), now = new Date();
+  const ageMonths = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth());
+  if (ageMonths < 12) return "puppy"; if (ageMonths < 84) return "adult"; return "senior";
 }
 
 function useSimpleBreeds() {
@@ -864,16 +948,6 @@ function useSimpleBreeds() {
   }, []);
   useEffect(() => { fetchBreeds(); }, [fetchBreeds]);
   return { breeds, loading, error, retry: fetchBreeds };
-}
-
-interface AddDogFormData { name: string; breed: string; dob: string; lifeStage: string; dobLocked: boolean; personality: string[]; gender: string; }
-const ADD_LIFE_STAGES = [{ key: "puppy", label: "Puppy", age: "0–1 yrs" }, { key: "adult", label: "Adult", age: "1–7 yrs" }, { key: "senior", label: "Senior", age: "7+ yrs" }] as const;
-const ADD_PERSONALITIES = [{ key: "high-energy", label: "Walks & running" }, { key: "playful", label: "Sleeping" }, { key: "gentle", label: "Treats" }, { key: "lazy", label: "Playing" }, { key: "cuddly", label: "Cuddles" }, { key: "anxious", label: "Chasing the ball!" }, { key: "adventurous", label: "Adventurous" }, { key: "independent", label: "Independent" }];
-
-function calcLifeStageFromDob(dob: string): string {
-  const birth = new Date(dob), now = new Date();
-  const ageMonths = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth());
-  if (ageMonths < 12) return "puppy"; if (ageMonths < 84) return "adult"; return "senior";
 }
 
 const AddDogStepA: React.FC<{ form: AddDogFormData; errors: Record<string, string>; onChange: (patch: Partial<AddDogFormData>) => void; }> = ({ form, errors, onChange }) => {
@@ -923,7 +997,7 @@ const AddDogStepB: React.FC<{ form: AddDogFormData; errors: Record<string, strin
   const dobRef = useRef<HTMLInputElement>(null);
   const handleDobChange = (dob: string) => { if (!dob) { onChange({ dob: "", dobLocked: false }); return; } const stage = calcLifeStageFromDob(dob); onChange({ dob, lifeStage: stage, dobLocked: true }); };
   const handleDobUnknown = () => { if (!dobUnknown) { setDobUnknown(true); onChange({ dob: "", dobLocked: false }); } else { setDobUnknown(false); } };
-  const toggleP = (key: string) => { const updated = form.personality.includes(key) ? form.personality.filter((p) => p !== key) : [...form.personality, key]; onChange({ personality: updated }); };
+
   return (
     <div className="adw-step">
       <p className="adw-step-label">Step 2</p>
@@ -953,16 +1027,41 @@ const AddDogStepB: React.FC<{ form: AddDogFormData; errors: Record<string, strin
           );
         })}
       </div>
-      <label className="adw-label" style={{ marginTop: "1.3rem" }}>What {form.name || "your dog"} loves most <span className="adw-label-hint"> (pick all that apply)</span></label>
-      {errors.personality && <span className="adw-field-error">{errors.personality}</span>}
-      <div className="adw-personality-grid">
-        {ADD_PERSONALITIES.map((p) => (
-          <button key={p.key} className={`adw-personality-chip ${form.personality.includes(p.key) ? "selected" : ""}`} onClick={() => toggleP(p.key)}>
-            <span className="adw-chip-icon"><Icon name="paw" size={16} /></span>
-            <span className="adw-chip-label">{p.label}</span>
-          </button>
-        ))}
-      </div>
+      {/* ── Personality categories ── */}
+      {PERSONALITY_CATEGORIES.map((cat) => (
+        <div key={cat.id} className="adw-personality-category">
+          <label className="adw-label" style={{ marginTop: "1.3rem" }}>{cat.question}</label>
+          {errors.personality && cat.id === "fav_thing" && <span className="adw-field-error">{errors.personality}</span>}
+          <div className="adw-personality-grid">
+            {cat.options.map((opt) => {
+              const isSelected = form.personality.includes(opt.key);
+              return (
+                <button
+                  key={opt.key}
+                  className={`adw-personality-chip ${isSelected ? "selected" : ""}`}
+                  onClick={() => onChange({ personality: setSelected(form.personality, cat.id, opt.key) })}
+                >
+                  <span className="adw-chip-img">
+                    <img src={opt.img} alt={opt.label}
+                      onError={(e) => {
+                        const img = e.target as HTMLImageElement;
+                        img.style.display = "none";
+                        const wrap = img.parentElement;
+                        if (wrap && !wrap.querySelector(".adw-chip-fallback")) {
+                          const fb = document.createElement("span");
+                          fb.className = "adw-chip-fallback";
+                          fb.textContent = "🐾";
+                          wrap.appendChild(fb);
+                        }
+                      }} />
+                  </span>
+                  <span className="adw-chip-label">{opt.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
     </div>
   );
 };
@@ -985,22 +1084,57 @@ const AddDogStepC: React.FC<{ form: AddDogFormData; errors: Record<string, strin
   </div>
 );
 
-const AddDogModal: React.FC<{ onSave: (dog: ExtraDog) => void; onClose: () => void; }> = ({ onSave, onClose }) => {
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+const AddDogModal: React.FC<{
+  token: string; onSave: (dog: DogProfile) => void; onClose: () => void;
+}> = ({ token, onSave, onClose }) => {
+  const [step,   setStep]   = useState<1 | 2 | 3>(1);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [form, setForm] = useState<AddDogFormData>({ name: "", breed: "", dob: "", lifeStage: "adult", dobLocked: false, personality: [], gender: "male" });
-  const patch = (p: Partial<AddDogFormData>) => { setForm((prev) => ({ ...prev, ...p })); const cleared: Record<string, string> = { ...errors }; Object.keys(p).forEach((k) => delete cleared[k]); setErrors(cleared); };
+  const [saving, setSaving] = useState(false);
+  const [form,   setForm]   = useState<AddDogFormData>({ name: "", breed: "", dob: "", lifeStage: "adult", dobLocked: false, personality: [], gender: "male" });
+
+  const patch = (p: Partial<AddDogFormData>) => {
+    setForm((prev) => ({ ...prev, ...p }));
+    const cleared = { ...errors };
+    Object.keys(p).forEach((k) => delete cleared[k]);
+    setErrors(cleared);
+  };
+
   const validate = (): boolean => {
     const e: Record<string, string> = {};
     if (step === 1) { if (!form.name.trim()) e.name = "Dog name is required"; if (!form.breed.trim()) e.breed = "Please select a breed"; }
-    if (step === 2) { if (!form.lifeStage) e.lifeStage = "Please select a life stage"; if (form.personality.length < 1) e.personality = "Pick at least one"; }
+    if (step === 2) { if (!form.lifeStage) e.lifeStage = "Please select a life stage"; const hasCats = PERSONALITY_CATEGORIES.every(cat => cat.options.some(o => form.personality.includes(o.key))); if (!hasCats) e.personality = "Please pick one in each category"; }
     if (step === 3) { if (!form.gender) e.gender = "Please select a gender"; }
     if (Object.keys(e).length > 0) { setErrors(e); return false; } return true;
   };
+
   const handleNext = () => { if (!validate()) return; setStep((s) => (s < 3 ? (s + 1) as 1 | 2 | 3 : s)); };
   const handleBack = () => { setErrors({}); setStep((s) => (s > 1 ? (s - 1) as 1 | 2 | 3 : s)); };
-  const handleSave = () => { if (!validate()) return; const newDog: ExtraDog = { id: Date.now().toString(), name: form.name, breed: form.breed, gender: form.gender, dob: form.dob || undefined, lifeStage: form.lifeStage, personality: form.personality }; onSave(newDog); onClose(); };
-  useEffect(() => { const fn = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); if (e.key === "Enter") { if (step < 3) handleNext(); else handleSave(); } }; window.addEventListener("keydown", fn); return () => window.removeEventListener("keydown", fn); }, [step, form]);
+
+  const handleSave = async () => {
+    if (!validate()) return;
+    setSaving(true);
+    try {
+      const { dog } = await createExtraDog(token, {
+        name: form.name, breed: form.breed, gender: form.gender,
+        dob: form.dob || undefined, lifeStage: form.lifeStage, personality: form.personality,
+      });
+      onSave({ ...dog, isMain: false });
+      onClose();
+    } catch (err) {
+      console.error("Failed to add dog:", err);
+      setErrors({ general: "Failed to add dog. Please try again." });
+    } finally { setSaving(false); }
+  };
+
+  useEffect(() => {
+    const fn = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "Enter") { if (step < 3) handleNext(); else handleSave(); }
+    };
+    window.addEventListener("keydown", fn);
+    return () => window.removeEventListener("keydown", fn);
+  }, [step, form]);
+
   return (
     <div className="adw-overlay" onClick={onClose}>
       <div className="adw-modal" onClick={(e) => e.stopPropagation()}>
@@ -1011,6 +1145,7 @@ const AddDogModal: React.FC<{ onSave: (dog: ExtraDog) => void; onClose: () => vo
             </div>
             <button className="adw-close" onClick={onClose} aria-label="Close"><Icon name="close" size={16} /></button>
           </div>
+          {errors.general && <div className="modal-error" style={{ margin: "0 1.5rem 0.5rem" }}>{errors.general}</div>}
           <div className="adw-form-body">
             {step === 1 && <AddDogStepA form={form} errors={errors} onChange={patch} />}
             {step === 2 && <AddDogStepB form={form} errors={errors} onChange={patch} />}
@@ -1018,7 +1153,11 @@ const AddDogModal: React.FC<{ onSave: (dog: ExtraDog) => void; onClose: () => vo
           </div>
           <div className="adw-form-footer">
             {step > 1 && <button className="adw-btn-back" onClick={handleBack}><Icon name="arrowLeft" size={14} /> Back</button>}
-            {step < 3 ? <button className="adw-btn-next" onClick={handleNext}>Next <Icon name="arrow" size={14} /></button> : <button className="adw-btn-save" onClick={handleSave}><Icon name="plus" size={14} /> Add Dog</button>}
+            {step < 3
+              ? <button className="adw-btn-next" onClick={handleNext}>Next <Icon name="arrow" size={14} /></button>
+              : <button className="adw-btn-save" onClick={handleSave} disabled={saving}>
+                  {saving ? <><Icon name="spinner" size={14} /> Adding…</> : <><Icon name="plus" size={14} /> Add Dog</>}
+                </button>}
           </div>
         </div>
       </div>
@@ -1026,10 +1165,25 @@ const AddDogModal: React.FC<{ onSave: (dog: ExtraDog) => void; onClose: () => vo
   );
 };
 
-const ExtraDogPanel: React.FC<{ dog: ExtraDog; onRemove: (id: string) => void; onAvatarUpdate: (id: string, url: string) => void; }> = ({ dog, onRemove, onAvatarUpdate }) => {
+// ─── Extra Dog Panel ──────────────────────────────────────────────────────────
+
+const ExtraDogPanel: React.FC<{
+  dog: DogProfile; token: string;
+  onRemove: (id: string) => void;
+  onAvatarUpdate: (dogId: string, file: File) => Promise<void>;
+  onDogUpdate: (updated: DogProfile) => void;
+}> = ({ dog, token, onRemove, onAvatarUpdate, onDogUpdate }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
-  const handleUpload = async (file: File) => { setUploading(true); try { const b64 = await fileToBase64(file); onAvatarUpdate(dog.id, b64); } catch (err) { console.error(err); } finally { setUploading(false); } };
+  const [editOpen,  setEditOpen]  = useState(false);
+
+  const handleUpload = async (file: File) => {
+    setUploading(true);
+    try { await onAvatarUpdate(dog.id, file); }
+    catch (err) { console.error(err); }
+    finally { setUploading(false); }
+  };
+
   return (
     <div className="extra-dog-panel">
       <div className="extra-dog-panel-divider"><span className="extra-dog-panel-divider-line" /></div>
@@ -1044,20 +1198,36 @@ const ExtraDogPanel: React.FC<{ dog: ExtraDog; onRemove: (id: string) => void; o
         </div>
         <div className="dog-info-panel">
           <div className="dog-info-top">
-            <div>
-              <h2 className="dog-info-name">{dog.name}<span className="dog-info-gender">{dog.gender === "male" ? " ♂" : " ♀"}</span></h2>
-              <p className="dog-info-breed">{dog.breed}</p>
-              {dog.dob && <p className="dog-info-age"><strong>{calcAge(dog.dob)}</strong><span className="dog-info-human-age">{humanYears(dog.dob)}</span></p>}
-            </div>
-            <button className="extra-dog-remove-panel" onClick={() => onRemove(dog.id)} title={`Remove ${dog.name}`} aria-label={`Remove ${dog.name} from pack`}><Icon name="close" size={14} /> Remove</button>
-          </div>
-          <div className="dog-info-stage">
-            <span className={`dog-stage-badge stage-${dog.lifeStage}`}><Icon name="dogFace" size={15} /> {dog.lifeStage}</span>
-            {dog.dob && <span className="dog-birthday-pill">Birthday: {new Date(dog.dob).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>}
+            <button className="dog-info-edit-btn" onClick={() => setEditOpen(true)}><Icon name="edit" size={14} /> Edit</button>
+            <h2 className="dog-info-name">{dog.name}<span className="dog-info-gender">{dog.gender === "male" ? " ♂" : " ♀"}</span></h2>
+            <p className="dog-info-breed">{dog.breed}</p>
+            {dog.dob && <p className="dog-info-age"><strong>{calcAge(dog.dob)}</strong><span className="dog-info-human-age">{humanYears(dog.dob)}</span></p>}
           </div>
           {dog.personality.length > 0 && (
-            <div className="dog-personality-tiles">
-              {dog.personality.map((p) => (<div key={p} className="dog-personality-tile"><span className="dog-tile-icon"><Icon name={PERSONALITY_ICONS[p] ?? "star"} size={18} /></span><span className="dog-tile-label">{p}</span></div>))}
+            <div className="dog-personality-cats">
+              {PERSONALITY_CATEGORIES.map(cat => {
+                const sel = cat.options.find(o => dog.personality.includes(o.key));
+                if (!sel) return null;
+                return (
+                  <div key={cat.id} className="dog-personality-cat-card">
+                    <div className="dog-personality-cat-img-wrap">
+                      <img src={sel.img} alt={sel.label}
+                        onError={(e) => {
+                          const img = e.target as HTMLImageElement;
+                          img.style.display = "none";
+                          const wrap = img.parentElement;
+                          if (wrap && !wrap.querySelector(".dog-pcat-fallback")) {
+                            const fb = document.createElement("span");
+                            fb.className = "dog-pcat-fallback";
+                            fb.textContent = "🐾";
+                            wrap.appendChild(fb);
+                          }
+                        }} />
+                    </div>
+                    <span className="dog-personality-cat-label">{sel.label}</span>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
@@ -1067,7 +1237,8 @@ const ExtraDogPanel: React.FC<{ dog: ExtraDog; onRemove: (id: string) => void; o
         <div className="dog-share-actions"><button className="dog-share-btn"><Icon name="link" size={14} /> Copy link</button><button className="dog-share-btn social"><Icon name="share" size={14} /> Share</button></div>
         <div className="dog-share-paws" aria-hidden="true">🐾 🐾 🐾</div>
       </div>
-      <DogDetailsSection dogName={dog.name} dogId={dog.id} />
+      <DogDetailsSection dogName={dog.name} dogId={dog.id} token={token} />
+      {editOpen && <EditDogModal dog={{ ...dog, isMain: false }} token={token} onSave={onDogUpdate} onClose={() => setEditOpen(false)} />}
     </div>
   );
 };
@@ -1082,17 +1253,23 @@ const AddDogRow: React.FC<{ onAdd: () => void }> = ({ onAdd }) => (
   </div>
 );
 
+// ─── Dog View ─────────────────────────────────────────────────────────────────
 
-const DogView: React.FC<{ dog: DogProfile | null; token: string; onDogUpdate: (d: DogProfile) => void; }> = ({ dog, token, onDogUpdate }) => {
-  const [editOpen, setEditOpen]   = useState(false);
-  const [uploading, setUploading] = useState(false);
+const DogView: React.FC<{
+  dog: DogProfile | null; allDogs: DogProfile[]; token: string;
+  onDogUpdate: (d: DogProfile) => void; onAllDogsUpdate: (dogs: DogProfile[]) => void;
+}> = ({ dog, allDogs, token, onDogUpdate, onAllDogsUpdate }) => {
+  const [editOpen,     setEditOpen]     = useState(false);
+  const [uploading,    setUploading]    = useState(false);
   const [copyFeedback, setCopyFeedback] = useState("");
-  const [extraDogs, setExtraDogs] = useState<ExtraDog[]>(() => loadExtraDogs());
-  const [addOpen, setAddOpen]     = useState(false);
+  const [addOpen,      setAddOpen]      = useState(false);
+
+  const extraDogs = allDogs.filter((d) => !d.isMain);
 
   const handleAvatarUpload = async (file: File) => {
-    if (!dog) return; setUploading(true);
-    try { const res = await uploadDogAvatar(token, file); onDogUpdate({ ...dog, avatarUrl: res.avatarUrl }); }
+    if (!dog) return;
+    setUploading(true);
+    try { const { avatarUrl } = await uploadDogAvatarById(token, dog.id, file); onDogUpdate({ ...dog, avatarUrl }); }
     catch (err) { console.error(err); }
     finally { setUploading(false); }
   };
@@ -1100,51 +1277,30 @@ const DogView: React.FC<{ dog: DogProfile | null; token: string; onDogUpdate: (d
   const handleCopyLink = async () => {
     if (!dog) return;
     try {
-      const profileUrl = `${window.location.origin}/dog/${dog.id}`;
-      await navigator.clipboard.writeText(profileUrl);
-      setCopyFeedback("✓ Copied!");
-      setTimeout(() => setCopyFeedback(""), 2000);
-    } catch (err) {
-      console.error("Failed to copy:", err);
-      setCopyFeedback("Failed to copy");
-      setTimeout(() => setCopyFeedback(""), 2000);
-    }
+      await navigator.clipboard.writeText(`${window.location.origin}/dog/${dog.id}`);
+      setCopyFeedback("✓ Copied!"); setTimeout(() => setCopyFeedback(""), 2000);
+    } catch { setCopyFeedback("Failed to copy"); setTimeout(() => setCopyFeedback(""), 2000); }
   };
 
   const handleShare = async () => {
     if (!dog) return;
-    const profileUrl = `${window.location.origin}/dog/${dog.id}`;
-    const shareText = `Check out ${dog.name}! 🐾`;
-
+    const url = `${window.location.origin}/dog/${dog.id}`;
     if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `${dog.name}'s Profile`,
-          text: shareText,
-          url: profileUrl,
-        });
-      } catch (err) {
-        console.log("Share cancelled:", err);
-      }
+      try { await navigator.share({ title: `${dog.name}'s Profile`, text: `Check out ${dog.name}! 🐾`, url }); }
+      catch { /* cancelled */ }
     } else {
-      try {
-        await navigator.clipboard.writeText(`${shareText} ${profileUrl}`);
-        setCopyFeedback("✓ Link copied to clipboard!");
-        setTimeout(() => setCopyFeedback(""), 2000);
-      } catch (err) {
-        console.error("Failed to copy:", err);
-      }
+      try { await navigator.clipboard.writeText(`Check out ${dog.name}! 🐾 ${url}`); setCopyFeedback("✓ Link copied!"); setTimeout(() => setCopyFeedback(""), 2000); }
+      catch { console.error("Copy failed"); }
     }
   };
 
-  const handleAddDog      = (newDog: ExtraDog) => { const updated = [...extraDogs, newDog]; setExtraDogs(updated); saveExtraDogs(updated); };
-  const handleRemoveDog   = (id: string) => { const updated = extraDogs.filter((d) => d.id !== id); setExtraDogs(updated); saveExtraDogs(updated); };
-  const handleExtraAvatar = (id: string, url: string) => { const updated = extraDogs.map((d) => d.id === id ? { ...d, avatarUrl: url } : d); setExtraDogs(updated); saveExtraDogs(updated); };
+  const handleAddDog       = (newDog: DogProfile) => onAllDogsUpdate([...allDogs, { ...newDog, isMain: false }]);
+  const handleRemoveDog    = async (id: string) => { try { await deleteExtraDog(token, id); onAllDogsUpdate(allDogs.filter((d) => d.id !== id)); } catch (err) { console.error(err); } };
+  const handleExtraAvatar  = async (dogId: string, file: File) => { try { const { avatarUrl } = await uploadDogAvatarById(token, dogId, file); onAllDogsUpdate(allDogs.map((d) => d.id === dogId ? { ...d, avatarUrl } : d)); } catch (err) { console.error(err); } };
+  const handleExtraUpdate  = (updated: DogProfile) => onAllDogsUpdate(allDogs.map((d) => d.id === updated.id ? updated : d));
 
   if (!dog) {
-    return (
-      <div className="db-view"><div className="db-placeholder"><Icon name="paw" size={40} /><p>No dog profile found. Add your dog in Settings!</p></div></div>
-    );
+    return <div className="db-view"><div className="db-placeholder"><Icon name="paw" size={40} /><p>No dog profile found. Add your dog in Settings!</p></div></div>;
   }
 
   return (
@@ -1153,40 +1309,60 @@ const DogView: React.FC<{ dog: DogProfile | null; token: string; onDogUpdate: (d
         <DogPhotoHero url={dog.avatarUrl} name={dog.name} onUpload={handleAvatarUpload} uploading={uploading} />
         <div className="dog-info-panel">
           <div className="dog-info-top">
-            <div>
-              <h1 className="dog-info-name">{dog.name}<span className="dog-info-gender">{dog.gender === "male" ? " ♂" : " ♀"}</span></h1>
-              <p className="dog-info-breed">{dog.breed}</p>
-              {dog.dob && <p className="dog-info-age"><strong>{calcAge(dog.dob)}</strong><span className="dog-info-human-age">{humanYears(dog.dob)}</span></p>}
-            </div>
             <button className="dog-info-edit-btn" onClick={() => setEditOpen(true)}><Icon name="edit" size={14} /> Edit</button>
-          </div>
-          <div className="dog-info-stage">
-            <span className={`dog-stage-badge stage-${dog.lifeStage}`}><Icon name="dogFace" size={15} /> {dog.lifeStage}</span>
-            {dog.dob && <span className="dog-birthday-pill">Birthday: {new Date(dog.dob).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>}
+            <h1 className="dog-info-name">{dog.name}<span className="dog-info-gender">{dog.gender === "male" ? " ♂" : " ♀"}</span></h1>
+            <p className="dog-info-breed">{dog.breed}</p>
+            {dog.dob && <p className="dog-info-age"><strong>{calcAge(dog.dob)}</strong><span className="dog-info-human-age">{humanYears(dog.dob)}</span></p>}
           </div>
           {dog.personality.length > 0 && (
-            <div className="dog-personality-tiles">
-              {dog.personality.map((p) => (<div key={p} className="dog-personality-tile"><span className="dog-tile-icon"><Icon name={PERSONALITY_ICONS[p] ?? "star"} size={18} /></span><span className="dog-tile-label">{p}</span></div>))}
+            <div className="dog-personality-cats">
+              {PERSONALITY_CATEGORIES.map(cat => {
+                const sel = cat.options.find(o => dog.personality.includes(o.key));
+                if (!sel) return null;
+                return (
+                  <div key={cat.id} className="dog-personality-cat-card">
+                    <div className="dog-personality-cat-img-wrap">
+                      <img src={sel.img} alt={sel.label}
+                        onError={(e) => {
+                          const img = e.target as HTMLImageElement;
+                          img.style.display = "none";
+                          const wrap = img.parentElement;
+                          if (wrap && !wrap.querySelector(".dog-pcat-fallback")) {
+                            const fb = document.createElement("span");
+                            fb.className = "dog-pcat-fallback";
+                            fb.textContent = "🐾";
+                            wrap.appendChild(fb);
+                          }
+                        }} />
+                    </div>
+                    <span className="dog-personality-cat-label">{sel.label}</span>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
       </div>
+
       <div className="dog-share-banner">
         <div className="dog-share-text"><h3 className="dog-share-title">Share {dog.name}'s profile</h3><p className="dog-share-sub">Show off your pup to friends and family!</p></div>
         <div className="dog-share-actions">
-          <button className="dog-share-btn" onClick={handleCopyLink} title="Copy profile link">
-            <Icon name="link" size={14} /> {copyFeedback || "Copy link"}
-          </button>
-          <button className="dog-share-btn social" onClick={handleShare} title="Share profile">
-            <Icon name="share" size={14} /> Share
-          </button>
+          <button className="dog-share-btn" onClick={handleCopyLink}><Icon name="link" size={14} /> {copyFeedback || "Copy link"}</button>
+          <button className="dog-share-btn social" onClick={handleShare}><Icon name="share" size={14} /> Share</button>
         </div>
         <div className="dog-share-paws" aria-hidden="true">🐾 🐾 🐾</div>
       </div>
-      <DogDetailsSection dogName={dog.name} />
-      {extraDogs.map((ed) => (<ExtraDogPanel key={ed.id} dog={ed} onRemove={handleRemoveDog} onAvatarUpdate={handleExtraAvatar} />))}
+
+      <DogDetailsSection dogName={dog.name} dogId={dog.id} token={token} />
+
+      {extraDogs.map((ed) => (
+        <ExtraDogPanel key={ed.id} dog={ed} token={token}
+          onRemove={handleRemoveDog} onAvatarUpdate={handleExtraAvatar} onDogUpdate={handleExtraUpdate} />
+      ))}
+
       <AddDogRow onAdd={() => setAddOpen(true)} />
-      {addOpen && <AddDogModal onSave={handleAddDog} onClose={() => setAddOpen(false)} />}
+      {addOpen && <AddDogModal token={token} onSave={handleAddDog} onClose={() => setAddOpen(false)} />}
+
       {Array.from(new Set([dog.lifeStage, ...extraDogs.map((d) => d.lifeStage)])).map((stage) => {
         const tips = CARE_TIPS[stage] ?? CARE_TIPS.adult;
         const stageLabel = stage === "puppy" ? "Puppies" : stage === "senior" ? "Senior Dogs" : "Adult Dogs";
@@ -1203,134 +1379,21 @@ const DogView: React.FC<{ dog: DogProfile | null; token: string; onDogUpdate: (d
           </div>
         );
       })}
-      {editOpen && <EditDogModal dog={dog} token={token} onSave={onDogUpdate} onClose={() => setEditOpen(false)} />}
-    </div>
-  );
-};
 
-// ─── Settings View ────────────────────────────────────────────────────────────
-const SettingsView: React.FC<{
-  user: UserProfile; dog: DogProfile | null; token: string;
-  onUpdate: (u: Partial<UserProfile>) => void; onDogUpdate: (d: DogProfile) => void;
-}> = ({ user, dog, token, onUpdate, onDogUpdate }) => {
-  const [modal, setModal] = useState<"user" | "dog" | "preferences" | null>(null);
-  const [uploadingUser, setUploadingUser] = useState(false);
-  const [uploadingDog, setUploadingDog]   = useState(false);
-
-  const handleUserAvatar = async (file: File) => {
-    setUploadingUser(true);
-    try { const res = await uploadUserAvatar(token, file); onUpdate({ avatarUrl: res.avatarUrl }); }
-    finally { setUploadingUser(false); }
-  };
-  const handleDogAvatar = async (file: File) => {
-    setUploadingDog(true);
-    try { const res = await uploadDogAvatar(token, file); if (dog) onDogUpdate({ ...dog, avatarUrl: res.avatarUrl }); }
-    finally { setUploadingDog(false); }
-  };
-
-  const lastUpdated = user.updatedAt
-    ? new Date(user.updatedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—";
-  const memberSince = user.createdAt
-    ? new Date(user.createdAt).toLocaleDateString("en-GB", { month: "long", year: "numeric" }) : "—";
-
-  const handleBioSave = (bio: string, profileComplete: number) => {
-    onUpdate({ bio, profileComplete });
-  };
-
-  return (
-    <div className="db-view settings-view">
-      <div className="settings-hero">
-        <div className="settings-hero-text">
-          <h1 className="settings-hero-title">Account Settings</h1>
-          <p className="settings-hero-sub">Member since {memberSince} · {user.email}</p>
-        </div>
-        <div className="settings-hero-avatar">
-          <AvatarUpload url={user.avatarUrl} name={user.name} size="lg" onUpload={handleUserAvatar} uploading={uploadingUser} />
-        </div>
-      </div>
-
-      <div className="settings-sections">
-        <div className="settings-section">
-          <div className="settings-section-label">Profile</div>
-          <div className="settings-card profile-settings-card">
-            <div className="settings-field-row">
-              <div className="settings-field-meta">
-                <span className="settings-field-title">Bio</span>
-                <span className="settings-field-hint">Shown to other BarkBuddy members</span>
-              </div>
-              <div className="settings-field-value bio-value">
-                <BioEditor bio={user.bio} token={token} onSave={handleBioSave} dog={dog} user={user} />
-              </div>
-            </div>
-            <div className="settings-field-row no-border">
-              <div className="settings-field-meta">
-                <span className="settings-field-title">Profile Completeness</span>
-                <span className="settings-field-hint">Fill in all details to unlock community features</span>
-              </div>
-              <div className="settings-field-value">
-                <div className="profile-complete-inline">
-                  <div className="profile-complete-bar">
-                    <div className="profile-complete-fill" style={{ width: `${user.profileComplete}%` }} />
-                  </div>
-                  <span className="profile-complete-pct">{user.profileComplete}%</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="settings-section">
-          <div className="settings-section-label">Account Info</div>
-          <div className="settings-card">
-            {[
-              { label: "Full Name", value: user.name,    hint: "Your display name"              },
-              { label: "Email",     value: user.email,   hint: "Used for login & notifications" },
-              { label: "Password",  value: "••••••••••", hint: "Last updated " + lastUpdated    },
-            ].map((row, i, arr) => (
-              <div key={row.label} className={`settings-field-row ${i === arr.length - 1 ? "no-border" : ""}`}>
-                <div className="settings-field-meta"><span className="settings-field-title">{row.label}</span><span className="settings-field-hint">{row.hint}</span></div>
-                <div className="settings-field-value"><span className="settings-field-current">{row.value}</span></div>
-              </div>
-            ))}
-            <div className="settings-card-footer">
-              <button className="settings-action-btn primary" onClick={() => setModal("user")}><Icon name="edit" size={14} /> Edit Account Info</button>
-            </div>
-          </div>
-        </div>
-
-        <div className="settings-section">
-          <div className="settings-section-label">Notifications &amp; Preferences</div>
-          <div className="settings-card">
-            <div className="settings-field-row no-border">
-              <div className="settings-field-meta">
-                <span className="settings-field-title">Email Notifications</span>
-                <span className="settings-field-hint">{user.emailNotifications ? "Receiving emails from BarkBuddy" : "Email notifications are off"}</span>
-              </div>
-              <div className="settings-field-value">
-                <span className={`settings-status-badge ${user.emailNotifications ? "active" : "inactive"}`}>{user.emailNotifications ? "On" : "Off"}</span>
-              </div>
-            </div>
-            <div className="settings-card-footer">
-              <button className="settings-action-btn" onClick={() => setModal("preferences")}>Manage Preferences</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {modal === "user"        && <EditUserModal    user={user} token={token} onSave={onUpdate}    onClose={() => setModal(null)} />}
-      {modal === "dog" && dog  && <EditDogModal     dog={dog}   token={token} onSave={onDogUpdate} onClose={() => setModal(null)} />}
-      {modal === "preferences" && <PreferencesModal user={user} token={token} onSave={onUpdate}    onClose={() => setModal(null)} />}
+      {editOpen && <EditDogModal dog={{ ...dog, isMain: true }} token={token} onSave={onDogUpdate} onClose={() => setEditOpen(false)} />}
     </div>
   );
 };
 
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
+
 const Dashboard: React.FC = () => {
   const { token, logout }           = useAuth();
   const [activeNav, setActiveNav]   = useState("home");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [user,    setUser]    = useState<UserProfile | null>(null);
   const [dog,     setDog]     = useState<DogProfile  | null>(null);
+  const [allDogs, setAllDogs] = useState<DogProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState("");
   const [notifications,  setNotifications]  = useState<AppNotification[]>([]);
@@ -1374,18 +1437,47 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     if (!token) return;
-    getProfile(token)
-      .then(({ user, dog }) => { setUser(user); setDog(dog); })
+    Promise.all([getProfile(token), getAllDogs(token)])
+      .then(([profileRes, dogsRes]) => {
+        setUser(profileRes.user);
+
+        // getAllDogs is the source of truth — it has is_main from the DB.
+        // profileRes.dog is a fallback only if getAllDogs returns nothing.
+        const dogs: DogProfile[] = dogsRes.dogs ?? [];
+
+        if (dogs.length > 0) {
+          // Ensure exactly one dog is flagged isMain.
+          // Priority: DB is_main flag → first dog in list (sorted main-first by query).
+          const hasMain = dogs.some((d: any) => d.isMain);
+          const merged  = hasMain
+            ? dogs
+            : dogs.map((d: any, i: number) => ({ ...d, isMain: i === 0 }));
+
+          const mainDog = merged.find((d) => d.isMain) ?? merged[0];
+          setDog({ ...mainDog, isMain: true });
+          setAllDogs(merged);
+        } else if (profileRes.dog) {
+          // Fallback: getAllDogs returned nothing, use profile dog
+          setDog({ ...profileRes.dog, isMain: true });
+          setAllDogs([{ ...profileRes.dog, isMain: true }]);
+        } else {
+          setDog(null);
+          setAllDogs([]);
+        }
+      })
       .catch(() => setError("Failed to load profile"))
       .finally(() => setLoading(false));
   }, [token]);
 
-  const handleUserUpdate = (updated: Partial<UserProfile>) => setUser((p) => p ? { ...p, ...updated } : p);
-  const handleDogUpdate  = (updated: DogProfile) => {
+  const handleUserUpdate  = (updated: Partial<UserProfile>) => setUser((p) => p ? { ...p, ...updated } : p);
+  const handleAllDogsUpdate = (dogs: DogProfile[]) => setAllDogs(dogs);
+  const handleLogout      = () => { logout(); window.location.href = "/"; };
+
+  const handleDogUpdate = (updated: DogProfile) => {
     setDog(updated);
+    setAllDogs((prev) => prev.map((d) => d.id === updated.id ? { ...updated, isMain: true } : d));
     setUser((u) => u ? { ...u, profileComplete: calcProfileComplete(u, updated) } : u);
   };
-  const handleLogout = () => { logout(); window.location.href = "/"; };
 
   const handleViewForumPost = (postId: string) => {
     setForumPostId(postId);
@@ -1394,11 +1486,8 @@ const Dashboard: React.FC = () => {
   };
 
   const labels: Record<string, string> = {
-    home:     "Dashboard",
-    settings: "Settings",
-    dog:      "My Dog",
-    calendar: "Buddy Calendar",
-    forum:    "Community Forum",
+    home: "Dashboard", settings: "Settings", dog: "My Dog",
+    calendar: "Buddy Calendar", forum: "Community Forum",
   };
 
   if (loading) return <div className="dashboard-loading"><div className="auth-loading-spinner" /></div>;
@@ -1406,52 +1495,82 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="dashboard">
-      <TopBar user={user} label={labels[activeNav] ?? "Dashboard"} unreadCount={unreadCount}
-        notifOpen={notifOpen} onMenuOpen={() => setDrawerOpen(true)} onToggleNotif={() => setNotifOpen(p => !p)} />
+      <TopBar
+        user={user}
+        label={labels[activeNav] ?? "Dashboard"}
+        unreadCount={unreadCount}
+        notifOpen={notifOpen}
+        onMenuOpen={() => setDrawerOpen(true)}
+        onToggleNotif={() => setNotifOpen(p => !p)}
+      />
 
       {notifOpen && (
-        <NotificationsPanel notifications={notifications} loading={notifLoading}
-          onClose={() => setNotifOpen(false)} onMarkAllRead={handleMarkAllRead} onClickNotif={handleClickNotif} />
+        <NotificationsPanel
+          notifications={notifications}
+          loading={notifLoading}
+          onClose={() => setNotifOpen(false)}
+          onMarkAllRead={handleMarkAllRead}
+          onClickNotif={handleClickNotif}
+        />
       )}
 
       <div className="db-body">
-        <Sidebar active={activeNav} onNav={setActiveNav} onLogout={handleLogout} />
+        {/* ── Sidebar — imported from ./Sidebar ── */}
+        <Sidebar
+          active={activeNav}
+          onNav={setActiveNav}
+          onLogout={handleLogout}
+          userAvatar={user.avatarUrl}
+          userName={user.name}
+        />
+
         <main className="db-content" id="main-content" tabIndex={-1}>
 
           {activeNav === "home" && token && (
             <DashboardView
-              user={user}
-              dog={dog}
-              token={token}
-              onNav={setActiveNav}
-              onViewForumPost={handleViewForumPost}
+              user={user} dog={dog} allDogs={allDogs} token={token}
+              onNav={setActiveNav} onViewForumPost={handleViewForumPost}
             />
           )}
 
+          {/* ── SettingsView — imported from ./SettingsView ── */}
           {activeNav === "settings" && token && (
-            <SettingsView user={user} dog={dog} token={token} onUpdate={handleUserUpdate} onDogUpdate={handleDogUpdate} />
+            <SettingsView
+              user={user} dog={dog} dogs={allDogs} token={token}
+              onUpdate={handleUserUpdate} onDogUpdate={handleDogUpdate} onNav={setActiveNav}
+            />
           )}
 
           {activeNav === "dog" && token && (
-            <DogView dog={dog} token={token} onDogUpdate={handleDogUpdate} />
+            <DogView
+              dog={dog} allDogs={allDogs} token={token}
+              onDogUpdate={handleDogUpdate} onAllDogsUpdate={handleAllDogsUpdate}
+            />
           )}
 
           {activeNav === "calendar" && (
-            <div className="db-view"><BuddyCalendar dogName={dog?.name} /></div>
+            <div className="db-view"><BuddyCalendar dogName={dog?.name} allDogs={allDogs} /></div>
           )}
 
           {activeNav === "forum" && (
             <div className="db-view">
-              <CommunityForum initialPostId={forumPostId} initialCommentId={forumCommentId}
-                onDeepLinkConsumed={() => { setForumPostId(null); setForumCommentId(null); }} />
+              <CommunityForum
+                initialPostId={forumPostId}
+                initialCommentId={forumCommentId}
+                onDeepLinkConsumed={() => { setForumPostId(null); setForumCommentId(null); }}
+                userAvatar={user?.avatarUrl}
+                userName={user?.name}
+              />
             </div>
           )}
 
         </main>
       </div>
 
-      <MobileDrawer open={drawerOpen} active={activeNav} onNav={setActiveNav}
-        onClose={() => setDrawerOpen(false)} onLogout={handleLogout} user={user} />
+      <MobileDrawer
+        open={drawerOpen} active={activeNav} onNav={setActiveNav}
+        onClose={() => setDrawerOpen(false)} onLogout={handleLogout} user={user}
+      />
     </div>
   );
 };

@@ -3,110 +3,112 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-// Page Shell 
+// ANIMATIONS
+@keyframes rbSpin    { to { transform: rotate(360deg); } }
+@keyframes rbReveal  { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes rbFadeIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes rbSlideIn { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes rbPop     { from { transform: scale(0.88); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes shimmer {
+  from { background-position: -400px 0; }
+  to   { background-position:  400px 0; }
+}
+
+// Page shell
 .rb-page {
   min-height: 100dvh;
   background-color: $twilight-purple;
   font-family: $font-secondary;
   @include relative;
-  overflow: hidden !important;
+  overflow-x: hidden;
 
-  // Subtle noise texture
   &::before {
     content: '';
     position: fixed;
     inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-    background-size: 200px 200px;
+    background-image: radial-gradient(circle, rgba($soft-pearl, 0.04) 1px, transparent 1px);
+    background-size: 28px 28px;
     pointer-events: none;
     z-index: 0;
-    opacity: 0.5;
   }
 }
-// Hero — split panel
+
+// Hero - step 0
 .rb-hero {
+  @include relative;
+  z-index: 1;
   min-height: 100dvh;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  @include relative;
-   overflow: hidden !important;
+  grid-template-columns: 1fr;
 
-  @media (max-width: $bp-laptop) {
-    grid-template-columns: 1fr;
-    min-height: auto;
+  @media (min-width: $bp-laptop) {
+    grid-template-columns: 1fr 1fr;
   }
 }
 
-// Left panel - dark 
 .rb-hero__left {
   background-color: $twilight-purple;
-  padding: clamp(3rem, 6vw, 5rem) clamp(2rem, 4vw, 4.5rem);
   @include column;
-  @include flex-between;
   @include relative;
   overflow: hidden;
   z-index: 1;
+  min-height: 280px;
 
-  @media (max-width: $bp-laptop) { padding: $space-xxl $space-xl; }
-  @media (max-width: $bp-mobile) { padding: $space-xl $space-lg;  }
+  @media (min-width: $bp-tablet) {
+    padding: $space-xs $space-xl;
+  }
+
+  @media (min-width: $bp-laptop) {
+    padding: $space-xs $space-xl;
+    min-height: 100dvh;
+  }
+
+  &::before {
+    content: '';
+    @include absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 65% 55% at 15% 15%, rgba($serene-purple, 0.22) 0%, transparent 70%),
+      radial-gradient(ellipse 45% 55% at 85% 85%, rgba($gentle-amethyst, 0.14) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  &::after {
+    content: '';
+    @include absolute;
+    top: 0; right: -48px;
+    width: 96px; height: 100%;
+    background: $twilight-purple;
+    transform: skewX(-3deg);
+    z-index: 2;
+    display: none;
+
+    @media (min-width: $bp-laptop) { display: block; }
+  }
 }
 
-// Diagonal slice right edge
-.rb-hero__left::after {
-  content: '';
-  @include absolute;
-  top: 0;
-  right: -48px;
-  width: 96px;
-  height: 100%;
-  background: $twilight-purple;
-  transform: skewX(-3deg);
-  z-index: 2;
-
-  @media (max-width: $bp-laptop) { display: none; }
-}
-
-// Radial glow behind copy
-.rb-hero__left::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(ellipse 65% 55% at 15% 15%, rgba($serene-purple, 0.22) 0%, transparent 70%),
-    radial-gradient(ellipse 45% 55% at 85% 85%, rgba($gentle-amethyst, 0.14) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-}
-
-// Right panel — white, actionable
-.rb-hero__right {
-  background-color: $soft-pearl;
-  padding: clamp(3rem, 6vw, 5rem) clamp(2rem, 4vw, 4.5rem);
-  @include flex-column;
-  @include relative;
-  z-index: 0;
-
-  @media (max-width: $bp-laptop) { padding: $space-xxl $space-xl; }
-  @media (max-width: $bp-mobile) { padding: $space-xl $space-lg;  }
-}
-
-// Main copy 
 .rb-hero__copy {
   @include relative;
   z-index: 1;
-  flex: 1;
-  @include flex-column;
-  margin-top: 20%;
+  margin: 0 auto;
+  @include column;
+  justify-content: center;
+  animation: rbReveal 0.7s 0.1s ease both;
+
+  @media (min-width: $bp-laptop) { margin-top: 15%; }
 }
 
 .rb-hero__title {
   font-family: $font-primary;
-  font-size: clamp(2.4rem, 5vw, 3.8rem);
+  font-size: clamp(2rem, 7vw, 3.8rem);
   font-weight: $fw-regular;
   color: $soft-pearl;
   letter-spacing: 0.02em;
-  line-height: 1.05;
-  margin-bottom: $space-xl;
+  line-height: $lh-tight;
+  margin-bottom: $space-xs;
+  text-align: center;
+
+  @media (min-width: $bp-tablet) { margin-bottom: $space-xl; }
 
   em {
     font-style: normal;
@@ -116,112 +118,83 @@
 
 .rb-hero__sub {
   font-family: $font-secondary;
-  font-size: clamp(0.9rem, 1.4vw, 1rem);
+  font-size: clamp(0.85rem, 1.4vw, 1rem);
   color: rgba($misty-lavender, 0.55);
-  line-height: 1.85;
-  max-width: 360px;
+  line-height: $lh-loose;
+  max-width: 380px;
+  text-align: center;
 }
 
-// Trust stats strip 
-.rb-hero__stats {
+.biz-login__home-link {
   @include relative;
   z-index: 1;
-  display: flex;
-  gap: $space-xl;
-  padding-top: $space-xl;
-  border-top: 1px solid rgba($misty-lavender, 0.1);
-}
-
-.rb-hero__stat {
-  @include column;
-  gap: 3px;
-}
-
-.rb-hero__stat-num {
-  font-family: $font-primary;
-  font-size: clamp(1.4rem, 2.5vw, 2rem);
-  color: $soft-pearl;
-  letter-spacing: 0.01em;
-  line-height: 1;
-}
-
-.rb-hero__stat-label {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-xs;
   font-family: $font-secondary;
-  font-size: $t-body-mob;
-  color: rgba($misty-lavender, 0.4);
-  letter-spacing: 0.03em;
-  line-height: 1.4;
+  font-size: $t-body-des;
+  color: rgba($misty-lavender, 0.35);
+  text-decoration: none;
+  transition: color 0.2s;
+  margin: $space-4xl auto;
+  align-self: flex-start;
+
+  @media (min-width: $bp-laptop) { margin-top: 0; }
+
+  svg { flex-shrink: 0; }
+  &:hover { color: rgba($misty-lavender, 0.7); }
 }
 
-// Right panel heading 
+.rb-hero__right {
+  background-color: $soft-pearl;
+  padding: $space-md $space-lg;
+  @include column;
+  @include relative;
+  z-index: 0;
+
+  @media (min-width: $bp-tablet) {
+    padding: $space-sm $space-xl;
+  }
+
+  @media (min-width: $bp-laptop) {
+    padding: $space-xl $space-xl;
+  }
+}
+
 .rb-hero__right-heading {
   font-family: $font-primary;
-  font-size: clamp(1.15rem, 2vw, 1.5rem);
+  font-size: $t-tit-des;
   font-weight: $fw-regular;
   color: $twilight-purple;
   letter-spacing: 0.02em;
   margin-bottom: $space-xl;
-  line-height: 1.3;
+  line-height: 1.1;
+  animation: rbReveal 0.7s 0.2s ease both;
 }
 
-.rb-hero__login {
-  margin-top: $space-xl;
-  @include column;
-  gap: $space-md;
-  flex-wrap: wrap;
-
-  p {
-    font-size: $t-body-des;
-    color: rgba($twilight-purple, 0.5);
-    margin: 0;
-  }
-}
-
-.rb-hero__login-btn {
-  @include flex-center;
-  background: $twilight-purple;
-  color: $soft-pearl;
-  @include text-none;
-  font-family: $font-secondary;
-  font-size: $t-body-des;
-  font-weight: $fw-bold;
-  padding: $space-sm $space-lg;
-  border-radius: $radius-md;
-  text-align: center;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-  min-height: 40px;
-
-  &:hover {
-    background: darken($twilight-purple, 8%);
-    transform: translateY(-1px);
-    box-shadow: $shadow-md;
-    color: $gentle-amethyst;
-  }
-}
-
-// Category Cards 
 .rb-cat-grid {
   @include column;
   gap: $space-md;
   margin-bottom: $space-xl;
   width: 100%;
+  animation: rbReveal 0.7s 0.25s ease both;
 }
 
 .rb-cat-card {
   @include center;
-  gap: $space-lg;
-  padding: $space-xl;
-  background: #fff;
+  gap: $space-md;
+  padding: $space-lg;
+  background: $soft-pearl;
   border: 1.5px solid rgba($twilight-purple, 0.1);
   border-radius: $radius-lg;
-  cursor: pointer;
+  @include cursor;
   text-align: left;
   transition: all 0.22s ease;
   @include relative;
   overflow: hidden;
 
-  // Coloured accent bar on the left
+  @media (min-width: $bp-tablet) { padding: $space-xl; gap: $space-lg; }
+
   &::before {
     content: '';
     @include absolute;
@@ -236,40 +209,32 @@
 
   &:hover {
     border-color: rgba($twilight-purple, 0.18);
-    box-shadow: $shadow-lg;
-    transform: translateX(5px);
+    box-shadow: 0 8px 32px rgba($twilight-purple, 0.12);
+    transform: translateX(4px);
 
     &::before { width: 6px; }
-
     .rb-cat-card__arrow svg { transform: translateX(3px); }
   }
-
-  @media (max-width: $bp-mobile) { padding: $space-lg; gap: $space-md; }
 }
 
 .rb-cat-card__icon {
   flex-shrink: 0;
-  width: 56px; height: 56px;
+  width: 60px; height: 60px;
   border-radius: $radius-md;
   @include flex-center;
   padding: $space-xs;
 
-  .rb-cat-card--activities & { background: rgba($serene-purple, 0.09); }
-  .rb-cat-card--services   & { background: rgba($gentle-amethyst, 0.12); }
+  @media (min-width: $bp-tablet) { width: 150px; height: 150px; }
 
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    display: block;
-  }
+
+  img { width: 100%; height: 100%; object-fit: cover; display: block; }
 }
 
 .rb-cat-card__body { flex: 1; min-width: 0; }
 
 .rb-cat-card__title {
   font-family: $font-primary;
-  font-size: $t-link-des;
+  font-size: $t-sub-des;
   font-weight: $fw-regular;
   color: $twilight-purple;
   letter-spacing: 0.02em;
@@ -280,22 +245,25 @@
 .rb-cat-card__desc {
   font-size: $t-body-des;
   color: rgba($twilight-purple, 0.5);
-  line-height: 1.55;
+  line-height: $lh-normal;
   margin-bottom: $space-sm;
+  display: none;
+
+  @media (min-width: 400px) { display: block; }
 }
 
 .rb-cat-card__tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: 4px;
 
   span {
-    font-size: $t-body-mob;
+    font-size: 0.65rem;
     font-weight: $fw-medium;
     color: rgba($twilight-purple, 0.4);
     background: rgba($twilight-purple, 0.05);
     border: 1px solid rgba($twilight-purple, 0.1);
-    padding: 2px 8px;
+    padding: 2px 7px;
     border-radius: $radius-lg;
     letter-spacing: 0.02em;
   }
@@ -303,9 +271,11 @@
 
 .rb-cat-card__arrow {
   flex-shrink: 0;
-  width: 32px; height: 32px;
+  width: 30px; height: 30px;
   border-radius: 50%;
   @include flex-center;
+
+  @media (min-width: $bp-tablet) { width: 32px; height: 32px; }
 
   .rb-cat-card--activities & { background: rgba($serene-purple, 0.08); }
   .rb-cat-card--services   & { background: rgba($gentle-amethyst, 0.1); }
@@ -320,82 +290,132 @@
   .rb-cat-card--services   & svg { stroke: $gentle-amethyst; }
 }
 
+.rb-hero__login {
+  @include column;
+  gap: $space-sm;
+  animation: rbReveal 0.7s 0.35s ease both;
 
-// Two-column Form Layout
-.rb-layout {
-  display: grid;
-  grid-template-columns: 500px 1fr;
-  min-height: 100dvh;
-  @include relative;
-  z-index: 1;
+  @media (min-width: $bp-tablet) {
+    flex-direction: row;
+    align-items: center;
+    gap: $space-md;
+  }
 
-  @media (max-width: $bp-laptop) { grid-template-columns: 1fr; }
+  p {
+    font-size: $t-body-des;
+    color: rgba($twilight-purple, 0.5);
+    margin: 0;
+  }
 }
 
-// Sidebar 
+.rb-hero__login-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: $twilight-purple;
+  color: $soft-pearl;
+  text-decoration: none;
+  font-family: $font-secondary;
+  font-size: $t-body-des;
+  font-weight: $fw-bold;
+  padding: $space-sm $space-lg;
+  border-radius: $radius-md;
+  text-align: center;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  min-height: 40px;
+
+  &:hover {
+    background: darken($twilight-purple, 8%);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba($twilight-purple, 0.25);
+    color: $gentle-amethyst;
+  }
+}
+
+// Form layout
+.rb-layout {
+  @include relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr;
+  min-height: 100dvh;
+
+  @media (min-width: $bp-laptop) {
+    grid-template-columns: 300px 1fr;
+  }
+
+  @media (min-width: 1200px) {
+    grid-template-columns: 340px 1fr;
+  }
+}
+
+// SIDEBAR
 .rb-sidebar {
   background: $twilight-purple;
   border-right: 1px solid rgba($misty-lavender, 0.08);
-  position: sticky;
-  top: 0;
-  height: 100dvh;
-  overflow-y: visible;
-
-  // Subtle radial glow for depth
   background-image: radial-gradient(
     ellipse 80% 60% at 10% 10%,
-    rgba($serene-purple, 0.14) 0%,
-    transparent 70%
+    rgba($serene-purple, 0.14) 0%, transparent 70%
   );
 
-  @media (max-width: $bp-laptop) {
-    position: static;
-    height: auto;
-    border-right: none;
-    border-bottom: 1px solid rgba($misty-lavender, 0.08);
+  @media (min-width: $bp-laptop) {
+    position: sticky;
+    top: 0;
+    height: 100dvh;
+    overflow: hidden;          
+    border-right: 1px solid rgba($misty-lavender, 0.08);
   }
 }
 
 .rb-sidebar__inner {
-  padding: $space-xxl $space-xl;
-  @include column;
-  gap: $space-xxl;
-  min-height: 100%;
+  padding: $space-lg $space-md;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: $space-lg;
 
-  @media (max-width: $bp-laptop) {
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: flex-start;
+  @media (min-width: $bp-tablet) {
     padding: $space-xl;
     gap: $space-xl;
   }
 
-  @media (max-width: $bp-tablet) {
-    padding: $space-lg;
+  @media (min-width: $bp-laptop) {
+    @include column;
+    flex-wrap: nowrap;
+    padding: $space-xl $space-lg;  
     gap: $space-lg;
+    height: 100%;
   }
 }
 
-// Category badge
 .rb-sidebar__category {
   @include center;
   gap: $space-md;
-  padding: $space-md $space-lg;
-  border-bottom: 1px solid rgba($misty-lavender, 0.2);
-  border-radius: $radius-lg;
+  padding: $space-sm $space-md;
+  border-bottom: 1px solid rgba($misty-lavender, 0.15);
+  border-radius: $radius-md;
+  flex-shrink: 0;
+
+  @media (min-width: $bp-laptop) {
+    padding: $space-sm $space-md; 
+    border-bottom-width: 1px;
+  }
 }
 
 .rb-sidebar__cat-img {
   flex-shrink: 0;
-  width: 44px; height: 44px;
+  width: 36px; height: 36px;
   background: rgba($misty-lavender, 0.1);
   border-radius: $radius-md;
   @include flex-center;
-  padding: 6px;
+  padding: 5px;
+
+  @media (min-width: $bp-laptop) { width: 36px; height: 36px; }  // keep compact
 
   img {
-    width: 100%;
-    height: 100%;
+    width: 100%; height: 100%;
     object-fit: contain;
     display: block;
     filter: brightness(1.1) drop-shadow(0 1px 3px rgba(0,0,0,0.25));
@@ -404,7 +424,7 @@
 
 .rb-sidebar__cat-label {
   font-family: $font-secondary;
-  font-size: $t-body-mob;
+  font-size: 0.6rem;
   font-weight: $fw-bold;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -416,13 +436,14 @@
   font-size: $t-body-des;
   font-weight: $fw-medium;
   color: $soft-pearl;
-  margin-top: 3px;
+  margin-top: 2px;
 }
 
-// Step Indicator
 .rb-steps {
+  margin-top: $space-xl;
   @include column;
   gap: 0;
+  flex-shrink: 0;
 }
 
 .rb-step {
@@ -430,23 +451,27 @@
   gap: $space-md;
 
   &__node {
-    width: 32px; height: 32px;
-    border-radius: 50%;
+    width: 28px; height: 28px;
+    border-radius: $radius-round;
     background: rgba($misty-lavender, 0.1);
     border: 1.5px solid rgba($misty-lavender, 0.2);
     @include flex-center;
-    font-size: $t-body-mob;
+    font-size: 0.72rem;
     font-weight: $fw-bold;
     color: rgba($misty-lavender, 0.4);
     flex-shrink: 0;
     transition: all 0.3s ease;
+
+    @media (min-width: $bp-laptop) { width: 32px; height: 32px; font-size: $t-body-mob; }
   }
+
   &__label {
     font-family: $font-secondary;
     font-size: $t-body-des;
     font-weight: $fw-medium;
     color: rgba($misty-lavender, 0.45);
     transition: color 0.3s ease;
+    white-space: nowrap;
   }
 
   &--active {
@@ -471,17 +496,24 @@
 
 .rb-step__line {
   width: 1.5px;
-  height: 28px;
+  height: 22px;
   background: rgba($misty-lavender, 0.12);
-  margin-left: 15px;
+  margin-left: 13px;
   transition: background 0.3s ease;
+
+  @media (min-width: $bp-laptop) { height: 18px; margin-left: 15px; }  // shorter connector
 
   &--done { background: #059669; }
 }
 
-// Sidebar Perks
 .rb-sidebar__perks {
-  @media (max-width: $bp-laptop) { flex: 1; }
+  margin-top: $space-md;
+  display: none;
+
+  @media (min-width: $bp-laptop) {
+    display: block;
+    flex: 1;
+  }
 
   &-title {
     font-family: $font-secondary;
@@ -496,18 +528,18 @@
   ul {
     list-style: none;
     @include column;
-    gap: 2px;
+    gap: 0;                     
   }
 
   li {
     @include center;
-    gap: $space-md;
-    padding: $space-sm $space-md;
+    gap: $space-sm;
+    padding: 5px $space-sm;    
     border-radius: $radius-md;
     font-family: $font-secondary;
-    font-size: $t-body-des;
+    font-size: $t-but-des;          
     color: rgba($misty-lavender, 0.6);
-    line-height: $lh-normal;
+    line-height: $lh-tight;
     transition: background 0.2s, color 0.2s;
 
     &:hover {
@@ -518,12 +550,12 @@
 }
 
 .rb-sidebar__perk-icon {
-  width: 30px; height: 30px;
+  width: 22px; height: 22px;
   background: rgba($misty-lavender, 0.07);
   border-radius: $radius-sm;
   @include flex-center;
   flex-shrink: 0;
-  padding: 4px;
+  padding: 3px;
 
   img {
     width: 100%; height: 100%;
@@ -533,14 +565,16 @@
   }
 }
 
-// Sidebar Footer 
 .rb-sidebar__footer {
-  margin-top: auto;
-  padding-top: $space-xl;
-  border-top: 1px solid rgba($misty-lavender, 0.2);
-  border-radius: $radius-md;
   @include column;
-  gap: $space-md;
+  gap: $space-sm;
+
+  @media (min-width: $bp-laptop) {
+    margin-top: auto;
+    padding-top: $space-md;   
+    border-top: 1px solid rgba($misty-lavender, 0.15);
+    gap: $space-xs;
+  }
 }
 
 .rb-sidebar__change {
@@ -548,16 +582,15 @@
   align-items: center;
   gap: $space-xs;
   @include none;
+  @include cursor;
   font-family: $font-secondary;
   font-size: $t-body-des;
   color: rgba($misty-lavender, 0.35);
-  cursor: pointer;
   padding: 0;
   text-align: left;
   transition: color 0.2s;
 
   svg { flex-shrink: 0; }
-
   &:hover { color: rgba($misty-lavender, 0.7); }
 }
 
@@ -565,7 +598,7 @@
   font-family: $font-secondary;
   font-size: $t-body-mob;
   color: rgba($misty-lavender, 0.25);
-  line-height: 1.5;
+  line-height: $lh-normal;
 
   a {
     color: rgba($serene-purple, 0.6);
@@ -575,7 +608,7 @@
   }
 }
 
-// Main Form Area 
+// MAIN FORM AREA
 .rb-main {
   background: $soft-pearl;
   min-height: 100dvh;
@@ -583,60 +616,83 @@
 }
 
 .rb-main__inner {
-  max-width: 740px;
-  padding: $space-xxl $space-xxl 8rem;
+  max-width: 1000px;
+  padding: $space-xl $space-md clamp(5rem, 10vh, 8rem);
 
-  @media (max-width: $bp-tablet) { padding: $space-xl $space-xl 6rem; }
-  @media (max-width: $bp-mobile) { padding: $space-xl $space-lg 5rem; }
+  @media (min-width: $bp-tablet) {
+    padding: $space-xxl $space-xl clamp(5rem, 10vh, 8rem);
+  }
+
+  @media (min-width: $bp-laptop) {
+    padding: $space-xxl $space-xxl clamp(5rem, 10vh, 8rem);
+  }
 }
 
-.rb-main__header { margin-bottom: $space-xxl; }
+.rb-main__header {
+  margin-bottom: $space-xl;
+  animation: rbReveal 0.5s 0.1s ease both;
+
+  @media (min-width: $bp-tablet) { margin-bottom: $space-xxl; }
+}
 
 .rb-main__title {
   font-family: $font-primary;
-  font-size: clamp(1.7rem, 3vw, 2.3rem);
+  font-size: $t-tit-des;
   font-weight: $fw-regular;
   color: $text-color-dark;
   letter-spacing: 0.03em;
   margin-bottom: $space-md;
-  line-height: 1.15;
+  line-height: $lh-loose;
 }
 
 .rb-main__sub {
-  font-size: $t-body-des;        
-  color: #7c7c99;
-  line-height: 1.7;
+  font-size: $t-body-des;
+  color: rgba($twilight-purple, 0.45);
+  line-height: $lh-loose;
 }
 
-// Section Blocks 
+// FORM SECTIONS
 .rb-form-section {
   @include column;
-  gap: $space-xxl;
+  gap: $space-xl;
+  animation: rbReveal 0.5s 0.15s ease both;
+
+  @media (min-width: $bp-tablet) { gap: $space-xxl; }
 }
 
 .rb-section-block {
   @include column;
   gap: $space-lg;
+  padding: $space-lg;
+  background: rgba($misty-lavender, 0.12);
+  border: 1.5px solid rgba($twilight-purple, 0.07);
+  border-radius: $radius-lg;
+  box-shadow: 0 2px 12px rgba($twilight-purple, 0.04);
+
+  @media (min-width: $bp-tablet) { padding: $space-xl; }
 }
 
 .rb-section-heading {
-  font-family: $font-primary;
-  font-size: $t-body-mob;
+  font-family: $font-secondary;
+  font-size: 0.85rem;
   font-weight: $fw-bold;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba($twilight-purple, 0.55);
+  color: rgba($twilight-purple, 0.45);
   padding-bottom: $space-sm;
-  border-bottom: 1px solid rgba($twilight-purple, 0.1);
+  border-bottom: 1px solid rgba($twilight-purple, 0.08);
 }
 
-// Field Layout 
+// Form fields
 .rb-field-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: $space-lg;
+  grid-template-columns: 1fr;
+  gap: $space-md;
 
-  @media (max-width: $bp-mobile) { grid-template-columns: 1fr; }
+  @media (min-width: 520px) {
+    grid-template-columns: 1fr 1fr;
+    gap: $space-lg;
+  }
 }
 
 .rb-field {
@@ -654,27 +710,27 @@
 
 .rb-optional {
   font-weight: $fw-regular;
-  color: rgba($twilight-purple, 0.45);
+  color: rgba($twilight-purple, 0.4);
 }
 
-// Inputs 
 .rb-input {
   width: 100%;
   padding: $space-md $space-lg;
-  border: 1.5px solid rgba($twilight-purple, 0.2);
+  border: 1.5px solid rgba($twilight-purple, 0.15);
   border-radius: $radius-md;
   font-family: $font-secondary;
-  font-size: $t-body-des; 
+  font-size: $t-forgot-des;
   color: $text-color-dark;
   background: #fff;
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
   min-height: 48px;
 
+  @media (min-width: $bp-tablet) { font-size: $t-body-des; }
+
   &::placeholder {
-    color: rgba($twilight-purple, 0.3);
+    color: rgba($twilight-purple, 0.28);
     font-style: italic;
-    font-size: $t-body-des;
   }
 
   &:focus {
@@ -693,82 +749,99 @@
   @extend .rb-input;
   resize: vertical;
   min-height: 96px;
-  line-height: 1.6;
+  line-height: 1.65;
 }
 
-// Password Field 
 .rb-pw-wrap {
   @include relative;
+
   .rb-input { padding-right: 3rem; }
 }
 
 .rb-pw-eye {
+  @include absolute;
   right: $space-md;
   top: 50%;
   transform: translateY(-50%);
+  @include cursor;
   @include none;
-  cursor: pointer;
   color: rgba($twilight-purple, 0.35);
   @include center;
-  @include absolute;
-  transition: color 0.2s;
   padding: $space-xs;
+  transition: color 0.2s;
 
   &:hover { color: $serene-purple; }
 }
 
-// Field Error 
 .rb-field-error {
-  @include center;
+  display: inline-flex;
+  align-items: center;
   gap: $space-xs;
   font-family: $font-secondary;
-  font-size: $t-body-des;
+  font-size: 0.78rem;
   font-weight: $fw-medium;
   color: #dc2626;
-  line-height: 1.4;
+  line-height: $lh-tight;
 }
 
-// Type Chip Grid 
+// TYPE CHIP GRID
 .rb-type-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: $space-sm;
   margin-top: $space-sm;
 
-  @media (max-width: $bp-tablet) { grid-template-columns: repeat(3, 1fr); }
-  @media (max-width: $bp-mobile) { grid-template-columns: repeat(2, 1fr); }
+  @media (min-width: 480px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @media (min-width: $bp-tablet) {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 .rb-type-chip {
   @include column;
-  align-items: flex-start;
-  gap: 4px;
-  padding: $space-md;
-  background: rgba($twilight-purple, 0.04);
-  border: 1.5px solid rgba($twilight-purple, 0.14);
+  @include center;              
+  gap: $space-xs;
+  padding: $space-md $space-sm;
+  background: rgba($twilight-purple, 0.03);
+  border: 1.5px solid rgba($twilight-purple, 0.12);
   border-radius: $radius-md;
-  cursor: pointer;
-  text-align: left;
+  @include cursor;
+  text-align: center;
   transition: all 0.2s ease;
   font-family: $font-secondary;
-  min-height: 80px;
+  min-height: 120px;               
+
+  @media (min-width: $bp-tablet) {
+    padding: $space-lg $space-md;
+    min-height: 136px;
+  }
 
   &:hover {
     background: rgba($serene-purple, 0.07);
     border-color: rgba($serene-purple, 0.35);
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba($twilight-purple, 0.1);
   }
 
   &--selected {
     background: rgba($serene-purple, 0.09);
     border-color: $serene-purple;
-    box-shadow: 0 0 0 3px rgba($serene-purple, 0.1);
+    box-shadow: 0 0 0 3px rgba($serene-purple, 0.12);
   }
 
+  // Icon — much bigger now 
   &__icon {
-    width: 28px; height: 28px;
+    width: 56px; height: 56px;       
     @include flex-center;
     flex-shrink: 0;
+    margin-bottom: $space-xs;
+
+    @media (min-width: $bp-tablet) {
+      width: 64px; height: 64px;   
+    }
 
     img {
       width: 100%;
@@ -777,8 +850,23 @@
       display: block;
     }
   }
-  &__label { font-size: $t-body-des; font-weight: $fw-bold; color: $text-color-dark; line-height: 1.2; }
-  &__desc  { font-size: $t-body-mob; color: rgba($twilight-purple, 0.5); line-height: 1.3; }
+
+  &__label {
+    font-size: $t-forgot-des;
+    font-weight: $fw-bold;
+    color: $text-color-dark;
+    line-height: $lh-tight;
+
+    @media (min-width: $bp-tablet) { font-size: $t-body-des; }
+  }
+
+  &__desc {
+    font-size: 0.85rem;
+    color: rgba($twilight-purple, 0.45);
+    line-height: $lh-tight;
+
+    @media (min-width: $bp-tablet) { font-size: $t-body-mob; }
+  }
 }
 
 .rb-not-listed {
@@ -795,35 +883,135 @@
   &:hover { color: $gentle-amethyst; text-decoration: underline; }
 }
 
-// Document Upload
+// Photo Upload
+.rb-photo-upload {
+  border: 2px dashed rgba($twilight-purple, 0.18);
+  border-radius: $radius-lg;
+  background: rgba($twilight-purple, 0.02);
+  @include cursor;
+  transition: all 0.25s ease;
+  outline: none;
+  overflow: hidden;
+
+  &:hover {
+    border-color: $serene-purple;
+    background: rgba($serene-purple, 0.04);
+  }
+
+  &:focus-visible { box-shadow: 0 0 0 3px rgba($serene-purple, 0.2); }
+
+  &--error { border-color: #dc2626; background: $soft-pearl; }
+
+  &--has-photo {
+    border-style: solid;
+    border-color: rgba($serene-purple, 0.35);
+    background: rgba($serene-purple, 0.03);
+  }
+
+  &__placeholder {
+    @include column;
+    @include center;
+    gap: $space-md;
+    padding: $space-xl $space-lg;
+
+    @media (min-width: $bp-tablet) { padding: $space-xxl $space-xl; }
+  }
+
+  &__icon {
+    width: 56px; height: 56px;
+    background: rgba($serene-purple, 0.08);
+    border-radius: $radius-md;
+    @include flex-center;
+    font-size: $t-body-des;
+
+    @media (min-width: $bp-tablet) { width: 64px; height: 64px; font-size: 1.8rem; }
+  }
+
+  &__cta {
+    font-size: $t-body-des;
+    font-weight: $fw-medium;
+    color: $text-color-dark;
+  }
+
+  &__sub {
+    font-size: 0.78rem;
+    color: rgba($twilight-purple, 0.42);
+
+    @media (min-width: $bp-tablet) { font-size: $t-body-des; }
+  }
+
+  &__preview {
+    @include relative;
+    width: 100%;
+
+    img {
+      width: 100%;
+      max-height: 200px;
+      object-fit: cover;
+      display: block;
+
+      @media (min-width: $bp-tablet) { max-height: 240px; }
+    }
+  }
+
+  &__remove {
+    @include absolute;
+    top: $space-sm;
+    right: $space-sm;
+    background: rgba($soft-pearl, 0.92);
+    border: 1px solid rgba($twilight-purple, 0.2);
+    border-radius: $radius-sm;
+    padding: $space-xs $space-md;
+    font-family: $font-secondary;
+    font-size: $t-body-des;
+    font-weight: $fw-bold;
+    color: #b91c1c;
+    @include cursor;
+    transition: all 0.2s;
+    min-height: 36px;
+    @include center;
+    gap: $space-xs;
+
+    &:hover { background: $soft-pearl; border-color: #dc2626; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+  }
+}
+
+// Document Upload (Activity Step 2)
 .rb-doc-banner {
   display: flex;
   align-items: flex-start;
-  gap: $space-lg;
-  padding: $space-xl;
+  gap: $space-md;
+  padding: $space-lg;
   background: linear-gradient(135deg, rgba($serene-purple, 0.08), rgba($gentle-amethyst, 0.04));
   border: 1px solid rgba($serene-purple, 0.22);
   border-radius: $radius-lg;
 
-  &__icon { font-size: 2rem; flex-shrink: 0; }
+  @media (min-width: $bp-tablet) { gap: $space-lg; padding: $space-xl; }
+
+  &__icon { font-size: $t-body-des; flex-shrink: 0; @media (min-width: $bp-tablet) { font-size: 2rem; } }
 
   &__title {
     font-family: $font-primary;
-    font-size: $t-sub-tab;
+    font-size: clamp(1rem, 2.5vw, 1.2rem);
     color: $text-color-dark;
     margin-bottom: $space-sm;
   }
 
   &__text {
     font-size: $t-body-des;
-    color: #7c7c99;
-    line-height: 1.65;
+    color: rgba($twilight-purple, 0.55);
+    line-height: $lh-normal;
   }
 }
 
 .rb-doc-examples {
+  padding: $space-md $space-lg;
+  background: rgba($twilight-purple, 0.03);
+  border-radius: $radius-md;
+  border: 1px solid rgba($twilight-purple, 0.07);
+
   &__title {
-    font-size: $t-body-mob;
+    font-size: 0.68rem;
     font-weight: $fw-bold;
     text-transform: uppercase;
     letter-spacing: 0.08em;
@@ -837,18 +1025,18 @@
     gap: $space-sm;
 
     li {
-      font-size: $t-body-des; 
+      font-size: $t-body-des;
       color: $text-color-dark;
-      line-height: 1.5;
+      line-height: $lh-normal;
     }
   }
 }
 
 .rb-upload-zone {
-  border: 2px dashed rgba($twilight-purple, 0.2);
+  border: 2px dashed rgba($twilight-purple, 0.18);
   border-radius: $radius-lg;
   background: rgba($twilight-purple, 0.02);
-  cursor: pointer;
+  @include cursor;
   transition: all 0.25s ease;
   outline: none;
 
@@ -865,40 +1053,45 @@
 
   &--error { border-color: #dc2626; }
 
-  &:focus-visible {
-    box-shadow: 0 0 0 3px rgba($serene-purple, 0.2);
-  }
+  &:focus-visible { box-shadow: 0 0 0 3px rgba($serene-purple, 0.2); }
 
   &__placeholder {
-    @include flex-column;
+    @include column;
+    @include center;
     gap: $space-md;
-    padding: $space-xxl $space-xl;
-    text-align: center;
+    padding: $space-xl $space-lg;
+
+    @media (min-width: $bp-tablet) { padding: $space-xxl $space-xl; }
   }
 
   &__icon {
-    width: 64px; height: 64px;
+    width: 56px; height: 56px;
     background: rgba($serene-purple, 0.08);
     border-radius: $radius-md;
     @include flex-center;
+
+    @media (min-width: $bp-tablet) { width: 64px; height: 64px; }
+
     svg { stroke: $serene-purple; opacity: 0.7; }
   }
 
   &__cta {
-    font-size: $t-link-des;
+    font-size: $t-body-des;
     font-weight: $fw-medium;
     color: $text-color-dark;
   }
 
   &__sub {
-    font-size: $t-body-des;
-    color: rgba($twilight-purple, 0.45);
+    font-size: 0.78rem;
+    color: rgba($twilight-purple, 0.42);
   }
 
   &__success {
     @include center;
-    gap: $space-lg;
-    padding: $space-xl;
+    gap: $space-md;
+    padding: $space-lg;
+
+    @media (min-width: $bp-tablet) { gap: $space-lg; padding: $space-xl; }
   }
 
   &__filename {
@@ -923,7 +1116,7 @@
     font-size: $t-body-des;
     font-family: $font-secondary;
     color: rgba($twilight-purple, 0.5);
-    cursor: pointer;
+    @include cursor;
     flex-shrink: 0;
     transition: all 0.2s;
     min-height: 36px;
@@ -932,19 +1125,16 @@
   }
 }
 
-// Verification Steps
 .rb-verify-flow {
-  @include center;
+  @include column;
   gap: $space-md;
-  padding: $space-xl;
+  padding: $space-lg;
   background: rgba($twilight-purple, 0.04);
   border-radius: $radius-lg;
 
-  @media (max-width: $bp-mobile) {
-    @include column;
+  @media (min-width: $bp-tablet) {
+    flex-direction: row;
     align-items: flex-start;
-
-    .rb-verify-step__arrow { transform: rotate(90deg); }
   }
 }
 
@@ -955,27 +1145,36 @@
   flex: 1;
 
   p {
-    font-size: $t-body-des; 
+    font-size: $t-body-des;
     color: $text-color-dark;
-    line-height: 1.5;
+    line-height: $lh-normal;
     strong { color: $serene-purple; font-weight: $fw-bold; }
   }
 
   &__num {
-    width: 28px; height: 28px;
-    border-radius: 50%;
+    width: 26px; height: 26px;
+    border-radius: $radius-round;
     background: $serene-purple;
     color: $soft-pearl;
     font-size: $t-body-des;
     font-weight: $fw-bold;
     @include flex-center;
     flex-shrink: 0;
+
+    @media (min-width: $bp-tablet) { width: 28px; height: 28px; }
   }
 
   &__arrow {
-    font-size: 1.1rem;
+    font-size: $t-forgot-des;
     color: rgba($twilight-purple, 0.3);
     flex-shrink: 0;
+    align-self: flex-start;
+    padding-top: 3px;
+
+    @media (min-width: $bp-tablet) {
+      align-self: center;
+      padding-top: 0;
+    }
   }
 }
 
@@ -983,8 +1182,8 @@
   display: flex;
   align-items: flex-start;
   gap: $space-sm;
-  padding: $space-lg;
-  background: #fff8f0;
+  padding: $space-md $space-lg;
+  background: $soft-pearl;
   border: 1px solid #fed7aa;
   border-radius: $radius-md;
 
@@ -1004,77 +1203,86 @@
   }
 }
 
-// API Error 
+// API ERROR
 .rb-api-error {
   @include center;
   gap: $space-sm;
   margin-top: $space-lg;
   padding: $space-md $space-lg;
-  background: #fff5f5;
+  background: $soft-pearl;
   border: 1px solid #fca5a5;
   border-radius: $radius-md;
   font-family: $font-secondary;
-  font-size: $t-body-des; 
+  font-size: $t-body-des;
   font-weight: $fw-medium;
   color: #b91c1c;
 
   svg { stroke: #b91c1c; flex-shrink: 0; }
 }
 
-// Form Actions 
+// Form Actions
 .rb-form-actions {
   @include center;
   justify-content: flex-end;
-  gap: $space-lg;
-  margin-top: $space-xxl;
+  gap: $space-md;
+  margin-top: $space-xl;
   padding-top: $space-xl;
-  border-top: 1px solid rgba($twilight-purple, 0.1);
+  border-top: 1px solid rgba($twilight-purple, 0.08);
+
+  @media (min-width: $bp-tablet) {
+    gap: $space-lg;
+    margin-top: $space-xxl;
+  }
 }
 
 .rb-btn-next {
-  @include center;
-  gap: $space-sm;
+  display: inline-flex;
+  align-items: center;
+  gap: $space-lg;
   background: $serene-purple;
   color: $soft-pearl;
   border: none;
   border-radius: $radius-lg;
-  padding: $space-md $space-xxl;
+  padding: $space-md $space-xl;
   font-family: $font-secondary;
   font-size: $t-but-des;
   font-weight: $fw-bold;
-  cursor: pointer;
-  letter-spacing: 0.03em;
+  @include cursor;
+  letter-spacing: 0.05em;
   transition: all 0.25s ease;
-  box-shadow: $shadow-md;
+  box-shadow: 0 4px 16px rgba($serene-purple, 0.3);
   min-height: 48px;
-
-  svg { transition: transform 0.2s; }
+  width: 60%;
+  
+  @media (min-width: $bp-tablet) {
+    width: auto;
+    padding: $space-md $space-xxl;
+    box-shadow: 0 4px 20px rgba($serene-purple, 0.3);
+  }
 
   &:hover:not(&--loading) {
     background: $gentle-amethyst;
     transform: translateY(-2px);
-    box-shadow: $shadow-purple-glow;
-    svg { transform: translateX(3px); }
+    box-shadow: 0 8px 28px rgba($serene-purple, 0.35);
   }
 
-  &--loading {
-    opacity: 0.72;
-    cursor: not-allowed;
-  }
+  &--loading { opacity: 0.72; cursor: not-allowed; }
 }
 
 .rb-btn-back {
-  @include center;
+  display: inline-flex;
+  align-items: center;
   @include none;
+  @include cursor;
   gap: $space-xs;
   font-family: $font-secondary;
   font-size: $t-body-des;
-  color: rgba($twilight-purple, 0.5);
-  cursor: pointer;
+  color: rgba($twilight-purple, 0.45);
   padding: $space-sm $space-md;
   border-radius: $radius-sm;
   min-height: 48px;
   transition: all 0.2s;
+  flex-shrink: 0;
 
   &:hover {
     background: rgba($twilight-purple, 0.06);
@@ -1087,244 +1295,222 @@
   width: 16px; height: 16px;
   border: 2px solid rgba($soft-pearl, 0.35);
   border-top-color: $soft-pearl;
-  border-radius: 50%;
+  border-radius: $radius-round;
   animation: rbSpin 0.7s linear infinite;
   flex-shrink: 0;
 }
 
-@keyframes rbSpin { to { transform: rotate(360deg); } }
-
-// Success Screen 
+// Success screen
 .rb-success {
   min-height: 100vh;
   @include flex-column;
-  padding: 5rem 1.5rem;
-  margin: 0 auto;
+  padding: $space-xl $space-md;
   background: $soft-pearl;
   @include relative;
   overflow: hidden;
+  text-align: center;
+
+  @media (min-width: $bp-tablet) {
+    padding: 5rem $space-xl;
+  }
+   @media (max-width: $bp-mobile) {
+      padding-top: $space-4xl;
+    }
 
   &::before {
-    content: "";
+    content: '';
     @include absolute;
-    width: 500px;
-    height: 500px;
-    background: radial-gradient(circle, $misty-lavender 0%, transparent 70%);
-    top: -150px;
-    right: -150px;
-    opacity: 0.5;
-    z-index: 0;
-  }
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba($misty-lavender, 0.35) 0%, transparent 70%);
+    top: -120px; right: -100px;
+    opacity: 0.6;
+    pointer-events: none;
 
-  &__card {
-    @include relative;
-    z-index: 1;
-    padding: 3rem 3.5rem;
-    border-radius: 20px;
-    box-shadow:
-      0 20px 50px rgba(58, 47, 81, 0.08),
-      0 5px 15px rgba(58, 47, 81, 0.05);
-    text-align: center;
-    max-width: 600px;
-    width: 100%;
-    animation: fadeInUp 0.6s ease forwards;
+    @media (min-width: $bp-tablet) { width: 500px; height: 500px; top: -150px; right: -150px; }
   }
 
   &__icon {
-    width: 150px;
-    height: 150px;
-    margin: 0 auto 1.8rem;
+    width: 120px; height: 120px;
+    margin: 0 auto $space-xl;
     @include flex-center;
-    background: linear-gradient(
-      135deg,
-      $misty-lavender,
-      $gentle-amethyst
-    );
+    background: linear-gradient(135deg, $misty-lavender, $gentle-amethyst);
     border-radius: $radius-round;
-    box-shadow: 0 10px 25px rgba(146, 122, 207, 0.25);
+    box-shadow: 0 10px 25px rgba($gentle-amethyst, 0.25);
     transition: transform 0.4s ease, box-shadow 0.4s ease;
+    animation: rbPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 
-    img {
-      width: 125px;
-      height: 125px;
-    }
+    @media (min-width: $bp-tablet) { width: 150px; height: 150px; }
 
-    // Micro interaction on hover
+    img { width: 85%; height: 85%; object-fit: contain; }
+
     &:hover {
       transform: scale(1.05) rotate(4deg);
-      box-shadow: 0 15px 35px rgba(146, 122, 207, 0.35);
+      box-shadow: 0 15px 35px rgba($gentle-amethyst, 0.35);
     }
   }
 
   &__title {
-    font-size: $t-title-des;
+    font-family: $font-primary;
+    font-size: clamp(1.6rem, 5vw, 2.4rem);
     font-weight: $fw-bold;
     color: $twilight-purple;
-    margin-bottom: $space-4xl;
-    letter-spacing: -0.5px;
+    margin-bottom: $space-lg;
+    letter-spacing: -0.02em;
+    animation: rbReveal 0.5s 0.15s ease both;
   }
 
   &__text {
-    max-width: 40vw;
     font-size: $t-body-des;
-    line-height: $lh-loose;
-    color: darken($twilight-purple, 10%);
-    opacity: 0.85;
-    margin-bottom: $space-4xl;
+    line-height: $lh-normal;
+    color: rgba($twilight-purple, 0.65);
+    max-width: 480px;
+    margin: 0 auto $space-xl;
+    animation: rbReveal 0.5s 0.25s ease both;
   }
 
   &__btn {
     display: inline-block;
-    padding: 0.9rem 1.8rem;
-    border-radius: 12px;
+    padding: $space-md $space-xl;
+    border-radius: $radius-lg;
+    font-family: $font-secondary;
     font-weight: $fw-bold;
+    font-size: $t-but-des;
     text-decoration: none;
-    background: linear-gradient(
-      135deg,
-      $serene-purple,
-      $gentle-amethyst
-    );
+    background: linear-gradient(135deg, $serene-purple, $gentle-amethyst);
     color: $soft-pearl;
-    box-shadow: 0 10px 20px rgba(146, 122, 207, 0.25);
+    box-shadow: 0 8px 20px rgba($serene-purple, 0.3);
     transition: all 0.25s ease;
-    @include relative;
-    overflow: hidden;
+    min-height: 48px;
+    animation: rbReveal 0.5s 0.35s ease both;
 
+    @media (min-width: $bp-tablet) { padding: $space-md $space-xxl; }
+   
     &:hover {
       transform: translateY(-3px);
+      box-shadow: 0 14px 30px rgba($serene-purple, 0.35);
       color: $twilight-purple;
-      box-shadow: 0 15px 30px rgba(146, 122, 207, 0.35);
     }
 
-    &:active {
-      transform: translateY(0);
-      box-shadow: 0 6px 15px rgba(146, 122, 207, 0.25);
-    }
-
-    &::after {
-      content: "";
-      @include absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(
-        120deg,
-        transparent,
-        rgba(255, 255, 255, 0.3),
-        transparent
-      );
-      transition: 0.6s;
-    }
-
-    &:hover::after {
-      left: 100%;
-    }
+    &:active { transform: translateY(0); }
   }
 }
 
-// Entrance animation
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(15px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-// Photo Upload 
-.rb-photo-upload {
-  border: 2px dashed rgba($twilight-purple, 0.2);
-  border-radius: $radius-lg;
-  background: rgba($twilight-purple, 0.02);
-  cursor: pointer;
-  transition: all 0.25s ease;
-  outline: none;
-  overflow: hidden;
+// Email inline live feedback
+.rb-email-status {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-xs;
+  font-family: $font-secondary;
+  font-size: $t-forgot-des;
+  font-weight: $fw-medium;
+  line-height: $lh-normal;
+  margin-top: 2px;
 
-  &:hover {
-    border-color: $serene-purple;
-    background: rgba($serene-purple, 0.04);
-  }
-
-  &:focus-visible {
-    box-shadow: 0 0 0 3px rgba($serene-purple, 0.2);
-  }
-
-  &--error {
-    border-color: #dc2626;
-    background: #fff8f8;
-  }
-
-  &--has-photo {
-    border-style: solid;
-    border-color: rgba($serene-purple, 0.35);
-    background: rgba($serene-purple, 0.03);
-  }
-
-  &__placeholder {
-    @include flex-column;
-    align-items: center;
-    gap: $space-md;
-    padding: $space-xxl $space-xl;
-    text-align: center;
-  }
-
-  &__icon {
-    width: 64px; height: 64px;
-    background: rgba($serene-purple, 0.08);
-    border-radius: $radius-md;
-    @include flex-center;
-    font-size: 1.8rem;
-  }
-
-  &__cta {
-    font-size: $t-link-des;
-    font-weight: $fw-medium;
-    color: $text-color-dark;
-  }
-
-  &__sub {
-    font-size: $t-body-des;
+  &--checking {
     color: rgba($twilight-purple, 0.45);
   }
 
-  &__preview {
-    @include relative;
-    width: 100%;
-
-    img {
-      width: 100%;
-      max-height: 240px;
-      object-fit: cover;
-      display: block;
-    }
+  &--available {
+    color: #059669;
+    svg { stroke: #059669; }
   }
 
-  &__remove {
-    @include absolute;
-    top: $space-sm;
-    right: $space-sm;
-    background: rgba(#fff, 0.92);
-    border: 1px solid rgba($twilight-purple, 0.2);
-    border-radius: $radius-sm;
-    padding: $space-xs $space-md;
-    font-family: $font-secondary;
-    font-size: $t-body-des;
+  &--taken {
+    color: #dc2626;  
     font-weight: $fw-bold;
-    color: #b91c1c;
-    cursor: pointer;
-    transition: all 0.2s;
-    min-height: 36px;
-    @include center;
-    gap: $space-xs;
+    svg { stroke: #dc2626; }
+  }
 
-    &:hover {
-      background: #fff;
-      border-color: #dc2626;
-      box-shadow: $shadow-sm;
+  &__login-link {
+    color: $serene-purple;
+    font-weight: $fw-bold;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    white-space: nowrap;
+    transition: color 0.2s;
+
+    &:hover { color: $gentle-amethyst; }
+  }
+  &__spinner {
+    display: inline-block;
+    width: 12px; height: 12px;
+    border: 1.5px solid rgba($twilight-purple, 0.2);
+    border-top-color: $serene-purple;
+    border-radius: 50%;
+    animation: rbSpin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+}
+.rb-input--valid {
+  border-color: #059669 !important;
+  background: rgba(#059669, 0.02);
+  &:focus {
+    box-shadow: 0 0 0 3px rgba(#059669, 0.1) !important;
+  }
+}
+.rb-btn-next--blocked {
+  background: rgba($twilight-purple, 0.35) !important;
+  box-shadow: none !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+}
+// Strength bar
+.rb-pw-strength {
+  @include center;
+  gap: $space-sm;
+  margin-top: 6px;
+  &__bar {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+    span {
+      display: block;
+      width: 28px;
+      height: 4px;
+      border-radius: 99px;
+      background: rgba($twilight-purple, 0.12);
+      transition: background 0.25s ease;
+
+      @media (min-width: $bp-tablet) { width: 36px; }
     }
+    &--weak   span:nth-child(1) { background: #dc2626; }
+    // fair 
+    &--fair   span:nth-child(1),
+    &--fair   span:nth-child(2) { background: #d97706; }
+    // strong → all 3 green segments
+    &--strong span { background: #059669; }
+  }
+
+  &__label {
+    font-family: $font-secondary;
+    font-size: 0.75rem;
+    font-weight: $fw-medium;
+    line-height: 1;
+
+    &--weak   { color: #dc2626; }
+    &--fair   { color: #d97706; }
+    &--strong { color: #059669; }
+  }
+}
+
+// Match status
+.rb-pw-match {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  font-family: $font-secondary;
+  font-size: 0.75rem;
+  font-weight: $fw-medium;
+  line-height: 1;
+
+  &--ok {
+    color: #059669;
+    svg { stroke: #059669; }
+  }
+
+  &--no {
+    color: #dc2626;
+    svg { stroke: #dc2626; }
   }
 }

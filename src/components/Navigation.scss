@@ -209,7 +209,7 @@
 
 .navigation__secondary-highlight {
   color: $twilight-purple !important;
-  font-weight: $fw-bold !important;
+  font-weight: $fw-regular !important;
   border-top: 1px solid rgba($misty-lavender, 0.6);
   margin-top: 4px;
   padding-top: 9px !important;
@@ -229,14 +229,13 @@
 .btn--nav {
   font-family: $font-secondary;
   font-size: $t-forgot-des;
-  font-weight: $fw-bold;
+  font-weight: $fw-regular;
   padding: 7px 16px;
   border-radius: 6px;
   border: none;
-  cursor: pointer;
+  @include cursor;
   transition: all 0.18s ease;
-  display: flex;
-  align-items: center;
+  @include center;
   gap: 6px;
   white-space: nowrap;
   letter-spacing: 0.02em;
@@ -332,7 +331,7 @@
   font-family: $font-secondary;
   font-size: 0.68rem;
   font-weight: $fw-bold;
-  color: white;
+  color: $soft-pearl;
   letter-spacing: 0.03em;
   line-height: 1;
 }
@@ -445,7 +444,7 @@
   &:focus { outline: none; }
 }
 
-// ── Mobile menu ──────────────────────────────────────────────────────────────
+// Mobile menu 
 .navigation__mobile {
   @include absolute;
   top: 100%;
@@ -479,8 +478,7 @@
       font-weight: $fw-medium;
       color: rgba($text-color-dark, 0.8);
       text-decoration: none;
-      display: flex;
-      align-items: center;
+      @include center;
       gap: $space-sm;
       padding: 11px $space-md;
       border-radius: 8px;
@@ -496,8 +494,9 @@
 
     &.navigation__mobile-buttons {
       @include column;
-      gap: $space-xs;
-      padding: $space-sm 0 0;
+      gap: $space-lg;
+      width: 60%;
+      padding: $space-md 0 0;
     }
   }
 }
@@ -519,8 +518,7 @@
   text-align: left;
   padding: 11px $space-md;
   @include cursor;
-  display: flex;
-  align-items: center;
+  @include center;
   gap: $space-sm;
   transition: all 0.15s ease;
   border-radius: 8px;
@@ -548,14 +546,13 @@
   animation: nav-fade 0.18s ease both;
 
   a {
-    display: flex;
-    align-items: center;
+    @include center;
     gap: $space-sm;
     padding: 9px $space-md;
     font-family: $font-secondary;
     font-size: 0.88rem;
     font-weight: $fw-medium;
-    color: rgba($twilight-purple, 0.65);
+    color: rgba($twilight-purple, 0.95);
     border-radius: 7px;
     text-decoration: none;
     transition: all 0.15s ease;
@@ -569,15 +566,13 @@
 
 .navigation__mobile-highlight {
   color: $twilight-purple !important;
-  font-weight: $fw-bold !important;
-  display: flex;
-  align-items: center;
+  font-weight: $fw-regular !important;
+  @include center;
   gap: $space-sm;
 }
 
 .navigation__mobile-icon-item {
-  display: flex;
-  align-items: center;
+  @include center;
   gap: $space-md;
   padding: 9px $space-md;
   text-decoration: none;
@@ -615,8 +610,7 @@
 }
 
 .navigation__mobile-user-info {
-  display: flex;
-  align-items: center;
+  @include center;
   gap: $space-sm;
   padding: $space-sm $space-md $space-md;
   border-bottom: 1px solid rgba($misty-lavender, 0.5);
@@ -624,8 +618,7 @@
 }
 
 .navigation__mobile-user-link {
-  display: flex;
-  align-items: center;
+  @include center;
   gap: $space-sm;
   padding: 10px $space-md;
   font-family: $font-secondary;
@@ -637,7 +630,7 @@
   border: none;
   width: 100%;
   text-align: left;
-  cursor: pointer;
+  @include cursor;
   border-radius: 7px;
   transition: all 0.15s ease;
 
