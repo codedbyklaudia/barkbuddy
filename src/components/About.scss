@@ -256,9 +256,9 @@
   z-index: 10; // above the right-panel overlays
 }
 
-// ─── Photo component ──────────────────────────────────────────────────────────
+// Photo component 
 .about-photo {
-  position: relative;
+  @include relative;
   display: inline-block;
   width: 100%;
 
@@ -267,9 +267,8 @@
     background: linear-gradient(135deg, rgba($twilight-purple, 0.06), rgba($serene-purple, 0.04));
     border: 1.5px dashed rgba($twilight-purple, 0.15);
     border-radius: $radius-lg;
-    display: flex;
-    flex-direction: column;
-    position: relative;
+    @include column;
+    @include relative;
     gap: $space-md;
     z-index: 1;
 
@@ -279,18 +278,10 @@
       object-fit: cover;
       border-radius: $radius-lg;
     }
-
-    p {
-      font-size: $t-body-des;
-      color: rgba($twilight-purple, 0.3);
-      font-style: italic;
-      text-align: center;
-      padding: 0 $space-lg;
-    }
   }
 
   &__frame {
-    position: absolute;
+    @include absolute;
     inset: 0;
     border: 2px solid rgba($serene-purple, 0.2);
     border-radius: $radius-lg;
@@ -307,12 +298,12 @@
 
   &--landscape &__placeholder {
     min-height: 320px;
-    img { width: 56px; height: 56px; }
+    img { width: 320; height: 320px; }
     @media (max-width: $bp-tablet) { min-height: 220px; }
   }
 }
 
-// ─── Story section ────────────────────────────────────────────────────────────
+// Story section 
 .about-story {
   padding: clamp(4rem, 7vw, 6rem) clamp(1.5rem, 6vw, 6rem);
   max-width: 1160px;

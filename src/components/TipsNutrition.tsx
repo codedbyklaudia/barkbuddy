@@ -1,7 +1,7 @@
 import React from "react";
 import TipsPage, { type Tip } from "./TipsPage";
 
-const ICON = "/images/paint/pet-shop.png";
+const ICON = "../images/icons/nutrition.svg";
 
 const tips: Tip[] = [
   {
@@ -21,7 +21,7 @@ const tips: Tip[] = [
   {
     id: "food-types",
     icon: ICON,
-    title: "Dry, wet, raw, or fresh — which is best?",
+    title: "Dry, wet, raw, or fresh - which is best?",
     summary: "There is no single universally correct answer. Each format has genuine advantages and disadvantages.",
     points: [
       { text: "Dry kibble", sub: ["Convenient, shelf-stable, economical", "Highly processed, often high carbohydrate, reliant on synthetic vitamins", "Quality varies enormously between brands"] },
@@ -36,12 +36,12 @@ const tips: Tip[] = [
     id: "portion-sizes",
     icon: ICON,
     title: "How much to feed",
-    summary: "Feeding guides are a starting point, not a prescription — and they're usually calculated generously. Body condition matters more than the number on the packet.",
+    summary: "Feeding guides are a starting point, not a prescription - and they're usually calculated generously. Body condition matters more than the number on the packet.",
     points: [
-      { text: "Weigh food with kitchen scales — volume measuring (cups, scoops) is significantly less accurate." },
-      { text: "Body condition score at ideal (4–5/9): ribs easily felt without pressing, waist visible from above, slight abdominal tuck from the side." },
+      { text: "Weigh food with kitchen scales - volume measuring (cups, scoops) is significantly less accurate." },
+      { text: "Body condition score at ideal (4-5/9): ribs easily felt without pressing, waist visible from above, slight abdominal tuck from the side." },
       { text: "Use target body weight on feeding guides, not current weight if your dog is overweight." },
-      { text: "After neutering: reduce daily food by approximately 25% — energy requirements drop significantly." },
+      { text: "After neutering: reduce daily food by approximately 25% - energy requirements drop significantly." },
       { text: "Active working dogs, pregnant females, and growing puppies all have substantially higher requirements." },
     ],
     callout: { label: "Monthly check", text: "Check body condition score monthly by running hands along the ribcage. You should feel each rib without pressing hard. Adjust food gradually — a 10–15% reduction over several weeks for weight loss." },

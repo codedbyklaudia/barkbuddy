@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import './ServiceFinder.scss';
 import Footer from './Footer';
 import { formatServiceType } from '../utils/formatservicetype';
-import { FaScissors, FaTree } from 'react-icons/fa6';
 
 const API_BASE: string = import.meta.env.VITE_API_URL ?? 'http://localhost:4000/api';
 const MAPS_KEY: string = import.meta.env.VITE_GOOGLE_MAPS_KEY ?? '';
@@ -37,26 +36,24 @@ interface Filters {
 
 type TabType = 'services' | 'activities';
 
-// Type Icons
-
+// Type icons
 const SERVICE_TYPES = [
-  { icon: '/images/icons/grooming.svg', label: 'Groomer' },
-  { icon: '/images/icons/health.svg',   label: 'Vet' },
-  { icon: '/images/icons/training.svg', label: 'Behaviorist' },
-  { icon: '/images/pet_shop_icon.png',  label: 'Pet Shop' },
+  { icon: '../images/icons_1/grooming_icon.png', label: 'Groomer' },
+  { icon: '../images/icons_1/vet_icon.png',      label: 'Vet' },
+  { icon: '/images/icons_1/trainer_icon.png',           label: 'Behaviorist' },
+  { icon: '../images/icons_1/petshop_icon.png',  label: 'Pet Shop' },
 ];
 
 const ACTIVITY_TYPES = [
-  { icon: '/images/icons/hotel.svg',      label: 'Hotel' },
-  { icon: '/images/icons/restaurant.svg', label: 'Restaurant' },
-  { icon: '/images/icons/park.svg',       label: 'Park' },
-  { icon: '/images/icons/daycare.svg',    label: 'Day Care' },
+  { icon: '../images/icons_1/hotel_icon.png',      label: 'Hotel' },
+  { icon: '../images/icons_1/restaurant_icon.png', label: 'Restaurant' },
+  { icon: '../images/icons_1/park_icon.png',       label: 'Park' },
+  { icon: '../images/icons_1/beach_icon.png',      label: 'Beaches' },
 ];
 
 const RADIUS_OPTIONS = [5, 10, 25, 50];
 
-// Google Maps loader 
-
+// ─── Google Maps loader ───────────────────────────────────────────────────────
 let mapsLoaded = false;
 let mapsCallbacks: (() => void)[] = [];
 
@@ -78,7 +75,7 @@ function loadGoogleMaps(apiKey: string): Promise<void> {
   });
 }
 
-// Map component 
+// ─── Map component ────────────────────────────────────────────────────────────
 const UnifiedMap: React.FC<{
   listings: Listing[];
   userLocation: { lat: number; lng: number } | null;
@@ -91,15 +88,23 @@ const UnifiedMap: React.FC<{
   const circle  = useRef<google.maps.Circle | null>(null);
   const infoWin = useRef<google.maps.InfoWindow | null>(null);
 
+  // UK centre — shown until user searches
+  const UK_CENTRE = { lat: 54.5, lng: -3.5 };
+  const UK_ZOOM   = 6;
+
   useEffect(() => {
     if (!MAPS_KEY) return;
     loadGoogleMaps(MAPS_KEY).then(() => {
       if (!mapRef.current) return;
-      const centre = searchCoords || userLocation || { lat: 51.5074, lng: -0.1278 };
+
+      // Default to UK overview; only zoom in once user provides a location
+      const hasContext = !!(searchCoords || userLocation);
+      const centre     = searchCoords || userLocation || UK_CENTRE;
+
       if (!mapInst.current) {
         mapInst.current = new google.maps.Map(mapRef.current, {
-          center: centre,
-          zoom: 12,
+          center: hasContext ? centre : UK_CENTRE,
+          zoom:   hasContext ? 12 : UK_ZOOM,
           styles: [
             { featureType: 'poi',     stylers: [{ visibility: 'off' }] },
             { featureType: 'transit', stylers: [{ visibility: 'off' }] },
@@ -108,11 +113,14 @@ const UnifiedMap: React.FC<{
         });
         infoWin.current = new google.maps.InfoWindow();
       }
-      if (searchCoords) mapInst.current.setCenter(searchCoords);
+
+      // Clear previous markers / circle
       markers.current.forEach(m => m.setMap(null));
       markers.current = [];
       circle.current?.setMap(null);
       circle.current = null;
+
+      // Radius circle
       if (searchCoords && radiusKm) {
         circle.current = new google.maps.Circle({
           map: mapInst.current, center: searchCoords, radius: radiusKm * 1000,
@@ -120,24 +128,36 @@ const UnifiedMap: React.FC<{
           strokeColor: '#5B4B8A', strokeWeight: 1.5, strokeOpacity: 0.3,
         });
       }
+
+      // User location dot
       if (userLocation) {
         new google.maps.Marker({
           position: userLocation, map: mapInst.current,
-          icon: { path: google.maps.SymbolPath.CIRCLE, scale: 10, fillColor: '#5B4B8A', fillOpacity: 1, strokeColor: '#fff', strokeWeight: 3 },
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 10, fillColor: '#5B4B8A', fillOpacity: 1,
+            strokeColor: '#fff', strokeWeight: 3,
+          },
           title: 'Your location', zIndex: 1000,
         });
       }
+
+      // Listing pins
       listings.forEach(l => {
         if (!l.lat || !l.lng) return;
         const marker = new google.maps.Marker({
-          position: { lat: l.lat, lng: l.lng }, map: mapInst.current!, title: l.business_name,
+          position: { lat: l.lat, lng: l.lng },
+          map: mapInst.current!,
+          title: l.business_name,
           icon: {
             url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 48" width="36" height="48">
-                <path fill="#5B4B8A" stroke="#fff" stroke-width="2" d="M18 2C10.3 2 4 8.3 4 16c0 9.9 14 30 14 30S32 25.9 32 16C32 8.3 25.7 2 18 2z"/>
+                <path fill="#5B4B8A" stroke="#fff" stroke-width="2"
+                  d="M18 2C10.3 2 4 8.3 4 16c0 9.9 14 30 14 30S32 25.9 32 16C32 8.3 25.7 2 18 2z"/>
                 <circle fill="white" cx="18" cy="16" r="7"/>
               </svg>`),
-            scaledSize: new google.maps.Size(36, 48), anchor: new google.maps.Point(18, 48),
+            scaledSize: new google.maps.Size(36, 48),
+            anchor:     new google.maps.Point(18, 48),
           },
         });
         marker.addListener('click', () => {
@@ -154,16 +174,24 @@ const UnifiedMap: React.FC<{
         });
         markers.current.push(marker);
       });
+
+      // ── Smart zoom logic ──────────────────────────────────────────────────
       const pinned = listings.filter(l => l.lat && l.lng);
-      if (pinned.length > 0) {
+
+      if (pinned.length > 1) {
+        // Multiple results → fit all pins + search centre
         const bounds = new google.maps.LatLngBounds();
-        if (userLocation) bounds.extend(userLocation);
         if (searchCoords) bounds.extend(searchCoords);
         pinned.forEach(l => { if (l.lat && l.lng) bounds.extend({ lat: l.lat, lng: l.lng }); });
         mapInst.current!.fitBounds(bounds, 80);
       } else if (searchCoords) {
+        // 0 or 1 result → centre on search area at radius-appropriate zoom
         mapInst.current!.setCenter(searchCoords);
-        mapInst.current!.setZoom(radiusKm ? Math.max(10, 14 - Math.log2(radiusKm)) : 12);
+        mapInst.current!.setZoom(radiusKm ? Math.max(10, 14 - Math.log2(radiusKm)) : 11);
+      } else {
+        // No search at all → UK overview
+        mapInst.current!.setCenter(UK_CENTRE);
+        mapInst.current!.setZoom(UK_ZOOM);
       }
     });
   }, [listings, userLocation, searchCoords, radiusKm]);
@@ -176,8 +204,7 @@ const UnifiedMap: React.FC<{
   return <div ref={mapRef} className="unified-finder__map" />;
 };
 
-// Listing Row Card
-
+// ─── Listing row card ─────────────────────────────────────────────────────────
 const ListingRow: React.FC<{ listing: Listing }> = ({ listing }) => (
   <Link to={`/activity/${listing.id}`} style={{ textDecoration: 'none' }}>
     <article className="listing-card listing-card--row">
@@ -197,8 +224,13 @@ const ListingRow: React.FC<{ listing: Listing }> = ({ listing }) => (
         {listing.description && <p className="listing-card__description">{listing.description}</p>}
         {listing.contact_phone && <p className="listing-card__meta"><i className="bi bi-telephone" /> {listing.contact_phone}</p>}
         {listing.website && (
-          <a href={listing.website} target="_blank" rel="noopener noreferrer" className="listing-card__button"
-            onClick={e => { e.stopPropagation(); e.preventDefault(); }}>
+          <a
+            href={listing.website}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="listing-card__button"
+            onClick={e => { e.stopPropagation(); e.preventDefault(); }}
+          >
             Visit website
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
               <path d="M5 12h14M12 5l7 7-7 7" />
@@ -210,8 +242,7 @@ const ListingRow: React.FC<{ listing: Listing }> = ({ listing }) => (
   </Link>
 );
 
-// Grid Card 
-
+// ─── Grid card ────────────────────────────────────────────────────────────────
 const GridCard: React.FC<{ listing: Listing }> = ({ listing }) => (
   <Link to={`/activity/${listing.id}`} style={{ textDecoration: 'none' }}>
     <article className="listing-card listing-card--grid">
@@ -227,8 +258,13 @@ const GridCard: React.FC<{ listing: Listing }> = ({ listing }) => (
         <p className="listing-card__meta"><i className="bi bi-geo" /> {listing.address}</p>
         {listing.description && <p className="listing-card__description">{listing.description}</p>}
         {listing.website && (
-          <a href={listing.website} target="_blank" rel="noopener noreferrer" className="listing-card__button"
-            onClick={e => { e.stopPropagation(); e.preventDefault(); }}>
+          <a
+            href={listing.website}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="listing-card__button"
+            onClick={e => { e.stopPropagation(); e.preventDefault(); }}
+          >
             Learn more <i className="bi bi-box-arrow-up-right" />
           </a>
         )}
@@ -237,7 +273,7 @@ const GridCard: React.FC<{ listing: Listing }> = ({ listing }) => (
   </Link>
 );
 
-// Main Component 
+// ─── Main component ───────────────────────────────────────────────────────────
 const ServiceFinder: React.FC = () => {
   const [activeTab, setActiveTab]               = useState<TabType>('services');
   const [searchQuery, setSearchQuery]           = useState('');
@@ -257,15 +293,25 @@ const ServiceFinder: React.FC = () => {
   const [searchMeta, setSearchMeta]             = useState<{ radiusKm: number | null; locationFound: boolean } | null>(null);
 
   const faqData = [
-    { question: 'How do I book a service or activity?', answer: 'Contact the business directly using the phone number or website shown on their listing.' },
-    { question: 'How do I search near me?', answer: 'Click the location icon in the search bar to use your GPS location, or type a postcode, city, or area like "North London".' },
-    { question: 'What does the radius filter do?', answer: 'It limits results to businesses within that distance from your searched location. The default is 10km.' },
+    {
+      question: 'How do I book a service or activity?',
+      answer: 'Contact the business directly using the phone number or website shown on their listing.',
+    },
+    {
+      question: 'How do I search near me?',
+      answer: 'Click the location icon in the search bar to use your GPS location, or type a postcode, city, or area like "North London".',
+    },
+    {
+      question: 'What does the radius filter do?',
+      answer: 'It limits results to businesses within that distance from your searched location. The default is 10km.',
+    },
   ];
 
   const currentTypes = activeTab === 'services' ? SERVICE_TYPES : ACTIVITY_TYPES;
 
-  // ── Featured listings ──────────────────────────────────────────────────────
+  // ── Featured listings ─────────────────────────────────────────────────────
   useEffect(() => {
+    setFeaturedLoading(true);
     const endpoint = activeTab === 'services' ? 'services' : 'activities';
     fetch(`${API_BASE}/listings/${endpoint}?new_only=true`)
       .then(r => r.json())
@@ -277,7 +323,7 @@ const ServiceFinder: React.FC = () => {
       .catch(() => setFeaturedLoading(false));
   }, [activeTab]);
 
-  // Core search
+  // ── Core search ───────────────────────────────────────────────────────────
   const performSearch = useCallback(async (opts: {
     query?: string; location?: string; lat?: number; lng?: number;
     radius?: number; type?: string; newOnly?: boolean;
@@ -286,7 +332,7 @@ const ServiceFinder: React.FC = () => {
     setError('');
     setHasSearched(true);
     const endpoint = activeTab === 'services' ? 'services' : 'activities';
-    const params = new URLSearchParams();
+    const params   = new URLSearchParams();
     if (opts.query?.trim())  params.set('search',   opts.query.trim());
     if (opts.type?.trim())   params.set('type',     opts.type.trim());
     if (opts.newOnly)        params.set('new_only', 'true');
@@ -332,9 +378,11 @@ const ServiceFinder: React.FC = () => {
       },
       err => {
         setLocationInput('');
-        setLocationError(err.code === err.PERMISSION_DENIED
-          ? 'Location access denied. Enter a postcode instead.'
-          : 'Could not get location. Try a postcode.');
+        setLocationError(
+          err.code === err.PERMISSION_DENIED
+            ? 'Location access denied. Enter a postcode instead.'
+            : 'Could not get location. Try a postcode.'
+        );
       },
       { timeout: 10000, maximumAge: 60000 }
     );
@@ -342,9 +390,15 @@ const ServiceFinder: React.FC = () => {
 
   const handleTypeClick = (label: string) => {
     const newType = filters.type === label ? '' : label;
-    const next = { ...filters, type: newType };
+    const next    = { ...filters, type: newType };
     setFilters(next);
-    performSearch({ query: searchQuery, location: locationInput, lat: userLocation?.lat, lng: userLocation?.lng, ...next });
+    performSearch({
+      query: searchQuery,
+      location: locationInput,
+      lat: userLocation?.lat,
+      lng: userLocation?.lng,
+      ...next,
+    });
   };
 
   const handleSearch = () => {
@@ -367,18 +421,24 @@ const ServiceFinder: React.FC = () => {
     performSearch({});
   };
 
-  const activeFilterCount = [filters.type !== '', filters.radius !== 10, filters.newOnly].filter(Boolean).length;
+  const activeFilterCount = [
+    filters.type !== '',
+    filters.radius !== 10,
+    filters.newOnly,
+  ].filter(Boolean).length;
+
   const tabLabel = activeTab === 'services' ? 'Services' : 'Activities';
 
   return (
-    <div className="unified-finder">
+    <div className="service-finder-page">
+
+      {/* ── HERO ─────────────────────────────────────────────────────────── */}
       <section className="fh" key={activeTab}>
 
         {/* LEFT PANEL */}
         <div className="fh__left">
           <div className="fh__heading-block">
 
-            {/* Eyebrow */}
             <p className="fh__eyebrow">
               {activeTab === 'services' ? 'Dog Services' : 'Dog-Friendly Places'}
             </p>
@@ -393,8 +453,8 @@ const ServiceFinder: React.FC = () => {
 
             <p className="fh__sub">
               {activeTab === 'services'
-                ? <>Groomers, vets, trainers, pet shops &amp; more - all <strong>verified</strong>, all across the UK.</>
-                : <>Parks, hotels, restaurants &amp; trails - because <strong>your dog comes too.</strong></>}
+                ? <>Groomers, vets, trainers, pet shops &amp; more — all <strong>verified</strong>, all across the UK.</>
+                : <>Parks, hotels, restaurants &amp; trails — because <strong>your dog comes too.</strong> Wherever the adventure takes you.</>}
             </p>
 
             <div className="fh__ctas">
@@ -460,21 +520,21 @@ const ServiceFinder: React.FC = () => {
           </div>
         </div>
 
-        {/* RIGHT PANEL — swaps image on tab change */}
+        {/* RIGHT PANEL */}
         <div className="fh__right" aria-hidden="true">
           <img
-            key={activeTab}                        
+            key={activeTab}
             className="fh__bg-image"
             src={activeTab === 'services'
-              ? '../images/Illustrations/Activities-Finder-Hero.png'
-              : '../images/Illustrations/Service-Finder-Hero.png'}
+              ? '../images/Illustrations/Services-Finder-Hero (2).png'
+              : '../images/Illustrations/Activities-Finder-Hero(2).png'}
             alt=""
           />
         </div>
 
       </section>
 
-      {/* FEATURED section */}
+      {/* ── FEATURED ─────────────────────────────────────────────────────── */}
       <section className="featured-section">
         <div className="featured-section__header">
           <span className="featured-section__eyebrow">Our Selection</span>
@@ -498,22 +558,31 @@ const ServiceFinder: React.FC = () => {
         </div>
       </section>
 
-      {/* ── SEARCH + RESULTS ──────────────────────────────────────────────── */}
+      {/* ── SEARCH + RESULTS ─────────────────────────────────────────────── */}
       <section className="finder-search">
+
+        {/* Type icon buttons */}
         <div className="finder-search__types">
           {currentTypes.map(cat => (
-            <button
+            // Wrapper div: flex-column so label sits below circle in normal flow
+            <div
               key={cat.label}
               className={`type-btn ${filters.type === cat.label ? 'type-btn--active' : ''}`}
               onClick={() => handleTypeClick(cat.label)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={e => e.key === 'Enter' && handleTypeClick(cat.label)}
               title={cat.label}
             >
-              <div className="type-btn__icon"><img src={cat.icon} alt={cat.label} /></div>
+              <div className="type-btn__circle">
+                <img src={cat.icon} alt={cat.label} />
+              </div>
               <span className="type-btn__label">{cat.label}</span>
-            </button>
+            </div>
           ))}
         </div>
 
+        {/* Search bar */}
         <div className="finder-search__bar">
           <div className="finder-search__input-wrap">
             <svg className="finder-search__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -527,7 +596,9 @@ const ServiceFinder: React.FC = () => {
               onKeyDown={e => e.key === 'Enter' && handleSearch()}
               className="finder-search__input"
             />
-            {searchQuery && <button className="finder-search__clear" onClick={() => setSearchQuery('')}>✕</button>}
+            {searchQuery && (
+              <button className="finder-search__clear" onClick={() => setSearchQuery('')}>✕</button>
+            )}
           </div>
 
           <div className="finder-search__input-wrap">
@@ -544,8 +615,10 @@ const ServiceFinder: React.FC = () => {
               className="finder-search__input"
             />
             {locationInput && (
-              <button className="finder-search__clear"
-                onClick={() => { setLocationInput(''); setUserLocation(null); setSearchCoords(null); }}>✕</button>
+              <button
+                className="finder-search__clear"
+                onClick={() => { setLocationInput(''); setUserLocation(null); setSearchCoords(null); }}
+              >✕</button>
             )}
             <button className="finder-search__locate-btn" onClick={detectLocation} title="Use my location">
               <i className="bi bi-compass" />
@@ -565,14 +638,16 @@ const ServiceFinder: React.FC = () => {
           {searchMeta?.locationFound
             ? `Showing results within ${searchMeta.radiusKm} km`
             : 'Showing all UK listings'}
-          {filters.type && ` · ${filters.type}`}
+          {filters.type   && ` · ${filters.type}`}
           {filters.newOnly && ' · New only'}
         </p>
 
         <button className="finder-search__filter-toggle" onClick={() => setFiltersOpen(o => !o)}>
           <i className="bi bi-funnel" />
           {filtersOpen ? 'Hide filters' : 'Filters'}
-          {activeFilterCount > 0 && <span className="finder-search__filter-badge">{activeFilterCount}</span>}
+          {activeFilterCount > 0 && (
+            <span className="finder-search__filter-badge">{activeFilterCount}</span>
+          )}
         </button>
 
         {filtersOpen && (
@@ -593,8 +668,11 @@ const ServiceFinder: React.FC = () => {
             </div>
             <div className="filter-group">
               <label className="filter-toggle">
-                <input type="checkbox" checked={filters.newOnly}
-                  onChange={e => setFilters(f => ({ ...f, newOnly: e.target.checked }))} />
+                <input
+                  type="checkbox"
+                  checked={filters.newOnly}
+                  onChange={e => setFilters(f => ({ ...f, newOnly: e.target.checked }))}
+                />
                 Show new listings only (last 30 days)
               </label>
             </div>
@@ -607,39 +685,52 @@ const ServiceFinder: React.FC = () => {
 
         {error && <p className="finder-search__error">{error}</p>}
 
+        {/* Map + Results side-by-side */}
         <div className="search-results-layout">
           <div className="search-results-layout__map-wrapper">
-            <UnifiedMap listings={listings} userLocation={userLocation} searchCoords={searchCoords} radiusKm={searchMeta?.radiusKm ?? null} />
+            <UnifiedMap
+              listings={listings}
+              userLocation={userLocation}
+              searchCoords={searchCoords}
+              radiusKm={searchMeta?.radiusKm ?? null}
+            />
           </div>
+
           <div className="search-results-layout__listings">
             <h2 className="search-results__title">
-              {loading ? 'Searching…' : `${listings.length} result${listings.length !== 1 ? 's' : ''}`}
+              {loading
+                ? 'Searching…'
+                : `${listings.length} result${listings.length !== 1 ? 's' : ''}`}
               {filters.type && ` · ${filters.type}`}
               {locationInput && locationInput !== 'My location'
                 ? ` near ${locationInput}`
                 : locationInput === 'My location' ? ' near you' : ''}
             </h2>
+
             {loading && (
               <div className="finder-search__loading">
                 <div className="loading-spinner" />
                 <span>Finding {tabLabel.toLowerCase()}…</span>
               </div>
             )}
+
             {!loading && hasSearched && listings.length === 0 && (
               <div className="finder-search__empty">
                 <p>No listings found. Try a wider radius or different search.</p>
                 <button onClick={clearAll}>Clear all filters</button>
               </div>
             )}
+
             {!loading && listings.map(l => <ListingRow key={l.id} listing={l} />)}
           </div>
         </div>
       </section>
 
-      {/* ── FAQ ───────────────────────────────────────────────────────────── */}
       <section className="faq">
         <h2 className="faq__title">Your questions, answered!</h2>
-        <p className="faq__subtitle">Read more of our FAQ <a href="/faq" className="faq__link">here</a>.</p>
+        <p className="faq__subtitle">
+          Read more of our FAQ <a href="/faq" className="faq__link">here</a>.
+        </p>
         <div className="faq__list">
           {faqData.map((faq, i) => (
             <div key={i} className={`faq__item ${openFaq === i ? 'faq__item--open' : ''}`}>

@@ -364,9 +364,9 @@
   background-color: transparent;
   color: $text-color-dark;
   border-radius: $radius-lg;
-  cursor: pointer;
+  @include cursor;
   transition: all 0.3s ease;
-  position: relative;
+  @include relative;
   font-weight: $fw-medium;
 
   @media (max-width: $bp-tablet) {
@@ -385,11 +385,11 @@
 
   &--active {
     color: $twilight-purple;
-    font-weight: $fw-bold;
+    font-weight: $fw-regular;
     
     &::before {
       content: '';
-      position: absolute;
+      @include absolute;
       top: -8px;
       left: 50%;
       transform: translateX(-50%);
@@ -479,7 +479,7 @@
     color: $text-color-white;
     @include flex-center;
     font-family: $font-secondary;
-    font-weight: $fw-bold;
+    font-weight: $fw-regular;
     font-size: 1.25rem;
     box-shadow: $shadow-sm;
     transition: transform 0.3s ease;
@@ -603,7 +603,7 @@
   }
 
   &__device {
-    position: absolute;
+    @include absolute;
     border-radius: $radius-lg;
 
     &--mobile {

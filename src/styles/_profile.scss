@@ -87,10 +87,7 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
 // PUBLIC PROFILE PREVIEW
-// ═══════════════════════════════════════════════════════════════════════════════
-
 .pub-profile-wrap {
   @include column;
   gap: $space-lg;
@@ -1496,14 +1493,14 @@
   @media (min-width: $bp-tablet) { padding: $space-sm $space-xl; font-size: $t-link-des; }
 }
 
-// ─── Public Profile Preview ───────────────────────────────────────────────────
+// Public Profile Preview
 .pub-profile-card {
   background: $soft-pearl;
   border-radius: $radius-lg;
   overflow: hidden;
   box-shadow: 0 2px 4px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.08);
   border: 1px solid rgba($gentle-amethyst, 0.12);
-  max-width: 580px;   // realistic card width
+  max-width: 580px; 
 }
 
 .pub-profile-cover {

@@ -189,9 +189,6 @@ const TipsPage: React.FC<TipsPageProps> = ({
                 <span className="tips-hero__stat-value">Free</span>
                 <span className="tips-hero__stat-label">Always</span>
               </div>
-              <span className="tips-hero__pill">
-                {CATEGORY_LABELS[category]}
-              </span>
             </div>
 
           </div>
@@ -208,7 +205,7 @@ const TipsPage: React.FC<TipsPageProps> = ({
 
       </section>
 
-      {/* ── Category nav ─────────────────────────────────────────────────── */}
+      {/* Category nav  */}
       <nav className="tips-nav" aria-label="Tip categories">
         <div className="tips-nav__inner">
           {NAV.map(c => (

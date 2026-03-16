@@ -1,17 +1,22 @@
 @import '../styles/mixins';
 @import '../styles/variables';
-// Status colours
+
+// ── Palette ─────────────────────────────────────────────────────────────────
 $status-overdue:  #ef4444;
 $status-soon:     #f59e0b;
-$status-upcoming: $serene-purple;
+$status-upcoming: #6366f1;
 $status-done:     #10b981;
-$border-color:    rgba($serene-purple, 0.2);
-//Additional Breakpoints
+$border-color:    rgba($serene-purple, 0.12);
+$surface:         #ffffff;
+$surface-subtle:  rgba($misty-lavender, 0.5);
+
+// ── Breakpoints ──────────────────────────────────────────────────────────────
 $cal-bp-wide: 1100px;
 $cal-bp-mid:   768px;
 $cal-bp-sm:    540px;
 $cal-bp-xs:    380px;
 
+// ── Loading ──────────────────────────────────────────────────────────────────
 .cal-loading {
   @include flex-center;
   height: 300px;
@@ -19,903 +24,526 @@ $cal-bp-xs:    380px;
   font-size: $t-body-des;
   color: $serene-purple;
 }
-// WRAPPER
+
+// ── Root ─────────────────────────────────────────────────────────────────────
 .buddy-calendar {
   @include column;
+  gap: 0;
   width: 100%;
-  gap: $space-xl;
-  padding: clamp(1.2rem, 3vw, 2.5rem);
-  padding-top: clamp(1.5rem, 4vw, 3rem);
-  padding-bottom: clamp(2rem, 5vw, 4rem);
-  background: linear-gradient(
-    180deg,
-    rgba($misty-lavender, 0.4) 0%,
-    rgba($soft-pearl, 0.6) 100%
-  );
+  background: $surface;
   border-radius: $radius-lg;
-  @media (max-width: $cal-bp-mid) { gap: $space-md; padding-bottom: $space-xl; }
-  @media (max-width: $cal-bp-sm)  { gap: $space-sm; padding-bottom: $space-lg; }
+  border: 1px solid $border-color;
+  box-shadow: 0 4px 24px rgba($serene-purple, 0.07), 0 1px 4px rgba(0,0,0,0.04);
+  overflow: hidden;
 }
 
-// HEADER
-.cal-header {
+// ── Top Bar ──────────────────────────────────────────────────────────────────
+.cal-topbar {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: $space-md;
-
-  @media (max-width: $cal-bp-sm) {
-    @include column;
-    gap: $space-sm;
-  }
+  padding: clamp(1.2rem, 2.5vw, 1.8rem) clamp(1.2rem, 3vw, 2rem);
+  background: linear-gradient(135deg, rgba($misty-lavender, 0.6) 0%, rgba($soft-pearl, 0.4) 100%);
+  border-bottom: 1px solid $border-color;
+  @media (max-width: $cal-bp-sm) { @include column; align-items: flex-start; gap: $space-sm; }
 }
+
+.cal-topbar-left  { flex: 1; min-width: 0; }
+.cal-topbar-right {
+  @include center; gap: $space-md; flex-shrink: 0; flex-wrap: wrap;
+  @media (max-width: $cal-bp-sm) { width: 100%; justify-content: space-between; gap: $space-sm; }
+}
+
+.cal-logo-area { @include center; gap: $space-sm; align-items: flex-start; }
+.cal-logo-paw  { font-size: 1.6rem; line-height: 1; flex-shrink: 0; }
 
 .cal-title {
   font-family: $font-primary;
   font-size: $t-tit-des;
   font-weight: $fw-regular;
   color: $text-color-dark;
-  margin: 0 0 $space-xs;
+  margin: 0 0 2px;
   line-height: $lh-tight;
-
   @media (max-width: $cal-bp-mid) { font-size: $t-tit-tab; }
   @media (max-width: $cal-bp-sm)  { font-size: $t-tit-mob; }
-  @media (max-width: $cal-bp-xs)  { font-size: 1.1rem; }
+  @media (max-width: $cal-bp-xs)  { font-size: 1.05rem; }
 }
 
 .cal-sub {
   font-family: $font-secondary;
-  font-size: $t-body-des;
+  font-size: $t-body-mob;
   color: $gentle-amethyst;
   margin: 0;
-
-  @media (max-width: $cal-bp-xs) { font-size: 0.72rem; }
+  @media (max-width: $cal-bp-xs) { font-size: 0.7rem; }
 }
 
-.cal-header-actions {
-  @include center;
-  gap: $space-sm;
-  flex-shrink: 0;
-  flex-wrap: wrap;
+// ── Stats Bar ─────────────────────────────────────────────────────────────────
+.cal-stats-bar { @include center; gap: $space-md; flex-wrap: wrap; @media (max-width: $cal-bp-xs) { gap: $space-sm; } }
+.cal-stat-item { @include center; gap: 5px; }
+.cal-stat-dot  { width: 7px; height: 7px; border-radius: $radius-round; flex-shrink: 0; }
+.cal-stat-num  { font-family: $font-primary; font-size: 1.1rem; font-weight: $fw-regular; line-height: 1; @media (max-width: $cal-bp-xs) { font-size: 0.95rem; } }
+.cal-stat-lbl  { font-family: $font-secondary; font-size: 0.68rem; color: $gentle-amethyst; letter-spacing: 0.03em; text-transform: uppercase; @media (max-width: $cal-bp-sm) { display: none; } }
 
-  @media (max-width: $cal-bp-sm) {
-    width: 100%;
-    gap: $space-xs;
-  }
-}
-
-// BUTTONS
+// ── Add Button ────────────────────────────────────────────────────────────────
 .cal-add-btn {
-  background: $twilight-purple;
-  color: $misty-lavender;
-  border: none;
-  @include center;
-  border-radius: $radius-lg;
-  padding: $space-sm $space-md;
-  font-family: $font-secondary;
-  font-size: $t-link-des;
-  font-weight: $fw-medium;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.2s;
-  box-shadow: $shadow-md;
-  img {
-    width: 30px;
-    height: 30px;
-    filter: invert(1);
-    padding-right: 7px;
-  }
-  &:hover { background: $serene-purple; box-shadow: $shadow-purple-glow; }
-  @media (max-width: $cal-bp-sm) { font-size: 0.78rem; padding: $space-xs $space-md; }
+  @include center; gap: $space-xs;
+  background: $twilight-purple; color: white; border: none;
+  border-radius: $radius-lg; padding: $space-sm $space-md;
+  font-family: $font-secondary; font-size: $t-but-des; font-weight: $fw-medium;
+  cursor: pointer; white-space: nowrap; transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba($twilight-purple, 0.3);
+  &:hover { background: $serene-purple; box-shadow: 0 4px 16px rgba($serene-purple, 0.4); transform: translateY(-1px); }
   @media (max-width: $cal-bp-xs) { font-size: 0.72rem; padding: 6px $space-sm; }
+}
+
+// ── Toolbar ──────────────────────────────────────────────────────────────────
+.cal-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: $space-sm clamp(1.2rem, 3vw, 2rem);
+  border-bottom: 1px solid $border-color; background: $surface;
+  gap: $space-sm; flex-wrap: wrap;
+}
+.cal-toolbar-right { @include center; gap: $space-sm; flex-wrap: wrap; }
+
+.cal-view-toggle {
+  @include center; gap: 2px;
+  background: rgba($misty-lavender, 0.6); border-radius: $radius-md; padding: 3px;
+}
+
+.view-btn {
+  @include center; gap: 5px;
+  background: none; border: none; border-radius: calc(#{$radius-md} - 3px);
+  padding: 6px $space-md; font-family: $font-secondary; font-size: $t-but-des;
+  color: $gentle-amethyst; cursor: pointer; transition: all 0.18s; white-space: nowrap;
+  &.active { background: $surface; color: $twilight-purple; font-weight: $fw-medium; box-shadow: 0 1px 4px rgba($serene-purple, 0.15); }
+  &:not(.active):hover { color: $twilight-purple; }
+  @media (max-width: $cal-bp-xs) { font-size: 0.7rem; padding: 5px $space-sm; }
 }
 
 .cal-filter-toggle {
-  background: $soft-pearl;
-  border: 1.5px solid $border-color;
-  border-radius: $radius-lg;
-  padding: $space-sm $space-md;
-  font-family: $font-secondary;
-  font-size: $t-link-des;
-  color: $gentle-amethyst;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: $space-xs;
-  transition: all 0.2s;
-  img {
-    width: 24px;
-    height: 24px;
-  }
-
-  &:hover,
-  &.active     { border-color: $serene-purple; color: $twilight-purple; }
-  &.has-filter { border-color: $serene-purple; color: $serene-purple;   }
-
-  @media (max-width: $cal-bp-sm) { font-size: 0.78rem; padding: $space-xs $space-md; }
-  @media (max-width: $cal-bp-xs) { font-size: 0.72rem; padding: 6px $space-sm; }
+  @include center; gap: 5px;
+  background: none; border: 1.5px solid $border-color; border-radius: $radius-md;
+  padding: 6px $space-md; font-family: $font-secondary; font-size: $t-but-des;
+  color: $gentle-amethyst; cursor: pointer; transition: all 0.18s; white-space: nowrap; position: relative;
+  &:hover, &.active { border-color: $serene-purple; color: $twilight-purple; }
+  &.has-filter { border-color: $serene-purple; color: $serene-purple; }
+  @media (max-width: $cal-bp-xs) { font-size: 0.7rem; padding: 5px $space-sm; }
 }
+.filter-dot { width: 6px; height: 6px; background: $serene-purple; border-radius: $radius-round; }
 
-.filter-dot {
-  width: 6px; height: 6px;
-  background: $serene-purple;
-  border-radius: $radius-round;
-  flex-shrink: 0;
-}
-
-.cal-add-btn-sm {
-  display: block;
-  margin-top: $space-md;
-  background: transparent;
-  border: 1.5px solid $serene-purple;
-  color: $serene-purple;
-  border-radius: $radius-lg;
-  padding: $space-xs $space-lg;
-  font-family: $font-secondary;
-  font-size: $t-but-des;
-  cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover { background: rgba($serene-purple, 0.08); }
-  @media (max-width: $cal-bp-sm) { font-size: 0.78rem; }
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// STATS ROW
-// ═══════════════════════════════════════════════════════════════════════════════
-.cal-stats-row {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: $space-md;
-
-  @media (max-width: $cal-bp-mid) { grid-template-columns: repeat(2, 1fr); gap: $space-sm; }
-  @media (max-width: $cal-bp-xs)  { gap: $space-xs; }
-}
-
-.cal-stat-card {
-  background: $soft-pearl;
-  border-radius: $radius-md;
-  padding: $space-md;
-  border-top: 3px solid;
-  box-shadow: $shadow-sm;
-  @include column;
-  align-items: flex-start;
-  gap: $space-xs;
-
-  @media (max-width: $cal-bp-mid) { padding: $space-sm $space-md; }
-  @media (max-width: $cal-bp-sm)  { padding: $space-sm; gap: 2px; }
-  @media (max-width: $cal-bp-xs)  { padding: 10px $space-sm; }
-}
-
-.cal-stat-count {
-  font-family: $font-primary;
-  font-size: $t-tit-des;
-  font-weight: $fw-regular;
-  line-height: 1;
-
-  @media (max-width: $cal-bp-mid) { font-size: $t-tit-tab; }
-  @media (max-width: $cal-bp-sm)  { font-size: $t-sub-des; }
-  @media (max-width: $cal-bp-xs)  { font-size: 1.2rem; }
-}
-
-.cal-stat-label {
-  font-family: $font-secondary;
-  font-size: $t-body-mob;
-  color: $gentle-amethyst;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-
-  @media (max-width: $cal-bp-sm) { font-size: 0.6rem; }
-  @media (max-width: $cal-bp-xs) { font-size: 0.55rem; letter-spacing: 0; }
-}
-
-// FILTERS PANEL
+// ── Filters Panel ──────────────────────────────────────────────────────────
 .cal-filters-panel {
-  background: $soft-pearl;
-  border-radius: $radius-md;
-  padding: $space-md;
-  box-shadow: $shadow-sm;
-  @include column;
-  align-items: flex-start;
-  gap: $space-md;
-  animation: calSlideDown 0.2s ease;
-
-  @media (max-width: $cal-bp-sm) { padding: $space-sm; gap: $space-sm; }
+  @include column; align-items: flex-start; gap: $space-md;
+  padding: $space-md clamp(1.2rem, 3vw, 2rem);
+  background: rgba($misty-lavender, 0.3); border-bottom: 1px solid $border-color;
+  animation: calSlideDown 0.18s ease;
+  @media (max-width: $cal-bp-sm) { gap: $space-sm; padding: $space-sm; }
 }
+@keyframes calSlideDown { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
 
-@keyframes calSlideDown {
-  from { opacity: 0; transform: translateY(-6px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-.cal-filter-group { @include column; align-items: flex-start; gap: $space-sm; width: 100%; }
-
-.cal-filter-title {
-  font-family: $font-secondary;
-  font-size: $t-but-des;
-  font-weight: $fw-medium;
-  color: $text-color-dark;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  margin: 0;
-
-  @media (max-width: $cal-bp-xs) { font-size: 0.62rem; }
-}
-
-.cal-filter-btns { display: flex; flex-wrap: wrap; gap: $space-sm; }
+.cal-filter-group { @include center; gap: $space-sm; flex-wrap: wrap; align-items: center; }
+.cal-filter-title { font-family: $font-secondary; font-size: 0.65rem; font-weight: $fw-medium; color: $gentle-amethyst; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; }
+.cal-filter-btns  { display: flex; flex-wrap: wrap; gap: $space-xs; }
 
 .cal-filter-btn {
-  padding: $space-xs $space-md;
-  border: 1.5px solid $border-color;
-  border-radius: $radius-lg;
-  background: none;
-  font-family: $font-secondary;
-  font-size: $t-but-des;
-  color: $text-color-dark;
-  cursor: pointer;
-  transition: all 0.18s;
-  white-space: nowrap;
-
+  @include center; gap: 4px; padding: 4px $space-sm;
+  border: 1.5px solid $border-color; border-radius: $radius-lg;
+  background: $surface; font-family: $font-secondary; font-size: $t-but-des;
+  color: $text-color-dark; cursor: pointer; transition: all 0.15s; white-space: nowrap;
   &:hover  { border-color: $serene-purple; color: $twilight-purple; }
-  &.active {
-    border-color: $serene-purple; color: $serene-purple;
-    background: rgba($serene-purple, 0.08); font-weight: $fw-medium;
-  }
-
-  @media (max-width: $cal-bp-sm) { font-size: 0.65rem; padding: 4px $space-sm; }
-  @media (max-width: $cal-bp-xs) { font-size: 0.6rem;  padding: 3px 8px; }
+  &.active { font-weight: $fw-medium; }
+  @media (max-width: $cal-bp-xs) { font-size: 0.62rem; padding: 3px 8px; }
 }
 
-.cal-clear-all,
-.cal-clear-date {
-  background: none;
-  border: 1.5px solid rgba($status-overdue, 0.3);
-  border-radius: $radius-lg;
-  color: $status-overdue;
-  font-family: $font-secondary;
-  font-size: $t-but-des;
-  padding: $space-xs $space-md;
-  cursor: pointer;
-  transition: all 0.2s;
-
+.cal-clear-all {
+  background: none; border: 1.5px solid rgba($status-overdue, 0.35);
+  border-radius: $radius-lg; color: $status-overdue;
+  font-family: $font-secondary; font-size: $t-but-des;
+  padding: 4px $space-md; cursor: pointer; transition: all 0.2s;
   &:hover { background: rgba($status-overdue, 0.06); }
-  @media (max-width: $cal-bp-sm) { font-size: 0.7rem; }
 }
 
-.cal-clear-date { text-align: center; width: 100%; }
-
-// MAIN LAYOUT
-.cal-layout {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: $space-lg;
-  align-items: start;
-
-  @media (max-width: $cal-bp-wide) { grid-template-columns: 1fr; gap: $space-md; }
-  @media (max-width: $cal-bp-sm)   { gap: $space-sm; }
+// ── Calendar Body ────────────────────────────────────────────────────────────
+.cal-body {
+  padding: clamp(1rem, 2.5vw, 1.8rem) clamp(1rem, 3vw, 2rem);
+  background: $surface; min-height: 400px;
+  @media (max-width: $cal-bp-sm) { padding: $space-md $space-sm; }
 }
 
-.cal-left {
-  @include column;
-  align-items: stretch;
-  gap: $space-md;
+// ── Month Grid ────────────────────────────────────────────────────────────────
+.month-grid-wrapper { @include column; gap: $space-md; }
+.month-grid-header  { @include center; justify-content: space-between; margin-bottom: $space-sm; }
+.month-grid-title   { @include center; gap: $space-sm; }
 
-  @media (max-width: $cal-bp-sm) { gap: $space-sm; }
-}
+.month-name { font-family: $font-primary; font-size: $t-sub-des; font-weight: $fw-regular; color: $text-color-dark; @media (max-width: $cal-bp-sm) { font-size: $t-body-des; } }
+.month-year { font-family: $font-secondary; font-size: $t-body-des; color: $gentle-amethyst; font-weight: $fw-regular; }
 
-// MINI CALENDAR
-.mini-calendar {
-  width: 100%;
-  background: $soft-pearl;
-  border-radius: $radius-lg;
-  padding: clamp(1.2rem, 2.2vw, 1.8rem);
-
-  box-shadow:
-    0 10px 30px rgba($serene-purple, 0.08),
-    0 2px 6px rgba(0,0,0,0.04);
-
-  border: 1px solid rgba($serene-purple, 0.08);
-
-
-  @media (max-width: $cal-bp-mid) { padding: $space-md; }
-  @media (max-width: $cal-bp-sm)  { padding: $space-sm $space-md; }
-  @media (max-width: $cal-bp-xs)  { padding: $space-sm; }
-}
-
-.mini-cal-header {
-  @include flex-between;
-  margin-bottom: $space-md;
-
-  @media (max-width: $cal-bp-sm) { margin-bottom: $space-sm; }
-}
-
-.mini-cal-title {
-  font-family: $font-secondary;
-  font-size: $t-body-des;
-  font-weight: $fw-medium;
-  color: $text-color-dark;
-
-  @media (max-width: $cal-bp-sm) { font-size: $t-body-des; }
-  @media (max-width: $cal-bp-xs) { font-size: $t-body-mob; }
-}
-
-.mini-cal-nav {
-  background: none;
-  border: 1px solid $border-color;
-  border-radius: $radius-sm;
-  width: 35px; height: 35px;
-  @include flex-center;
-  cursor: pointer;
-  font-size: $t-body-des;
-  color: $serene-purple;
-  transition: all 0.2s;
+.month-nav-btn {
+  @include flex-center; width: 32px; height: 32px;
+  background: none; border: 1.5px solid $border-color; border-radius: $radius-sm;
+  color: $serene-purple; cursor: pointer; transition: all 0.18s; flex-shrink: 0;
   -webkit-tap-highlight-color: transparent;
-
-  &:hover { background: $misty-lavender; }
-
-  @media (max-width: $cal-bp-xs) { width: 26px; height: 26px; font-size: 0.85rem; }
+  &:hover { background: $misty-lavender; border-color: $serene-purple; }
 }
 
-.mini-cal-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 2px;
-
-  @media (max-width: $cal-bp-xs) { gap: 1px; }
+.month-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  gap: 1px; background: $border-color;
+  border: 1px solid $border-color; border-radius: $radius-md; overflow: hidden;
 }
 
-.mini-cal-day-label {
-  font-family: $font-secondary;
-  font-size: $t-link-des;
-  font-weight: $fw-medium;
-  color: $gentle-amethyst;
-  text-align: center;
-  padding: $space-xs 0;
-  letter-spacing: 0.03em;
-
-  @media (max-width: $cal-bp-xs) { font-size: 0.55rem; padding: 3px 0; letter-spacing: 0; }
+.month-day-label {
+  background: rgba($misty-lavender, 0.5); font-family: $font-secondary;
+  font-size: 0.68rem; font-weight: $fw-medium; color: $gentle-amethyst;
+  text-align: center; padding: $space-sm 0; letter-spacing: 0.04em; text-transform: uppercase;
 }
 
-.mini-cal-cell {
-  @include relative;
-  aspect-ratio: 1;
-  @include flex-column;
-  gap: 1px;
-  font-family: $font-secondary;
-  font-size: $t-link-des;
-  color: $text-color-dark;
-  @include none;
-  border-radius: $radius-round;
-  cursor: pointer;
-  transition: all 0.15s;
-  min-height: 28px;
-  -webkit-tap-highlight-color: transparent;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-  &:hover    { background: $misty-lavender; transform: translateY(-1px);box-shadow: 0 4px 10px rgba($serene-purple, 0.15); }
-  
-  &.today {
-  font-weight: $fw-bold;
-  color: $serene-purple;
-  background: rgba($serene-purple, 0.08);
-  box-shadow: inset 0 0 0 1px rgba($serene-purple, 0.25);
-}
-  &.selected {
-    background: $twilight-purple;
-    color: $misty-lavender;
-    box-shadow: 0 6px 14px rgba($twilight-purple, 0.3);
-    .mini-cal-dot { background: $misty-lavender !important; }
+.month-cell {
+  @include column; align-items: stretch; gap: 3px;
+  background: $surface; padding: 6px 5px; min-height: 90px;
+  vertical-align: top; transition: background 0.15s; cursor: default;
+
+  &.clickable {
+    cursor: pointer;
+    &:hover { background: rgba($misty-lavender, 0.45); }
+    &:hover .month-cell-day:not(.today-badge) { background: rgba($serene-purple, 0.1); color: $twilight-purple; }
+    &:active { background: rgba($misty-lavender, 0.7); }
   }
-  &.has-events { font-weight: $fw-medium; }
 
-  @media (max-width: $cal-bp-xs) { font-size: 0.6rem; min-height: 24px; }
+  &.empty   { background: rgba($misty-lavender, 0.2); min-height: 90px; cursor: default; &:hover { background: rgba($misty-lavender, 0.2); } }
+  &.today   { background: rgba($serene-purple, 0.03); }
+
+  &.drag-over {
+    background: rgba($serene-purple, 0.1);
+    outline: 2px dashed rgba($serene-purple, 0.45);
+    outline-offset: -2px;
+    .month-cell-day:not(.today-badge) { background: rgba($serene-purple, 0.15); color: $twilight-purple; }
+  }
+
+  @media (max-width: $cal-bp-mid) { min-height: 72px; padding: 4px 3px; }
+  @media (max-width: $cal-bp-sm)  { min-height: 52px; padding: 3px 2px; gap: 2px; }
 }
 
-.mini-cal-dot {
-  width: 7px; height: 7px;
-  border-radius: $radius-round;
-  flex-shrink: 1;
+.month-cell-day {
+  font-family: $font-secondary; font-size: $t-body-mob; font-weight: $fw-regular;
+  color: $text-color-dark; width: 24px; height: 24px; @include flex-center;
+  border-radius: $radius-round; align-self: flex-start; line-height: 1;
+  flex-shrink: 0; transition: all 0.15s;
+  &.today-badge { background: $twilight-purple; color: white; font-weight: $fw-bold; }
+  @media (max-width: $cal-bp-sm) { width: 18px; height: 18px; font-size: 0.6rem; }
 }
 
-// Right panel 
-.cal-right {
-  @include column;
-  align-items: stretch;
-  gap: $space-lg;
-  min-height: 200px;
+.month-cell-events { @include column; gap: 2px; flex: 1; min-width: 0; overflow: hidden; }
 
-  @media (max-width: $cal-bp-mid) { gap: $space-md; }
-  @media (max-width: $cal-bp-sm)  { gap: $space-sm; min-height: 120px; }
+.month-cell-more {
+  font-family: $font-secondary; font-size: 0.6rem; color: $gentle-amethyst; padding: 0 4px; cursor: pointer;
+  &:hover { color: $twilight-purple; }
 }
 
-// EMPTY STATE
-.cal-empty {
-  background: $soft-pearl;
-  border-radius: $radius-lg;
-  padding: $space-xxl $space-xl;
-  box-shadow: $shadow-sm;
-  @include flex-column;
+// ── Event Pills ───────────────────────────────────────────────────────────────
+.cal-pill {
+  --pill-color:      #7c3aed;
+  --pill-bg:         #ede9fe;
+  --pill-dog-color:  #7c3aed;
+  --pill-dog-bg:     #ede9fe;
+
+  position: relative;
+  display: flex;
   align-items: center;
-
-  p {
-    font-family: $font-secondary;
-    font-size: $t-body-des;
-    color: $gentle-amethyst;
-    margin: $space-sm 0 0;
-    text-align: center;
-  }
-
-  @media (max-width: $cal-bp-mid) { padding: $space-xl $space-lg; }
-  @media (max-width: $cal-bp-sm)  { padding: $space-xl $space-md; p { font-size: $t-body-mob; } }
-  @media (max-width: $cal-bp-xs)  { padding: $space-lg $space-sm; }
-}
-
-.cal-empty-icon {
-  font-size: 2.5rem;
-  @media (max-width: $cal-bp-sm) { font-size: 2rem; }
-}
-
-// Event group
-.cal-group {
-  @include column;
-  align-items: stretch;
-  gap: $space-sm;
-  width: 100%;
-
-  @media (max-width: $cal-bp-sm) { gap: $space-xs; }
-}
-
-.cal-group-title {
+  gap: 4px;
+  background: var(--pill-bg);
+  border: none;
+  border-radius: 5px;
+  padding: 3px 5px 3px 4px;
   font-family: $font-secondary;
-  font-size: $t-body-mob;
-  font-weight: $fw-bold;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  margin: 0 0 $space-xs;
-
-  @media (max-width: $cal-bp-xs) { font-size: 0.62rem; }
-}
-
-// EVENT CARD
-.event-card {
+  font-size: 0.62rem;
+  font-weight: $fw-medium;
+  cursor: grab;
   width: 100%;
-  box-sizing: border-box;
-  background: $soft-pearl;
-  border-radius: $radius-md;
-  padding: $space-md;
-  border-left: 4px solid;
-  box-shadow: $shadow-sm;
-  @include flex-between;
-  gap: $space-md;
-  transition: box-shadow 0.2s;
+  overflow: hidden;
+  text-align: left;
+  white-space: nowrap;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow:
-      0 12px 24px rgba($serene-purple, 0.08),
-      0 4px 10px rgba(0,0,0,0.05);
+    transform: translateY(-1px) scale(1.01);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+    filter: brightness(0.97);
+  }
+  &:active { cursor: grabbing; transform: scale(0.98); }
+
+  &.cal-pill--overdue { animation: pillPulse 2.5s ease-in-out infinite; }
+  &.cal-pill--done    { opacity: 0.55; }
+
+  &__strip {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--pill-color);
+    border-radius: 5px 0 0 5px;
+    flex-shrink: 0;
   }
 
-  &.completed {
-    opacity: 0.65;
-    .event-title { text-decoration: line-through; }
+  &__icon {
+    display: flex; align-items: center; justify-content: center;
+    margin-left: 4px; flex-shrink: 0;
+    img { width: 11px; height: 11px; object-fit: contain; opacity: 0.9; }
   }
 
-  @media (max-width: $cal-bp-mid) {
-    padding: $space-sm $space-md;
-    gap: $space-sm;
+  &__title {
+    flex: 1; overflow: hidden; text-overflow: ellipsis;
+    color: var(--pill-color); font-size: 0.62rem;
+  }
+
+  &__check {
+    font-size: 0.55rem; color: $status-done; flex-shrink: 0; font-weight: $fw-bold;
+  }
+
+  &__dog {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--pill-dog-bg); color: var(--pill-dog-color);
+    border: 1.5px solid var(--pill-dog-color);
+    font-size: 0.5rem; font-weight: $fw-bold; flex-shrink: 0; overflow: hidden;
+    img { width: 100%; height: 100%; object-fit: cover; }
   }
 
   @media (max-width: $cal-bp-sm) {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: $space-xs;
-    padding: $space-sm;
-    border-radius: $radius-sm;
+    padding: 2px 3px; gap: 2px;
+    &__icon img { width: 9px; height: 9px; }
+    &__dog { width: 12px; height: 12px; font-size: 0.44rem; }
   }
 
   @media (max-width: $cal-bp-xs) {
-    padding: 10px $space-sm;
+    padding: 0; height: 7px; border-radius: 2px;
+    background: var(--pill-color); opacity: 0.7;
+    &__strip, &__icon, &__title, &__check, &__dog { display: none; }
   }
 }
 
-// Card left
-.event-card-left {
-  @include center;
-  gap: $space-md;
-  flex: 1;
-  min-width: 0;
-
-  @media (max-width: $cal-bp-sm)  { gap: $space-sm; width: 100%; }
-  @media (max-width: $cal-bp-xs)  { gap: $space-xs; }
+@keyframes pillPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+  50%       { box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.18); }
 }
 
-.event-info {
-  @include column;
-  align-items: flex-start;
-  gap: 3px;
-  min-width: 0;
-  flex: 1;
+// ── Popover ──────────────────────────────────────────────────────────────────
+.cal-popover {
+  position: absolute; z-index: 1100;
+  background: $surface; border-radius: $radius-md;
+  box-shadow: 0 8px 32px rgba($twilight-purple, 0.18), 0 2px 8px rgba(0,0,0,0.08);
+  border: 1px solid $border-color; width: 280px; max-width: calc(100vw - 2rem);
+  animation: popoverIn 0.15s ease; overflow: hidden;
+  @media (max-width: $cal-bp-sm) { width: 240px; }
+}
+@keyframes popoverIn { from { opacity: 0; transform: translateY(4px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+.cal-popover-header    { padding: $space-md; border-bottom: 1px solid $border-color; }
+.cal-popover-title-row { @include flex-between; margin-bottom: $space-xs; }
+
+.cal-popover-type-chip {
+  @include center; gap: 5px; font-family: $font-secondary; font-size: 0.65rem;
+  font-weight: $fw-medium; padding: 3px 8px; border-radius: $radius-lg; letter-spacing: 0.03em;
 }
 
-.event-title {
-  font-family: $font-secondary;
-  font-size: $t-link-des;
-  font-weight: $fw-medium;
-  color: $text-color-dark;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-
-  @media (max-width: $cal-bp-mid) { font-size: $t-body-des; }
-  @media (max-width: $cal-bp-xs)  { font-size: $t-body-mob; }
+.cal-popover-close {
+  @include flex-center; background: none; border: none; color: $gentle-amethyst;
+  cursor: pointer; border-radius: $radius-sm; padding: 3px; transition: all 0.15s;
+  &:hover { background: $misty-lavender; color: $twilight-purple; }
 }
 
-.event-meta {
-  @include column;
-  gap: 2px;
-  min-width: 0;
-  width: 100%;
+.cal-popover-title    { font-family: $font-primary; font-size: $t-body-des; font-weight: $fw-regular; color: $text-color-dark; margin: 0 0 $space-xs; }
+.cal-popover-dog-row  { display: flex; align-items: center; gap: 5px; margin-bottom: $space-xs; }
+.cal-popover-date     { font-family: $font-secondary; font-size: $t-body-mob; color: $gentle-amethyst; margin-bottom: $space-xs; }
+.cal-popover-notes    { font-family: $font-secondary; font-size: $t-body-mob; color: $gentle-amethyst; font-style: italic; margin-bottom: $space-xs; }
+.cal-popover-badge    { display: inline-block; font-family: $font-secondary; font-size: 0.62rem; font-weight: $fw-medium; letter-spacing: 0.03em; text-transform: uppercase; padding: 2px 8px; border-radius: $radius-lg; }
+
+.cal-popover-actions { @include center; gap: $space-xs; padding: $space-sm $space-md; flex-wrap: wrap; }
+
+.cal-popover-btn {
+  font-family: $font-secondary; font-size: $t-body-mob; border-radius: $radius-md;
+  padding: $space-xs $space-sm; cursor: pointer; transition: all 0.15s;
+  border: 1.5px solid; background: none; white-space: nowrap;
+  &.complete { &:hover { opacity: 0.8; } }
+  &.edit     { border-color: $border-color; color: $gentle-amethyst; &:hover { border-color: $serene-purple; color: $twilight-purple; background: rgba($serene-purple, 0.06); } }
+  &.delete   { border-color: rgba($status-overdue, 0.3); color: $status-overdue; &:hover { background: rgba($status-overdue, 0.06); border-color: $status-overdue; } }
 }
 
-.event-date {
-  font-family: $font-secondary;
-  font-size: $t-body-mob;
-  color: $gentle-amethyst;
+// ── Agenda List ──────────────────────────────────────────────────────────────
+.agenda-list  { @include column; align-items: stretch; gap: $space-lg; @media (max-width: $cal-bp-sm) { gap: $space-md; } }
+.agenda-group { @include column; align-items: stretch; gap: $space-sm; }
 
-  @media (max-width: $cal-bp-xs) { font-size: 0.68rem; }
+.agenda-group-header { @include center; gap: $space-sm; padding-bottom: $space-xs; border-bottom: 1.5px solid $border-color; }
+.agenda-status-dot   { width: 8px; height: 8px; border-radius: $radius-round; flex-shrink: 0; }
+.agenda-group-label  { font-family: $font-secondary; font-size: 0.7rem; font-weight: $fw-medium; letter-spacing: 0.07em; text-transform: uppercase; }
+.agenda-group-count  { font-family: $font-secondary; font-size: 0.7rem; color: $gentle-amethyst; background: rgba($misty-lavender, 0.8); border-radius: $radius-lg; padding: 1px 7px; margin-left: auto; }
+
+.agenda-card {
+  @include center; gap: $space-md; background: $surface;
+  border: 1px solid $border-color; border-radius: $radius-md; padding: $space-md;
+  transition: box-shadow 0.18s, transform 0.15s;
+  &:hover { box-shadow: 0 4px 16px rgba($serene-purple, 0.08); transform: translateY(-1px); }
+  &.done { opacity: 0.6; .agenda-card-title { text-decoration: line-through; } }
+  @media (max-width: $cal-bp-sm) { flex-wrap: wrap; gap: $space-sm; padding: $space-sm; }
 }
 
-.event-notes {
-  font-family: $font-secondary;
-  font-size: $t-body-mob;
-  color: $gentle-amethyst;
-  font-style: italic;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
+.agenda-card-icon  { @include flex-center; width: 40px; height: 40px; border-radius: $radius-md; flex-shrink: 0; @media (max-width: $cal-bp-xs) { width: 32px; height: 32px; } }
+.agenda-card-info  { @include column; gap: 3px; flex: 1; min-width: 0; }
+.agenda-card-title { font-family: $font-secondary; font-size: $t-link-des; font-weight: $fw-medium; color: $text-color-dark; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; @media (max-width: $cal-bp-xs) { font-size: $t-body-des; } }
+.agenda-card-meta  { @include center; gap: $space-sm; flex-wrap: wrap; align-items: flex-start; }
+.agenda-card-date  { font-family: $font-secondary; font-size: $t-body-mob; color: $gentle-amethyst; }
+.agenda-card-notes { font-family: $font-secondary; font-size: $t-body-mob; color: $gentle-amethyst; font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
 
-  @media (max-width: $cal-bp-xs) { font-size: 0.68rem; }
+.agenda-card-dog-tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 7px; border-radius: $radius-lg;
+  font-family: $font-secondary; font-size: 0.65rem; font-weight: $fw-medium;
 }
 
-// Card right 
-.event-card-right {
-  @include center;
-  gap: $space-sm;
-  flex-shrink: 0;
+.agenda-card-actions { @include center; gap: $space-xs; flex-shrink: 0; @media (max-width: $cal-bp-sm) { width: 100%; justify-content: flex-end; } }
 
-  @media (max-width: $cal-bp-sm) {
-    width: 100%;
-    justify-content: flex-end;
-    gap: $space-xs;
-    padding-top: $space-xs;
-    border-top: 1px solid rgba($serene-purple, 0.1);
-  }
+.agenda-complete-btn {
+  font-family: $font-secondary; font-size: $t-body-mob; font-weight: $fw-medium;
+  padding: $space-xs $space-md; border: 1.5px solid; border-radius: $radius-lg;
+  cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  &:hover { opacity: 0.8; }
+  @media (max-width: $cal-bp-xs) { font-size: 0.62rem; padding: 3px 8px; }
 }
 
-.event-actions {
-  @include center;
-  gap: $space-xs;
-}
-
-// Status badge
-.event-status-badge {
-  font-family: $font-secondary;
-  font-size: 0.65rem;
-  font-weight: $fw-medium;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  padding: $space-xs $space-sm;
-  border-radius: $radius-lg;
-  white-space: nowrap;
-
-  @media (max-width: $cal-bp-sm) { display: none; }
-}
-
-.event-complete-btn {
-  font-family: $font-secondary;
-  font-size: $t-body-mob;
-  font-weight: $fw-medium;
-  padding: $space-xs $space-md;
-  border: 1.5px solid;
-  border-radius: $radius-lg;
-  background: none;
-  cursor: pointer;
-  transition: all 0.18s;
-  white-space: nowrap;
-
-  &:hover { opacity: 0.75; }
-  &.undo  { font-weight: $fw-bold; }
-
-  @media (max-width: $cal-bp-sm) { font-size: 0.65rem; padding: 4px $space-sm; }
-  @media (max-width: $cal-bp-xs) { font-size: 0.6rem;  padding: 3px 8px; }
-}
-
-.event-icon-btn {
-  background: none;
-  border: 1.5px solid $border-color;
-  border-radius: $radius-sm;
-  width: 30px; height: 30px;
-  @include flex-center;
-  cursor: pointer;
-  font-size: 0.8rem;
-  transition: all 0.18s;
-  flex-shrink: 0;
-  color: $gentle-amethyst;
+.agenda-icon-btn {
+  @include flex-center; background: none; border: 1.5px solid $border-color;
+  border-radius: $radius-sm; width: 30px; height: 30px;
+  cursor: pointer; font-size: 0.75rem; color: $gentle-amethyst; transition: all 0.15s; flex-shrink: 0;
   -webkit-tap-highlight-color: transparent;
-
-  &.edit:hover {
-    border-color: $serene-purple;
-    color: $twilight-purple;
-    background: rgba($serene-purple, 0.08);
-  }
-
-  &.delete:hover {
-    border-color: rgba($status-overdue, 0.5);
-    color: $status-overdue;
-    background: rgba($status-overdue, 0.06);
-  }
-
-  @media (max-width: $cal-bp-sm) { width: 28px; height: 28px; font-size: 0.75rem; }
-  @media (max-width: $cal-bp-xs) { width: 26px; height: 26px; font-size: 0.7rem;  }
+  &.edit:hover   { border-color: $serene-purple; color: $twilight-purple; background: rgba($serene-purple, 0.07); }
+  &.delete:hover { border-color: rgba($status-overdue, 0.5); color: $status-overdue; background: rgba($status-overdue, 0.06); }
+  @media (max-width: $cal-bp-xs) { width: 26px; height: 26px; font-size: 0.7rem; }
 }
 
-// MODAL
+// ── Empty State ───────────────────────────────────────────────────────────────
+.cal-empty {
+  @include flex-column; align-items: center; padding: $space-xxl $space-xl;
+  .cal-empty-icon { font-size: 2.5rem; margin-bottom: $space-sm; }
+  p { font-family: $font-secondary; font-size: $t-body-des; color: $gentle-amethyst; margin: 0; text-align: center; }
+}
+
+// ── Modals ───────────────────────────────────────────────────────────────────
 .cal-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba($twilight-purple, 0.5);
-  backdrop-filter: blur(4px);
-  z-index: 1001;
-  @include flex-center;
-  padding: $space-md;
+  position: fixed; inset: 0;
+  background: rgba($twilight-purple, 0.4); backdrop-filter: blur(6px);
+  z-index: 1001; @include flex-center; padding: $space-md;
   animation: calFadeIn 0.15s ease;
-
-  // Bottom-sheet on small screens
-  @media (max-width: $cal-bp-sm) {
-    align-items: flex-end;
-    padding: 0;
-  }
+  @media (max-width: $cal-bp-sm) { align-items: flex-end; padding: 0; }
 }
-
-@keyframes calFadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
+@keyframes calFadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 .cal-modal {
-  background: $misty-lavender;
-  border-radius: $radius-lg;
-  width: 100%;
-  max-width: 480px;
-  max-height: 92dvh;
-  @include column;
-  align-items: stretch;
-  box-shadow: $shadow-2xl;
-  animation: calSlideUp 0.2s ease;
-
-  @media (max-width: $cal-bp-sm) {
-    max-width: 100%;
-    border-radius: $radius-lg $radius-lg 0 0;
-    max-height: 90dvh;
-  }
+  background: $surface; border-radius: $radius-lg;
+  width: 100%; max-width: 480px; max-height: 92dvh;
+  @include column; align-items: stretch;
+  box-shadow: 0 24px 64px rgba($twilight-purple, 0.2), 0 4px 16px rgba(0,0,0,0.08);
+  overflow: hidden; animation: calSlideUp 0.2s ease;
+  @media (max-width: $cal-bp-sm) { max-width: 100%; border-radius: $radius-lg $radius-lg 0 0; max-height: 90dvh; }
 }
 
-@keyframes calSlideUp {
-  from { transform: translateY(14px); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
-}
+.cal-modal-stripe    { height: 4px; width: 100%; flex-shrink: 0; transition: background 0.2s; }
+@keyframes calSlideUp { from { transform: translateY(14px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
 .cal-modal-header {
-  @include flex-between;
-  padding: $space-lg $space-lg 0;
-
-  h3 {
-    font-family: $font-primary;
-    font-size: $t-sub-des;
-    font-weight: $fw-regular;
-    color: $text-color-dark;
-    letter-spacing: 0.03em;
-    margin: 0;
-  }
-
-  @media (max-width: $cal-bp-sm) {
-    padding: $space-md $space-md 0;
-    h3 { font-size: $t-body-des; }
-  }
+  @include flex-between; padding: $space-md $space-lg; border-bottom: 1px solid $border-color; background: rgba($misty-lavender, 0.3);
+  h3 { font-family: $font-primary; font-size: $t-body-des; font-weight: $fw-regular; color: $text-color-dark; margin: $space-xs 0 0; letter-spacing: 0.02em; }
+  @media (max-width: $cal-bp-sm) { padding: $space-sm $space-md; h3 { font-size: 0.9rem; } }
 }
-
-.cal-modal-close {
-  @include none;
-  color: $serene-purple;
-  cursor: pointer;
-  font-size: $t-link-des;
-  padding: $space-xs $space-sm;
-  border-radius: $radius-sm;
-  transition: all 0.2s;
-  flex-shrink: 0;
-
-  &:hover { background: rgba($serene-purple, 0.12); }
-}
+.cal-modal-title-row { @include column; align-items: flex-start; gap: 4px; }
+.cal-modal-type-chip { @include center; gap: 5px; font-family: $font-secondary; font-size: 0.65rem; font-weight: $fw-medium; padding: 3px 8px; border-radius: $radius-lg; letter-spacing: 0.03em; transition: all 0.2s; }
+.cal-modal-close     { @include flex-center; background: none; border: 1.5px solid $border-color; color: $gentle-amethyst; cursor: pointer; border-radius: $radius-sm; width: 30px; height: 30px; transition: all 0.2s; flex-shrink: 0; align-self: flex-start; &:hover { background: rgba($serene-purple, 0.08); border-color: $serene-purple; color: $twilight-purple; } }
 
 .cal-modal-body {
-  flex: 1;
-  overflow-y: auto;
-  padding: $space-md $space-lg;
-  @include column;
-  align-items: stretch;
-  gap: $space-xs;
+  flex: 1; overflow-y: auto; padding: $space-md $space-lg; @include column; align-items: stretch; gap: 0;
   -webkit-overflow-scrolling: touch;
-
-  &::-webkit-scrollbar       { width: 4px; }
-  &::-webkit-scrollbar-thumb { background: rgba($serene-purple, 0.3); border-radius: 2px; }
-
+  &::-webkit-scrollbar { width: 4px; } &::-webkit-scrollbar-thumb { background: rgba($serene-purple, 0.3); border-radius: 2px; }
   @media (max-width: $cal-bp-sm) { padding: $space-sm $space-md; }
-  @media (max-width: $cal-bp-xs) { padding: $space-xs $space-sm; }
 }
 
-.cal-label {
-  font-family: $font-secondary;
-  font-size: $t-body-mob;
-  font-weight: $fw-medium;
-  color: $twilight-purple;
-  margin-top: $space-sm;
-}
+.cal-form-section { @include column; align-items: stretch; gap: $space-xs; margin-bottom: $space-md; }
+.cal-label        { font-family: $font-secondary; font-size: $t-body-mob; font-weight: $fw-medium; color: $twilight-purple; }
+.cal-optional     { font-weight: $fw-regular; color: $gentle-amethyst; }
 
-.cal-optional { font-weight: $fw-regular; color: $serene-purple; }
-
-.cal-type-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: $space-sm;
-  margin-bottom: $space-xs;
-
-  @media (max-width: $cal-bp-xs) { grid-template-columns: 1fr; gap: $space-xs; }
-}
-
-.cal-type-btn {
-  @include center;
-  gap: $space-sm;
-  padding: $space-sm $space-md;
-  border: 1.5px solid $border-color;
-  border-radius: $radius-md;
-  background: rgba($soft-pearl, 0.8);
-  cursor: pointer;
-  transition: all 0.18s;
-  text-align: left;
-
-  &:hover    { border-color: $serene-purple; }
-  &.selected { font-weight: $fw-medium; }
-
-  @media (max-width: $cal-bp-sm) { padding: $space-xs $space-sm; }
-}
-
-.cal-type-emoji { font-size: 1rem; flex-shrink: 0; }
-
-.cal-type-label {
-  font-family: $font-secondary;
-  font-size: $t-body-mob;
-  color: $text-color-dark;
-}
+.cal-type-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: $space-xs; @media (max-width: $cal-bp-xs) { grid-template-columns: repeat(2, 1fr); } }
+.cal-type-btn  { @include column; align-items: center; gap: 5px; padding: $space-sm; border: 1.5px solid $border-color; border-radius: $radius-md; background: rgba($soft-pearl, 0.6); cursor: pointer; transition: all 0.15s; text-align: center; &:hover { border-color: $serene-purple; } &.selected { box-shadow: 0 2px 8px rgba($serene-purple, 0.15); } }
+.cal-type-icon  { width: 22px; height: 22px; object-fit: contain; }
+.cal-type-label { font-family: $font-secondary; font-size: 0.62rem; color: $text-color-dark; transition: color 0.15s; }
 
 .cal-input {
-  width: 100%;
-  padding: $space-sm $space-md;
-  border: 1.5px solid rgba($serene-purple, 0.3);
-  border-radius: $radius-md;
-  font-family: $font-secondary;
-  // min 16px prevents iOS zoom on input focus
-  font-size: max(16px, #{$t-body-mob});
-  color: $text-color-dark;
-  background: rgba($soft-pearl, 0.8);
-  outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  box-sizing: border-box;
-
-  &:focus  { border-color: $serene-purple; box-shadow: $shadow-outline; }
-  &.error  { border-color: $status-overdue; background: $soft-pearl; }
+  width: 100%; padding: $space-sm $space-md; border: 1.5px solid rgba($serene-purple, 0.2);
+  border-radius: $radius-md; font-family: $font-secondary; font-size: max(16px, #{$t-body-mob});
+  color: $text-color-dark; background: rgba($soft-pearl, 0.5); outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s; box-sizing: border-box;
+  &:focus { border-color: $serene-purple; box-shadow: 0 0 0 3px rgba($serene-purple, 0.12); background: $surface; }
+  &.error { border-color: $status-overdue; }
 }
-
-.cal-textarea {
-  resize: vertical;
-  min-height: 68px;
-  font-size: max(16px, #{$t-body-mob}); //prevents iOS zoom
-
-  @media (max-width: $cal-bp-sm) { min-height: 54px; }
-}
-
-.cal-field-error {
-  font-size: $t-body-mob;
-  color: $status-overdue;
-  margin-top: 2px;
-}
-
-.cal-modal-error {
-  background: #fff5f5;
-  border: 1px solid rgba($status-overdue, 0.4);
-  color: darken($status-overdue, 10%);
-  border-radius: $radius-sm;
-  padding: $space-sm $space-md;
-  font-family: $font-secondary;
-  font-size: $t-body-mob;
-}
+.cal-textarea     { resize: vertical; min-height: 68px; line-height: 1.5; @media (max-width: $cal-bp-sm) { min-height: 54px; } }
+.cal-field-error  { font-size: $t-body-mob; color: $status-overdue; }
+.cal-modal-error  { background: #fff5f5; border: 1px solid rgba($status-overdue, 0.35); color: darken($status-overdue, 10%); border-radius: $radius-sm; padding: $space-sm $space-md; font-family: $font-secondary; font-size: $t-body-mob; margin-bottom: $space-sm; }
 
 .cal-modal-footer {
-  @include center;
-  justify-content: flex-end;
-  gap: $space-md;
-  padding: $space-md $space-lg;
-  border-top: 1px solid rgba($serene-purple, 0.15);
-  flex-shrink: 0;
-
+  @include center; justify-content: flex-end; gap: $space-md;
+  padding: $space-md $space-lg; border-top: 1px solid $border-color; flex-shrink: 0; background: rgba($misty-lavender, 0.2);
   @media (max-width: $cal-bp-sm) { padding: $space-sm $space-md; gap: $space-sm; }
-
-  @media (max-width: $cal-bp-xs) {
-    flex-direction: column-reverse;
-    gap: $space-xs;
-
-    .cal-btn-cancel,
-    .cal-btn-save { width: 100%; justify-content: center; }
-  }
+  @media (max-width: $cal-bp-xs) { flex-direction: column-reverse; gap: $space-xs; .cal-btn-cancel, .cal-btn-save { width: 100%; justify-content: center; } }
 }
 
 .cal-btn-cancel {
-  background: none;
-  border: 1.5px solid rgba($serene-purple, 0.35);
-  color: $serene-purple;
-  padding: $space-sm $space-lg;
-  border-radius: $radius-lg;
-  font-family: $font-secondary;
-  font-size: $t-but-des;
-  cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover { background: rgba($serene-purple, 0.06); }
+  background: none; border: 1.5px solid rgba($serene-purple, 0.25); color: $serene-purple;
+  padding: $space-sm $space-lg; border-radius: $radius-lg; font-family: $font-secondary; font-size: $t-but-des;
+  cursor: pointer; transition: all 0.2s;
+  &:hover { background: rgba($serene-purple, 0.06); border-color: $serene-purple; }
   @media (max-width: $cal-bp-sm) { font-size: 0.78rem; padding: $space-xs $space-md; }
 }
 
 .cal-btn-save {
-  @include center;
-  gap: $space-xs;
-  background: $twilight-purple;
-  color: $misty-lavender;
-  border: none;
-  padding: $space-sm $space-lg;
-  border-radius: $radius-lg;
-  font-family: $font-secondary;
-  font-size: $t-but-des;
-  font-weight: $fw-medium;
-  cursor: pointer;
-  box-shadow: $shadow-md;
-  transition: all 0.2s;
-
-  &:hover:not(:disabled) { background: $serene-purple; box-shadow: $shadow-purple-glow; }
+  @include center; gap: $space-xs; color: white; border: none; padding: $space-sm $space-lg;
+  border-radius: $radius-lg; font-family: $font-secondary; font-size: $t-but-des; font-weight: $fw-medium;
+  cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba($twilight-purple, 0.3);
+  &:hover:not(:disabled) { filter: brightness(1.1); box-shadow: 0 4px 14px rgba($twilight-purple, 0.35); transform: translateY(-1px); }
   &:disabled { opacity: 0.5; cursor: not-allowed; }
-
   @media (max-width: $cal-bp-sm) { font-size: 0.78rem; padding: $space-xs $space-md; }
 }
 
-.cal-type-icon,
-.event-icon,
-.filter-icon {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
+// ── DnD ──────────────────────────────────────────────────────────────────────
+.dnd-dialog { max-width: 400px; @media (max-width: $cal-bp-sm) { max-width: 100%; border-radius: $radius-lg $radius-lg 0 0; } }
+.dnd-dialog-body { padding: $space-lg; @include column; align-items: stretch; gap: $space-md; @media (max-width: $cal-bp-sm) { padding: $space-md; } }
+.dnd-dialog-hint { font-family: $font-secondary; font-size: $t-body-des; color: $gentle-amethyst; margin: 0; line-height: 1.55; strong { color: $text-color-dark; font-weight: $fw-medium; } }
+.dnd-dialog-actions { @include center; gap: $space-sm; flex-wrap: wrap; @media (max-width: $cal-bp-xs) { flex-direction: column; align-items: stretch; } }
+
+.dnd-btn {
+  @include center; gap: $space-xs; padding: $space-sm $space-lg; border-radius: $radius-lg;
+  font-family: $font-secondary; font-size: $t-but-des; font-weight: $fw-medium;
+  cursor: pointer; transition: all 0.18s; white-space: nowrap; border: 1.5px solid transparent;
+  &.dnd-btn-move   { color: white; border-color: transparent; box-shadow: 0 2px 8px rgba($twilight-purple, 0.3); &:hover { filter: brightness(1.08); transform: translateY(-1px); } }
+  &.dnd-btn-copy   { background: none; &:hover { opacity: 0.8; } }
+  &.dnd-btn-cancel { background: none; border-color: $border-color; color: $gentle-amethyst; &:hover { border-color: $serene-purple; color: $twilight-purple; background: rgba($serene-purple, 0.05); } }
+  @media (max-width: $cal-bp-sm) { font-size: 0.78rem; padding: $space-xs $space-md; }
 }
 
-.cal-type-btn {
-  @include center;
-  gap: 6px;
+// ── Multi-dog additions 
+.cal-dog-selector { display: flex; flex-wrap: wrap; gap: $space-xs; }
+
+.cal-dog-btn {
+  @include center; gap: 6px;
+  padding: 6px $space-md; border: 1.5px solid $border-color; border-radius: $radius-lg;
+  background: $surface; font-family: $font-secondary; font-size: $t-but-des;
+  color: $text-color-dark; @include cursor; transition: all 0.15s;
+  &:hover  { border-color: $serene-purple; }
+  &.selected { font-weight: $fw-medium; }
 }
 
-.event-card-left {
-  @include center;
-  gap: 10px;
+.cal-dog-main-badge {
+  font-size: 0.58rem; font-weight: $fw-medium; letter-spacing: 0.04em; text-transform: uppercase;
+  color: $gentle-amethyst; background: rgba($gentle-amethyst, 0.1); border-radius: $radius-lg; padding: 1px 5px;
 }
 
-.cal-filter-btn {
-  @include center;
-  gap: 6px;
-}
+.cal-dog-legend      { display: flex; flex-wrap: wrap; gap: $space-md; margin-bottom: $space-sm; }
+.cal-dog-legend-item { @include center; gap: 5px; font-family: $font-secondary; }

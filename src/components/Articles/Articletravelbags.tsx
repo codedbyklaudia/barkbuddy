@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './Article.scss';
+import { Link } from 'react-router-dom';
+import { PlaneTakeoff, BrushCleaning, Lock, Ruler, Fan, ChevronsRight } from 'lucide-react';
 import Footer from '../Footer';
 
 interface ArticlePageProps {
@@ -76,10 +78,10 @@ const ArticleTravelBags: React.FC<ArticlePageProps> = ({ onBack }) => {
 
           <div className="article-tips">
             {[
-              { emoji: '📐', title: 'Size & compliance', body: 'Measure your dog in a natural standing position. The bag should allow them to stand, turn around, and lie down comfortably.' },
-              { emoji: '🌬️', title: 'Ventilation', body: 'Mesh panels on multiple sides are essential. Avoid bags where the only airflow is from a single small window.' },
-              { emoji: '🔒', title: 'Security', body: 'Look for double-zipper closures with a secondary safety clip. Nervous dogs can nose their way out of single-zip bags.' },
-              { emoji: '🧹', title: 'Washability', body: 'Accidents happen. Removable, machine-washable liners are a must for any trip longer than a couple of hours.' },
+              { emoji: <Ruler />, title: 'Size & compliance', body: 'Measure your dog in a natural standing position. The bag should allow them to stand, turn around, and lie down comfortably.' },
+              { emoji: <Fan />, title: 'Ventilation', body: 'Mesh panels on multiple sides are essential. Avoid bags where the only airflow is from a single small window.' },
+              { emoji: <Lock />, title: 'Security', body: 'Look for double-zipper closures with a secondary safety clip. Nervous dogs can nose their way out of single-zip bags.' },
+              { emoji: <BrushCleaning />, title: 'Washability', body: 'Accidents happen. Removable, machine-washable liners are a must for any trip longer than a couple of hours.' },
             ].map((tip, i) => (
               <div className="article-tip" key={i}>
                 <span className="article-tip__emoji">{tip.emoji}</span>
@@ -192,14 +194,15 @@ const ArticleTravelBags: React.FC<ArticlePageProps> = ({ onBack }) => {
         </section>
 
         <div className="article-callout">
-          <span className="article-callout__icon">✈️</span>
+          <span className="article-callout__icon"><PlaneTakeoff /></span>
           <div>
             <strong>Planning to fly abroad?</strong>
             <p>Check our travel requirements guide to make sure your dog's documentation is in order before you book.</p>
-            <button className="article-callout__btn" onClick={onBack}>View travel requirements →</button>
+            <Link to="/travel-page" className="article-callout__btn">
+                Check travel requirements <ChevronsRight />
+            </Link>
           </div>
         </div>
-
       </article>
       <Footer />
     </div>

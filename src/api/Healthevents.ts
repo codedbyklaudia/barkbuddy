@@ -3,14 +3,17 @@ const BASE = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
 export type EventType = "vaccine" | "flea_tick" | "worming" | "vet" | "grooming" | "custom";
 
 export interface HealthEvent {
-  id:           string;
-  type:         EventType;
-  title:        string;
-  notes?:       string;
-  due_date:     string;
-  completed:    boolean;
+  id:            string;
+  dog_id:        string;      // which dog this belongs to
+  dog_name?:     string;      // returned by backend for display
+  dog_is_main?:  boolean;
+  type:          EventType;
+  title:         string;
+  notes?:        string;
+  due_date:      string;      // always "YYYY-MM-DD" — no TZ shift
+  completed:     boolean;
   completed_at?: string;
-  created_at:   string;
+  created_at:    string;
 }
 
 const authRequest = async <T>(
@@ -36,11 +39,13 @@ const authRequest = async <T>(
 export const getHealthEvents = (token: string) =>
   authRequest<{ events: HealthEvent[] }>("/health-events", token);
 
+// dog_id is optional — backend falls back to primary dog if omitted
 export const addHealthEvent = (token: string, data: {
-  type:     EventType;
-  title:    string;
-  due_date: string;
-  notes?:   string;
+  type:      EventType;
+  title:     string;
+  due_date:  string;
+  notes?:    string;
+  dog_id?:   string;
 }) =>
   authRequest<{ event: HealthEvent }>("/health-events", token, {
     method: "POST",
@@ -57,6 +62,7 @@ export const editHealthEvent = (token: string, id: string, data: {
   title?:    string;
   due_date?: string;
   notes?:    string;
+  dog_id?:   string;   // allows reassigning event to a different dog
 }) =>
   authRequest<{ event: HealthEvent }>(`/health-events/${id}`, token, {
     method: "PATCH",

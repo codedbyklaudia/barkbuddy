@@ -113,7 +113,7 @@
   &__column-title {
     font-family: $font-primary;
     font-size: $t-but-des;
-    font-weight: $fw-bold;
+    font-weight: $fw-regular;
     letter-spacing: 0.14em;
     color: $serene-purple;
     text-transform: uppercase;
@@ -173,7 +173,7 @@
   }
 
   &__heart {
-    font-weight: $fw-bold;
+    font-weight: $fw-regular;
     color: $twilight-purple;
     letter-spacing: 0.04em;
   }

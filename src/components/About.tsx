@@ -142,8 +142,7 @@ const About: React.FC = () => {
           <div className="about-story__photo-wrap about-story__photo-wrap--left">
             <div className="about-photo about-photo--landscape">
               <div className="about-photo__placeholder">
-                <img src="../images/Nox-pic.png" alt="Founder dog picture" />
-                <p>A walk, park moment, or playful picture</p>
+                <img src="../images/Nox_pic.jpeg" alt="Founder dog picture" />
               </div>
               <div className="about-photo__frame" aria-hidden="true" />
             </div>
