@@ -45,6 +45,7 @@ router.get("/me", requireBizAuth, async (req: Request, res: Response): Promise<v
               ba.contact_phone, ba.contact_email, ba.website,
               ba.description, ba.username, ba.status,
               ba.must_change_password, ba.approved_at,
+              ba.username_updated_at, ba.email_verified,
               bsd.price_list, bsd.additional_info
        FROM business_accounts ba
        LEFT JOIN business_service_details bsd ON bsd.business_id = ba.id
@@ -68,15 +69,15 @@ router.get("/me", requireBizAuth, async (req: Request, res: Response): Promise<v
 
 // ─── PATCH /api/business/dashboard/profile ────────────────────────────────────
 router.patch("/profile", requireBizAuth, [
-  body("businessName").optional().trim().notEmpty().withMessage("Business name cannot be empty"),
-  body("description").optional().trim(),
-  body("address").optional().trim().notEmpty(),
-  body("postcode").optional().trim().notEmpty(),
-  body("contactPhone").optional().trim(),
-  body("contactEmail").optional().isEmail().withMessage("Invalid contact email"),
-  body("website").optional().trim(),
-  body("priceList").optional().trim(),
-  body("additionalInfo").optional().trim(),
+  body("businessName").trim().notEmpty().withMessage("Business name cannot be empty"),
+  body("address").trim().notEmpty().withMessage("Address is required"),
+  body("postcode").trim().notEmpty().withMessage("Postcode is required"),
+  body("description").optional({ nullable: true }).trim(),
+  body("contactPhone").optional({ nullable: true }).trim(),
+  body("contactEmail").optional({ nullable: true }).isEmail().withMessage("Invalid contact email"),
+  body("website").optional({ nullable: true }).trim(),
+  body("priceList").optional({ nullable: true }).trim(),
+  body("additionalInfo").optional({ nullable: true }).trim(),
 ], async (req: Request, res: Response): Promise<void> => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -95,19 +96,28 @@ router.patch("/profile", requireBizAuth, [
   } = req.body;
 
   try {
+    // FIX: use direct assignment instead of COALESCE so edits are never silently dropped
     await pool.query(
       `UPDATE business_accounts SET
-        business_name  = COALESCE($1, business_name),
-        description    = COALESCE($2, description),
-        address        = COALESCE($3, address),
-        postcode       = COALESCE($4, postcode),
-        contact_phone  = COALESCE($5, contact_phone),
-        contact_email  = COALESCE($6, contact_email),
-        website        = COALESCE($7, website),
+        business_name  = $1,
+        description    = $2,
+        address        = $3,
+        postcode       = $4,
+        contact_phone  = $5,
+        contact_email  = $6,
+        website        = $7,
         updated_at     = NOW()
        WHERE id = $8`,
-      [businessName, description, address, postcode,
-       contactPhone, contactEmail, website, bizId]
+      [
+        businessName,
+        description    || null,
+        address,
+        postcode,
+        contactPhone   || null,
+        contactEmail   || null,
+        website        || null,
+        bizId,
+      ]
     );
 
     // Update service details if provided
@@ -116,9 +126,9 @@ router.patch("/profile", requireBizAuth, [
         `INSERT INTO business_service_details (business_id, price_list, additional_info)
          VALUES ($1, $2, $3)
          ON CONFLICT (business_id) DO UPDATE
-           SET price_list      = COALESCE($2, business_service_details.price_list),
-               additional_info = COALESCE($3, business_service_details.additional_info)`,
-        [bizId, priceList ?? null, additionalInfo ?? null]
+           SET price_list      = $2,
+               additional_info = $3`,
+        [bizId, priceList || null, additionalInfo || null]
       );
     }
 
@@ -131,7 +141,7 @@ router.patch("/profile", requireBizAuth, [
 
 // ─── PATCH /api/business/dashboard/username ───────────────────────────────────
 router.patch("/username", requireBizAuth, async (req: Request, res: Response): Promise<void> => {
-  const bizId    = (req as any).bizId;
+  const bizId        = (req as any).bizId;
   const { username } = req.body;
 
   if (!username?.trim()) { res.status(400).json({ message: "Username is required." }); return; }
@@ -143,14 +153,44 @@ router.patch("/username", requireBizAuth, async (req: Request, res: Response): P
   }
 
   try {
-    const { rows } = await pool.query(
+    // Fetch current username + last update timestamp
+    const { rows: current } = await pool.query(
+      "SELECT username, username_updated_at FROM business_accounts WHERE id = $1",
+      [bizId]
+    );
+    if (current.length === 0) { res.status(404).json({ message: "Account not found." }); return; }
+
+    // No-op if unchanged
+    if (current[0].username === clean) {
+      res.status(400).json({ message: "That is already your current username." });
+      return;
+    }
+
+    // 30-day cooldown
+    if (current[0].username_updated_at) {
+      const lastChanged = new Date(current[0].username_updated_at);
+      const nextAllowed = new Date(lastChanged.getTime() + 30 * 24 * 60 * 60 * 1000);
+      if (new Date() < nextAllowed) {
+        const formatted = nextAllowed.toLocaleDateString("en-GB", {
+          day: "numeric", month: "long", year: "numeric",
+        });
+        res.status(429).json({
+          message: `Usernames can only be changed once every 30 days. You can change yours again on ${formatted}.`,
+          nextAllowedAt: nextAllowed.toISOString(),
+        });
+        return;
+      }
+    }
+
+    // Uniqueness check
+    const { rows: taken } = await pool.query(
       "SELECT id FROM business_accounts WHERE username = $1 AND id != $2",
       [clean, bizId]
     );
-    if (rows.length > 0) { res.status(409).json({ message: "That username is already taken." }); return; }
+    if (taken.length > 0) { res.status(409).json({ message: "That username is already taken." }); return; }
 
     await pool.query(
-      "UPDATE business_accounts SET username = $1, updated_at = NOW() WHERE id = $2",
+      "UPDATE business_accounts SET username = $1, username_updated_at = NOW(), updated_at = NOW() WHERE id = $2",
       [clean, bizId]
     );
     res.json({ message: "Username updated successfully.", username: clean });
