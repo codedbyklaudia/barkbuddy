@@ -56,14 +56,13 @@
     }
 
     span {
-      @include type-ui(0.65rem, $fw-bold);
-      @include label-caps(0.2em);
+      @include type-ui(0.9rem, $fw-regular);
       color: rgba($soft-pearl, 0.45);
     }
   }
 
   &__title {
-    @include type-display($weight: $fw-bold);
+    @include type-display($weight: $fw-regular);
     font-size: clamp(2.4rem, 5vw, 4rem);
     color: $soft-pearl;
     line-height: 1.05;
@@ -312,7 +311,7 @@
     @media (max-width: $bp-laptop) { grid-column: 1 / -1; flex-direction: row; align-items: center; flex-wrap: wrap; }
 
     p {
-      @include type-ui(0.78rem, $fw-bold);
+      @include type-ui(0.78rem, $fw-regular);
       color: rgba($twilight-purple, 0.5);
       @include label-caps(0.06em);
       margin: 0;
@@ -356,7 +355,7 @@
   }
 
   &__title {
-    @include type-display($weight: $fw-bold);
+    @include type-display($weight: $fw-regular);
     font-size: clamp(1.3rem, 2.5vw, 1.8rem);
     color: $twilight-purple;
     letter-spacing: -0.02em;
@@ -472,7 +471,7 @@
   }
 
   &__title {
-    @include type-display($weight: $fw-bold);
+    @include type-display($weight: $fw-regular);
     font-size: clamp(1.6rem, 3vw, 2.4rem);
     color: $soft-pearl;
     letter-spacing: -0.025em;
@@ -498,7 +497,7 @@
   &__btn {
     @include center;
     gap: $space-sm;
-    @include type-ui($t-but-des, $fw-bold);
+    @include type-ui($t-but-des, $fw-regular);
     text-decoration: none;
     padding: 12px $space-xl;
     border-radius: 4px;

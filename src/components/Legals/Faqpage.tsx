@@ -34,12 +34,12 @@ const FAQ_DATA: FAQCategory[] = [
         a: 'On the login page, click "Forgot password?" and enter your registered email address. We\'ll send you a secure reset link. If you don\'t see it within a few minutes, check your spam or junk folder.',
       },
       {
-        q: 'Can I change my email address or username?',
+        q: 'Can I change my email address or name?',
         a: 'Yes. Head to your account settings from the dashboard, where you can update your email address, display name, and other profile details at any time.',
       },
       {
         q: 'How do I delete my account?',
-        a: 'You can request account deletion by contacting us at hello@barkbuddy.co.uk. We\'ll process your request and confirm deletion within 30 days. Please note that some data may be retained for legal or operational purposes as outlined in our Privacy Policy.',
+        a: 'Simply head to your settings page in dashboard and click "Delete account". You can also request account deletion by contacting us at paws@barkbuddy.org.uk. We\'ll process your request and confirm deletion within 30 days. Please note that some data may be retained for legal or operational purposes as outlined in our Privacy Policy.',
       },
     ],
   },
@@ -93,11 +93,11 @@ const FAQ_DATA: FAQCategory[] = [
       },
       {
         q: 'I can\'t find a business I know. Can I suggest a listing?',
-        a: 'Yes! If you know a great local business that isn\'t on BarkBuddy yet, you can suggest it by contacting us at hello@barkbuddy.co.uk. Alternatively, business owners can apply to be listed directly through our Register a Business flow.',
+        a: 'Yes! If you know a great local business that isn\'t on BarkBuddy yet, you can suggest it by contacting us at paws@barkbuddy.org.uk. Alternatively, business owners can apply to be listed directly through our Register a Business flow.',
       },
       {
         q: 'How do I report an incorrect or misleading listing?',
-        a: 'Use the Report button on the listing page, or email us at hello@barkbuddy.co.uk with the listing name and the issue. We review all reports and take action promptly.',
+        a: 'Use the Report button on the listing page, or email us at paws@barkbuddy.org.uk with the listing name and the issue. We review all reports and take action promptly.',
       },
     ],
   },
@@ -166,7 +166,7 @@ const FAQ_DATA: FAQCategory[] = [
       },
       {
         q: 'How do I access or delete my data?',
-        a: 'Under UK GDPR you have the right to access, correct, or delete your personal data. Email us at hello@barkbuddy.co.uk with your request and we\'ll respond within one calendar month.',
+        a: 'Under UK GDPR you have the right to access, correct, or delete your personal data. Email us at paws@barkbuddy.org.uk with your request and we\'ll respond within one calendar month.',
       },
       {
         q: 'Does BarkBuddy use cookies?',
@@ -205,7 +205,7 @@ const FAQ_DATA: FAQCategory[] = [
       },
       {
         q: 'How do I report a problem with my listing?',
-        a: 'Contact us at hello@barkbuddy.co.uk with your business name and a description of the issue. Our team will look into it and respond promptly.',
+        a: 'Contact us at paws@barkbuddy.org.uk with your business name and a description of the issue. Our team will look into it and respond promptly.',
       },
     ],
   },
@@ -303,7 +303,7 @@ const FAQPage: React.FC = () => {
             {filteredResults.length === 0 && (
               <div className="faq-empty">
                 <i className="bi bi-emoji-neutral" />
-                <p>Can't find what you're looking for? <a href="mailto:hello@barkbuddy.co.uk">Contact us</a> and we'll help.</p>
+                <p>Can't find what you're looking for? <a href="mailto:paws@barkbuddy.org.uk">Contact us</a> and we'll help.</p>
               </div>
             )}
           </div>
@@ -329,7 +329,7 @@ const FAQPage: React.FC = () => {
 
             <div className="faq-sidebar__contact">
               <p>Still need help?</p>
-              <a href="mailto:hello@barkbuddy.co.uk" className="faq-sidebar__contact-link">
+              <a href="mailto:paws@barkbuddy.org.uk" className="faq-sidebar__contact-link">
                 <i className="bi bi-envelope" /> Email us
               </a>
               <Link to="/forum" className="faq-sidebar__contact-link">
@@ -381,7 +381,7 @@ const FAQPage: React.FC = () => {
           <h2 className="faq-cta__title">Still have a question?</h2>
           <p className="faq-cta__sub">We are happy to help. Drop us an email and we'll get back to you within one working day.</p>
           <div className="faq-cta__actions">
-            <a href="mailto:hello@barkbuddy.co.uk" className="faq-cta__btn faq-cta__btn--primary">
+            <a href="mailto:paws@barkbuddy.org.uk" className="faq-cta__btn faq-cta__btn--primary">
               <i className="bi bi-envelope" /> Contact us
             </a>
             <Link to="/forum" className="faq-cta__btn faq-cta__btn--ghost">

@@ -39,38 +39,25 @@
   z-index: 1;
   min-height: 100dvh;
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: 600px 1fr;
 
   @media (min-width: $bp-laptop) {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 600px 1fr;
   }
 }
 
 .rb-hero__left {
   background-color: $twilight-purple;
-  @include column;
-  @include relative;
   overflow: hidden;
-  z-index: 1;
-  min-height: 280px;
-
-  @media (min-width: $bp-tablet) {
-    padding: $space-xs $space-xl;
-  }
-
-  @media (min-width: $bp-laptop) {
-    padding: $space-xs $space-xl;
-    min-height: 100dvh;
-  }
+  @include relative;
 
   &::before {
     content: '';
     @include absolute; inset: 0;
     background:
-      radial-gradient(ellipse 65% 55% at 15% 15%, rgba($serene-purple, 0.22) 0%, transparent 70%),
-      radial-gradient(ellipse 45% 55% at 85% 85%, rgba($gentle-amethyst, 0.14) 0%, transparent 70%);
+      radial-gradient(ellipse 70% 60% at 0% 0%,    rgba($serene-purple, 0.3) 0%, transparent 65%),
+      radial-gradient(ellipse 50% 50% at 100% 100%, rgba($gentle-amethyst, 0.15) 0%, transparent 60%);
     pointer-events: none;
-    z-index: 0;
   }
 
   &::after {
@@ -85,30 +72,38 @@
 
     @media (min-width: $bp-laptop) { display: block; }
   }
+
+  @media (max-width: $bp-laptop) { display: none; }
 }
 
-.rb-hero__copy {
+.rb-hero__panel-inner {
   @include relative;
   z-index: 1;
-  margin: 0 auto;
+  padding: $space-xl clamp(2rem, 5vw, 3rem);
+  height: 100%;
   @include column;
-  justify-content: center;
-  animation: rbReveal 0.7s 0.1s ease both;
+}
 
-  @media (min-width: $bp-laptop) { margin-top: 15%; }
+.rb-hero__brand-icon {
+  width: 152px; height: 152px;
+  object-fit: contain;
+  margin-bottom: $space-xl;
+  opacity: 0.8;
+}
+
+.rb-hero__brand {
+  margin: auto 0;
+  padding: $space-xxl 0;
 }
 
 .rb-hero__title {
   font-family: $font-primary;
-  font-size: clamp(2rem, 7vw, 3.8rem);
+  font-size: clamp(2rem, 4vw, 3rem);
   font-weight: $fw-regular;
   color: $soft-pearl;
-  letter-spacing: 0.02em;
-  line-height: $lh-tight;
-  margin-bottom: $space-xs;
-  text-align: center;
-
-  @media (min-width: $bp-tablet) { margin-bottom: $space-xl; }
+  line-height: 1.1;
+  letter-spacing: 0.03em;
+  margin-bottom: $space-xl;
 
   em {
     font-style: normal;
@@ -117,32 +112,24 @@
 }
 
 .rb-hero__sub {
-  font-family: $font-secondary;
-  font-size: clamp(0.85rem, 1.4vw, 1rem);
-  color: rgba($misty-lavender, 0.55);
-  line-height: $lh-loose;
-  max-width: 380px;
-  text-align: center;
+  font-size: $t-body-des;
+  color: rgba($misty-lavender, 0.5);
+  line-height: 1.75;
+  max-width: 400px;
+  margin-bottom: 0;  
 }
-
 .biz-login__home-link {
-  @include relative;
-  z-index: 1;
+  margin-top: $space-xxl;
   display: inline-flex;
   align-items: center;
   gap: $space-xs;
-  font-family: $font-secondary;
   font-size: $t-body-des;
-  color: rgba($misty-lavender, 0.35);
+  color: rgba($misty-lavender, 0.65);
   text-decoration: none;
   transition: color 0.2s;
-  margin: $space-4xl auto;
-  align-self: flex-start;
-
-  @media (min-width: $bp-laptop) { margin-top: 0; }
 
   svg { flex-shrink: 0; }
-  &:hover { color: rgba($misty-lavender, 0.7); }
+  &:hover { color: rgba($misty-lavender, 0.75); }
 }
 
 .rb-hero__right {
@@ -258,8 +245,8 @@
   gap: 4px;
 
   span {
-    font-size: 0.65rem;
-    font-weight: $fw-medium;
+    font-size: 0.8rem;
+    font-weight: $fw-regular;
     color: rgba($twilight-purple, 0.4);
     background: rgba($twilight-purple, 0.05);
     border: 1px solid rgba($twilight-purple, 0.1);
@@ -291,7 +278,7 @@
 }
 
 .rb-hero__login {
-  @include column;
+  @include flex-column;
   gap: $space-sm;
   animation: rbReveal 0.7s 0.35s ease both;
 
@@ -311,25 +298,42 @@
 .rb-hero__login-btn {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  gap: 0;                        
   background: $twilight-purple;
   color: $soft-pearl;
   text-decoration: none;
   font-family: $font-secondary;
   font-size: $t-body-des;
-  font-weight: $fw-bold;
-  padding: $space-sm $space-lg;
+  font-weight: $fw-regular;
+  padding: $space-sm $space-sm $space-sm $space-lg;   
   border-radius: $radius-md;
-  text-align: center;
   transition: all 0.2s ease;
   white-space: nowrap;
-  min-height: 40px;
+  min-height: 30px;
+  letter-spacing: 0.03em;
+  box-shadow: 0 2px 12px rgba($twilight-purple, 0.2);
+
+  &__icon {                       
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: $space-md;       
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    transition: background 0.2s;
+
+    svg { width: 15px; height: 15px; stroke: $soft-pearl; }
+  }
 
   &:hover {
-    background: darken($twilight-purple, 8%);
+    background: lighten($twilight-purple, 8%);
     transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba($twilight-purple, 0.25);
+    box-shadow: 0 6px 20px rgba($twilight-purple, 0.3);
     color: $gentle-amethyst;
+
+    .rb-hero__login-btn__icon { background: rgba($soft-pearl, 0.2); }
   }
 }
 
@@ -407,12 +411,11 @@
 .rb-sidebar__cat-img {
   flex-shrink: 0;
   width: 36px; height: 36px;
-  background: rgba($misty-lavender, 0.1);
   border-radius: $radius-md;
   @include flex-center;
   padding: 5px;
 
-  @media (min-width: $bp-laptop) { width: 36px; height: 36px; }  // keep compact
+  @media (min-width: $bp-laptop) { width: 70px; height: 70px; }  
 
   img {
     width: 100%; height: 100%;
@@ -424,8 +427,8 @@
 
 .rb-sidebar__cat-label {
   font-family: $font-secondary;
-  font-size: 0.6rem;
-  font-weight: $fw-bold;
+  font-size: 0.8rem;
+  font-weight: $fw-regular;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: rgba($misty-lavender, 0.4);
@@ -703,7 +706,7 @@
 .rb-label {
   font-family: $font-secondary;
   font-size: $t-body-des;
-  font-weight: $fw-bold;
+  font-weight: $fw-regular;
   color: $twilight-purple;
   letter-spacing: 0.02em;
 }
@@ -853,7 +856,7 @@
 
   &__label {
     font-size: $t-forgot-des;
-    font-weight: $fw-bold;
+    font-weight: $fw-regular;
     color: $text-color-dark;
     line-height: $lh-tight;
 
@@ -1246,7 +1249,7 @@
   padding: $space-md $space-xl;
   font-family: $font-secondary;
   font-size: $t-but-des;
-  font-weight: $fw-bold;
+  font-weight: $fw-regular;
   @include cursor;
   letter-spacing: 0.05em;
   transition: all 0.25s ease;

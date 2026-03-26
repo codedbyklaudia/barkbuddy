@@ -1,9 +1,10 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { ChevronsRight, CalendarDays} from "lucide-react";
 import "./About.scss";
 import Footer from "./Footer";
 
-// ─── Feature item ─────────────────────────────────────────────────────────────
+// Feature item 
 interface FeatureItemProps {
   icon: string;
   text: string;
@@ -49,9 +50,7 @@ const About: React.FC = () => {
             <div className="about-hero__ctas">
               <Link to="/register" className="about-hero__cta about-hero__cta--primary">
                 Join for free
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
+                <ChevronsRight />
               </Link>
               <Link to="/" className="about-hero__cta about-hero__cta--ghost">
                 Explore the platform
@@ -131,7 +130,7 @@ const About: React.FC = () => {
       {/* Divider  */}
       <div className="about-divider" aria-hidden="true">
         <div className="about-divider__line" />
-        <img src="/images/paint/dog-friendly.png" alt="" className="about-divider__icon" />
+        <img src="/images/icons/dog-origami.svg" alt="Origami Dog" className="about-divider__icon" />
         <div className="about-divider__line" />
       </div>
 
@@ -168,7 +167,7 @@ const About: React.FC = () => {
         </div>
       </section>
 
-      {/* ── How it works ─────────────────────────────────────────────────────── */}
+      {/* How it works  */}
       <section className="about-how">
         <div className="about-how__inner">
           <div className="about-how__header">
@@ -186,7 +185,7 @@ const About: React.FC = () => {
             <div className="about-tier about-tier--free">
               <div className="about-tier__header">
                 <div className="about-tier__icon">
-                  <img src="/images/paint/dog-friendly.png" alt="" />
+                  <img src="/images/icons/free.svg" alt="Free - icon" />
                 </div>
                 <div>
                   <h3 className="about-tier__title">Explore Freely</h3>
@@ -194,23 +193,21 @@ const About: React.FC = () => {
                 </div>
               </div>
               <ul className="about-tier__list">
-                <FeatureItem icon="/images/icons/grooming.svg"      text="Dog care tips" />
+                <FeatureItem icon="/images/icons/care.svg"      text="Dog care tips" />
                 <FeatureItem icon="/images/icons/plane.svg"         text="Travel guide" />
-                <FeatureItem icon="/images/icons/dog-friendly.svg"  text="Dog-friendly locations" />
+                <FeatureItem icon="/images/icons/map-pin-check.svg"  text="Dog-friendly locations" />
                 <FeatureItem icon="/images/icons/services.svg"      text="Local services directory" />
               </ul>
             </div>
 
             <div className="about-how__arrow" aria-hidden="true">
-              <svg viewBox="0 0 40 40" fill="none" width="40" height="40">
-                <path d="M8 20h24M22 12l10 8-10 8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+              <ChevronsRight />
             </div>
 
             <div className="about-tier about-tier--account">
               <div className="about-tier__header">
                 <div className="about-tier__icon">
-                  <img src="/images/paint/dog-owners.png" alt="" />
+                  <img src="/images/icons/book-key.svg" alt="Unlock book key" />
                 </div>
                 <div>
                   <h3 className="about-tier__title">Unlock Personalised Features</h3>
@@ -218,12 +215,11 @@ const About: React.FC = () => {
                 </div>
               </div>
               <ul className="about-tier__list">
-                <FeatureItem icon="/images/icons/health.svg"          text="Age-personalised care tips" />
-                <FeatureItem icon="/images/icons/grooming.svg"        text="Health calendar & reminders" />
-                <FeatureItem icon="/images/icons/services.svg"        text="Custom recommendations" />
-                <FeatureItem icon="/images/icons/dog-friendly.svg"    text="Save favourite services" />
-                <FeatureItem icon="/images/icons/more.svg"            text="Community forum" />
-                <FeatureItem icon="/images/icons/care.svg"            text="Android app with walk tracker" />
+                <FeatureItem icon="/images/icons/care.svg"          text="Age-personalised care tips" />
+                <FeatureItem icon="/images/icons/calendar-days.svg"   text="Health calendar & reminders" />
+                <FeatureItem icon="/images/icons/folder-heart.svg"    text="Save favourite services" />
+                <FeatureItem icon="/images/icons/message-circle.svg"  text="Community forum" />
+                <FeatureItem icon="/images/icons/android.svg"            text="Android app with walk tracker" />
               </ul>
             </div>
 
@@ -231,13 +227,13 @@ const About: React.FC = () => {
         </div>
       </section>
 
-      {/* ── Vision ───────────────────────────────────────────────────────────── */}
+      {/* Vision  */}
       <section className="about-vision">
         <div className="about-vision__inner">
           <div className="about-vision__header">
             <span className="about-section-label about-section-label--light">The Bigger Vision</span>
             <h2 className="about-section-title about-section-title--light">
-              BarkBuddy isn't just a website
+              Built for dogs. Designed for you.
             </h2>
             <p className="about-vision__sub">
               It's a growing system - designed to make life genuinely better for
@@ -257,18 +253,18 @@ const About: React.FC = () => {
           </div>
 
           <p className="about-vision__note">
-            Our website serves as the entry point - offering immediate value — while
+            Our website serves as the entry point - offering immediate value - while
             the BarkBuddy mobile app delivers advanced personalisation and smart
             features for each dog.
           </p>
         </div>
       </section>
 
-      {/* ── Closing ──────────────────────────────────────────────────────────── */}
+      {/* Closing */}
       <section className="about-closing">
         <div className="about-closing__inner">
           <div className="about-closing__paw" aria-hidden="true">
-            <img src="/images/paint/dog-friendly.png" alt="" />
+            <img src="/images/icons/dog-origami.svg" alt="Origami Dog Icon" />
           </div>
           <h2 className="about-closing__title">
             Built with love - for us, the dog parents
@@ -293,7 +289,6 @@ const About: React.FC = () => {
           </div>
         </div>
       </section>
-
       <Footer />
     </div>
   );

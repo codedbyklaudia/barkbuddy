@@ -22,12 +22,12 @@
   overflow-x: hidden;
 }
 
-// ─── Shared section label ─────────────────────────────────────────────────────
+// Shared section label
 .about-section-label {
   display: inline-block;
   font-family: $font-secondary;
   font-size: $t-body-mob;
-  font-weight: $fw-bold;
+  font-weight: $fw-regular;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: $serene-purple;
@@ -36,7 +36,7 @@
   &--light { color: rgba($misty-lavender, 0.55); }
 }
 
-// ─── Shared section title ─────────────────────────────────────────────────────
+// Shared section title
 .about-section-title {
   font-family: $font-primary;
   font-size: clamp(1.7rem, 3.5vw, 2.6rem);
@@ -49,7 +49,7 @@
   &--light { color: $soft-pearl; }
 }
 
-// ─── Hero — two-column layout matching TravelPage ────────────────────────────
+// ─── Hero ─────────────────────────────────────────────────────────────────────
 .about-hero {
   display: grid !important;
   grid-template-columns: 1fr 1fr !important;
@@ -66,7 +66,6 @@
   }
 }
 
-// Left panel
 .about-hero__left {
   background: $twilight-purple;
   display: flex;
@@ -90,10 +89,9 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding-bottom: clamp(4rem, 7vw, 6rem); // room for the wave
+  padding-bottom: clamp(4rem, 7vw, 6rem);
 }
 
-// Eyebrow — dash prefix style
 .about-hero__eyebrow {
   font-family: $font-secondary;
   font-size: 0.8rem;
@@ -117,11 +115,10 @@
   }
 }
 
-// Title
 .about-hero__title {
   font-family: $font-primary;
   font-size: clamp(2.8rem, 5.5vw, 5rem);
-  font-weight: $fw-bold;
+  font-weight: $fw-regular;
   color: $soft-pearl;
   line-height: 1.0;
   letter-spacing: -0.035em;
@@ -135,7 +132,6 @@
   }
 }
 
-// Subtitle
 .about-hero__sub {
   font-family: $font-secondary;
   font-size: clamp(0.88rem, 1.4vw, 0.98rem);
@@ -146,7 +142,6 @@
   animation: reveal-up 0.65s 0.2s ease both;
 }
 
-// CTA row — matches travel page buttons
 .about-hero__ctas {
   display: flex;
   align-items: center;
@@ -157,10 +152,10 @@
 
 .about-hero__cta {
   font-family: $font-secondary;
-  font-size: 0.8rem;
-  font-weight: $fw-bold;
+  font-size: $t-but-des;
+  font-weight: $fw-regular;
   letter-spacing: 0.04em;
-  cursor: pointer;
+  @include cursor;
   border: none;
   text-decoration: none;
   display: inline-flex;
@@ -195,7 +190,6 @@
   }
 }
 
-// Right panel — full-cover photo
 .about-hero__right {
   position: relative;
   overflow: hidden;
@@ -205,7 +199,6 @@
 
   @media (max-width: $bp-tablet) { min-height: 320px; }
 
-  // Warm wash overlay
   &::before {
     content: '';
     position: absolute;
@@ -219,7 +212,6 @@
     pointer-events: none;
   }
 
-  // Left-edge + top/bottom fade
   &::after {
     content: '';
     position: absolute;
@@ -244,7 +236,6 @@
   animation: fade-in 0.8s 0.3s ease both;
 }
 
-// Wave — sits at bottom, spans full hero width (both columns)
 .about-hero__wave {
   position: absolute;
   bottom: -1px;
@@ -253,10 +244,10 @@
   height: auto;
   display: block;
   pointer-events: none;
-  z-index: 10; // above the right-panel overlays
+  z-index: 10;
 }
 
-// Photo component 
+// ─── Photo component ──────────────────────────────────────────────────────────
 .about-photo {
   @include relative;
   display: inline-block;
@@ -303,7 +294,7 @@
   }
 }
 
-// Story section 
+// ─── Story section ────────────────────────────────────────────────────────────
 .about-story {
   padding: clamp(4rem, 7vw, 6rem) clamp(1.5rem, 6vw, 6rem);
   max-width: 1160px;
@@ -507,9 +498,23 @@
     .about-tier__title { color: $soft-pearl; }
     .about-tier__sub   { color: rgba($misty-lavender, 0.5); }
 
+    // Icon pill on dark background — light treatment
+    .about-tier__icon {
+      background: rgba($misty-lavender, 0.08);
+
+      img {
+        filter: brightness(0) invert(1);
+        opacity: 0.7;
+      }
+    }
+
     .about-feature-item {
       color: rgba($misty-lavender, 0.75);
-      img { filter: brightness(0) invert(1); opacity: 0.5; }
+
+      img { 
+        filter: brightness(0) invert(1); 
+        opacity: 0.5; 
+      }
     }
   }
 }
@@ -532,9 +537,11 @@
   justify-content: center;
   padding: 10px;
 
-  .about-tier--account & { background: rgba($misty-lavender, 0.08); }
-
-  img { width: 100%; height: 100%; object-fit: contain; }
+  img { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: contain; 
+  }
 }
 
 .about-tier__title {
@@ -733,14 +740,14 @@
   flex-wrap: wrap;
 }
 
-// ─── CTA buttons ──────────────────────────────────────────────────────────────
+// CTA buttons
 .about-cta-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-family: $font-secondary;
   font-size: $t-body-des;
-  font-weight: $fw-bold;
+  font-weight: $fw-regular;
   text-decoration: none;
   padding: $space-md $space-xxl;
   border-radius: $radius-lg;

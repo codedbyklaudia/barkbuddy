@@ -53,7 +53,7 @@ const LockIcon: React.FC = () => (
   </svg>
 );
 
-// MobileStepBar
+// ─── MobileStepBar ────────────────────────────────────────────────────────────
 interface MobileStepBarProps {
   currentStep: StepId;
   selectedContinent?: string;
@@ -137,7 +137,7 @@ const MobileStepBar: React.FC<MobileStepBarProps> = ({
   );
 };
 
-// IllustrationCard
+// ─── IllustrationCard ─────────────────────────────────────────────────────────
 interface IllustrationCardProps {
   name: string;
   image: string;
@@ -173,7 +173,7 @@ const IllustrationCard: React.FC<IllustrationCardProps> = ({ name, image, select
   );
 };
 
-// Step SVG icons
+// ─── Step SVG icons ───────────────────────────────────────────────────────────
 const IconRequirements: React.FC = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
     <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
@@ -194,15 +194,14 @@ const IconTips: React.FC = () => (
   </svg>
 );
 
-
-// Step metadata
+// ─── Step metadata ────────────────────────────────────────────────────────────
 const STEP_META: Record<string, { icon: React.ReactNode; accent: string }> = {
   Requirements: { icon: <IconRequirements />, accent: 'requirements' },
   Documentation: { icon: <IconDocumentation />, accent: 'documentation' },
   Tips: { icon: <IconTips />, accent: 'tips' },
 };
 
-// ContentCardCarousel
+// ─── ContentCardCarousel ──────────────────────────────────────────────────────
 interface ContentCardCarouselProps {
   cards: ContentCard[];
   stepLabel: string;
@@ -224,12 +223,8 @@ const ContentCardCarousel: React.FC<ContentCardCarouselProps> = ({
 
   const total = cards?.length ?? 0;
 
-  // reset index whenever cards array changes length
   React.useEffect(() => {
-    if (!total) {
-      setIdx(0);
-      return;
-    }
+    if (!total) { setIdx(0); return; }
     setIdx(prev => (prev >= total ? total - 1 : prev));
   }, [total]);
 
@@ -248,51 +243,29 @@ const ContentCardCarousel: React.FC<ContentCardCarouselProps> = ({
     const handler = (e: KeyboardEvent) => {
       const tag = (document.activeElement as HTMLElement)?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-      if (e.key === 'ArrowRight') {
-        e.preventDefault();
-        go(idx + 1, 'right');
-      }
-      if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        go(idx - 1, 'left');
-      }
+      if (e.key === 'ArrowRight') { e.preventDefault(); go(idx + 1, 'right'); }
+      if (e.key === 'ArrowLeft')  { e.preventDefault(); go(idx - 1, 'left');  }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [idx, total]);
 
-  // Touch swipe
-  const onTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-  };
-  const onTouchEnd = (e: React.TouchEvent) => {
+  const onTouchStart = (e: React.TouchEvent) => { touchStartX.current = e.touches[0].clientX; };
+  const onTouchEnd   = (e: React.TouchEvent) => {
     if (touchStartX.current === null) return;
     const delta = touchStartX.current - e.changedTouches[0].clientX;
-    if (Math.abs(delta) > 40) {
-      go(idx + (delta > 0 ? 1 : -1), delta > 0 ? 'right' : 'left');
-    }
+    if (Math.abs(delta) > 40) go(idx + (delta > 0 ? 1 : -1), delta > 0 ? 'right' : 'left');
     touchStartX.current = null;
   };
 
-  // If there are no cards, render nothing (or a fallback)
-  if (!cards || total === 0) {
-    return null;
-  }
-
+  if (!cards || total === 0) return null;
   const card = cards[idx];
-  if (!card) {
-    return null;
-  }
+  if (!card) return null;
 
-  const meta = STEP_META[stepLabel] ?? {
-    icon: <IconRequirements />,
-    accent: 'default',
-  };
+  const meta = STEP_META[stepLabel] ?? { icon: <IconRequirements />, accent: 'default' };
 
   const paragraphs = card.body
-    ? card.body
-        .split(/(?<=\.)\s{2,}|(?<=\.)\n/)
-        .filter(Boolean)
+    ? card.body.split(/(?<=\.)\s{2,}|(?<=\.)\n/).filter(Boolean)
     : [];
 
   return (
@@ -302,7 +275,6 @@ const ContentCardCarousel: React.FC<ContentCardCarouselProps> = ({
       tabIndex={0}
       aria-label="Card carousel, use arrow keys to navigate"
     >
-      {/* Header: badge + counter + flag */}
       <div className="content-step__header">
         <div className="content-step__badge">
           <span className="content-step__badge-icon">{meta.icon}</span>
@@ -321,15 +293,12 @@ const ContentCardCarousel: React.FC<ContentCardCarouselProps> = ({
                 onError={() => setImgError(true)}
               />
             ) : (
-              <span className="content-step__flag-fallback">
-                {country.name.charAt(0)}
-              </span>
+              <span className="content-step__flag-fallback">{country.name.charAt(0)}</span>
             )}
           </div>
         </div>
       </div>
 
-      {/* Heading */}
       <div className="content-step__titles">
         <h2 className="content-step__heading">
           {stepLabel} for{' '}
@@ -338,7 +307,6 @@ const ContentCardCarousel: React.FC<ContentCardCarouselProps> = ({
         <p className="content-step__intro">{intro}</p>
       </div>
 
-      {/* Progress track */}
       <div className="content-step__track" aria-hidden="true">
         <div
           className="content-step__track-fill"
@@ -346,12 +314,7 @@ const ContentCardCarousel: React.FC<ContentCardCarouselProps> = ({
         />
       </div>
 
-      {/* Card row with arrows */}
-      <div
-        className="content-step__row"
-        onTouchStart={onTouchStart}
-        onTouchEnd={onTouchEnd}
-      >
+      <div className="content-step__row" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
         <button
           className="content-step__arrow content-step__arrow--prev"
           onClick={() => go(idx - 1, 'left')}
@@ -362,26 +325,20 @@ const ContentCardCarousel: React.FC<ContentCardCarouselProps> = ({
           <ChevronLeft />
         </button>
 
-        <div
-          className={`content-step__card content-step__card--${dir}`}
-          key={animKey}
-        >
+        <div className={`content-step__card content-step__card--${dir}`} key={animKey}>
           <div className="content-step__card-stripe" aria-hidden="true" />
           <div className="content-step__card-num" aria-hidden="true">
             {String(idx + 1).padStart(2, '0')}
           </div>
           <h3 className="content-step__card-title">{card.title}</h3>
           <div className="content-step__card-body">
-            {paragraphs.length > 1 ? (
-              paragraphs.map((p, i) => <p key={i}>{p.trim()}</p>)
-            ) : (
-              <p>{card.body}</p>
-            )}
+            {paragraphs.length > 1
+              ? paragraphs.map((p, i) => <p key={i}>{p.trim()}</p>)
+              : <p>{card.body}</p>
+            }
           </div>
           <div className="content-step__swipe-hint" aria-hidden="true">
-            <ChevronLeft />
-            <span>swipe</span>
-            <ChevronRight />
+            <ChevronLeft /><span>swipe</span><ChevronRight />
           </div>
         </div>
 
@@ -392,11 +349,10 @@ const ContentCardCarousel: React.FC<ContentCardCarouselProps> = ({
           aria-label="Next card"
           type="button"
         >
-            <ChevronRight />
+          <ChevronRight />
         </button>
       </div>
 
-      {/* Dot nav */}
       <div className="content-step__dots" role="tablist" aria-label="Cards">
         {cards.map((_, i) => (
           <button
@@ -404,9 +360,7 @@ const ContentCardCarousel: React.FC<ContentCardCarouselProps> = ({
             role="tab"
             aria-selected={i === idx}
             aria-label={`Card ${i + 1}`}
-            className={`content-step__dot${
-              i === idx ? ' content-step__dot--active' : ''
-            }`}
+            className={`content-step__dot${i === idx ? ' content-step__dot--active' : ''}`}
             onClick={() => go(i, i > idx ? 'right' : 'left')}
             type="button"
           />
@@ -416,39 +370,27 @@ const ContentCardCarousel: React.FC<ContentCardCarouselProps> = ({
   );
 };
 
-// DownloadStep
+// ─── DownloadStep ─────────────────────────────────────────────────────────────
 interface DownloadStepProps {
   country: Country | null;
   continent: Continent | null;
   isLoggedIn: boolean;
   onDownload: () => void;
 }
-const DownloadStep: React.FC<DownloadStepProps> = ({
-  country,
-  continent,
-  isLoggedIn,
-  onDownload,
-}) => (
+const DownloadStep: React.FC<DownloadStepProps> = ({ country, continent, isLoggedIn, onDownload }) => (
   <div className="content-step content-step--download">
     <div className="content-step__header">
-
       {country && (
         <div className="content-step__destination">
-          <span className="content-step__destination-segment">
-            {continent?.name}
-          </span>
+          <span className="content-step__destination-segment">{continent?.name}</span>
           <ChevronRight />
-          <span className="content-step__destination-country">
-            {country.name}
-          </span>
+          <span className="content-step__destination-country">{country.name}</span>
         </div>
       )}
     </div>
 
     <div className="content-step__titles">
-      <h2 className="content-step__heading">
-        Your checklist is ready
-      </h2>
+      <h2 className="content-step__heading">Your checklist is ready</h2>
       <p className="content-step__intro">
         Everything you need in one PDF file<br /> - requirements, documents and tips.
       </p>
@@ -458,17 +400,9 @@ const DownloadStep: React.FC<DownloadStepProps> = ({
       <div className="content-step__download-card-glow" aria-hidden="true" />
       <div className="content-step__download-card-inner">
         <ul className="content-step__checklist-preview">
-          {[
-            'Entry requirements',
-            'Required documents',
-            'Vet & health tips',
-            'Travel route advice',
-          ].map(item => (
+          {['Entry requirements', 'Required documents', 'Vet & health tips', 'Travel route advice'].map(item => (
             <li key={item} className="content-step__checklist-item">
-              <span
-                className="content-step__checklist-check"
-                aria-hidden="true"
-              >
+              <span className="content-step__checklist-check" aria-hidden="true">
                 <CheckIcon />
               </span>
               {item}
@@ -477,30 +411,20 @@ const DownloadStep: React.FC<DownloadStepProps> = ({
         </ul>
 
         {isLoggedIn ? (
-          <button
-            className="btn btn--download-cta"
-            onClick={onDownload}
-            type="button"
-          >
+          <button className="btn btn--download-cta" onClick={onDownload} type="button">
             <DownloadIcon />
             Download PDF - {country?.name}
           </button>
         ) : (
           <div className="content-step__login-gate">
-            <div className="content-step__login-gate-icon">
-              <LockIcon />
-            </div>
+            <div className="content-step__login-gate-icon"><LockIcon /></div>
             <div className="content-step__login-gate-text">
               <strong>Log in to download</strong>
               <span>Your checklist is ready - just sign in to grab it.</span>
             </div>
             <div className="content-step__login-actions">
-              <Link to={"/login"} className="btn btn--primary">
-                Log in
-              </Link>
-              <Link to={"/register"} className="btn btn--primary">
-                Create account
-              </Link>
+              <Link to="/login" className="btn btn--primary">Log in</Link>
+              <Link to="/register" className="btn btn--primary">Create account</Link>
             </div>
           </div>
         )}
@@ -509,7 +433,7 @@ const DownloadStep: React.FC<DownloadStepProps> = ({
   </div>
 );
 
-// StepSidebar
+// ─── StepSidebar ──────────────────────────────────────────────────────────────
 interface StepSidebarProps {
   currentStep: StepId;
   selectedContinent?: string;
@@ -522,18 +446,11 @@ interface StepSidebarProps {
   hideContinent?: boolean;
 }
 const StepSidebar: React.FC<StepSidebarProps> = ({
-  currentStep,
-  selectedContinent,
-  selectedCountry,
-  onBack,
-  onNext,
-  nextDisabled,
-  nextLabel,
-  isFirst,
-  hideContinent = false,
+  currentStep, selectedContinent, selectedCountry,
+  onBack, onNext, nextDisabled, nextLabel, isFirst, hideContinent = false,
 }) => {
   const visibleSteps = hideContinent ? STEPS.filter(s => s.id !== 'continent') : STEPS;
-  const currentIdx = visibleSteps.findIndex(s => s.id === currentStep);
+  const currentIdx  = visibleSteps.findIndex(s => s.id === currentStep);
 
   const getStatus = (stepId: StepId, idx: number) => {
     if (stepId === currentStep) return 'active';
@@ -543,29 +460,24 @@ const StepSidebar: React.FC<StepSidebarProps> = ({
 
   const getSubLabel = (stepId: StepId) => {
     if (stepId === 'continent' && selectedContinent) return selectedContinent;
-    if (stepId === 'country' && selectedCountry) return selectedCountry;
+    if (stepId === 'country'   && selectedCountry)   return selectedCountry;
     return undefined;
   };
 
   return (
     <aside className="travel-sidebar">
       <div className="travel-sidebar__logo" aria-label="BarkBuddy">
-        <img
-          src="/images/logo.png"
-          alt="BarkBuddy"
-          className="travel-sidebar__logo-img"
-        />
+        <img src="/images/logo.png" alt="BarkBuddy" className="travel-sidebar__logo-img" />
       </div>
       <p className="travel-sidebar__tagline">
-        Choose, read and download
-        <br />
-        so you do not miss a thing!
+        Choose, read and download<br />so you do not miss a thing!
       </p>
 
       <ol className="step-list" aria-label="Progress steps">
         {visibleSteps.map((step, idx) => {
           const status = getStatus(step.id, idx);
-          const sub = getSubLabel(step.id);
+          const sub    = getSubLabel(step.id);
+          const isLast = idx === visibleSteps.length - 1;
           return (
             <li
               key={step.id}
@@ -573,13 +485,12 @@ const StepSidebar: React.FC<StepSidebarProps> = ({
               aria-current={status === 'active' ? 'step' : undefined}
             >
               <span className="step-list__dot" aria-hidden="true">
-                {status === 'done' ? (
-                  <CheckIcon />
-                ) : (
-                  <span className="step-list__dot-num">{idx + 1}</span>
-                )}
+                {status === 'done'
+                  ? <CheckIcon />
+                  : <span className="step-list__dot-num">{idx + 1}</span>
+                }
               </span>
-              <span className="step-list__connector" aria-hidden="true" />
+              {!isLast && <span className="step-list__connector" aria-hidden="true" />}
               <span className="step-list__text">
                 <span className="step-list__label">{step.label}</span>
                 {sub && <span className="step-list__sub">{sub}</span>}
@@ -591,12 +502,7 @@ const StepSidebar: React.FC<StepSidebarProps> = ({
 
       <div className="travel-sidebar__nav">
         {!isFirst ? (
-          <button
-            className="btn btn--ghost"
-            onClick={onBack}
-            type="button"
-            aria-label="Go back"
-          >
+          <button className="btn btn--ghost" onClick={onBack} type="button" aria-label="Go back">
             <ChevronLeft /> Back
           </button>
         ) : (
@@ -616,15 +522,12 @@ const StepSidebar: React.FC<StepSidebarProps> = ({
   );
 };
 
-// Step 1 — continent
+// ─── ContinentStep ────────────────────────────────────────────────────────────
 interface ContinentStepProps {
   selected: Continent | null;
   onSelect: (c: Continent) => void;
 }
-const ContinentStep: React.FC<ContinentStepProps> = ({
-  selected,
-  onSelect,
-}) => (
+const ContinentStep: React.FC<ContinentStepProps> = ({ selected, onSelect }) => (
   <div className="flow-step">
     <h2 className="flow-step__heading">Which continent are you going to?</h2>
     <div className="flow-step__grid">
@@ -641,7 +544,7 @@ const ContinentStep: React.FC<ContinentStepProps> = ({
   </div>
 );
 
-// Step 2 — country
+// ─── CountryStep ──────────────────────────────────────────────────────────────
 interface CountryStepProps {
   continent: Continent;
   selected: Country | null;
@@ -649,19 +552,14 @@ interface CountryStepProps {
   hideSearch?: boolean;
 }
 const CountryStep: React.FC<CountryStepProps> = ({
-  continent,
-  selected,
-  onSelect,
-  hideSearch = false,
+  continent, selected, onSelect, hideSearch = false,
 }) => {
   const [search, setSearch] = useState('');
 
   const filtered = useMemo(() => {
     const base = COUNTRIES.filter(c => c.continentId === continent.id);
     if (!search.trim()) return base.slice(0, 6);
-    return base.filter(c =>
-      c.name.toLowerCase().includes(search.toLowerCase()),
-    );
+    return base.filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
   }, [continent.id, search]);
 
   return (
@@ -705,8 +603,7 @@ const CountryStep: React.FC<CountryStepProps> = ({
         <>
           {search.trim() && (
             <p className="flow-step__results-label">
-              {filtered.length} result{filtered.length !== 1 ? 's' : ''} for "
-              {search}"
+              {filtered.length} result{filtered.length !== 1 ? 's' : ''} for "{search}"
             </p>
           )}
           <div className="flow-step__grid">
@@ -728,7 +625,7 @@ const CountryStep: React.FC<CountryStepProps> = ({
   );
 };
 
-// TravelFlow — main
+// ─── TravelFlow — main ────────────────────────────────────────────────────────
 interface TravelFlowProps {
   direction: TravelDirection;
   onClose: () => void;
@@ -749,43 +646,81 @@ const TravelFlow: React.FC<TravelFlowProps> = ({
     image: '../../../images/travel/uk_ireland.png',
   };
 
-  const [stepIdx, setStepIdx] = useState(isToUK ? 1 : 0);
+  const firstStep = isToUK ? 1 : 0;
+
+  const [stepIdx, setStepIdx] = useState(firstStep);
   const [selectedContinent, setSelectedContinent] = useState<Continent | null>(
     isToUK ? ukIrelandContinent : null,
   );
   const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
 
   const currentStep = STEPS[stepIdx];
-  const isLastStep = stepIdx === STEPS.length - 1;
-  const firstStep = isToUK ? 1 : 0;
+  const isLastStep  = stepIdx === STEPS.length - 1;
 
   const countryContent = useMemo(
     () => (selectedCountry ? getCountryContent(selectedCountry.id) : null),
     [selectedCountry],
   );
 
+  // ── Browser history — push a state entry per step so the browser back
+  //    button navigates between steps instead of leaving the page entirely ──
+
+  React.useEffect(() => {
+    // Push the initial entry for the flow on mount
+    window.history.pushState({ travelStep: firstStep }, '');
+
+    const handlePopState = (e: PopStateEvent) => {
+      const state = e.state as { travelStep?: number } | null;
+      if (state?.travelStep !== undefined) {
+        // Went back to a previous step inside the flow
+        setStepIdx(state.travelStep);
+      } else {
+        // Went back past the start of the flow — close it
+        onClose();
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Keep the current history entry's state in sync with stepIdx
+  React.useEffect(() => {
+    window.history.replaceState({ travelStep: stepIdx }, '');
+  }, [stepIdx]);
+
+  // ─────────────────────────────────────────────────────────────────────────
+
   const canProceed = () => {
     if (currentStep.id === 'continent') return !!selectedContinent;
-    if (currentStep.id === 'country') return !!selectedCountry;
+    if (currentStep.id === 'country')   return !!selectedCountry;
     return true;
   };
 
   const goNext = () => {
-    if (isLastStep) {
-      onClose();
-      return;
-    }
-    setStepIdx(i => i + 1);
+    if (isLastStep) { onClose(); return; }
+    const next = stepIdx + 1;
+    window.history.pushState({ travelStep: next }, '');
+    setStepIdx(next);
   };
+
   const goBack = () => {
-    if (stepIdx > firstStep) setStepIdx(i => i - 1);
-    else onClose();
+    if (stepIdx > firstStep) {
+      // Let the browser pop the history stack — popstate handler updates stepIdx
+      window.history.back();
+    } else {
+      onClose();
+    }
   };
 
   const handleContinentSelect = (c: Continent) => {
     setSelectedContinent(c);
     setSelectedCountry(null);
-    setTimeout(() => setStepIdx(1), 280);
+    setTimeout(() => {
+      window.history.pushState({ travelStep: 1 }, '');
+      setStepIdx(1);
+    }, 280);
   };
 
   const handleDownload = async () => {
@@ -802,10 +737,7 @@ const TravelFlow: React.FC<TravelFlowProps> = ({
     switch (currentStep.id) {
       case 'continent':
         return (
-          <ContinentStep
-            selected={selectedContinent}
-            onSelect={handleContinentSelect}
-          />
+          <ContinentStep selected={selectedContinent} onSelect={handleContinentSelect} />
         );
 
       case 'country':
@@ -872,11 +804,7 @@ const TravelFlow: React.FC<TravelFlowProps> = ({
         hideContinent={isToUK}
       />
       <main className="travel-flow__main" aria-label="Travel flow content">
-        <button
-          className="travel-flow__back"
-          onClick={onClose}
-          type="button"
-        >
+        <button className="travel-flow__back" onClick={onClose} type="button">
           <ChevronLeft /> Back to travel
         </button>
         <div className="travel-flow__content">{renderStep()}</div>

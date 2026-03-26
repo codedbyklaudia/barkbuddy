@@ -36,10 +36,7 @@
   --shadow-pop:  0 4px 24px rgba(0,0,0,0.09);
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // ANIMATIONS
-// ─────────────────────────────────────────────────────────────────────────────
-
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -82,21 +79,31 @@
   0%   { transform: translate(0,0) scale(1); opacity: 1; }
   100% { transform: translate(var(--tx,0), var(--ty,-80px)) scale(0); opacity: 0; }
 }
+@keyframes checkPop {
+  0%   { transform: scale(0); }
+  60%  { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+@keyframes gradientShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes savePulse {
+  0%, 100% { box-shadow: 0 4px 20px rgba(22, 163, 74, 0.38); }
+  50%       { box-shadow: 0 4px 30px rgba(22, 163, 74, 0.65); }
+}
 
 .spin { animation: spin 0.8s linear infinite; }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // ROOT LAYOUT
-// ─────────────────────────────────────────────────────────────────────────────
-
 .dv-root {
   min-height: 100vh;
   background: var(--page-bg);
   padding: 24px 24px 80px;
   max-width: 1400px;
   margin: 0 auto;
-  display: flex;
-  flex-direction: column;
+  @include column;
   gap: 14px;
   animation: fadeUp 0.35s ease-out both;
 
@@ -104,18 +111,13 @@
   @media (max-width: 768px)  { padding: 12px 12px 80px; gap: 10px; }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// HERO
-// ─────────────────────────────────────────────────────────────────────────────
-
+// Hero
 .dv-hero {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r-xl);
   padding: 18px 22px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  @include flex-between;
   gap: 14px;
   flex-wrap: wrap;
 
@@ -127,8 +129,7 @@
 }
 
 .dv-hero-inner {
-  display: flex;
-  align-items: center;
+  @include center;
   gap: 13px;
   flex: 1;
   min-width: 0;
@@ -137,31 +138,28 @@
 .dv-hero-avatar {
   width: 50px;
   height: 50px;
-  border-radius: 50%;
+  border-radius: $radius-round;
   border: 2px solid var(--border);
   overflow: hidden;
   flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   background: var(--surface-tonal);
   color: var(--brand);
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-size: $t-but-des;
+  font-weight: $fw-regular;
 
   img { width: 100%; height: 100%; object-fit: cover; }
 }
 
 .dv-hero-text {
-  display: flex;
-  flex-direction: column;
+  @include column;
   gap: 1px;
   min-width: 0;
 }
 
 .dv-hero-eyebrow {
   font-size: 0.68rem;
-  font-weight: 600;
+  font-weight: $fw-regular;
   color: var(--text-3);
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -170,7 +168,7 @@
 
 .dv-hero-name {
   font-size: 1.45rem;
-  font-weight: 800;
+  font-weight: $fw-bold;
   color: var(--text-1);
   margin: 0;
   line-height: 1.15;
@@ -186,8 +184,7 @@
 }
 
 .dv-hero-streak {
-  display: flex;
-  align-items: center;
+  @include center;
   gap: 5px;
   background: var(--surface-2);
   border: 1px solid var(--border);
@@ -201,22 +198,21 @@
 
 .dv-hero-streak-num {
   font-size: 0.9rem;
-  font-weight: 800;
+  font-weight: $fw-regular;
   color: var(--text-1);
 }
 
 .dv-hero-checkin-btn {
-  display: flex;
-  align-items: center;
+  @include center;
   gap: 7px;
   padding: 10px 20px;
-  border-radius: var(--r-pill);
+  border-radius: $radius-md;
   border: none;
-  cursor: pointer;
+  @include cursor;
   background: var(--brand);
   color: #fff;
   font-size: 0.85rem;
-  font-weight: 700;
+  font-weight: $fw-regular;
   white-space: nowrap;
   flex-shrink: 0;
   transition: background 0.15s, transform 0.12s;
@@ -233,10 +229,7 @@
   @media (max-width: 560px) { width: 100%; justify-content: center; }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// BENTO GRID
-// ─────────────────────────────────────────────────────────────────────────────
-
+// Bento grid
 .dv-bento {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -249,10 +242,9 @@
 .dv-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--r-lg);
+  border-radius: $radius-lg;
   padding: 20px;
-  display: flex;
-  flex-direction: column;
+  @include column;
   gap: 14px;
   transition: box-shadow 0.18s;
 
@@ -261,22 +253,18 @@
   @media (max-width: 600px) { padding: 16px; }
 }
 
-
-// ─── TIP CARD — editorial ─────────────────────────────────────────────────────
-
+// TIP CARD
 .dv-card--tip {
-  grid-row: span 2; // tall card, runs full height alongside links+dog
-  display: flex;
-  flex-direction: column;
+  grid-row: span 2;
+  @include column;
   gap: 16px;
   background: var(--surface);
-  position: relative;
+  @include relative;
   overflow: hidden;
 
-  // Subtle tinted accent strip on the left edge
   &::before {
     content: '';
-    position: absolute;
+    @include absolute;
     top: 0; left: 0;
     width: 3px; height: 100%;
     background: var(--tip-color, var(--brand));
@@ -288,27 +276,24 @@
 }
 
 .tip-top {
-  display: flex;
-  align-items: center;
+  @include center;
   gap: 9px;
 }
 
 .tip-icon-wrap {
   width: 36px;
   height: 36px;
-  border-radius: var(--r-sm);
+  border-radius: $radius-md;
   background: color-mix(in srgb, var(--tip-color, var(--brand)) 12%, white);
   border: 1px solid color-mix(in srgb, var(--tip-color, var(--brand)) 20%, transparent);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   color: var(--tip-color, var(--brand));
   flex-shrink: 0;
 }
 
 .tip-category {
   font-size: 0.63rem;
-  font-weight: 700;
+  font-weight: $fw-regular;
   color: var(--tip-color, var(--brand));
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -320,7 +305,7 @@
 
 .tip-headline {
   font-size: 1.2rem;
-  font-weight: 800;
+  font-weight: $fw-regular;
   color: var(--text-1);
   margin: 0;
   line-height: 1.25;
@@ -342,7 +327,7 @@
   padding: 10px 12px;
   background: color-mix(in srgb, var(--tip-color, var(--brand)) 6%, white);
   border: 1px solid color-mix(in srgb, var(--tip-color, var(--brand)) 15%, transparent);
-  border-radius: var(--r-sm);
+  border-radius: $radius-sm;
   margin-top: auto;
 
   svg {
@@ -353,39 +338,28 @@
 
   span {
     font-size: 0.75rem;
-    font-weight: 600;
+    font-weight: $fw-regular;
     color: var(--text-1);
     line-height: 1.5;
   }
 }
 
-// ─── QUICK LINKS ──────────────────────────────────────────────────────────────
-
-.dv-card--links {
-  grid-column: span 1;
-}
-
-// ─── MY POSTS BENTO CARD ──────────────────────────────────────────────────────
-
+// My posts bento
 .dv-card--myposts {
   grid-column: span 1;
-  display: flex;
-  flex-direction: column;
+  @include column;
   gap: 10px;
 }
 
 .myposts-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  @include flex-between;
 }
 
 .myposts-eyebrow {
-  display: flex;
-  align-items: center;
+  @include center;
   gap: 5px;
   font-size: 0.63rem;
-  font-weight: 700;
+  font-weight: $fw-regular;
   color: var(--text-3);
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -393,15 +367,14 @@
 }
 
 .myposts-see-all {
-  display: flex;
-  align-items: center;
+  @include center;
   gap: 2px;
   font-size: 0.7rem;
-  font-weight: 700;
+  font-weight: $fw-regular;
   color: var(--brand);
   background: transparent;
   border: none;
-  cursor: pointer;
+  @include cursor;
   padding: 3px 6px;
   border-radius: var(--r-xs);
   transition: background 0.12s;
@@ -427,17 +400,9 @@
   animation: shimmer 1.4s infinite;
 }
 
-@keyframes shimmer {
-  0%   { background-position: -200% 0; }
-  100% { background-position:  200% 0; }
-}
-
 .myposts-empty {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  @include flex-column;
   gap: 7px;
   padding: 16px 10px;
   text-align: center;
@@ -460,21 +425,19 @@
 }
 
 .myposts-list {
-  display: flex;
-  flex-direction: column;
+  @include column;
   gap: 3px;
   flex: 1;
 }
 
 .myposts-row {
-  display: flex;
-  align-items: center;
+  @include center;
   gap: 8px;
   padding: 9px 8px;
   border-radius: var(--r-sm);
   border: none;
   background: transparent;
-  cursor: pointer;
+  @include cursor;
   text-align: left;
   width: 100%;
   transition: background 0.12s;
@@ -488,8 +451,7 @@
 .myposts-row-main {
   flex: 1;
   min-width: 0;
-  display: flex;
-  flex-direction: column;
+  @include column;
   gap: 4px;
 }
 
@@ -504,8 +466,7 @@
 }
 
 .myposts-row-meta {
-  display: flex;
-  align-items: center;
+  @include center;
   gap: 8px;
 }
 
@@ -517,20 +478,12 @@
   text-transform: uppercase;
   letter-spacing: 0.4px;
 
-  &.published {
-    background: #dcfce7;
-    color: #15803d;
-  }
-  &.draft {
-    background: var(--surface-2);
-    color: var(--text-3);
-    border: 1px solid var(--border);
-  }
+  &.published { background: #dcfce7; color: #15803d; }
+  &.draft     { background: var(--surface-2); color: var(--text-3); border: 1px solid var(--border); }
 }
 
 .myposts-row-stats {
-  display: flex;
-  align-items: center;
+  @include center;
   gap: 6px;
   font-size: 0.68rem;
   color: var(--text-3);
@@ -552,15 +505,16 @@
   font-weight: 700;
   color: var(--brand);
   background: var(--brand-low);
-  border-radius: var(--r-sm);
+  border-radius: $radius-md;
   border: none;
-  cursor: pointer;
+  @include cursor;
   transition: background 0.12s;
   margin-top: auto;
   &:hover { background: var(--surface-tonal); }
 }
 
-// ─── QUICK LINKS ──────────────────────────────────────────────────────────────
+// QUICK LINKS 
+.dv-card--links { grid-column: span 1; }
 
 .links-title {
   font-size: 0.63rem;
@@ -571,17 +525,16 @@
   margin: 0 0 2px;
 }
 
-.links-list { display: flex; flex-direction: column; gap: 3px; }
+.links-list { @include column; gap: 3px; }
 
 .link-row {
-  display: flex;
-  align-items: center;
+  @include center;
   gap: 11px;
   padding: 10px 12px;
   border-radius: var(--r-md);
   border: 1px solid transparent;
   background: transparent;
-  cursor: pointer;
+  @include cursor;
   transition: all 0.13s;
   text-align: left;
 
@@ -595,16 +548,14 @@
 .link-icon-wrap {
   width: 34px;
   height: 34px;
-  border-radius: var(--r-sm);
+  border-radius: $radius-sm;
   background: var(--surface-tonal);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   color: var(--brand);
   flex-shrink: 0;
 }
 
-.link-text { display: flex; flex-direction: column; gap: 1px; flex: 1; }
+.link-text { @include column; gap: 1px; flex: 1; }
 .link-label { font-size: 0.85rem; font-weight: 600; color: var(--text-1); }
 .link-sub   { font-size: 0.72rem; color: var(--text-3); }
 .link-arrow { color: var(--text-3); flex-shrink: 0; transition: all 0.13s; }
@@ -633,11 +584,11 @@
   border: none;
   border-radius: var(--r-md) var(--r-md) 0 0;
   background: transparent;
-  cursor: pointer;
+  @include cursor;
   font-size: 0.82rem;
   font-weight: 600;
-  color: var(--text-3);
-  position: relative;
+  color: $twilight-purple;
+  @include relative;
   transition: all 0.15s;
   letter-spacing: 0.1px;
 
@@ -658,10 +609,9 @@
                 -1px 0 0 0 var(--border) inset;
     svg { opacity: 1; }
 
-    // Hide the border-bottom so it merges into panel
     &::after {
       content: '';
-      position: absolute;
+      @include absolute;
       bottom: -1px;
       left: 0; right: 0;
       height: 1px;
@@ -673,7 +623,9 @@
 
   @media (max-width: 400px) { span { display: none; } padding: 10px 14px; }
 }
-.pc-dogs { display: flex;  gap: $space-sm; }
+
+.pc-dogs { display: flex; gap: $space-sm; }
+
 .dv-hub-panel {
   padding: 24px;
   min-height: 400px;
@@ -688,10 +640,7 @@
   @media (max-width: 600px) { padding: 18px; }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// PROFILE CARD  (shared — own profile + buddy drawer)
-// ─────────────────────────────────────────────────────────────────────────────
-
+// Profile card
 @keyframes drawerIn {
   from { transform: translateX(100%); opacity: 0; }
   to   { transform: translateX(0);    opacity: 1; }
@@ -702,17 +651,15 @@
 }
 
 .pc-root {
-  display: flex;
-  flex-direction: column;
+  @include column;
   gap: 0;
   animation: fadeUp 0.25s ease both;
 }
 
-// Banner — colourful top strip with floating avatar
 .pc-banner {
-  position: relative;
+  @include relative;
   height: 72px;
-  margin: -24px -24px 0; // bleed to panel edges
+  margin: -24px -24px 0;
   flex-shrink: 0;
 
   @media (max-width: 600px) { margin: -18px -18px 0; }
@@ -726,7 +673,7 @@
 }
 
 .pc-avatar-wrap {
-  position: absolute;
+  @include absolute;
   bottom: -28px;
   left: 20px;
 }
@@ -736,9 +683,7 @@
   height: 72px;
   border-radius: var(--r-lg);
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   background: var(--surface-tonal);
   color: var(--brand);
   font-size: 1.7rem;
@@ -750,24 +695,22 @@
 }
 
 .pc-streak-pip {
-  position: absolute;
+  @include absolute;
   bottom: -6px;
   right: -6px;
-  display: flex;
-  align-items: center;
+  @include center;
   gap: 2px;
   padding: 2px 6px;
   background: #fff4ec;
   border: 1.5px solid #fcd4b0;
   border-radius: var(--r-pill);
   font-size: 0.62rem;
-  font-weight: 800;
+  font-weight: $fw-bold;
   color: #c2410c;
   white-space: nowrap;
   svg { color: #f97316; }
 }
 
-// Identity
 .pc-identity {
   padding: 38px 20px 16px;
   border-bottom: 1px solid var(--border);
@@ -800,8 +743,7 @@
 }
 
 .pc-meta-item {
-  display: flex;
-  align-items: center;
+  @include center;
   gap: 4px;
   font-size: 0.7rem;
   color: var(--text-3);
@@ -815,10 +757,8 @@
   }
 }
 
-// Stats row
 .pc-stats {
-  display: flex;
-  align-items: center;
+  @include center;
   padding: 14px 20px;
   border-bottom: 1px solid var(--border);
   gap: 0;
@@ -826,9 +766,8 @@
 
 .pc-stat {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  @include column;
+  @include center;
   gap: 2px;
 }
 
@@ -857,7 +796,6 @@
   flex-shrink: 0;
 }
 
-// Dog card
 .pc-dog-card {
   display: flex;
   align-items: flex-start;
@@ -871,9 +809,7 @@
   height: 52px;
   border-radius: var(--r-md);
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   background: var(--surface-tonal);
   color: var(--brand);
   border: 1px solid var(--border);
@@ -885,14 +821,12 @@
 .pc-dog-info {
   flex: 1;
   min-width: 0;
-  display: flex;
-  flex-direction: column;
+  @include column;
   gap: 3px;
 }
 
 .pc-dog-name-row {
-  display: flex;
-  align-items: center;
+  @include center;
   gap: 7px;
   flex-wrap: wrap;
 }
@@ -907,7 +841,7 @@
   font-size: 0.62rem;
   font-weight: 700;
   padding: 2px 8px;
-  border-radius: var(--r-pill);
+  border-radius: $radius-md;
   text-transform: capitalize;
   background: var(--brand-low);
   color: var(--brand);
@@ -937,24 +871,19 @@
   text-transform: capitalize;
 }
 
-// Profile completeness
 .pc-complete {
   padding: 14px 20px;
   border-bottom: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
+  @include column;
   gap: 6px;
 }
 
 .pc-complete-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  @include flex-between;
 }
 
 .pc-complete-label {
-  display: flex;
-  align-items: center;
+  @include center;
   gap: 5px;
   font-size: 0.72rem;
   font-weight: 700;
@@ -990,28 +919,24 @@
   line-height: 1.4;
 }
 
-// Remove buddy button
 .pc-remove-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   gap: 6px;
   margin: 14px 20px 4px;
   padding: 9px;
-  border-radius: var(--r-md);
+  border-radius: $radius-md;
   border: 1.5px solid #fecdd3;
   background: #fff1f2;
   color: #e11d48;
   font-size: 0.8rem;
   font-weight: 700;
-  cursor: pointer;
+  @include cursor;
   transition: all 0.15s;
 
   &:hover:not(:disabled) { background: #ffe4e6; border-color: #e11d48; }
   &:disabled { opacity: 0.5; cursor: not-allowed; }
 }
 
-// Skeleton
 .pc-skeleton {
   .pc-banner { margin-bottom: 44px; }
   .skel {
@@ -1028,8 +953,7 @@
   .skel-dog   { height: 72px; margin: 12px 20px; border-radius: var(--r-md); }
 }
 
-// ─── BUDDY DRAWER ─────────────────────────────────────────────────────────────
-
+// Buddy Drawer
 .bd-backdrop {
   position: fixed;
   inset: 0;
@@ -1041,9 +965,7 @@
 
 .bd-drawer {
   position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
+  top: 0; right: 0; bottom: 0;
   z-index: 51;
   width: 360px;
   max-width: 92vw;
@@ -1051,14 +973,11 @@
   box-shadow: -8px 0 40px rgba(0,0,0,0.14);
   overflow-y: auto;
   animation: drawerIn 0.28s cubic-bezier(0.34, 1.2, 0.64, 1);
-
-  // Give the ProfileCard banner room to breathe from top
   padding-top: 52px;
 
   &::-webkit-scrollbar { width: 4px; }
   &::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
-  // Override panel bleed margins inside drawer
   .pc-banner { margin: -52px 0 0; }
   .pc-identity,
   .pc-stats,
@@ -1068,21 +987,17 @@
 }
 
 .bd-close {
-  position: absolute;
-  top: 12px;
-  right: 12px;
+  @include absolute;
+  top: 12px; right: 12px;
   z-index: 1;
-  width: 32px;
-  height: 32px;
+  width: 32px; height: 32px;
   border-radius: var(--r-sm);
   border: none;
   background: rgba(255,255,255,0.9);
   backdrop-filter: blur(4px);
   color: var(--text-2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
+  @include flex-center;
+  @include cursor;
   transition: all 0.13s;
   box-shadow: 0 1px 4px rgba(0,0,0,0.1);
 
@@ -1090,9 +1005,8 @@
 }
 
 .bd-error {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  @include column;
+  @include center;
   gap: 10px;
   padding: 48px 24px;
   color: var(--text-3);
@@ -1100,9 +1014,8 @@
   p { font-size: 0.85rem; color: var(--text-2); }
 }
 
-// Buddy card clickable variant
 .buddy-card--clickable {
-  cursor: pointer;
+  @include cursor;
   width: 100%;
   text-align: left;
   border: none;
@@ -1122,8 +1035,7 @@
 }
 
 .buddy-since {
-  display: flex;
-  align-items: center;
+  @include center;
   gap: 3px;
   font-size: 0.68rem;
   color: var(--text-3);
@@ -1131,13 +1043,9 @@
   svg { flex-shrink: 0; }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // BUDDIES PANEL
-// ─────────────────────────────────────────────────────────────────────────────
-
 .buddies-panel {
-  display: flex;
-  flex-direction: column;
+  @include column;
   gap: 16px;
   animation: fadeIn 0.22s ease both;
 }
@@ -1146,23 +1054,22 @@
   display: flex;
   gap: 3px;
   border-bottom: 1px solid var(--border);
-  position: relative;
+  @include relative;
 }
 
 .buddies-tab {
-  display: flex;
-  align-items: center;
+  @include center;
   gap: 5px;
   padding: 8px 13px;
   border: none;
   background: transparent;
-  cursor: pointer;
+  @include cursor;
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--text-3);
   border-radius: var(--r-xs) var(--r-xs) 0 0;
   transition: all 0.13s;
-  position: relative;
+  @include relative;
 
   &:hover { color: var(--text-1); background: var(--surface-2); }
 
@@ -1172,7 +1079,7 @@
 
     &::after {
       content: '';
-      position: absolute;
+      @include absolute;
       bottom: -1px; left: 0; right: 0;
       height: 2px;
       background: var(--brand);
@@ -1187,20 +1094,17 @@
   background: var(--brand);
   color: #fff;
   padding: 1px 6px;
-  border-radius: var(--r-pill);
+  border-radius: $radius-md;
 }
 
 .buddies-pending-dot {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
+  @include flex-center;
+  width: 18px; height: 18px;
+  border-radius: $radius-round;
   background: #ef4444;
   color: #fff;
   font-size: 0.62rem;
-  font-weight: 700;
+  font-weight: $fw-regular;
   margin-left: auto;
   align-self: center;
   animation: pulse 2s ease infinite;
@@ -1208,17 +1112,15 @@
 
 .buddies-list-view,
 .buddies-find-view {
-  display: flex;
-  flex-direction: column;
+  @include column;
   gap: 18px;
   animation: fadeIn 0.22s ease both;
 }
 
-.buddies-section { display: flex; flex-direction: column; gap: 9px; }
+.buddies-section { @include column; gap: 9px; }
 
 .buddies-section-title {
-  display: flex;
-  align-items: center;
+  @include center;
   gap: 5px;
   font-size: 0.65rem;
   font-weight: 700;
@@ -1230,7 +1132,7 @@
 
 .section-count {
   font-size: 0.62rem;
-  font-weight: 700;
+  font-weight: $fw-regular;
   background: var(--surface-tonal);
   color: var(--brand);
   padding: 1px 7px;
@@ -1245,11 +1147,10 @@
 }
 
 .buddy-card {
-  display: flex;
-  align-items: center;
+  @include center;
   gap: 10px;
   padding: 11px;
-  border-radius: var(--r-md);
+  border-radius: $radius-md;
   border: 1px solid var(--border);
   background: var(--surface-2);
   transition: all 0.13s;
@@ -1260,40 +1161,33 @@
 }
 
 .buddy-avatar {
-  width: 38px;
-  height: 38px;
+  width: 38px; height: 38px;
   border-radius: var(--r-sm);
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   background: var(--surface-tonal);
   color: var(--brand);
-  font-size: 0.95rem;
-  font-weight: 700;
+  font-size: 0.95rem; font-weight: $fw-bold;
   flex-shrink: 0;
   border: 1px solid var(--border);
   img { width: 100%; height: 100%; object-fit: cover; }
 }
 
-.buddy-info { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.buddy-info { @include column; gap: 2px; flex: 1; min-width: 0; }
 .buddy-name  { font-size: 0.85rem; font-weight: 700; color: var(--text-1); margin: 0; }
-.buddy-dog   { display: flex; align-items: center; gap: 3px; font-size: 0.72rem; color: var(--text-2); margin: 0; svg { color: var(--brand); } }
+.buddy-dog   { @include center; gap: 3px; font-size: 0.72rem; color: var(--text-2); margin: 0; svg { color: var(--brand); } }
 .buddy-bio   { font-size: 0.72rem; color: var(--text-2); margin: 0; line-height: 1.4; }
-.buddy-since { font-size: 0.67rem; color: var(--text-3); margin: 2px 0 0; padding-top: 3px; border-top: 1px solid var(--border); }
 
 .buddy-actions { display: flex; gap: 4px; flex-shrink: 0; }
 
 .buddy-btn {
-  display: flex;
-  align-items: center;
+  @include center;
   gap: 3px;
   padding: 5px 10px;
   border-radius: var(--r-xs);
   border: 1px solid transparent;
-  cursor: pointer;
-  font-size: 0.72rem;
-  font-weight: 700;
+  @include cursor;
+  font-size: 0.72rem; font-weight: $fw-bold;
   transition: all 0.13s;
 
   &.add    { background: var(--brand); color: #fff; &:hover { background: var(--brand-mid); } }
@@ -1303,41 +1197,39 @@
 }
 
 .buddy-status-badge {
-  display: flex; align-items: center; gap: 3px;
+  @include center; gap: 3px;
   padding: 4px 8px;
-  border-radius: var(--r-xs);
-  font-size: 0.68rem;
-  font-weight: 700;
+  border-radius: $radius-md;
+  font-size: 0.68rem; font-weight: $fw-regular;
   &.is-buddy   { background: #dcfce7; color: #15803d; }
   &.is-pending { background: #fef9c3; color: #a16207; }
 }
 
 .buddy-pending-chip {
-  font-size: 0.68rem; font-weight: 600; color: var(--text-3);
+  font-size: 0.68rem; font-weight: $fw-regular; color: var(--text-3);
   background: var(--surface-2); border: 1px solid var(--border);
   padding: 3px 8px; border-radius: var(--r-pill);
 }
 
 .buddies-empty,
 .posts-empty {
-  display: flex; flex-direction: column; align-items: center;
+  @include column; @include center;
   gap: 5px; padding: 40px 20px; text-align: center;
 }
 .buddies-empty-icon,
 .posts-empty-icon { color: var(--text-3); margin-bottom: 6px; }
 .buddies-empty p,
-.posts-empty p { font-size: 0.88rem; font-weight: 600; color: var(--text-1); margin: 0; }
-.empty-sub { font-size: 0.78rem !important; font-weight: 400 !important; color: var(--text-3) !important; margin: 0; }
+.posts-empty p { font-size: 0.88rem; font-weight: $fw-regular; color: var(--text-1); margin: 0; }
+.empty-sub { font-size: 0.78rem !important; font-weight: $fw-regular !important; color: var(--text-3) !important; margin: 0; }
 
-// Search
-.buddies-search-wrap { position: relative; display: flex; align-items: center; }
-.search-icon-abs { position: absolute; left: 11px; color: var(--text-3); pointer-events: none; }
+.buddies-search-wrap { @include relative; @include center; }
+.search-icon-abs { @include absolute; left: 11px; top: 50%; color: var(--text-3); pointer-events: none; transform: translateY(-50%);}
 
 .buddies-search-input {
   width: 100%;
   padding: 10px 34px 10px 38px;
   border: 1px solid var(--border);
-  border-radius: var(--r-md);
+  border-radius: $radius-lg;
   font-size: 0.85rem;
   color: var(--text-1);
   background: var(--surface-2);
@@ -1353,285 +1245,625 @@
 }
 
 .search-clear-btn {
-  position: absolute; right: 9px;
-  display: flex; align-items: center; justify-content: center;
+  @include absolute; right: 9px;
+  @include flex-center;
   width: 22px; height: 22px;
   border-radius: var(--r-xs); border: none;
-  background: transparent; color: var(--text-3); cursor: pointer;
+  background: transparent; color: var(--text-3); @include cursor;
   &:hover { background: var(--surface-tonal); color: var(--text-1); }
 }
 
 .search-status {
-  display: flex; align-items: center; gap: 7px;
+  @include center; gap: 7px;
   font-size: 0.82rem; color: var(--text-2); padding: 5px 0;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // POSTS PANEL
-// ─────────────────────────────────────────────────────────────────────────────
-
-.posts-panel { display: flex; flex-direction: column; gap: 11px; animation: fadeIn 0.22s ease both; }
-
+.posts-panel { @include column; gap: 11px; animation: fadeIn 0.22s ease both; }
 .posts-panel-header { padding-bottom: 9px; border-bottom: 1px solid var(--border); }
-
 .posts-count-chip {
   font-size: 0.62rem; font-weight: 700; color: var(--text-3);
   text-transform: uppercase; letter-spacing: 0.8px;
 }
-
-.posts-list { display: flex; flex-direction: column; gap: 7px; }
-
+.posts-list { @include column; gap: 7px; }
 .post-card {
   border: 1px solid var(--border);
   border-radius: var(--r-md);
   background: var(--surface-2);
   padding: 13px;
-  display: flex;
-  flex-direction: column;
+  @include column;
+  @include relative;
   gap: 9px;
-  position: relative;
   transition: all 0.13s;
-
   &:hover { background: var(--surface); border-color: color-mix(in srgb, var(--brand) 22%, var(--border)); }
   &.is-draft { border-color: rgba(234,179,8,0.28); background: #fffdf0; }
 }
-
 .post-draft-tag {
-  position: absolute; top: 11px; right: 11px;
+  @include absolute; top: 11px; right: 11px;
   font-size: 0.62rem; font-weight: 700;
   background: #fef9c3; color: #a16207;
   padding: 2px 8px; border-radius: var(--r-pill);
   text-transform: uppercase; letter-spacing: 0.3px;
 }
-
 .post-card-body {
   display: flex; gap: 11px; align-items: flex-start;
-  @media (max-width: 420px) { flex-direction: column; }
+  @media (max-width: 420px) { @include column; }
 }
-
-.post-card-main { flex: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-
+.post-card-main { flex: 1; @include column; gap: 3px; min-width: 0; }
 .post-card-title { font-size: 0.88rem; font-weight: 700; color: var(--text-1); margin: 0; line-height: 1.35; padding-right: 55px; }
 .post-card-excerpt { font-size: 0.8rem; color: var(--text-2); margin: 0; line-height: 1.5; }
-
-.post-card-meta { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; margin-top: 3px; }
-.post-meta-stat { display: flex; align-items: center; gap: 3px; font-size: 0.72rem; color: var(--text-3); }
+.post-card-meta { @include center; gap: 9px; flex-wrap: wrap; margin-top: 3px; }
+.post-meta-stat { @include center; gap: 3px; font-size: 0.72rem; color: var(--text-3); }
 .post-meta-date { font-size: 0.7rem; color: var(--text-3); }
 .post-meta-cat {
   font-size: 0.65rem; font-weight: 700;
   background: var(--brand-low); color: var(--brand);
   padding: 1px 7px; border-radius: var(--r-pill);
 }
-
 .post-card-actions { display: flex; gap: 4px; flex-shrink: 0; }
-
 .post-action {
-  display: flex; align-items: center; justify-content: center;
+  @include flex-center;
   width: 30px; height: 30px;
   border-radius: var(--r-xs);
   border: 1px solid var(--border);
-  cursor: pointer;
+  @include cursor;
   background: var(--surface);
   color: var(--text-3);
   transition: all 0.13s;
-
   &:hover { border-color: var(--text-3); color: var(--text-1); }
   &.view    { color: var(--brand); background: var(--brand-low); border-color: transparent; }
   &.publish { color: #15803d; background: #dcfce7; border-color: transparent; }
   &.hide    { color: #a16207; background: #fef9c3; border-color: transparent; }
   &.delete  { color: #dc2626; background: #fef2f2; border-color: transparent; &:hover { background: #fecaca; } }
 }
-
 .post-delete-confirm {
-  display: flex; align-items: center; gap: 9px; flex-wrap: wrap;
+  @include center; gap: 9px; flex-wrap: wrap;
   padding: 9px 11px;
   background: #fef2f2; border: 1px solid #fecaca;
   border-radius: var(--r-sm);
   p { font-size: 0.8rem; color: var(--text-1); margin: 0; flex: 1; }
 }
-
 .post-confirm-actions { display: flex; gap: 5px; }
-
 .post-confirm-cancel,
 .post-confirm-delete {
-  display: flex; align-items: center; gap: 4px;
+  @include center; gap: 4px;
   padding: 5px 11px; border-radius: var(--r-xs);
-  font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: all 0.13s;
+  font-size: 0.75rem; font-weight: 700; @include cursor; transition: all 0.13s;
 }
 .post-confirm-cancel  { background: transparent; color: var(--text-1); border: 1px solid var(--border); &:hover { border-color: var(--text-2); } }
 .post-confirm-delete  { background: #ef4444; color: #fff; border: none; &:hover { background: #dc2626; } }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // LOADING SKELETONS
-// ─────────────────────────────────────────────────────────────────────────────
-
 @mixin skel {
   background: linear-gradient(90deg, var(--surface-2) 0%, var(--surface-tonal) 50%, var(--surface-2) 100%);
   background-size: 400px 100%;
   animation: shimmer 1.4s ease infinite;
   border-radius: var(--r-md);
 }
-
 .buddy-skeleton { @include skel; height: 60px; }
 .post-skeleton  { @include skel; height: 75px; }
 .buddies-skeletons,
-.posts-skeletons { display: flex; flex-direction: column; gap: 7px; }
+.posts-skeletons { @include column; gap: 7px; }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// CHECK-IN MODAL
-// ─────────────────────────────────────────────────────────────────────────────
-
+// CHECK-IN MODAL — redesign
 .modal-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.35);
-  backdrop-filter: blur(8px);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 1000; padding: 16px;
-  animation: fadeIn 0.15s ease;
+  position: fixed;
+  inset: 0;
+  backdrop-filter: blur(20px) saturate(1.5);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+  @include flex-center;
+  z-index: 1000;
+  padding: $space-md;
+  animation: fadeIn 0.18s ease;
 }
 
 .checkin-modal {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--r-xl);
-  width: 100%; max-width: 420px; max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 20px 56px rgba(0,0,0,0.16);
-  animation: fadeUp 0.26s cubic-bezier(0.34, 1.46, 0.64, 1);
+  border-radius: $radius-lg;
+  width: 100%;
+  max-width: 500px;
+  max-height: calc(100dvh - 32px);
+  overflow: hidden;
+  @include column;
+  box-shadow:
+    0 48px 120px rgba(0, 0, 0, 0.4),
+    0 12px 32px rgba(0, 0, 0, 0.2),
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+  animation: modalSlideUp 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+
+  @media (max-width: 540px) {
+    max-height: calc(100dvh - 20px);
+    border-radius: 22px;
+  }
 }
 
-.checkin-modal-header {
-  padding: 16px 18px 13px;
+@keyframes modalSlideUp {
+  from { opacity: 0; transform: translateY(40px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+
+// Top bar 
+.checkin-topbar {
+  @include flex-between;
+  padding: 18px 20px 14px;
   border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  flex-shrink: 0;
 }
 
-.checkin-header-left { display: flex; align-items: center; gap: 11px; }
+.checkin-topbar-left {
+  @include column;
+  gap: 2px;
+}
 
-.checkin-dog-avatar {
-  width: 40px; height: 40px;
-  border-radius: var(--r-md);
-  overflow: hidden; display: flex; align-items: center; justify-content: center;
-  background: var(--surface-tonal); color: var(--brand);
-  flex-shrink: 0; border: 1px solid var(--border);
+.checkin-eyebrow {
+  font-size: $t-but-des;
+  font-weight: $fw-regular;
+  letter-spacing: 0.8px;
+  color: $twilight-purple;
+}
+
+.checkin-day {
+  font-size: $t-body-des;
+  font-weight: $fw-bold;
+  color: $twilight-purple;
+  letter-spacing: 0.4px;
+  line-height: $lh-tight;
+}
+
+.checkin-close {
+  width: 32px; height: 32px;
+  border-radius: $radius-round;
+  border: 1.5px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-2);
+  @include cursor;
+  @include flex-center;
+  flex-shrink: 0;
+  transition: all 0.15s;
+
+  &:hover {
+    background: color-mix(in srgb, var(--brand) 10%, white);
+    color: var(--brand);
+    border-color: color-mix(in srgb, var(--brand) 30%, transparent);
+  }
+}
+
+// Dog switcher chips 
+.checkin-switcher {
+  display: flex;
+  gap: 8px;
+  padding: 12px 18px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+
+  &::-webkit-scrollbar { display: none; }
+}
+
+.checkin-chip {
+  @include center;
+  gap: 7px;
+  padding: 7px 13px 7px 7px;
+  border-radius: var(--r-pill);
+  border: 1.5px solid var(--border);
+  background: var(--surface-2);
+  @include cursor;
+  transition: all 0.2s cubic-bezier(0.34, 1.2, 0.64, 1);
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  &:hover:not(.active) {
+    border-color: color-mix(in srgb, var(--chip-color, var(--brand)) 35%, transparent);
+    background: color-mix(in srgb, var(--chip-color, var(--brand)) 7%, white);
+  }
+
+  &.active {
+    background: var(--chip-color, var(--brand));
+    border-color: var(--chip-color, var(--brand));
+    box-shadow: 0 4px 16px color-mix(in srgb, var(--chip-color, var(--brand)) 40%, transparent);
+    transform: translateY(-1px);
+  }
+}
+
+.checkin-chip-avatar {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  @include flex-center;
+  font-size: $t-forgot-des; font-weight: 800;
+  flex-shrink: 0;
+  transition: all 0.18s;
+
+  .checkin-chip:not(.active) & {
+    background: color-mix(in srgb, var(--chip-color, var(--brand)) 14%, white);
+    color: var(--chip-color, var(--brand));
+    border: 1.5px solid color-mix(in srgb, var(--chip-color, var(--brand)) 22%, transparent);
+  }
+
+  .checkin-chip.active & {
+    background: rgba(255, 255, 255, 0.22);
+    color: #fff;
+    border: 1.5px solid rgba(255, 255, 255, 0.25);
+  }
+
+  img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+}
+
+.checkin-chip-name {
+  font-size: $t-forgot-des; font-weight: $fw-regular;
+  color: $twilight-purple;
+  transition: color 0.18s;
+
+  .checkin-chip.active & { color: #fff; }
+}
+
+.checkin-chip-progress {
+  font-size: 0.65rem; font-weight: $fw-bold;
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  transition: all 0.18s;
+
+  .checkin-chip:not(.active) & {
+    background: var(--surface-tonal);
+    color: var(--text-3);
+    border: 1px solid var(--border);
+  }
+
+  .checkin-chip.active & {
+    background: rgba(255, 255, 255, 0.22);
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .checkin-chip.chip-done & {
+    background: rgba(255, 255, 255, 0.9);
+    color: #15803d;
+  }
+}
+
+// Body 
+.checkin-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 18px;
+  @include column;
+  gap: 10px;
+
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  @media (max-width: 480px) { padding: 14px 14px; }
+}
+
+// Dog hero row
+.checkin-dog-hero {
+  @include center;
+  gap: 13px;
+  padding: 14px 16px;
+  border-radius: $radius-lg;
+  background: $twilight-purple;
+  border: 1.5px solid color-mix(in srgb, var(--hero-color, var(--brand)) 18%, transparent);
+  margin-bottom: 2px;
+  transition: background 0.3s ease, border-color 0.3s ease;
+  animation: fadeUp 0.22s ease both;
+}
+
+.checkin-dog-hero-avatar {
+  width: 50px; height: 50px;
+  border-radius: $radius-md;
+  @include flex-center;
+  font-size: $t-link-des; font-weight: 900;
+  color: $soft-pearl;
+  flex-shrink: 0;
+  box-shadow: 0 5px 14px color-mix(in srgb, var(--hero-color, var(--brand)) 40%, transparent);
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+
   img { width: 100%; height: 100%; object-fit: cover; }
 }
 
-.checkin-title    { font-size: 0.95rem; font-weight: 800; color: var(--text-1); margin: 0; }
-.checkin-subtitle { font-size: 0.75rem; color: var(--text-2); margin: 0; }
-
-.checkin-close-btn {
-  display: flex; align-items: center; justify-content: center;
-  width: 30px; height: 30px;
-  border-radius: var(--r-xs); border: 1px solid var(--border);
-  background: var(--surface-2); color: var(--text-2); cursor: pointer;
-  transition: all 0.13s; flex-shrink: 0;
-  &:hover { background: var(--surface-tonal); color: var(--text-1); }
+.checkin-dog-hero-text {
+  flex: 1; min-width: 0;
+  @include column; gap: 2px;
 }
 
-.checkin-progress-section { padding: 12px 18px 3px; }
-
-.checkin-progress-track {
-  height: 4px;
-  background: var(--surface-2); border-radius: 2px; overflow: hidden;
-  margin-bottom: 6px; border: 1px solid var(--border);
+.checkin-dog-hero-name {
+  font-size: $t-body-des; font-weight: $fw-regular;
+  color: $soft-pearl;
+  letter-spacing: -0.5px; line-height: $lh-tight;
 }
 
-.checkin-progress-fill {
-  height: 100%; background: var(--brand); border-radius: 2px;
-  transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  &.complete { background: #16a34a; }
+// SVG progress ring 
+.checkin-ring-wrap {
+  @include relative;
+  width: 46px; height: 46px;
+  flex-shrink: 0;
 }
 
-.checkin-progress-text {
-  display: flex; align-items: center; gap: 4px;
-  font-size: 0.72rem; font-weight: 700; color: var(--text-2);
-  svg { color: #16a34a; }
+.checkin-ring-svg {
+  transform: rotate(-90deg);
+  overflow: visible;
 }
 
-.checkin-items-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 7px;
-  padding: 8px 18px 12px;
+.checkin-ring-bg {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 3.5;
 }
 
+.checkin-ring-fill {
+  fill: none;
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.55s cubic-bezier(0.34, 1.56, 0.64, 1),
+              stroke            0.3s  ease;
+
+  &.ring-complete { stroke: #3a2f51; }
+}
+
+.checkin-ring-label {
+  @include absolute;
+  inset: 0;
+  @include flex-center;
+  font-size: 0.68rem; font-weight: $fw-bold;
+  line-height: 1;
+  transition: color 0.3s ease;
+
+  &.ring-complete { color: #9b72d8; }
+}
+
+// Care items list 
+.checkin-items {
+  @include column;
+  gap: 9px;
+}
 .checkin-item {
-  display: flex; flex-direction: column; align-items: center; gap: 5px;
-  padding: 15px 9px;
-  border-radius: var(--r-md); border: 1px solid var(--border);
-  background: var(--surface-2); cursor: pointer; transition: all 0.16s;
-  text-align: center;
-  animation: fadeUp 0.28s ease var(--delay, 0s) both;
+  @include center;
+  gap: 14px;
+  padding: 15px 17px;
+  border-radius: $radius-md;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  @include cursor;
+  transition:
+    border-color 0.2s ease,
+    background   0.2s ease,
+    transform    0.15s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow   0.2s ease;
+  text-align: left;
+  width: 100%;
+  @include relative;
+  overflow: hidden;
+  animation: fadeUp 0.24s ease var(--item-delay, 0s) both;
 
-  svg { color: var(--text-3); transition: color 0.15s, transform 0.15s; }
-
-  &:hover {
-    border-color: color-mix(in srgb, var(--item-color, var(--brand)) 35%, var(--border));
-    background: color-mix(in srgb, var(--item-color, var(--brand)) 5%, white);
-    svg { transform: scale(1.08); }
+  &::after {
+    content: '';
+    @include absolute; inset: 0;
+    background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.55) 50%, transparent 70%);
+    transform: translateX(-150%);
+    transition: transform 0.45s ease;
+    pointer-events: none;
   }
 
-  &.is-done {
-    border-color: color-mix(in srgb, var(--item-color, var(--brand)) 32%, transparent);
-    background: color-mix(in srgb, var(--item-color, var(--brand)) 8%, white);
-    svg { color: var(--item-color, var(--brand)); }
-    .checkin-item-label { color: var(--item-color, var(--brand)); }
+  &:hover::after { transform: translateX(150%); }
+
+  &:hover:not(.item-done) {
+    border-color: color-mix(in srgb, var(--item-color) 38%, transparent);
+    background: color-mix(in srgb, var(--item-color) 5%, white);
+    transform: translateX(4px);
+    box-shadow: 0 4px 18px color-mix(in srgb, var(--item-color) 14%, transparent);
+  }
+
+  &:active { transform: translateX(2px); }
+
+  &.item-done {
+    border-color: color-mix(in srgb, var(--item-color) 38%, transparent);
+    background: color-mix(in srgb, var(--item-color) 7%, white);
+    box-shadow:
+      0 2px 12px color-mix(in srgb, var(--item-color) 14%, transparent),
+      inset 0 0 0 1px color-mix(in srgb, var(--item-color) 10%, transparent);
   }
 }
 
 .checkin-item-icon {
-  position: relative; width: 40px; height: 40px;
-  display: flex; align-items: center; justify-content: center;
+  width: 46px; height: 46px;
+  border-radius: $radius-md;
+  background: color-mix(in srgb, var(--item-color) 11%, var(--surface-tonal));
+  border: 1.5px solid color-mix(in srgb, var(--item-color) 18%, transparent);
+  @include flex-center;
+  color: $twilight-purple; 
+  flex-shrink: 0;
+  transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  .item-done & {
+    background: color-mix(in srgb, var(--item-color) 18%, white);
+    transform: scale(1.06);
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--item-color) 28%, transparent);
+  }
+}
+.checkin-item-text {
+  flex: 1; min-width: 0;
+  @include column; gap: 2px;
 }
 
-.checkin-item-check-badge {
-  position: absolute; bottom: -1px; right: -1px;
-  width: 15px; height: 15px; border-radius: 50%;
-  background: var(--item-color, var(--brand));
-  display: flex; align-items: center; justify-content: center;
-  color: #fff; animation: popIn 0.26s cubic-bezier(0.34, 1.56, 0.64, 1);
+.checkin-item-label {
+  font-size: $t-but-des; font-weight: $fw-bold;
+  color: $twilight-purple; line-height: $lh-tight;
+  transition: color 0.18s;
+
+  .item-done & { color: var(--item-color); }
 }
 
-.checkin-item-label { font-size: 0.75rem; font-weight: 700; color: var(--text-1); }
-.checkin-item-desc  { font-size: 0.65rem; color: var(--text-3); }
+.checkin-item-sub {
+  font-size: $t-forgot-des; color: $twilight-purple;
+  line-height: $lh-tight;
+  transition: color 0.18s;
 
-.checkin-all-done-bar {
-  display: flex; align-items: center; gap: 7px;
-  margin: 0 18px; padding: 9px 13px;
-  background: #dcfce7; border: 1px solid #bbf7d0;
-  border-radius: var(--r-md);
-  font-size: 0.82rem; font-weight: 600; color: #15803d;
-  opacity: 0; transform: translateY(5px);
-  transition: all 0.22s ease; pointer-events: none;
-  svg { color: #16a34a; }
-  &.visible { opacity: 1; transform: translateY(0); }
+  .item-done & { color: color-mix(in srgb, var(--item-color) 65%, #888); }
 }
 
+.checkin-item-tap {
+  font-style: italic;
+  color: var(--text-3);
+}
+
+.checkin-item-check {
+  width: 25px; height: 25px;
+  border-radius: $radius-round;
+  border: 2px solid var(--border);
+  background: var(--surface-2);
+  @include flex-center;
+  flex-shrink: 0;
+  transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  color: transparent;
+  @include absolute;
+  top: 0;
+  right: 0;
+  z-index: 2;
+ 
+  .item-done & {
+    background: var(--item-color);
+    border-color: var(--item-color);
+    border-width: 2.5px;
+    color: #fff;
+    box-shadow:
+      0 3px 10px color-mix(in srgb, var(--item-color) 45%, transparent),
+      0 0 0 3px var(--surface);
+    animation: checkPop 0.26s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+}
+
+// All-done banner
+.checkin-done-banner {
+  font-family: $font-primary;
+  @include center;
+  gap: 9px;
+  padding: 13px 16px;
+  border-radius: $radius-md;
+  background: $twilight-purple;
+  border: 1.5px solid $twilight-purple;
+  font-size: $t-forgot-des; font-weight: $fw-regular;
+  color: $soft-pearl;
+  opacity: 0;
+  transform: translateY(8px) scale(0.98);
+  transition: all 0.32s cubic-bezier(0.34, 1.4, 0.64, 1);
+  pointer-events: none;
+  box-shadow: 0 3px 14px rgba(22, 163, 74, 0.12);
+
+  .banner-emoji { font-size: 1.1rem; }
+
+  &.visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+  }
+}
+
+// Footer
 .checkin-footer {
-  padding: 13px 18px; border-top: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 9px; flex-wrap: wrap;
+  @include center;
+  gap: 10px;
+  padding: 13px 18px 18px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  flex-shrink: 0;
+  border-radius: 0 0 28px 28px;
+
+  @media (max-width: 480px) {
+    padding: 12px 14px 16px;
+    border-radius: 0 0 22px 22px;
+  }
 }
 
-.checkin-streak-chip {
-  display: flex; align-items: center; gap: 4px;
-  padding: 5px 11px; background: #fff4ec; border: 1px solid #fcd4b0;
-  border-radius: var(--r-pill); font-size: 0.78rem; font-weight: 700; color: #c2410c;
-  svg { color: var(--streak-fire); }
+.checkin-streak-pill {
+  @include center;
+  gap: 5px;
+  padding: 8px 13px;
+  border-radius: var(--r-pill);
+  background: #fff4ec;
+  border: 1px solid #fcd4b0;
+  font-size: 0.78rem; font-weight: 800;
+  color: #c2410c;
+  white-space: nowrap; flex-shrink: 0;
+  box-shadow: 0 1px 6px rgba(249, 115, 22, 0.1);
+
+  svg { color: #f97316; }
 }
 
-.checkin-confirm-btn {
-  display: flex; align-items: center; gap: 6px;
-  padding: 9px 18px; border-radius: var(--r-md); border: none;
-  cursor: pointer; font-size: 0.82rem; font-weight: 700;
-  background: var(--brand); color: #fff; transition: all 0.15s;
-  &:hover { background: var(--brand-mid); transform: translateY(-1px); }
-  &.complete { background: #16a34a; }
+.checkin-footer-progress {
+  flex: 1;
+  @include column; gap: 4px;
+  min-width: 0;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// STREAK CELEBRATION OVERLAY
-// ─────────────────────────────────────────────────────────────────────────────
+.checkin-footer-track {
+  height: 6px;
+  background: var(--surface-2);
+  border-radius: var(--r-pill);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
 
+.checkin-footer-fill {
+  height: 100%;
+  border-radius: var(--r-pill);
+  background: linear-gradient(90deg, #4a3870, #6d4fc2, #9b72d8, #b89ee8);
+  background-size: 300% 100%;
+  transition: width 0.5s cubic-bezier(0.34, 1.4, 0.64, 1);
+  animation: gradientShift 3s ease infinite;
+}
+
+.checkin-footer-label {
+  font-size: $t-forgot-des; font-weight: $fw-regular;
+  color: $twilight-purple; white-space: nowrap;
+}
+
+.checkin-next-btn {
+  @include center; gap: 6px;
+  padding: 11px 18px;
+  border-radius: 13px;
+  border: 1.5px solid var(--border);
+  background: $twilight-purple;
+  color: $soft-pearl;
+  font-size: $t-forgot-des; font-weight: $fw-regular;
+  @include cursor; white-space: nowrap; flex-shrink: 0;
+  transition: all 0.17s;
+
+  &:hover {
+    border-color: var(--accent-color, var(--brand));
+    color: var(--accent-color, var(--brand));
+    background: color-mix(in srgb, var(--accent-color, var(--brand)) 7%, white);
+    transform: translateX(2px);
+    svg { transform: translateX(3px); }
+  }
+
+  svg { transition: transform 0.15s; }
+}
+
+.checkin-save-btn {
+  @include center; gap: 7px;
+  padding: 11px 22px;
+  border-radius: $radius-md; border: none;
+  @include cursor;
+  font-size: 0.85rem; font-weight: $fw-regular;
+  color: $soft-pearl; white-space: nowrap; flex-shrink: 0;
+  letter-spacing: 0.1px;
+  transition: all 0.2s ease;
+  background: $twilight-purple;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+  &:active { transform: translateY(0); }
+
+  &.btn-glow {
+    background: $twilight-purple;
+  }
+}
+
+// Streak Celebration Overlay
 .streak-celebration-overlay {
   position: fixed; inset: 0;
   background: rgba(0,0,0,0.5);

@@ -7,6 +7,7 @@ const tips: Tip[] = [
   {
     id: "positive-reinforcement",
     icon: ICON,
+    image: "../images/tips/positive.jpg",
     title: "Positive reinforcement - the science",
     summary: "Reward-based training isn't just kinder - it consistently produces better results and a stronger bond than punishment-based methods.",
     points: [
@@ -20,6 +21,7 @@ const tips: Tip[] = [
   {
     id: "sit",
     icon: ICON,
+    image: "../images/tips/sit.png",
     title: "Teaching 'sit'",
     summary: "Sit is usually the first command taught and forms the basis of many others. It gives your dog something to do instead of jumping, pulling, or demanding attention.",
     points: [
@@ -33,6 +35,7 @@ const tips: Tip[] = [
   {
     id: "stay",
     icon: ICON,
+    image: "../images/tips/stay.png",
     title: "Teaching 'stay'",
     summary: "Stay teaches impulse control and keeps your dog safe at roadsides, before being released from the car, and in busy environments.",
     points: [
@@ -46,6 +49,7 @@ const tips: Tip[] = [
   {
     id: "recall",
     icon: ICON,
+    image: "../images/tips/recall.webp",
     title: "Building a reliable recall",
     summary: "Recall is the most important safety command - and the most carefully maintained. A reliable 'come' could save your dog's life.",
     points: [
@@ -60,6 +64,7 @@ const tips: Tip[] = [
   {
     id: "down",
     icon: ICON,
+    image: "../images/tips/down.jpg",
     title: "Teaching 'down'",
     summary: "Down is harder than sit for many dogs as it requires more physical vulnerability. It's extremely useful for long-duration settled behaviour.",
     points: [
@@ -73,6 +78,7 @@ const tips: Tip[] = [
   {
     id: "leave-it",
     icon: ICON,
+    image: "../images/tips/leaveit.jpg",
     title: "Teaching 'leave it'",
     summary: "Leave it teaches your dog to disengage from something - dropped food, a dead animal, road debris. It's a genuine safety behaviour.",
     points: [
@@ -86,6 +92,7 @@ const tips: Tip[] = [
   {
     id: "loose-lead",
     icon: ICON,
+    image: "../images/tips/loose-leash.png",
     title: "Loose lead walking",
     summary: "Dogs pull because it works - they go forward, the owner follows. The fix is making pulling completely ineffective and loose lead highly rewarding.",
     points: [
@@ -100,6 +107,7 @@ const tips: Tip[] = [
   {
     id: "crate-training",
     icon: ICON,
+    image: "../images/tips/crate.jpg",
     title: "Crate training",
     summary: "A crate introduced correctly becomes a chosen den - a private, secure space your dog goes to voluntarily.",
     points: [
@@ -114,6 +122,7 @@ const tips: Tip[] = [
   {
     id: "separation-anxiety",
     icon: ICON,
+    image: "../images/tips/anxiety-separation.avif",
     title: "Separation anxiety",
     summary: "True separation anxiety is a genuine panic response, not disobedience. Understanding the difference changes how you approach it.",
     points: [
@@ -128,6 +137,7 @@ const tips: Tip[] = [
   {
     id: "socialisation",
     icon: ICON,
+    image: "../images/tips/socialising.webp",
     title: "Socialisation",
     summary: "The critical window is 3-14 weeks, but adult dogs can absolutely learn to be more comfortable in the world with patience.",
     points: [
@@ -137,17 +147,18 @@ const tips: Tip[] = [
       { text: "Start at distance from anything worrying. Let them approach at their own pace. Pair novel things with high-value food." },
       { text: "One bad experience can undo significant progress - manage the environment carefully, especially early on." },
     ],
-    callout: { label: "Adult dogs", text: "Gradual progress built on the dog's comfort level is sustainable. Flooding - forcing a dog to 'get over it' — can permanently worsen fear responses." },
+    callout: { label: "Adult dogs", text: "Gradual progress built on the dog's comfort level is sustainable. Flooding - forcing a dog to 'get over it' - can permanently worsen fear responses." },
   },
   {
     id: "house-training",
     icon: ICON,
+    image: "../images/tips/housetraining.avif",
     title: "House training",
-    summary: "House training is almost entirely about management and timing — not punishment. Get both right and it typically happens within a few weeks.",
+    summary: "House training is almost entirely about management and timing - not punishment. Get both right and it typically happens within a few weeks.",
     points: [
-      { text: "Take puppies outside every 30–45 minutes, after every meal, after every nap, and after every play session." },
-      { text: "Go outside with them and reward the instant they finish — not when they come back inside. Timing is critical." },
-      { text: "Accidents happen — clean with an enzymatic cleaner to remove the scent completely. Punishing accidents doesn't help and makes dogs hide from you to go." },
+      { text: "Take puppies outside every 30-45 minutes, after every meal, after every nap, and after every play session." },
+      { text: "Go outside with them and reward the instant they finish - not when they come back inside. Timing is critical." },
+      { text: "Accidents happen - clean with an enzymatic cleaner to remove the scent completely. Punishing accidents doesn't help and makes dogs hide from you to go." },
       { text: "Watch for pre-toilet signals: circling, sniffing, squatting, or suddenly losing interest in play." },
       { text: "Consistent feeding times make toilet times more predictable." },
     ],
@@ -156,80 +167,86 @@ const tips: Tip[] = [
   {
     id: "jumping",
     icon: ICON,
+    image: "../images/tips/stopjumping.jpg",
     title: "Stopping jumping up",
-    summary: "Jumping up is a greeting behaviour that works — someone always reacts. Making it unrewarding is straightforward once everyone is consistent.",
+    summary: "Jumping up is a greeting behaviour that works - someone always reacts. Making it unrewarding is straightforward once everyone is consistent.",
     points: [
       { text: "The fix: remove all reward from jumping. Turn away completely, cross arms, look at the ceiling. Zero eye contact, zero touch, zero voice." },
-      { text: "The moment all four paws are on the floor — mark and reward immediately." },
-      { text: "Ask visitors to do the same — a dog who is greeted when jumping by even one person will keep trying." },
-      { text: "Reward a sit as an incompatible alternative — a dog sitting cannot simultaneously jump." },
-      { text: "Don't alternate between allowing jumping (when you're dressed casually) and stopping it (when you're dressed up) — this inconsistency makes it much harder to train." },
+      { text: "The moment all four paws are on the floor - mark and reward immediately." },
+      { text: "Ask visitors to do the same - a dog who is greeted when jumping by even one person will keep trying." },
+      { text: "Reward a sit as an incompatible alternative - a dog sitting cannot simultaneously jump." },
+      { text: "Don't alternate between allowing jumping (when you're dressed casually) and stopping it (when you're dressed up) - this inconsistency makes it much harder to train." },
     ],
   },
   {
     id: "barking",
     icon: ICON,
+    image: "../images/tips/barking.avif",
     title: "Managing excessive barking",
-    summary: "Barking is normal dog communication. 'Excessive' means the behaviour has become habitual or anxiety-driven — both are addressable.",
+    summary: "Barking is normal dog communication. 'Excessive' means the behaviour has become habitual or anxiety-driven - both are addressable.",
     points: [
-      { text: "Identify the trigger before trying to fix it — alert barking, demand barking, boredom barking, anxiety barking, and reactive barking all have different solutions." },
+      { text: "Identify the trigger before trying to fix it - alert barking, demand barking, boredom barking, anxiety barking, and reactive barking all have different solutions." },
       { text: "Alert barking at the window: block visual access first, then desensitise to the trigger from a distance with counter-conditioning." },
-      { text: "Demand barking (for attention or food): never reward it — wait for quiet, even briefly, before giving the dog what they want." },
+      { text: "Demand barking (for attention or food): never reward it - wait for quiet, even briefly, before giving the dog what they want." },
       { text: "Boredom barking: more exercise, more mental stimulation, enrichment activities." },
-      { text: "Shouting 'quiet!' rewards alert barking — your dog thinks you're joining in. A calm, quiet response is more effective." },
+      { text: "Shouting 'quiet!' rewards alert barking - your dog thinks you're joining in. A calm, quiet response is more effective." },
     ],
     callout: { label: "Reactive barking", text: "On-lead reactivity (barking at dogs, people, bikes) is a specific behaviour that benefits enormously from a qualified trainer or behaviourist." },
   },
   {
     id: "resource-guarding",
     icon: ICON,
+    image: "../images/tips/guarding.jpeg",
     title: "Resource guarding",
-    summary: "Growling over food, toys, or spaces is normal canine behaviour — but it needs to be managed carefully and not punished.",
+    summary: "Growling over food, toys, or spaces is normal canine behaviour - but it needs to be managed carefully and not punished.",
     points: [
-      { text: "A growl is a warning signal — punishing it removes the warning but not the underlying emotion, making bites more likely." },
+      { text: "A growl is a warning signal - punishing it removes the warning but not the underlying emotion, making bites more likely." },
       { text: "Prevention: from puppyhood, regularly approach the food bowl, add a treat, and walk away. Teach the dog that people near their food means good things." },
       { text: "Trade-up: teach 'drop it' using high-value exchanges so that giving something up always predicts something better appearing." },
-      { text: "Never take things by force — this escalates guarding and damages trust." },
-      { text: "Moderate to severe resource guarding — involving snapping or biting — needs a qualified behaviourist assessment." },
+      { text: "Never take things by force - this escalates guarding and damages trust." },
+      { text: "Moderate to severe resource guarding - involving snapping or biting - needs a qualified behaviourist assessment." },
     ],
   },
   {
     id: "enrichment",
     icon: ICON,
+    image: "../images/tips/Mental_enrichment.jpg",
     title: "Mental enrichment",
     summary: "Mental stimulation tires dogs as effectively as physical exercise and addresses many common behaviour problems rooted in boredom.",
     points: [
-      { text: "Sniffy walks — allowing your dog to stop and sniff as long as they want provides significant mental stimulation." },
-      { text: "Food puzzles and Kongs — feeding meals from puzzle feeders adds 10–20 minutes of problem-solving to every meal." },
-      { text: "Scatter feeding — scatter kibble in grass for natural foraging behaviour." },
-      { text: "Nose work — hide treats around the house and cue your dog to find them; builds confidence and tires dogs quickly." },
-      { text: "Training sessions — 5 minutes of learning a new skill provides comparable mental fatigue to a 30-minute walk for many dogs." },
+      { text: "Sniffy walks - allowing your dog to stop and sniff as long as they want provides significant mental stimulation." },
+      { text: "Food puzzles and Kongs - feeding meals from puzzle feeders adds 10-20 minutes of problem-solving to every meal." },
+      { text: "Scatter feeding - scatter kibble in grass for natural foraging behaviour." },
+      { text: "Nose work - hide treats around the house and cue your dog to find them; builds confidence and tires dogs quickly." },
+      { text: "Training sessions - 5 minutes of learning a new skill provides comparable mental fatigue to a 30-minute walk for many dogs." },
     ],
     callout: { label: "Under-stimulation", text: "Destructive behaviour, excessive barking, and hyperactivity at home are often symptoms of insufficient mental and physical outlet — not personality problems." },
   },
   {
     id: "professional-trainer",
     icon: ICON,
+    image: "../images/tips/trainer.jpg",
     title: "Choosing a professional trainer",
-    summary: "Dog training is unregulated in the UK — anyone can call themselves a trainer. Knowing what to look for protects your dog.",
+    summary: "Dog training is unregulated in the UK - anyone can call themselves a trainer. Knowing what to look for protects your dog.",
     points: [
-      { text: "Look for: ABTC, APBC, IMDT, or CCPDT accreditation — these require qualification and adherence to professional standards." },
+      { text: "Look for: ABTC, APBC, IMDT, or CCPDT accreditation - these require qualification and adherence to professional standards." },
       { text: "A good trainer explains their methods clearly and welcomes questions. Force-free, reward-based methods are supported by the current science." },
-      { text: "Avoid: prong collars, shock collars, choke chains, and 'dominance-based' approaches — the dominance model has been comprehensively rejected by modern animal behaviour science." },
+      { text: "Avoid: prong collars, shock collars, choke chains, and 'dominance-based' approaches - the dominance model has been comprehensively rejected by modern animal behaviour science." },
       { text: "For aggression, severe anxiety, or any behaviour involving biting, a clinical animal behaviourist rather than a general trainer is appropriate." },
     ],
-    callout: { label: "Vet referral", text: "Your vet can refer you to a clinical behaviourist directly — similar to a specialist referral. For serious behaviour problems, this is the recommended route." },
+    callout: { label: "Vet referral", text: "Your vet can refer you to a clinical behaviourist directly - similar to a specialist referral. For serious behaviour problems, this is the recommended route." },
   },
   {
     id: "tricks",
     icon: ICON,
+    image: "../images/tips/dog_tricks.jpg",
     title: "Teaching tricks",
-    summary: "Tricks aren't just fun — they build confidence, improve focus, and strengthen the training relationship between you and your dog.",
+    summary: "Tricks aren't just fun - they build confidence, improve focus, and strengthen the training relationship between you and your dog.",
     points: [
       { text: "Spin / twist: lure your dog in a circle with a treat held close to their nose." },
       { text: "Paw / shake: tap or hold their paw, immediately mark and reward the moment they lift it." },
       { text: "Roll over: from a down, lure with a treat from their nose over their shoulder until they tip onto their side, then over." },
-      { text: "Touch: hold your palm out flat — any nose-to-palm contact gets marked and rewarded. Builds towards targeting and direction changes." },
+      { text: "Touch: hold your palm out flat - any nose-to-palm contact gets marked and rewarded. Builds towards targeting and direction changes." },
       { text: "Middle: stand with legs slightly apart, lure your dog to walk through and stand between your legs." },
     ],
     callout: { label: "Short sessions", text: "5 minutes of trick training burns significant mental energy and ends on a positive. Always finish with something your dog knows well so the session ends in success." },

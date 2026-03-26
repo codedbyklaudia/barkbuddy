@@ -1,13 +1,97 @@
 @import '../styles/variables';
 @import '../styles/mixins';
 
+// ─── Global Accessibility Overrides ──────────────────────────────────────────
+// Applied to <html> by applyA11y()
+
+:root {
+  --a11y-font-size: 16px;
+}
+
+html {
+  font-size: var(--a11y-font-size);
+}
+
+// High contrast
+html.a11y-high-contrast {
+  filter: contrast(1.4);
+
+  .navigation {
+    border-bottom-color: currentColor;
+  }
+
+  .navigation__menu-link,
+  .navigation__user-item,
+  .navigation__user-trigger-name {
+    color: #000 !important;
+  }
+}
+
+// Reduced motion — kill all transitions/animations
+html.a11y-reduced-motion *,
+html.a11y-reduced-motion *::before,
+html.a11y-reduced-motion *::after {
+  animation-duration:   0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration:  0.01ms !important;
+  scroll-behavior:      auto  !important;
+}
+
+// Dyslexia-friendly font (OpenDyslexic via CDN import in index.html or fallback)
+html.a11y-dyslexia-font {
+  font-family: 'OpenDyslexic', 'Comic Sans MS', cursive !important;
+
+  * { font-family: inherit !important; }
+}
+
+// Line spacing
+html.a11y-line-spacing {
+  p, li, label, span, a, button, input, textarea { line-height: 1.9 !important; }
+}
+
+// Large cursor
+html.a11y-large-cursor,
+html.a11y-large-cursor * {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M8 4l16 12-7 1-4 8z' fill='%23333' stroke='%23fff' stroke-width='1.5'/%3E%3C/svg%3E") 4 4, auto !important;
+}
+
+// ─── Skip Link ────────────────────────────────────────────────────────────────
+
+.navigation__skip-link {
+  position: absolute;
+  top: -100px;
+  left: $space-md;
+  background: $twilight-purple;
+  color: $soft-pearl;
+  padding: 8px 16px;
+  border-radius: 0 0 8px 8px;
+  font-family: $font-secondary;
+  font-size: 0.85rem;
+  font-weight: $fw-bold;
+  z-index: 9999;
+  text-decoration: none;
+  transition: top 0.2s ease;
+
+  &:focus { top: 0; }
+}
+
+// ─── Navigation Shell ─────────────────────────────────────────────────────────
+
 .navigation {
-  background-color: $soft-pearl;
-  border-bottom: 1px solid rgba($misty-lavender, 0.5);
+  background-color: rgba($soft-pearl, 0.97);
+  border-bottom: 1px solid rgba($misty-lavender, 0.45);
   position: sticky;
   top: 0;
   z-index: 1000;
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: box-shadow 0.25s ease, border-color 0.25s ease;
+
+  // Subtle shadow when scrolled
+  &--scrolled {
+    box-shadow: 0 4px 24px rgba($twilight-purple, 0.08), 0 1px 0 rgba($misty-lavender, 0.6);
+    border-bottom-color: rgba($misty-lavender, 0.7);
+  }
 
   &__container {
     max-width: 1400px;
@@ -15,11 +99,18 @@
     padding: 0 clamp($space-lg, 4vw, $space-xxl);
     @include flex-between;
     gap: $space-lg;
-    height: 64px; 
+    height: 66px;
+    transition: height 0.25s ease;
+  }
+
+  // Slightly tighter when scrolled
+  &--scrolled &__container {
+    height: 60px;
   }
 }
 
-//  Logo 
+// ─── Logo ─────────────────────────────────────────────────────────────────────
+
 .navigation__logo {
   flex-shrink: 0;
   @include center;
@@ -30,12 +121,15 @@
   width: auto;
   display: block;
   object-fit: contain;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.2s ease, transform 0.2s ease;
 
-  &:hover { opacity: 0.85; }
+  .navigation--scrolled & { height: 46px; }
+
+  &:hover { opacity: 0.85; transform: scale(1.02); }
 }
 
-// Desktop menu 
+// ─── Desktop Menu ─────────────────────────────────────────────────────────────
+
 .navigation__menu {
   @include flex-center;
   list-style: none;
@@ -43,6 +137,7 @@
   margin: 0;
   padding: 0;
   flex: 1;
+
   @media (max-width: $bp-laptop) { display: none; }
 }
 
@@ -59,21 +154,14 @@
   @include center;
   gap: 5px;
   padding: 7px 14px;
-  border-radius: 6px;
+  border-radius: 8px;
   white-space: nowrap;
   transition: color 0.18s ease, background 0.18s ease;
   cursor: pointer;
   letter-spacing: 0.01em;
+  position: relative;
 
   i { font-size: $t-forgot-des; }
-
-  img {
-    width: 15px;
-    height: 15px;
-    object-fit: contain;
-    opacity: 0.6;
-    transition: opacity 0.18s ease;
-  }
 
   .dropdown-arrow {
     opacity: 0.45;
@@ -81,14 +169,37 @@
     margin-left: 1px;
   }
 
-  &:hover {
-    color: $twilight-purple;
-    background: rgba($misty-lavender, 0.45);
-    img { opacity: 1; }
-    .dropdown-arrow { opacity: 0.8; transform: translateY(1px); }
+  // Active underline on hover
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 2px;
+    left: 14px;
+    right: 14px;
+    height: 1.5px;
+    background: $twilight-purple;
+    border-radius: 2px;
+    opacity: 0;
+    transform: scaleX(0);
+    transition: opacity 0.18s ease, transform 0.22s ease;
+    transform-origin: center;
   }
 
-  // Icon-only mode on medium screens
+  &:hover {
+    color: $twilight-purple;
+    background: rgba($misty-lavender, 0.4);
+
+    .dropdown-arrow { opacity: 0.8; transform: translateY(1px); }
+
+    &::after { opacity: 1; transform: scaleX(1); }
+  }
+
+  &:focus-visible {
+    outline: 2px solid $twilight-purple;
+    outline-offset: 2px;
+    border-radius: 8px;
+  }
+
   @media (max-width: 1160px) {
     font-size: 0;
     padding: 6px 10px;
@@ -96,19 +207,21 @@
 
     i { font-size: 1rem; }
     .dropdown-arrow { display: none; }
+    &::after { display: none; }
   }
 }
 
-// Mega dropdown (Care Tips)
+// ─── Mega Dropdown ────────────────────────────────────────────────────────────
+
 .navigation__mega-dropdown {
   @include absolute;
-  top: calc(100% + 8px);
-  left: 0;
+  top: calc(100% + 10px);
+  left: 50%;
   transform: translateX(-50%);
   background: $soft-pearl;
   border: 1px solid rgba($misty-lavender, 0.7);
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba($twilight-purple, 0.1), 0 2px 8px rgba(0,0,0,0.06);
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba($twilight-purple, 0.12), 0 2px 8px rgba(0,0,0,0.06);
   padding: $space-lg;
   z-index: 1001;
   animation: nav-fade 0.18s ease both;
@@ -125,7 +238,7 @@
   @include column;
   @include center;
   padding: $space-md $space-lg;
-  border-radius: 8px;
+  border-radius: 10px;
   text-decoration: none;
   color: $text-color-dark;
   transition: all 0.18s ease;
@@ -135,9 +248,15 @@
   &:hover {
     background: rgba($misty-lavender, 0.5);
     transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba($twilight-purple, 0.08);
 
     .navigation__mega-label { color: $twilight-purple; }
     .navigation__mega-icon  { transform: scale(1.08); }
+  }
+
+  &:focus-visible {
+    outline: 2px solid $twilight-purple;
+    outline-offset: 2px;
   }
 }
 
@@ -161,16 +280,17 @@
   letter-spacing: 0.01em;
 }
 
-// Standard dropdown (More) 
+// ─── Standard Dropdown ────────────────────────────────────────────────────────
+
 .navigation__dropdown {
   @include absolute;
-  top: calc(100% + 8px);
+  top: calc(100% + 10px);
   left: 0;
   background: $soft-pearl;
   border: 1px solid rgba($misty-lavender, 0.7);
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba($twilight-purple, 0.1), 0 2px 8px rgba(0,0,0,0.06);
-  min-width: 300px;
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba($twilight-purple, 0.12), 0 2px 8px rgba(0,0,0,0.06);
+  min-width: 280px;
   padding: 6px;
   z-index: 1001;
   animation: nav-fade 0.18s ease both;
@@ -179,7 +299,7 @@
     @include center;
     gap: $space-sm;
     padding: 9px $space-md;
-    border-radius: 7px;
+    border-radius: 8px;
     font-family: $font-secondary;
     font-size: $t-forgot-des;
     font-weight: $fw-medium;
@@ -189,27 +309,21 @@
 
     i { font-size: $t-forgot-des; }
 
-    img {
-      width: 15px;
-      height: 15px;
-      object-fit: contain;
-      opacity: 0.55;
-      filter: brightness(0) saturate(100%) invert(29%) sepia(61%) saturate(2845%) hue-rotate(238deg) brightness(93%) contrast(95%);
-      transition: opacity 0.15s ease;
-    }
-
     &:hover {
       background: rgba($misty-lavender, 0.5);
       color: $twilight-purple;
+    }
 
-      i, img { opacity: 1; }
+    &:focus-visible {
+      outline: 2px solid $twilight-purple;
+      outline-offset: 2px;
     }
   }
 }
 
 .navigation__secondary-highlight {
   color: $twilight-purple !important;
-  font-weight: $fw-regular !important;
+  font-weight: $fw-medium !important;
   border-top: 1px solid rgba($misty-lavender, 0.6);
   margin-top: 4px;
   padding-top: 9px !important;
@@ -217,7 +331,8 @@
   &:hover { background: rgba($misty-lavender, 0.5) !important; }
 }
 
-// CTA buttons 
+// ─── CTA Area ─────────────────────────────────────────────────────────────────
+
 .navigation__cta {
   @include center;
   gap: $space-sm;
@@ -226,93 +341,74 @@
   @media (max-width: $bp-laptop) { display: none; }
 }
 
+// Vertical divider between a11y btn and auth
+.navigation__cta-divider {
+  width: 1px;
+  height: 22px;
+  background: rgba($misty-lavender, 0.8);
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+
+// ─── Auth Buttons ─────────────────────────────────────────────────────────────
+
 .btn--nav {
   font-family: $font-secondary;
   font-size: $t-forgot-des;
-  font-weight: $fw-regular;
-  padding: 7px 16px;
-  border-radius: 6px;
+  font-weight: $fw-medium;
+  padding: 7px 18px;
+  border-radius: 8px;
   border: none;
   @include cursor;
-  transition: all 0.18s ease;
+  transition: all 0.2s ease;
   @include center;
   gap: 6px;
   white-space: nowrap;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
   text-decoration: none;
 
   i { font-size: 0.8rem; }
 
   &.btn-login {
     background: transparent;
-    color: rgba($twilight-purple, 0.8);
-    border: 1px solid rgba($twilight-purple, 0.2);
+    color: rgba($twilight-purple, 0.85);
+    border: 1.5px solid rgba($twilight-purple, 0.25);
 
     &:hover {
       background: rgba($misty-lavender, 0.45);
       color: $twilight-purple;
-      border-color: rgba($twilight-purple, 0.35);
+      border-color: rgba($twilight-purple, 0.4);
     }
   }
 
   &.btn-register {
     background: $twilight-purple;
     color: $soft-pearl;
-    border: 1px solid transparent;
+    border: 1.5px solid transparent;
+    font-weight: $fw-bold;
+    letter-spacing: 0.02em;
 
     &:hover {
-      background: darken($twilight-purple, 8%);
+      background: darken($twilight-purple, 7%);
       transform: translateY(-1px);
-      box-shadow: 0 4px 14px rgba($twilight-purple, 0.28);
+      box-shadow: 0 4px 16px rgba($twilight-purple, 0.3);
     }
   }
 
-  &--mobile {
-    width: 100%;
-    justify-content: center;
-    font-size: 0.92rem;
-    padding: 11px;
-    border-radius: 10px;
+  &:focus-visible {
+    outline: 2px solid $twilight-purple;
+    outline-offset: 3px;
   }
 }
 
 .navigation__auth-placeholder {
-  width: 100px;
-  height: 32px;
+  width: 120px;
+  height: 34px;
 }
 
-// Avatar + user menu 
-.navigation__user-menu {
-  @include relative;
-  flex-shrink: 0;
-}
-
-.navigation__user-trigger {
-  @include center;
-  @include cursor;
-  gap: 6px;
-  background: transparent;
-  border: 1px solid rgba($misty-lavender, 0.7);
-  padding: 4px 10px 4px 4px;
-  border-radius: 40px;
-  transition: all 0.18s ease;
-
-  &:hover {
-    background: rgba($misty-lavender, 0.35);
-    border-color: rgba($twilight-purple, 0.2);
-  }
-
-  .dropdown-arrow {
-    color: rgba($twilight-purple, 0.5);
-    transition: transform 0.2s ease;
-
-    &--open { transform: rotate(180deg); }
-  }
-}
+// ─── Avatar ───────────────────────────────────────────────────────────────────
 
 .navigation__avatar {
-  width: 30px;
-  height: 30px;
   border-radius: 50%;
   background: linear-gradient(135deg, $twilight-purple, $serene-purple);
   display: flex;
@@ -321,31 +417,95 @@
   overflow: hidden;
   flex-shrink: 0;
 
-  img { width: 100%; height: 100%; object-fit: cover; }
+  img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-  &--lg { width: 44px; height: 44px; }
+  &--trigger {
+    width: 44px;
+    height: 44px;
+    box-shadow: 0 0 0 2.5px rgba($twilight-purple, 0.18);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+  }
+
+  &--lg { width: 48px; height: 48px; }
   &--md { width: 38px; height: 38px; }
 }
 
 .navigation__avatar-initials {
   font-family: $font-secondary;
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   font-weight: $fw-bold;
   color: $soft-pearl;
   letter-spacing: 0.03em;
   line-height: 1;
 }
 
+// ─── User Menu ────────────────────────────────────────────────────────────────
+
+.navigation__user-menu {
+  @include relative;
+  flex-shrink: 0;
+}
+
+.navigation__user-trigger {
+  @include center;
+  @include cursor;
+  gap: 0;
+  background: transparent;
+  border: none;
+  padding: 0;
+  border-radius: 40px;
+  transition: all 0.2s ease;
+
+  &:hover,
+  &--open {
+    .navigation__avatar--trigger {
+      box-shadow: 0 0 0 3px rgba($twilight-purple, 0.35);
+      transform: scale(1.04);
+    }
+    .navigation__user-trigger-name { color: $twilight-purple; }
+    .dropdown-arrow { opacity: 1; color: $twilight-purple; }
+  }
+
+  &--open .dropdown-arrow { transform: rotate(180deg) !important; }
+
+  &:focus-visible {
+    outline: 2px solid $twilight-purple;
+    outline-offset: 4px;
+    border-radius: 50px;
+  }
+
+  .dropdown-arrow {
+    color: rgba($twilight-purple, 0.35);
+    transition: transform 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+    opacity: 0.5;
+    margin-left: 4px;
+  }
+}
+
+.navigation__user-trigger-name {
+  font-family: $font-secondary;
+  font-size: 0.85rem;
+  font-weight: $fw-medium;
+  color: rgba($text-color-dark, 0.7);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-left: 10px;
+  transition: color 0.2s ease;
+}
+
 .navigation__user-dropdown {
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100% + 10px);
   right: 0;
   background: $soft-pearl;
   border: 1px solid rgba($misty-lavender, 0.7);
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba($twilight-purple, 0.1), 0 2px 8px rgba(0,0,0,0.06);
-  min-width: 210px;
-  padding: 6px;
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba($twilight-purple, 0.12), 0 2px 8px rgba(0,0,0,0.06);
+  min-width: 260px;
+  padding: 8px;
   z-index: 1001;
   animation: nav-fade 0.18s ease both;
 }
@@ -353,29 +513,32 @@
 .navigation__user-info {
   display: flex;
   align-items: center;
-  gap: $space-sm;
-  padding: 10px $space-md 8px;
+  gap: $space-md;
+  padding: 12px $space-md 10px;
 }
+
+.navigation__user-info-text { min-width: 0; }
 
 .navigation__user-name {
   font-family: $font-secondary;
-  font-size: 0.82rem;
+  font-size: 0.86rem;
   font-weight: $fw-bold;
   color: $text-color-dark;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 130px;
+  max-width: 140px;
 }
 
 .navigation__user-email {
   font-family: $font-secondary;
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   color: $gentle-amethyst;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 130px;
+  max-width: 140px;
+  margin-top: 1px;
 }
 
 .navigation__user-divider {
@@ -387,9 +550,9 @@
 .navigation__user-item {
   @include center;
   gap: $space-sm;
-  padding: 8px $space-md;
+  padding: 11px $space-md;
   font-family: $font-secondary;
-  font-size: 0.8rem;
+  font-size: 0.92rem;
   font-weight: $fw-medium;
   color: rgba($text-color-dark, 0.75);
   text-decoration: none;
@@ -399,9 +562,9 @@
   text-align: left;
   @include cursor;
   transition: all 0.15s ease;
-  border-radius: 7px;
+  border-radius: 8px;
 
-  svg { color: rgba($twilight-purple, 0.5); flex-shrink: 0; transition: color 0.15s ease; }
+  svg { color: rgba($twilight-purple, 0.45); flex-shrink: 0; transition: color 0.15s ease; }
 
   &:hover {
     background: rgba($misty-lavender, 0.5);
@@ -409,25 +572,341 @@
     svg { color: $twilight-purple; }
   }
 
+  &:focus-visible {
+    outline: 2px solid $twilight-purple;
+    outline-offset: 2px;
+  }
+
   &--logout {
     color: rgba(#e05252, 0.8);
-    svg { color: rgba(#e05252, 0.6); }
-
-    &:hover {
-      background: rgba(#e05252, 0.07);
-      color: #e05252;
-      svg { color: #e05252; }
-    }
+    svg { color: rgba(#e05252, 0.55); }
+    &:hover { background: rgba(#e05252, 0.07); color: #e05252; svg { color: #e05252; } }
   }
 }
 
-// Hamburger 
+// ─── Accessibility Button ─────────────────────────────────────────────────────
+
+.navigation__a11y-wrap {
+  @include relative;
+  flex-shrink: 0;
+}
+
+.navigation__a11y-btn {
+  @include center;
+  @include cursor;
+  height: 36px;
+  padding: 0 13px;
+  gap: 7px;
+  border-radius: 40px;
+  border: 1.5px solid rgba($misty-lavender, 0.8);
+  background: rgba($misty-lavender, 0.15);
+  color: rgba($twilight-purple, 0.65);
+  font-family: $font-secondary;
+  font-size: 0.72rem;
+  font-weight: $fw-medium;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+
+  // The lucide hand icon
+  svg {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+  }
+
+  &:hover {
+    background: rgba($misty-lavender, 0.45);
+    border-color: rgba($twilight-purple, 0.3);
+    color: $twilight-purple;
+    svg { transform: rotate(-10deg) scale(1.1); }
+  }
+
+  &--open {
+    background: rgba($twilight-purple, 0.08);
+    border-color: rgba($twilight-purple, 0.4);
+    color: $twilight-purple;
+    svg { transform: rotate(-10deg); }
+  }
+
+  &:focus-visible {
+    outline: 2px solid $twilight-purple;
+    outline-offset: 3px;
+  }
+
+  // Narrow desktop — icon only, square pill
+  @media (max-width: 1160px) {
+    width: 36px;
+    padding: 0;
+    border-radius: 8px;
+    
+    .a11y-btn-label { display: none; }
+  }
+}
+
+// ─── Accessibility Panel ──────────────────────────────────────────────────────
+
+.a11y-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 320px;
+  background: $soft-pearl;
+  border: 1px solid rgba($misty-lavender, 0.7);
+  border-radius: 16px;
+  box-shadow: 0 16px 48px rgba($twilight-purple, 0.14), 0 4px 12px rgba(0,0,0,0.07);
+  z-index: 1002;
+  animation: nav-fade 0.2s ease both;
+  overflow: hidden;
+
+  // On mobile the panel should sit on the left
+  @media (max-width: $bp-laptop) {
+    right: auto;
+    left: 0;
+    width: 300px;
+  }
+}
+
+.a11y-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid rgba($misty-lavender, 0.5);
+  background: linear-gradient(135deg, rgba($misty-lavender, 0.25), rgba($soft-pearl, 0));
+}
+
+.a11y-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.a11y-panel-badge {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba($twilight-purple, 0.1);
+  color: $twilight-purple;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.a11y-panel-heading {
+  font-family: $font-secondary;
+  font-size: 0.9rem;
+  font-weight: $fw-bold;
+  color: $text-color-dark;
+  margin: 0;
+}
+
+.a11y-panel-sub {
+  font-family: $font-secondary;
+  font-size: 0.68rem;
+  color: $gentle-amethyst;
+  margin: 0;
+  margin-top: 1px;
+}
+
+.a11y-panel-close {
+  @include center;
+  @include cursor;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: rgba($text-color-dark, 0.4);
+  border-radius: 6px;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+
+  &:hover { background: rgba($misty-lavender, 0.5); color: $text-color-dark; }
+  &:focus-visible { outline: 2px solid $twilight-purple; }
+}
+
+.a11y-section {
+  padding: 12px 16px 8px;
+}
+
+.a11y-section-label {
+  font-family: $font-secondary;
+  font-size: 0.65rem;
+  font-weight: $fw-bold;
+  color: $gentle-amethyst;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin: 0 0 10px;
+}
+
+.a11y-divider {
+  height: 1px;
+  background: rgba($misty-lavender, 0.5);
+  margin: 0 16px;
+}
+
+// Font size buttons
+.a11y-font-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.a11y-font-btn {
+  @include column;
+  @include center;
+  gap: 4px;
+  padding: 8px 4px;
+  border-radius: 10px;
+  border: 1.5px solid rgba($misty-lavender, 0.7);
+  background: transparent;
+  @include cursor;
+  transition: all 0.15s ease;
+  font-family: $font-secondary;
+  font-size: 0.65rem;
+  color: rgba($text-color-dark, 0.6);
+
+  &:hover { border-color: rgba($twilight-purple, 0.3); background: rgba($misty-lavender, 0.35); color: $twilight-purple; }
+
+  &--active {
+    border-color: $twilight-purple;
+    background: rgba($twilight-purple, 0.07);
+    color: $twilight-purple;
+    font-weight: $fw-bold;
+  }
+
+  &:focus-visible { outline: 2px solid $twilight-purple; outline-offset: 2px; }
+}
+
+.a11y-font-preview {
+  font-weight: $fw-bold;
+  font-family: $font-secondary;
+  line-height: 1;
+  color: inherit;
+
+  &--normal { font-size: 1rem; }
+  &--large  { font-size: 1.3rem; }
+  &--xl     { font-size: 1.6rem; }
+}
+
+// Toggle rows
+.a11y-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-radius: 8px;
+  transition: background 0.15s ease;
+
+  &:not(:last-child) {
+    border-bottom: 1px solid rgba($misty-lavender, 0.3);
+  }
+}
+
+.a11y-toggle-icon {
+  font-size: 1rem;
+  width: 22px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.a11y-toggle-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.a11y-toggle-label {
+  display: block;
+  font-family: $font-secondary;
+  font-size: 0.8rem;
+  font-weight: $fw-medium;
+  color: $text-color-dark;
+}
+
+.a11y-toggle-sub {
+  display: block;
+  font-family: $font-secondary;
+  font-size: 0.65rem;
+  color: $gentle-amethyst;
+  margin-top: 1px;
+}
+
+// Toggle switch
+.a11y-switch {
+  @include cursor;
+  width: 38px;
+  height: 22px;
+  border-radius: 11px;
+  border: none;
+  background: rgba($misty-lavender, 0.8);
+  position: relative;
+  flex-shrink: 0;
+  transition: background 0.2s ease;
+
+  &--on { background: $twilight-purple; }
+
+  &:focus-visible { outline: 2px solid $twilight-purple; outline-offset: 2px; }
+}
+
+.a11y-switch-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: $soft-pearl;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  transition: transform 0.2s ease;
+
+  .a11y-switch--on & { transform: translateX(16px); }
+}
+
+.a11y-panel-footer {
+  padding: 10px 16px 14px;
+  border-top: 1px solid rgba($misty-lavender, 0.5);
+  display: flex;
+  justify-content: center;
+}
+
+.a11y-reset-btn {
+  font-family: $font-secondary;
+  font-size: 0.72rem;
+  color: $gentle-amethyst;
+  background: transparent;
+  border: none;
+  @include cursor;
+  transition: color 0.15s ease;
+  padding: 4px 8px;
+  border-radius: 6px;
+
+  &:hover { color: $twilight-purple; background: rgba($misty-lavender, 0.4); }
+  &:focus-visible { outline: 2px solid $twilight-purple; }
+}
+
+// Mobile a11y row in mobile menu
+.navigation__mobile-a11y-row {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  padding: 6px $space-md;
+  font-family: $font-secondary;
+  font-size: 0.9rem;
+  font-weight: $fw-medium;
+  color: rgba($text-color-dark, 0.7);
+
+  .navigation__a11y-btn { flex-shrink: 0; }
+}
+
+// ─── Hamburger ────────────────────────────────────────────────────────────────
+
 .navigation__hamburger {
   display: none;
   align-items: center;
   justify-content: center;
   background: transparent;
-  border: 1px solid rgba($misty-lavender, 0.6);
+  border: 1.5px solid rgba($misty-lavender, 0.6);
   cursor: pointer;
   padding: 7px;
   width: 36px;
@@ -441,10 +920,12 @@
   img { width: 18px; height: 18px; object-fit: contain; }
 
   &:hover { background: rgba($misty-lavender, 0.45); border-color: rgba($twilight-purple, 0.2); }
+  &:focus-visible { outline: 2px solid $twilight-purple; outline-offset: 3px; }
   &:focus { outline: none; }
 }
 
-// Mobile menu 
+// ─── Mobile Menu ─────────────────────────────────────────────────────────────
+
 .navigation__mobile {
   @include absolute;
   top: 100%;
@@ -452,7 +933,7 @@
   right: 0;
   background: $soft-pearl;
   border-top: 1px solid rgba($misty-lavender, 0.5);
-  box-shadow: 0 12px 32px rgba($twilight-purple, 0.08);
+  box-shadow: 0 16px 40px rgba($twilight-purple, 0.09);
   overflow: hidden;
   max-height: 0;
   transition: max-height 0.3s ease;
@@ -486,17 +967,8 @@
 
       i { font-size: 0.9rem; opacity: 0.5; width: 18px; text-align: center; }
 
-      &:hover {
-        color: $twilight-purple;
-        background: rgba($misty-lavender, 0.45);
-      }
-    }
-
-    &.navigation__mobile-buttons {
-      @include column;
-      gap: $space-lg;
-      width: 60%;
-      padding: $space-md 0 0;
+      &:hover { color: $twilight-purple; background: rgba($misty-lavender, 0.45); }
+      &:focus-visible { outline: 2px solid $twilight-purple; }
     }
   }
 }
@@ -532,11 +1004,8 @@
     margin-left: auto;
   }
 
-  &:hover {
-    color: $twilight-purple;
-    background: rgba($misty-lavender, 0.45);
-    i { opacity: 0.85; }
-  }
+  &:hover { color: $twilight-purple; background: rgba($misty-lavender, 0.45); i { opacity: 0.85; } }
+  &:focus-visible { outline: 2px solid $twilight-purple; }
 }
 
 .navigation__mobile-submenu {
@@ -557,16 +1026,14 @@
     text-decoration: none;
     transition: all 0.15s ease;
 
-    &:hover {
-      color: $twilight-purple;
-      background: rgba($misty-lavender, 0.45);
-    }
+    &:hover { color: $twilight-purple; background: rgba($misty-lavender, 0.45); }
+    &:focus-visible { outline: 2px solid $twilight-purple; }
   }
 }
 
 .navigation__mobile-highlight {
   color: $twilight-purple !important;
-  font-weight: $fw-regular !important;
+  font-weight: $fw-medium !important;
   @include center;
   gap: $space-sm;
 }
@@ -583,11 +1050,8 @@
   transition: all 0.15s ease;
   border-radius: 7px;
 
-  &:hover {
-    color: $twilight-purple;
-    background: rgba($misty-lavender, 0.45);
-    .navigation__mobile-icon-wrapper { transform: scale(1.05); }
-  }
+  &:hover { color: $twilight-purple; background: rgba($misty-lavender, 0.45); .navigation__mobile-icon-wrapper { transform: scale(1.05); } }
+  &:focus-visible { outline: 2px solid $twilight-purple; }
 }
 
 .navigation__mobile-icon-wrapper {
@@ -603,7 +1067,8 @@
   .menu-icon { width: 20px; height: 20px; }
 }
 
-// Mobile user section
+// ─── Mobile User ──────────────────────────────────────────────────────────────
+
 .navigation__mobile-user {
   list-style: none;
   padding: $space-xs 0;
@@ -636,37 +1101,33 @@
 
   svg { color: rgba($twilight-purple, 0.45); flex-shrink: 0; }
 
-  &:hover {
-    color: $twilight-purple;
-    background: rgba($misty-lavender, 0.45);
-    svg { color: $twilight-purple; }
-  }
+  &:hover { color: $twilight-purple; background: rgba($misty-lavender, 0.45); svg { color: $twilight-purple; } }
+  &:focus-visible { outline: 2px solid $twilight-purple; }
 
   &--logout {
     color: rgba(#e05252, 0.7);
     svg { color: rgba(#e05252, 0.5); }
-
-    &:hover {
-      background: rgba(#e05252, 0.07);
-      color: #e05252;
-      svg { color: #e05252; }
-    }
+    &:hover { background: rgba(#e05252, 0.07); color: #e05252; svg { color: #e05252; } }
   }
 }
 
-// Dropdown arrow
+.navigation__mobile-buttons {
+  @include column;
+  gap: $space-md;
+  width: 60%;
+  padding: $space-md 0 0;
+}
+
+// ─── Dropdown Arrow ───────────────────────────────────────────────────────────
+
 .dropdown-arrow {
   transition: transform 0.2s ease;
   &--open { transform: rotate(180deg); }
 }
 
-// Animations
+// ─── Animations ───────────────────────────────────────────────────────────────
+
 @keyframes nav-fade {
   from { opacity: 0; transform: translateY(-6px); }
   to   { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes nav-fade-center {
-  from { opacity: 0; transform: translateX(-50%) translateY(-6px); }
-  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }

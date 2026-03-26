@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./BusinessLogin.scss";
-import { Undo2 } from 'lucide-react';
+import { ChevronsLeft } from 'lucide-react';
 
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:4000/api";
@@ -57,7 +57,7 @@ const BusinessLogin: React.FC = () => {
           <div className="biz-login__brand">
             <h1>BarkBuddy<br /><em>for Business</em></h1>
             <p>Manage your listing, update your details, and connect with dog owners in your area.</p>
-            <Link to="/" className="biz-login__home-link"><Undo2 size={"16"} /> Back to BarkBuddy</Link>
+            <Link to="/" className="biz-login__home-link"><ChevronsLeft  size={"18"} /> Back to BarkBuddy</Link>
           </div>
         </div>
       </aside>

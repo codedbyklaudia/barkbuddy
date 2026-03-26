@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { PawPrint , Star, ChartPie   } from 'lucide-react';
+import { PawPrint , Star, ChartPie, LogIn, ChevronsLeft, Camera, X} from 'lucide-react';
 import "./RegisterBusiness.scss";
 
 type BusinessCategory = "activities" | "services" | "";
@@ -69,7 +69,7 @@ const EyeIcon: React.FC<{ visible: boolean }> = ({ visible }) =>
     </svg>
   );
 
-// ─── Email status indicator ───────────────────────────────────────────────────
+// Email status indicator 
 const EmailStatus: React.FC<{ state: EmailCheckState }> = ({ state }) => {
   if (state === "idle") return null;
   if (state === "checking") return (
@@ -96,7 +96,7 @@ const EmailStatus: React.FC<{ state: EmailCheckState }> = ({ state }) => {
   return null; // "error" state — silent, will be caught at submit
 };
 
-// ─── Step Indicator ───────────────────────────────────────────────────────────
+// Step Indicator
 const StepIndicator: React.FC<{ current: number; total: number; labels: string[] }> = ({ current, total, labels }) => (
   <div className="rb-steps" role="list" aria-label="Registration steps">
     {Array.from({ length: total }).map((_, i) => {
@@ -118,7 +118,7 @@ const StepIndicator: React.FC<{ current: number; total: number; labels: string[]
   </div>
 );
 
-// ─── UI Primitives ────────────────────────────────────────────────────────────
+// UI Primitives
 const Field: React.FC<{ label: string; optional?: boolean; error?: string; children: React.ReactNode }> = ({ label, optional, error, children }) => (
   <div className="rb-field">
     <label className="rb-label">{label}{optional && <span className="rb-optional"> (optional)</span>}</label>
@@ -137,7 +137,7 @@ const Textarea: React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement> & { h
   <textarea className={`rb-textarea ${hasError ? "rb-input--error" : ""}`} {...props} />
 );
 
-// ─── Password strength helpers ────────────────────────────────────────────────
+// Password strength helpers 
 type StrengthLevel = "empty" | "weak" | "fair" | "strong";
 
 function getPasswordStrength(pw: string): StrengthLevel {
@@ -187,14 +187,13 @@ const PasswordMatchStatus: React.FC<{ password: string; confirm: string; touched
   );
 };
 
-// ─── Password field — now shows strength bar (primary) or match status (confirm) ─
+// Password field
 const PasswordField: React.FC<{
   label: string;
   value: string;
   onChange: (v: string) => void;
   error?: string;
   placeholder?: string;
-  // For the "confirm" variant — pass the primary password to compare against
   compareTo?: string;
 }> = ({ label, value, onChange, error, placeholder, compareTo }) => {
   const [show,    setShow]    = useState(false);
@@ -224,8 +223,6 @@ const PasswordField: React.FC<{
           <EyeIcon visible={show} />
         </button>
       </div>
-
-      {/* Hard validation error from submit takes priority */}
       {error
         ? <FieldError error={error} />
         : isConfirm
@@ -257,7 +254,7 @@ const TypeGrid: React.FC<{ types: { key: string; label: string; icon: string; de
   </div>
 );
 
-// ─── Photo Upload ─────────────────────────────────────────────────────────────
+// Photo Upload 
 const PhotoUpload: React.FC<{ photo: File | null; error?: string; onPhotoChange: (f: File | null) => void }> = ({ photo, error, onPhotoChange }) => {
   const fileRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -289,12 +286,12 @@ const PhotoUpload: React.FC<{ photo: File | null; error?: string; onPhotoChange:
           <img src={preview} alt="Business photo preview" />
           <button type="button" className="rb-photo-upload__remove"
             onClick={e => { e.stopPropagation(); handleFile(null); if (fileRef.current) fileRef.current.value = ""; }}>
-            ✕ Remove
+            <X /> Remove
           </button>
         </div>
       ) : (
         <div className="rb-photo-upload__placeholder">
-          <div className="rb-photo-upload__icon">📷</div>
+          <div className="rb-photo-upload__icon"><Camera /></div>
           <p className="rb-photo-upload__cta">Upload a photo of your business</p>
           <p className="rb-photo-upload__sub">Logo, storefront or interior · JPG, PNG, WEBP · max 8 MB</p>
         </div>
@@ -303,7 +300,7 @@ const PhotoUpload: React.FC<{ photo: File | null; error?: string; onPhotoChange:
   );
 };
 
-// ─── Account Fields — now accepts emailCheckState + onEmailBlur ───────────────
+// Account Fields
 const AccountFields: React.FC<{
   email: string;
   personalName: string;
@@ -380,14 +377,14 @@ const ContactFields: React.FC<{ contactPhone: string; contactEmail: string; webs
           onChange={e => onChange("contactEmail", e.target.value)} hasError={!!errors?.contactEmail} />
       </Field>
     </div>
-    <Field label="Website" optional>
+    <Field label="Website">
       <Input type="url" value={website} placeholder="https://yourbusiness.com" autoComplete="url"
         onChange={e => onChange("website", e.target.value)} />
     </Field>
   </>
 );
 
-// ─── Service Step 1 ───────────────────────────────────────────────────────────
+// Service Step 1 
 const ServiceStep1: React.FC<{
   data: ServiceFormData;
   errors: ValidationErrors;
@@ -447,7 +444,7 @@ const ServiceStep1: React.FC<{
   </div>
 );
 
-// ─── Activity Step 1 ──────────────────────────────────────────────────────────
+// Activity Step 1
 const ActivityStep1: React.FC<{
   data: ActivityFormData;
   errors: ValidationErrors;
@@ -878,16 +875,21 @@ const RegisterBusinessPage: React.FC = () => {
       {step === 0 && (
         <div className="rb-hero">
           <div className="rb-hero__left">
-            <div className="rb-hero__copy">
+          <div className="rb-hero__panel-inner">
+            <img src="/images/logo.png" alt="BarkBuddy for business" className="rb-hero__brand-icon" />
+            <div className="rb-hero__brand">
               <h1 className="rb-hero__title">
-                Grow your<br /><em>dog-friendly</em><br />business
+                BarkBuddy<br /><em>for Business</em>
               </h1>
               <p className="rb-hero__sub">
                 Join thousands of venues and service providers already connecting with dog owners across the UK.
               </p>
+              <Link to="/" className="biz-login__home-link">
+                <ChevronsLeft size={18} /> Back to BarkBuddy
+              </Link>
             </div>
-            <Link to="/" className="biz-login__home-link"><i className="bi bi-chevron-double-left"></i> Back to BarkBuddy</Link>
           </div>
+        </div>
           <div className="rb-hero__right">
             <h2 className="rb-hero__right-heading">
               What type of business<br />do you want to register?
@@ -913,7 +915,12 @@ const RegisterBusinessPage: React.FC = () => {
             </div>
             <div className="rb-hero__login">
               <p>Already have a business account?</p>
-              <Link to="/business/login" className="rb-hero__login-btn">Sign in here <i className="bi bi-box-arrow-in-right"></i></Link>
+              <Link to="/business/login" className="rb-hero__login-btn">
+                Sign in here
+                <span className="rb-hero__login-btn__icon">
+                  <LogIn size={15} />
+                </span>
+              </Link>
             </div>
           </div>
         </div>

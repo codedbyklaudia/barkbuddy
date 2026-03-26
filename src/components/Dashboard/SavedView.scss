@@ -1,0 +1,556 @@
+@import '../../styles/variables';
+@import '../../styles/mixins';
+
+// Keyframes 
+@keyframes sv-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes sv-card-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes sv-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.6; }
+}
+
+// Root
+.sv-root {
+  @include column;
+  gap: $space-lg;
+  max-width: 780px;
+  margin: 0 auto;
+}
+
+// Hero banner
+.sv-hero {
+  background: $twilight-purple;
+  border-radius: $radius-lg;
+  padding: $space-lg $space-xl;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-lg;
+  position: relative;
+  overflow: hidden;
+  animation: sv-up 0.4s ease both;
+
+  // Subtle dot texture
+  background-image: radial-gradient(circle, rgba($soft-pearl, 0.04) 1px, transparent 1px);
+  background-size: 20px 20px;
+
+  // Decorative circle
+  &::after {
+    content: '';
+    position: absolute;
+    right: -40px; bottom: -40px;
+    width: 160px; height: 160px;
+    border-radius: 50%;
+    border: 1px solid rgba($soft-pearl, 0.06);
+    pointer-events: none;
+  }
+
+  &__left {
+    display: flex;
+    align-items: center;
+    gap: $space-md;
+  }
+
+  &__icon-wrap {
+    width: 44px; height: 44px;
+    background: rgba($soft-pearl, 0.1);
+    border: 1px solid rgba($soft-pearl, 0.15);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $soft-pearl;
+    flex-shrink: 0;
+  }
+
+  &__title {
+    font-family: $font-primary;
+    font-size: clamp(1rem, 2vw, 1.2rem);
+    font-weight: $fw-regular;
+    color: $soft-pearl;
+    letter-spacing: -0.01em;
+    margin: 0 0 2px;
+  }
+
+  &__sub {
+    font-family: $font-secondary;
+    font-size: 0.78rem;
+    color: rgba($soft-pearl, 0.45);
+    margin: 0;
+  }
+
+  &__stats {
+    display: flex;
+    align-items: center;
+    gap: $space-lg;
+    flex-shrink: 0;
+  }
+
+  &__stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+  }
+
+  &__stat-val {
+    font-family: $font-primary;
+    font-size: 1.5rem;
+    font-weight: $fw-bold;
+    color: $soft-pearl;
+    line-height: 1;
+    letter-spacing: -0.04em;
+  }
+
+  &__stat-lbl {
+    font-family: $font-secondary;
+    font-size: 0.65rem;
+    font-weight: $fw-bold;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba($soft-pearl, 0.38);
+  }
+
+  &__divider {
+    width: 1px; height: 32px;
+    background: rgba($soft-pearl, 0.15);
+    border-radius: 1px;
+  }
+}
+
+// ─── Search ───────────────────────────────────────────────────────────────────
+.sv-search {
+  position: relative;
+  animation: sv-up 0.4s 0.06s ease both;
+
+  &__icon {
+    position: absolute; left: 14px; top: 50%;
+    transform: translateY(-50%);
+    color: rgba($twilight-purple, 0.3);
+    display: flex; pointer-events: none; z-index: 1;
+  }
+
+  &__input {
+    width: 100%;
+    background: #fff;
+    border: 1.5px solid rgba($twilight-purple, 0.1);
+    border-radius: $radius-lg;
+    padding: 11px 40px 11px 40px;
+    font-family: $font-secondary;
+    font-size: $t-body-des;
+    color: $twilight-purple;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-shadow: 0 1px 4px rgba($twilight-purple, 0.06);
+
+    &::placeholder { color: rgba($twilight-purple, 0.28); }
+
+    &:focus {
+      border-color: rgba($twilight-purple, 0.32);
+      box-shadow: 0 0 0 3px rgba($twilight-purple, 0.07), 0 2px 8px rgba($twilight-purple, 0.08);
+    }
+
+    &::-webkit-search-cancel-button { display: none; }
+  }
+
+  &__clear {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    @include none; @include cursor;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: rgba($twilight-purple, 0.07);
+    display: flex; align-items: center; justify-content: center;
+    color: rgba($twilight-purple, 0.45);
+    transition: background 0.15s;
+    &:hover { background: rgba($twilight-purple, 0.13); }
+  }
+}
+
+// ─── Tab pills ────────────────────────────────────────────────────────────────
+.sv-tabs {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+  flex-wrap: wrap;
+  animation: sv-up 0.4s 0.1s ease both;
+}
+
+.sv-tab {
+  @include none; @include cursor;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-family: $font-secondary;
+  font-size: 0.8rem;
+  font-weight: $fw-medium;
+  color: rgba($twilight-purple, 0.5);
+  background: rgba($twilight-purple, 0.05);
+  border: 1.5px solid transparent;
+  transition: all 0.18s;
+  white-space: nowrap;
+
+  &:hover { color: $twilight-purple; background: rgba($twilight-purple, 0.09); }
+
+  &--active {
+    background: $twilight-purple;
+    color: rgba($soft-pearl, 0.92);
+    font-weight: $fw-bold;
+    box-shadow: 0 4px 12px rgba($twilight-purple, 0.28);
+    &:hover { background: $twilight-purple; }
+  }
+}
+
+.sv-clear {
+  @include none; @include cursor;
+  margin-left: auto;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-family: $font-secondary;
+  font-size: 0.78rem;
+  color: rgba($twilight-purple, 0.3);
+  background: transparent;
+  border: 1.5px solid transparent;
+  transition: all 0.18s;
+  white-space: nowrap;
+
+  &:hover { color: rgba(#e05252, 0.7); border-color: rgba(#e05252, 0.2); background: rgba(#e05252, 0.04); }
+  &--danger { color: #e05252; border-color: rgba(#e05252, 0.3); background: rgba(#e05252, 0.06); font-weight: $fw-bold; }
+}
+
+// ─── Results count ────────────────────────────────────────────────────────────
+.sv-count {
+  font-family: $font-secondary;
+  font-size: 0.75rem;
+  color: rgba($twilight-purple, 0.35);
+  padding-left: 4px;
+  letter-spacing: 0.01em;
+}
+
+// ─── Card list ────────────────────────────────────────────────────────────────
+.sv-list {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+}
+
+// ─── Card ─────────────────────────────────────────────────────────────────────
+.sv-card {
+  background: #fff;
+  border-radius: $radius-lg;
+  border: 1.5px solid rgba($twilight-purple, 0.07);
+  overflow: hidden;
+  opacity: 0;
+  animation: sv-card-in 0.35s ease forwards;
+  transition: box-shadow 0.22s, border-color 0.22s, transform 0.22s;
+  position: relative;
+
+  &:hover {
+    box-shadow:
+      0 2px 8px rgba($twilight-purple, 0.06),
+      0 8px 28px rgba($twilight-purple, 0.1);
+    transform: translateY(-2px);
+    border-color: rgba($twilight-purple, 0.13);
+  }
+
+  &--open {
+    border-color: rgba($twilight-purple, 0.22);
+    box-shadow: 0 4px 20px rgba($twilight-purple, 0.12);
+    transform: none;
+  }
+
+  // Left colour bar
+  &__bar {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    border-radius: 0;
+    transition: width 0.2s;
+
+    .sv-card--open &,
+    .sv-card:hover & { width: 5px; }
+  }
+
+  // Header — button for tips, div for services
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: $space-md;
+    padding: 16px $space-lg 16px calc(#{$space-lg} + 4px); // room for bar
+    width: 100%;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s;
+
+    &:hover { background: rgba($twilight-purple, 0.015); }
+    &:focus-visible { outline: 2px solid $twilight-purple; outline-offset: -2px; border-radius: 14px; }
+    &--static { cursor: default; &:hover { background: transparent; } }
+
+    @media (max-width: $bp-tablet) { padding: 14px 16px; gap: $space-sm; }
+  }
+
+  // Round icon
+  &__icon {
+    width: 46px; height: 46px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: transform 0.22s, border-radius 0.22s;
+
+    .sv-card__header:hover & { transform: scale(1.08) rotate(-4deg); border-radius: 10px; }
+
+    &-img { width: 26px; height: 26px; object-fit: contain; display: block; }
+  }
+
+  // Text block
+  &__copy {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  &__title {
+    font-family: $font-primary;
+    font-size: 1.02rem;
+    font-weight: $fw-regular;
+    color: $twilight-purple;
+    letter-spacing: 0;
+    line-height: 1.25;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__sub {
+    font-family: $font-secondary;
+    font-size: 0.8rem;
+    color: rgba($twilight-purple, 0.44);
+    line-height: 1.45;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  // Right cluster
+  &__meta-cluster {
+    display: flex;
+    align-items: center;
+    gap: $space-sm;
+    flex-shrink: 0;
+  }
+
+  // Category chip
+  &__chip {
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-family: $font-secondary;
+    font-size: 0.68rem;
+    font-weight: $fw-bold;
+    letter-spacing: 0.04em;
+    text-transform: capitalize;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  // Timestamp
+  &__time {
+    font-family: $font-secondary;
+    font-size: 0.72rem;
+    color: rgba($twilight-purple, 0.3);
+    white-space: nowrap;
+    flex-shrink: 0;
+
+    @media (max-width: $bp-tablet) { display: none; }
+  }
+
+  // Chevron (tip cards)
+  &__chevron {
+    color: rgba($twilight-purple, 0.25);
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), color 0.18s;
+    display: flex;
+    flex-shrink: 0;
+
+    &--open { transform: rotate(180deg); color: $twilight-purple; }
+    .sv-card__header:hover & { color: rgba($twilight-purple, 0.55); }
+  }
+
+  // Trash icon (service cards)
+  &__trash {
+    @include none; @include cursor;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: rgba($twilight-purple, 0.22);
+    flex-shrink: 0;
+    transition: all 0.18s;
+
+    &:hover { background: rgba(#e05252, 0.08); color: #e05252; transform: scale(1.1); }
+  }
+
+  // Expand body
+  &__expand {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  &__expand-inner {
+    padding: $space-md $space-lg $space-lg;
+    padding-left: calc(46px + #{$space-md} + #{$space-lg} + 4px);
+    border-top: 1px solid rgba($twilight-purple, 0.06);
+
+    @media (max-width: $bp-tablet) { padding-left: $space-md; padding-right: $space-md; }
+  }
+
+  // Action row
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: $space-md;
+    flex-wrap: wrap;
+  }
+
+  // Go button — uses accent colour via inline style
+  &__go {
+    @include none; @include cursor;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 18px;
+    border-radius: 8px;
+    color: #fff;
+    font-family: $font-secondary;
+    font-size: 0.82rem;
+    font-weight: $fw-bold;
+    letter-spacing: 0.03em;
+    transition: filter 0.18s, transform 0.18s, box-shadow 0.18s;
+
+    &:hover {
+      filter: brightness(1.12);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba($twilight-purple, 0.3);
+    }
+  }
+
+  // Remove inline
+  &__remove {
+    @include none; @include cursor;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-family: $font-secondary;
+    font-size: 0.82rem;
+    color: rgba($twilight-purple, 0.36);
+    transition: all 0.18s;
+
+    &:hover { color: #e05252; background: rgba(#e05252, 0.07); }
+  }
+}
+
+// ─── Empty state ──────────────────────────────────────────────────────────────
+.sv-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: clamp(2.5rem, 7vw, 5rem) $space-xl;
+  gap: $space-md;
+  animation: sv-up 0.4s ease both;
+
+  &__paw {
+    width: 72px; height: 72px;
+    background: rgba($twilight-purple, 0.06);
+    border-radius: $radius-lg;
+    display: flex; align-items: center; justify-content: center;
+    color: rgba($twilight-purple, 0.18);
+    margin-bottom: $space-sm;
+  }
+
+  &__title {
+    font-family: $font-primary;
+    font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+    font-weight: $fw-regular;
+    color: $twilight-purple;
+    letter-spacing: -0.01em;
+  }
+
+  &__body {
+    font-family: $font-secondary;
+    font-size: $t-body-des;
+    color: rgba($twilight-purple, 0.42);
+    line-height: 1.72;
+    max-width: 280px;
+  }
+
+  &__cta {
+    @include none; @include cursor;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px $space-xl;
+    background: $twilight-purple;
+    color: rgba($soft-pearl, 0.9);
+    border-radius: 8px;
+    font-family: $font-secondary;
+    font-size: $t-body-des;
+    font-weight: $fw-bold;
+    letter-spacing: 0.04em;
+    margin-top: $space-sm;
+    transition: filter 0.18s, transform 0.18s, box-shadow 0.18s;
+
+    &:hover {
+      filter: brightness(1.1);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba($twilight-purple, 0.28);
+    }
+  }
+}
+
+// ─── Services teaser strip ────────────────────────────────────────────────────
+.sv-teaser {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: $space-md $space-lg;
+  background: rgba($twilight-purple, 0.03);
+  border: 1.5px dashed rgba($twilight-purple, 0.1);
+  border-radius: $radius-md;
+
+  &__dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: rgba($twilight-purple, 0.2);
+    flex-shrink: 0;
+    margin-top: 5px;
+    animation: sv-pulse 2.5s ease-in-out infinite;
+  }
+
+  p {
+    font-family: $font-secondary;
+    font-size: $t-body-des;
+    color: rgba($twilight-purple, 0.42);
+    line-height: 1.6;
+    margin: 0;
+  }
+}
+
+// ─── Reduced motion ───────────────────────────────────────────────────────────
+@media (prefers-reduced-motion: reduce) {
+  .sv-card, .sv-hero, .sv-search, .sv-tabs, .sv-empty {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .sv-teaser__dot { animation: none !important; }
+}

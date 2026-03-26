@@ -268,4 +268,52 @@ router.put("/:id/details", authenticate, async (req: AuthRequest, res: Response)
   }
 });
 
+router.get("/:id/public", async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+ 
+    const { rows } = await pool.query(
+      `SELECT
+         d.id,
+         d.name,
+         d.breed,
+         d.gender,
+         d.dob,
+         d.life_stage       AS "lifeStage",
+         d.personality,
+         d.avatar_url       AS "avatarUrl",
+         d.created_at       AS "createdAt",
+         dd.weight,
+         dd.body_condition  AS "bodyCondition",
+         dd.activity_level  AS "activityLevel",
+         dd.neutered,
+         dd.eating_style    AS "eatingStyle",
+         dd.treats_per_day  AS "treatsPerDay",
+         dd.feeding_times   AS "feedingTimes",
+         dd.allergies,
+         dd.health_issues   AS "healthIssues",
+         dd.medications,
+         u.name             AS "ownerName",
+         u.avatar_url       AS "ownerAvatar"
+       FROM dogs d
+       JOIN users u
+         ON u.id = d.user_id
+       LEFT JOIN dog_details dd
+         ON dd.dog_id = d.id
+       WHERE d.id = $1`,
+      [id]
+    );
+ 
+    if (rows.length === 0) {
+      res.status(404).json({ message: "Dog not found" });
+      return;
+    }
+ 
+    res.json({ dog: rows[0] });
+  } catch (err) {
+    console.error("GET /dogs/:id/public error:", err);
+    res.status(500).json({ message: "Failed to fetch public profile" });
+  }
+});
+
 export default router;

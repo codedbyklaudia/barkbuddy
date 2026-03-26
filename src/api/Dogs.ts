@@ -1,7 +1,6 @@
 const BASE = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
 
-
-// ─── Types ────────────────────────────────────────────────────────────────────
+// Types 
 export interface DogProfile {
   id:          string;
   name:        string;
@@ -30,7 +29,7 @@ export interface DogDetails {
 export interface DogsResponse {
   mainDog:    DogProfile | null;
   extraDogs:  DogProfile[];
-  dogs:       DogProfile[];   // full flat list, sorted main-first
+  dogs:       DogProfile[];  
 }
 
 const authHeaders = (token: string) => ({
@@ -38,7 +37,7 @@ const authHeaders = (token: string) => ({
   Authorization: `Bearer ${token}`,
 });
 
-// ─── GET all dogs for current user ───────────────────────────────────────────
+// GET all dogs for current user 
 export const getAllDogs = async (token: string): Promise<DogsResponse> => {
   const res = await fetch(`${BASE}/dogs`, {
     method: "GET",
@@ -49,7 +48,7 @@ export const getAllDogs = async (token: string): Promise<DogsResponse> => {
   return data;
 };
 
-// ─── POST create new dog ──────────────────────────────────────────────────────
+// POST create new dog
 export const createExtraDog = async (
   token: string,
   dog: {
@@ -71,7 +70,7 @@ export const createExtraDog = async (
   return data;
 };
 
-// ─── PATCH update any dog ────────────────────────────────────────────────────
+// PATCH update any dog
 export const updateExtraDog = async (
   token: string,
   id: string,
@@ -87,7 +86,7 @@ export const updateExtraDog = async (
   return data;
 };
 
-// ─── DELETE remove extra dog ─────────────────────────────────────────────────
+// DELETE remove extra dog 
 export const deleteExtraDog = async (token: string, id: string): Promise<void> => {
   const res = await fetch(`${BASE}/dogs/${id}`, {
     method: "DELETE",
@@ -96,7 +95,7 @@ export const deleteExtraDog = async (token: string, id: string): Promise<void> =
   if (!res.ok) throw await res.json();
 };
 
-// ─── POST upload avatar for any dog ──────────────────────────────────────────
+// POST upload avatar for any dog
 export const uploadDogAvatarById = async (
   token: string,
   dogId: string,
@@ -114,7 +113,7 @@ export const uploadDogAvatarById = async (
   return data;
 };
 
-// ─── GET dog details (Details / Medical / Eating) ────────────────────────────
+// GET dog details (Details / Medical / Eating)
 export const getDogDetails = async (
   token: string,
   dogId: string
@@ -143,3 +142,35 @@ export const saveDogDetails = async (
   if (!res.ok) throw data;
   return data;
 };
+
+export const getPublicDogProfile = async (
+  dogId: string
+): Promise<{ dog: PublicDogProfile }> => {
+  const res = await fetch(`${BASE}/dogs/${dogId}/public`);
+  const data = await res.json();
+  if (!res.ok) throw data;
+  return data;
+};
+export interface PublicDogProfile {
+  id:             string;
+  name:           string;
+  breed:          string;
+  gender:         string;
+  dob?:           string;
+  lifeStage:      string;
+  personality:    string[];
+  avatarUrl?:     string;
+  ownerName:      string;
+  ownerAvatar?:   string;
+  createdAt:      string;
+  weight?:        string;
+  bodyCondition?: string;
+  activityLevel?: string;
+  eatingStyle?:   string;
+  allergies?:     string;
+  healthIssues?: string;
+  treatsPerDay?:  string;  
+  feedingTimes?:  string;
+  medications?:   string;
+  neutered?:      string;
+}

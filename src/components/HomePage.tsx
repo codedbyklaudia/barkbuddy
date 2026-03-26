@@ -33,17 +33,18 @@ const HomePage: React.FC = () => {
       {/* App Features Section */}
       <section className="app-features">
         <div className="app-features__content">
-          <h2 className="app-features__title">Age-personalised expert tips</h2>
+          <span className="app-features__eyebrow">Coming Soon</span>
+          <h2 className="app-features__title">BarkBuddy Android App</h2>
           <p className="app-features__description">
-            Smarter care for every age. Explore age-based care tips anytime.
+            Smarter care for every breed and age. <br></br> Explore breed-based care tips anytime.
           </p>
           <p className="app-features__description">
-            Download BarkBuddy App to access personalised, age-specific nutrition and care recommendations + your walk & health tracker!
+            BarkBuddy Android App is coming soon to access personalised nutrition and care recommendations + walk & health tracker!
           </p>
-          <button className="btn1 btn1--download">
+          {/* <button className="btn1 btn1--download">
             Download the app
             <i className="bi bi-download"></i>
-          </button>
+          </button> */}
         </div>
         <div className="app-features__preview">
           <div className="app-features__phone-mockup">
@@ -145,9 +146,7 @@ const HomePage: React.FC = () => {
       {/* Community Section */}
       <section className="community">
         <div className="community__devices">
-          <img src="../../images/phone_mockup.png" alt="Forum on Mobile" className="community__device community__device--mobile" />
-          <img src="../../images/ipad_mockup.png" alt="Forum on Tablet" className="community__device community__device--tablet" />
-          <img src="../../images/macbook_mockup.png" alt="Forum on Desktop" className="community__device community__device--desktop" />
+          <img src="../../images/mockup.png" alt="Forum on Tablet" className="community__device community__device--tablet" />
         </div>
         <div className="community__content">
           <h2 className="community__title">Dog-Parents Community</h2>

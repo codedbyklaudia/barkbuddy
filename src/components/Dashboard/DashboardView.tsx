@@ -1,19 +1,20 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import ReactDOM from "react-dom";
 import {
   Flame, Footprints, Check, Users, MessageCircle, Eye, EyeOff,
   Search, Trash2, X, UserPlus, UserCheck, Heart, Loader2,
   Pencil, CalendarDays, Map, ChevronRight, Droplets,
   UtensilsCrossed, Zap, Star, Trophy, Sparkles, Dog,
   Activity, Plus, Shield, ArrowRight, UserMinus, Clock,
-  BarChart2, CheckCircle2,
+  BarChart2, CheckCircle2, ChevronLeft, Bone, Dumbbell,
 } from "lucide-react";
 import {
   getBuddies, searchUsers, sendBuddyRequest, acceptBuddy, removeBuddy,
 } from "../../api/users";
 import "./DashboardView.scss";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
 
+// Types
 interface UserProfile {
   id: string; name: string; email: string; bio?: string;
   profileComplete: number; avatarUrl?: string;
@@ -42,16 +43,19 @@ interface DogSummary {
   name: string; breed: string; lifeStage: string; gender: string;
   dob?: string; avatarUrl?: string; personality?: string[];
 }
-
 interface PublicProfile {
   id: string; name: string; bio?: string; avatarUrl?: string;
   createdAt: string; buddyCount: number; postCount: number; likesReceived: number;
-  dog?: DogSummary;   // kept for backward compat
-  dogs?: DogSummary[]; // all dogs
+  dog?: DogSummary;
+  dogs?: DogSummary[];
 }
 
-// ─── API helpers ──────────────────────────────────────────────────────────────
+// Care log types
+interface CareLog { walk: boolean; fed: boolean; water: boolean; playtime: boolean; }
+const EMPTY_LOG: CareLog = { walk: false, fed: false, water: false, playtime: false };
+const LOG_KEYS = ["walk", "fed", "water", "playtime"] as const;
 
+// API helpers
 const BASE = () => import.meta.env.VITE_API_URL || "http://localhost:4000/api";
 
 async function getMyPosts(token: string): Promise<Post[]> {
@@ -89,10 +93,12 @@ async function getMyProfile(token: string): Promise<PublicProfile | null> {
   } catch { return null; }
 }
 
-// ─── Checkin / streak helpers ─────────────────────────────────────────────────
-
+// Checkin / streak 
 function getCheckinKey(userId: string) { return `barkbuddy_checkins_${userId}`; }
 function getTodayKey(): string { return new Date().toISOString().split("T")[0]; }
+function getTodayLabel(): string {
+  return new Date().toLocaleDateString("en-GB", { weekday: "long" });
+}
 function loadCheckins(userId: string): string[] {
   try { const raw = localStorage.getItem(getCheckinKey(userId)); return raw ? JSON.parse(raw) : []; }
   catch { return []; }
@@ -105,7 +111,7 @@ function calcStreak(dates: string[]): number {
   const sorted = [...new Set(dates)].sort().reverse();
   const today = getTodayKey();
   let streak = 0;
-  let cursor = new Date(today);
+  const cursor = new Date(today);
   for (let i = 0; i < 365; i++) {
     const key = cursor.toISOString().split("T")[0];
     if (sorted.includes(key)) { streak++; cursor.setDate(cursor.getDate() - 1); }
@@ -114,17 +120,23 @@ function calcStreak(dates: string[]): number {
   return streak;
 }
 
-// ─── Care log helpers ─────────────────────────────────────────────────────────
+// Care log helpers
+const LOG_KEY_FOR = (dogId: string) => `barkbuddy_carelog_${dogId}`;
 
-interface CareLog { walk: boolean; fed: boolean; water: boolean; playtime: boolean; }
+function loadDogLog(dogId: string): Record<string, CareLog> {
+  try { return JSON.parse(localStorage.getItem(LOG_KEY_FOR(dogId)) || "{}"); } catch { return {}; }
+}
+function saveDogLog(dogId: string, logs: Record<string, CareLog>) {
+  localStorage.setItem(LOG_KEY_FOR(dogId), JSON.stringify(logs));
+}
 
+// Legacy single-dog log (backwards compat)
 const LOG_KEY = "barkbuddy_carelog";
 function loadLog(): Record<string, CareLog> {
   try { return JSON.parse(localStorage.getItem(LOG_KEY) || "{}"); } catch { return {}; }
 }
 
-// ─── Care items config (was missing — caused the crash) ───────────────────────
-
+// Care items config
 const CARE_ITEMS_CONFIG: {
   key: keyof CareLog;
   Icon: React.FC<any>;
@@ -132,27 +144,35 @@ const CARE_ITEMS_CONFIG: {
   desc: string;
   color: string;
 }[] = [
-  { key: "walk",     Icon: Footprints,     label: "Walk",        desc: "Daily walkies done!",  color: "var(--care-purple)" },
-  { key: "fed",      Icon: UtensilsCrossed, label: "Fed",         desc: "Meal time sorted!",    color: "var(--care-amber)"  },
-  { key: "water",    Icon: Droplets,        label: "Fresh Water", desc: "Bowl topped up!",      color: "var(--care-blue)"   },
-  { key: "playtime", Icon: Zap,             label: "Playtime",    desc: "Fun & games!",         color: "var(--care-green)"  },
+  { key: "walk",     Icon: Footprints,      label: "Walk",        desc: "Daily exercise sorted!", color: "#3a2f51" }, 
+  { key: "fed",      Icon: UtensilsCrossed, label: "Fed",          desc: "Meal all done!",          color: "#3a2f51" }, 
+  { key: "water",    Icon: Droplets,        label: "Fresh Water",  desc: "Bowl topped up!",         color: "#3a2f51" }, 
+  { key: "playtime", Icon: Dumbbell,        label: "Playtime",     desc: "Fun & games!",            color: "#3a2f51" }, 
 ];
 
-// ─── Tips ─────────────────────────────────────────────────────────────────────
+// Dog accent colours
+const DOG_ACCENTS = [
+  "#6d4fc2", 
+  "#9b72d8", 
+  "#4a3870", 
+  "#b89ee8", 
+  "#7c5cbf", 
+] as const;
 
+// Tips
 interface Tip {
   category: string; headline: string; body: string;
   icon: string; color: string; fact?: string;
 }
 
 const TIPS: Tip[] = [
-  { category: "Dental",      headline: "Don't skip the teeth.",        body: "Brushing 2–3× a week prevents plaque build-up and bad breath. Most dental disease is painless until it's serious — early care makes all the difference.", icon: "smile",      color: "#7c5cbf", fact: "80% of dogs show signs of dental disease by age 3." },
-  { category: "Hydration",   headline: "Water is their fuel.",          body: "Dogs need roughly 1 oz of water per pound of body weight every day. Dehydration sets in faster than you'd think — especially after walks or play.", icon: "droplets",   color: "#0369a1", fact: "A 10kg dog needs at least 600ml of water daily." },
-  { category: "Mental Health",headline: "Sniffing IS exercise.",         body: "A 20-minute sniff walk tires a dog out more than a 1-hour power walk. Their nose processes 10,000× more scent info than ours — let them explore.", icon: "wind",       color: "#15803d", fact: "Dogs have up to 300 million olfactory receptors." },
-  { category: "Anxiety",     headline: "Play beats the vet bill.",      body: "Just 10 focused minutes of play a day measurably reduces anxiety behaviours like barking, chewing, and pacing. Consistency matters more than duration.", icon: "zap",        color: "#c2710f", fact: "Anxious dogs are 3× more likely to develop destructive habits." },
-  { category: "Sleep",       headline: "Dogs need more sleep than you.", body: "12–14 hours a day is completely normal. A quiet, consistent sleep spot reduces stress and supports immune health. Avoid moving their bed often.", icon: "moon",       color: "#4a3870", fact: "Puppies and seniors can sleep up to 18–20 hours." },
-  { category: "Enrichment",  headline: "New toy? Wait a week.",          body: "Rotating toys weekly keeps novelty high. Dogs get bored with constant access — hiding a toy for 7 days makes it feel brand new again.", icon: "rotate-cw",  color: "#be185d", fact: "Enrichment reduces boredom-driven destruction by up to 70%." },
-  { category: "Exercise",    headline: "Tired dogs are happy dogs.",     body: "Physical and mental exercise together are far more effective than either alone. A puzzle feeder before a walk sets them up for a calm afternoon.", icon: "activity",   color: "#0f766e", fact: "Combined stimulation doubles the calming effect of exercise alone." },
+  { category: "Dental",       headline: "Don't skip the teeth.",         body: "Brushing 2–3× a week prevents plaque build-up and bad breath. Most dental disease is painless until it's serious — early care makes all the difference.", icon: "smile",      color: "#7c5cbf", fact: "80% of dogs show signs of dental disease by age 3." },
+  { category: "Hydration",    headline: "Water is their fuel.",           body: "Dogs need roughly 1 oz of water per pound of body weight every day. Dehydration sets in faster than you'd think — especially after walks or play.", icon: "droplets",   color: "#0369a1", fact: "A 10kg dog needs at least 600ml of water daily." },
+  { category: "Mental Health", headline: "Sniffing IS exercise.",          body: "A 20-minute sniff walk tires a dog out more than a 1-hour power walk. Their nose processes 10,000× more scent info than ours — let them explore.", icon: "wind",       color: "#15803d", fact: "Dogs have up to 300 million olfactory receptors." },
+  { category: "Anxiety",      headline: "Play beats the vet bill.",       body: "Just 10 focused minutes of play a day measurably reduces anxiety behaviours like barking, chewing, and pacing. Consistency matters more than duration.", icon: "zap",        color: "#c2710f", fact: "Anxious dogs are 3× more likely to develop destructive habits." },
+  { category: "Sleep",        headline: "Dogs need more sleep than you.", body: "12–14 hours a day is completely normal. A quiet, consistent sleep spot reduces stress and supports immune health. Avoid moving their bed often.", icon: "moon",       color: "#4a3870", fact: "Puppies and seniors can sleep up to 18–20 hours." },
+  { category: "Enrichment",   headline: "New toy? Wait a week.",          body: "Rotating toys weekly keeps novelty high. Dogs get bored with constant access — hiding a toy for 7 days makes it feel brand new again.", icon: "rotate-cw",  color: "#be185d", fact: "Enrichment reduces boredom-driven destruction by up to 70%." },
+  { category: "Exercise",     headline: "Tired dogs are happy dogs.",     body: "Physical and mental exercise together are far more effective than either alone. A puzzle feeder before a walk sets them up for a calm afternoon.", icon: "activity",   color: "#0f766e", fact: "Combined stimulation doubles the calming effect of exercise alone." },
 ];
 
 const TIP_ICONS: Record<string, React.FC<any>> = {
@@ -177,15 +197,14 @@ function timeAgo(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 }
 
-// ─── Streak Celebration Overlay ───────────────────────────────────────────────
-
+// Streak Celebration Overlay
 const StreakCelebration: React.FC<{ streak: number; onClose: () => void }> = ({ streak, onClose }) => {
   useEffect(() => {
     const t = setTimeout(onClose, 3200);
     return () => clearTimeout(t);
   }, [onClose]);
 
-  return (
+  return ReactDOM.createPortal(
     <div className="streak-celebration-overlay" onClick={onClose}>
       <div className="streak-celebration-card" onClick={e => e.stopPropagation()}>
         <div className="streak-cel-flame-wrap">
@@ -207,21 +226,76 @@ const StreakCelebration: React.FC<{ streak: number; onClose: () => void }> = ({ 
           ))}
         </div>
       </div>
+    </div>,
+    document.body
+  );
+};
+
+// Progress Ring (used inside CheckInModal)
+const RING_R    = 18;
+const RING_CIRC = 2 * Math.PI * RING_R;
+
+const ProgressRing: React.FC<{ done: number; total: number; color: string }> = ({ done, total, color }) => {
+  const offset = RING_CIRC * (1 - (total > 0 ? done / total : 0));
+  const isDone = done === total && total > 0;
+  return (
+    <div className="checkin-ring-wrap">
+      <svg className="checkin-ring-svg" viewBox="0 0 44 44" width={46} height={46} aria-hidden>
+        <circle className="checkin-ring-bg" cx={22} cy={22} r={RING_R} />
+        <circle
+          className={`checkin-ring-fill${isDone ? " ring-complete" : ""}`}
+          cx={22} cy={22} r={RING_R}
+          style={{ stroke: isDone ? "#9b72d8" : color, strokeDashoffset: offset, strokeDasharray: RING_CIRC }}
+        />
+      </svg>
+      <div
+        className={`checkin-ring-label${isDone ? " ring-complete" : ""}`}
+        style={{ color: isDone ? "#9b72d8" : color }}
+      >
+        {done}/{total}
+      </div>
     </div>
   );
 };
 
-// ─── Check-In Modal ───────────────────────────────────────────────────────────
+// Check-In Modal — multi-dog redesign
+interface MultiDogCheckInModalProps {
+  allDogs: DogProfile[];
+  checkins: string[];
+  dogLogs: Record<string, Record<string, CareLog>>;
+  onConfirm: (updatedDogLogs: Record<string, Record<string, CareLog>>) => void;
+  onClose: () => void;
+}
 
-const CheckInModal: React.FC<{
-  dogName: string; dogAvatar?: string; checkins: string[]; initialLog: CareLog;
-  onConfirm: (log: CareLog) => void; onClose: () => void;
-}> = ({ dogName, dogAvatar, checkins, initialLog, onConfirm, onClose }) => {
-  const [log, setLog] = useState<CareLog>({ ...initialLog });
-  const keys: (keyof CareLog)[] = ["walk", "fed", "water", "playtime"];
-  const doneCount = keys.filter(k => log[k]).length;
-  const allDone = doneCount === keys.length;
-  const streak = calcStreak(checkins);
+const CheckInModal: React.FC<MultiDogCheckInModalProps> = ({
+  allDogs, checkins, dogLogs, onConfirm, onClose,
+}) => {
+  const todayKey   = getTodayKey();
+  const todayLabel = getTodayLabel();
+  const streak     = calcStreak(checkins);
+
+  const [localLogs, setLocalLogs] = useState<Record<string, CareLog>>(() => {
+    const init: Record<string, CareLog> = {};
+    allDogs.forEach(dog => {
+      init[dog.id] = { ...(dogLogs[dog.id]?.[todayKey] ?? EMPTY_LOG) };
+    });
+    return init;
+  });
+
+  const [activeDogIdx, setActiveDogIdx] = useState(0);
+
+  const activeDog   = allDogs[activeDogIdx];
+  const activeLog   = localLogs[activeDog?.id] ?? EMPTY_LOG;
+  const accentColor = DOG_ACCENTS[activeDogIdx % DOG_ACCENTS.length];
+
+  const dogDoneCount = (dogId: string) =>
+    LOG_KEYS.filter(k => localLogs[dogId]?.[k]).length;
+
+  const activeDone    = dogDoneCount(activeDog?.id);
+  const activeAllDone = activeDone === LOG_KEYS.length;
+  const totalDone     = allDogs.reduce((s, d) => s + dogDoneCount(d.id), 0);
+  const totalItems    = allDogs.length * LOG_KEYS.length;
+  const overallPct    = totalItems > 0 ? Math.round((totalDone / totalItems) * 100) : 0;
 
   useEffect(() => {
     const fn = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -229,85 +303,170 @@ const CheckInModal: React.FC<{
     return () => window.removeEventListener("keydown", fn);
   }, [onClose]);
 
-  const toggleItem = (key: keyof CareLog) => setLog(prev => ({ ...prev, [key]: !prev[key] }));
+  const toggleItem = (key: keyof CareLog) => {
+    setLocalLogs(prev => ({
+      ...prev,
+      [activeDog.id]: { ...prev[activeDog.id], [key]: !prev[activeDog.id][key] },
+    }));
+  };
 
-  return (
+  const handleConfirm = () => {
+    const updated: Record<string, Record<string, CareLog>> = { ...dogLogs };
+    allDogs.forEach(dog => {
+      updated[dog.id] = { ...(updated[dog.id] ?? {}), [todayKey]: localLogs[dog.id] };
+    });
+    onConfirm(updated);
+    onClose();
+  };
+
+  if (!activeDog) return null;
+
+  return ReactDOM.createPortal(
     <div className="modal-overlay" onClick={onClose}>
-      <div className="checkin-modal" onClick={e => e.stopPropagation()}>
-        <div className="checkin-modal-header">
-          <div className="checkin-header-left">
-            <div className="checkin-dog-avatar">
-              {dogAvatar ? <img src={dogAvatar} alt={dogName} /> : <Dog size={28} />}
-            </div>
-            <div>
-              <h2 className="checkin-title">Daily Check-In</h2>
-              <p className="checkin-subtitle">Log {dogName}'s care for today</p>
-            </div>
+      <div
+        className="checkin-modal"
+        onClick={e => e.stopPropagation()}
+        role="dialog"
+        aria-modal
+        aria-label="Daily Check-In"
+        style={{ "--accent-color": accentColor } as React.CSSProperties}
+      >
+        {/* ── TOP BAR ── */}
+        <div className="checkin-topbar">
+          <div className="checkin-topbar-left">
+            <span className="checkin-eyebrow">Daily check-in</span>
+            <span className="checkin-day">{todayLabel}</span>
           </div>
-          <button className="checkin-close-btn" onClick={onClose}><X size={20} /></button>
+          <button className="checkin-close" onClick={onClose} aria-label="Close check-in">
+            <X size={16} />
+          </button>
         </div>
 
-        <div className="checkin-progress-section">
-          <div className="checkin-progress-track">
-            <div
-              className={`checkin-progress-fill ${allDone ? "complete" : ""}`}
-              style={{ width: `${(doneCount / keys.length) * 100}%` }}
-            />
+        {/* ── DOG SWITCHER ── */}
+        {allDogs.length > 1 && (
+          <div className="checkin-switcher" role="tablist" aria-label="Select dog">
+            {allDogs.map((dog, idx) => {
+              const done    = dogDoneCount(dog.id);
+              const isDone  = done === LOG_KEYS.length;
+              const color   = DOG_ACCENTS[idx % DOG_ACCENTS.length];
+              const isActive = idx === activeDogIdx;
+              return (
+                <button
+                  key={dog.id}
+                  className={`checkin-chip${isActive ? " active" : ""}${isDone ? " chip-done" : ""}`}
+                  style={{ "--chip-color": color } as React.CSSProperties}
+                  onClick={() => setActiveDogIdx(idx)}
+                  role="tab"
+                  aria-selected={isActive}
+                  aria-label={`${dog.name}, ${done} of ${LOG_KEYS.length} done`}
+                >
+                  <div className="checkin-chip-avatar">
+                    {dog.avatarUrl ? <img src={dog.avatarUrl} alt={dog.name} /> : dog.name.charAt(0)}
+                  </div>
+                  <span className="checkin-chip-name">{dog.name}</span>
+                  <span className="checkin-chip-progress">
+                    {isDone ? "✓" : `${done}/${LOG_KEYS.length}`}
+                  </span>
+                </button>
+              );
+            })}
           </div>
-          <span className="checkin-progress-text">
-            {allDone ? <><Check size={13} /> All done!</> : `${doneCount} of ${keys.length}`}
-          </span>
-        </div>
+        )}
 
-        <div className="checkin-items-grid">
-          {CARE_ITEMS_CONFIG.map((item, i) => {
+        {/* ── BODY ── */}
+        <div className="checkin-body">
+
+          {/* Dog hero row */}
+          <div className="checkin-dog-hero" style={{ "--hero-color": accentColor } as React.CSSProperties}>
+            <div className="checkin-dog-hero-avatar" style={{ background: accentColor }}>
+              {activeDog.avatarUrl
+                ? <img src={activeDog.avatarUrl} alt={activeDog.name} />
+                : <Dog size={22} strokeWidth={1.6} />}
+            </div>
+            <div className="checkin-dog-hero-text">
+              <div className="checkin-dog-hero-name">{activeDog.name}</div>
+            </div>
+            <ProgressRing done={activeDone} total={LOG_KEYS.length} color={accentColor} />
+          </div>
+
+          {/* Care items */}
+          <div className="checkin-items">
+            {CARE_ITEMS_CONFIG.map((item, i) => {
+            const isDone = activeLog[item.key];
             const { Icon } = item;
-            const isDone = log[item.key];
             return (
               <button
                 key={item.key}
-                className={`checkin-item ${isDone ? "is-done" : ""}`}
+                className={`checkin-item${isDone ? " item-done" : ""}`}
                 onClick={() => toggleItem(item.key)}
-                style={{ "--item-color": item.color, "--delay": `${i * 0.07}s` } as React.CSSProperties}
                 aria-pressed={isDone}
+                style={{ "--item-color": item.color, "--item-delay": `${i * 0.055}s` } as React.CSSProperties}
               >
                 <div className="checkin-item-icon">
-                  <Icon size={26} strokeWidth={1.7} />
-                  {isDone && <div className="checkin-item-check-badge"><Check size={10} strokeWidth={3} /></div>}
+                  <Icon size={22} strokeWidth={1.8} />
                 </div>
-                <span className="checkin-item-label">{item.label}</span>
-                <span className="checkin-item-desc">{isDone ? item.desc : "Tap to log"}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        <div className={`checkin-all-done-bar ${allDone ? "visible" : ""}`}>
-          <Sparkles size={16} />
-          <span>Amazing! {dogName} is all taken care of today!</span>
-        </div>
-
-        <div className="checkin-footer">
-          <div className="checkin-streak-chip">
-            <Flame size={15} />
-            <span>{streak} day streak</span>
+                <div className="checkin-item-text">
+                    <span className="checkin-item-label">{item.label}</span>
+                    <span className="checkin-item-sub">
+                      {isDone ? item.desc : <span className="checkin-item-tap">Tap to mark as done</span>}
+                    </span>
+                  </div>
+                  <div className="checkin-item-check" aria-hidden>
+                    {isDone && <Check size={13} strokeWidth={3} />}
+                  </div>
+                </button>
+              );
+            })}
           </div>
-          <button
-            className={`checkin-confirm-btn ${allDone ? "complete" : ""}`}
-            onClick={() => { onConfirm(log); onClose(); }}
-          >
-            {allDone
-              ? <><Star size={15} /> Save Check-In</>
-              : <><Check size={15} /> Check In ({doneCount}/{keys.length})</>}
-          </button>
+
+          {/* All-done banner */}
+          <div className={`checkin-done-banner${activeAllDone ? " visible" : ""}`}>
+            <span>{activeDog.name} is all sorted for today!</span>
+          </div>
+
+        </div>
+
+        {/* ── FOOTER ── */}
+        <div className="checkin-footer">
+          <div className="checkin-streak-pill">
+            <Flame size={14} />
+            <span>{streak}</span>
+          </div>
+
+          <div className="checkin-footer-progress">
+            <div className="checkin-footer-track">
+              <div className="checkin-footer-fill" style={{ width: `${overallPct}%` }} />
+            </div>
+            <span className="checkin-footer-label">
+              {overallPct === 100 ? "All dogs cared for! 🐾" : `${totalDone} / ${totalItems} tasks done`}
+            </span>
+          </div>
+
+          {allDogs.length > 1 && activeDogIdx < allDogs.length - 1 ? (
+            <button
+              className="checkin-next-btn"
+              onClick={() => setActiveDogIdx(i => i + 1)}
+              style={{ "--accent-color": accentColor } as React.CSSProperties}
+            >
+              {allDogs[activeDogIdx + 1].name} <ChevronRight size={14} />
+            </button>
+          ) : (
+            <button
+              className={`checkin-save-btn${overallPct === 100 ? " btn-glow" : ""}`}
+              onClick={handleConfirm}
+              style={overallPct < 100 ? { background: accentColor } as React.CSSProperties : undefined}
+            >
+              {overallPct === 100 ? <><Star size={14} /> Save All</> : <><Check size={14} /> Save</>}
+            </button>
+          )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
-// ─── Buddies Panel ────────────────────────────────────────────────────────────
-
+// Buddies Panel
 const BuddiesPanel: React.FC<{ token: string }> = ({ token }) => {
   const [buddies, setBuddies]             = useState<Buddy[]>([]);
   const [pendingIn, setPendingIn]         = useState<Buddy[]>([]);
@@ -415,7 +574,7 @@ const BuddiesPanel: React.FC<{ token: string }> = ({ token }) => {
                     </div>
                     <div className="buddy-info">
                       <p className="buddy-name">{b.name}</p>
-                      {b.dogName && <p className="buddy-dog"><Footprints size={11} /> {b.dogName}</p>}
+                      {b.dogName && <p className="buddy-dog"><Bone size={11} /> {b.dogName}</p>}
                     </div>
                     <div className="buddy-actions">
                       <button className="buddy-btn accept" onClick={() => handleAccept(b)} disabled={actionLoading === b.id}>
@@ -452,7 +611,7 @@ const BuddiesPanel: React.FC<{ token: string }> = ({ token }) => {
                     </div>
                     <div className="buddy-info">
                       <p className="buddy-name">{b.name}</p>
-                      {b.dogName && <p className="buddy-dog"><Footprints size={11} /> {b.dogName}{b.dogBreed ? ` · ${b.dogBreed}` : ""}</p>}
+                      {b.dogName && <p className="buddy-dog"><Bone size={11} /> {b.dogName}{b.dogBreed ? ` · ${b.dogBreed}` : ""}</p>}
                       {b.buddySince && <p className="buddy-since"><Clock size={10} /> Since {new Date(b.buddySince).toLocaleDateString("en-GB", { month: "short", year: "numeric" })}</p>}
                     </div>
                     <ChevronRight size={15} className="buddy-chevron" />
@@ -475,7 +634,7 @@ const BuddiesPanel: React.FC<{ token: string }> = ({ token }) => {
                     </div>
                     <div className="buddy-info">
                       <p className="buddy-name">{b.name}</p>
-                      {b.dogName && <p className="buddy-dog"><Footprints size={11} /> {b.dogName}</p>}
+                      {b.dogName && <p className="buddy-dog"><Bone size={11} /> {b.dogName}</p>}
                     </div>
                     <span className="buddy-pending-chip">Pending</span>
                   </div>
@@ -520,7 +679,7 @@ const BuddiesPanel: React.FC<{ token: string }> = ({ token }) => {
                   </div>
                   <div className="buddy-info">
                     <p className="buddy-name">{u.name}</p>
-                    {u.dogName && <p className="buddy-dog"><Footprints size={11} /> {u.dogName}</p>}
+                    {u.dogName && <p className="buddy-dog"><Bone size={11} /> {u.dogName}</p>}
                     {u.bio && <p className="buddy-bio">{u.bio}</p>}
                   </div>
                   <div className="buddy-actions">
@@ -564,7 +723,9 @@ const BuddiesPanel: React.FC<{ token: string }> = ({ token }) => {
   );
 };
 
-// ─── My Posts Panel ───────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// My Posts Panel
+// ─────────────────────────────────────────────────────────────────────────────
 
 const MyPostsPanel: React.FC<{ token: string; onViewInForum: (postId: string) => void }> = ({ token, onViewInForum }) => {
   const [posts, setPosts]                 = useState<Post[]>([]);
@@ -659,7 +820,9 @@ const MyPostsPanel: React.FC<{ token: string; onViewInForum: (postId: string) =>
   );
 };
 
-// ─── Profile Card ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Profile Card
+// ─────────────────────────────────────────────────────────────────────────────
 
 interface ProfileCardProps {
   profile: PublicProfile; isSelf?: boolean; streak?: number;
@@ -675,7 +838,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   const buddySinceDate = buddySince
     ? new Date(buddySince).toLocaleDateString("en-GB", { month: "short", year: "numeric" })
     : null;
-  // Build unified dogs list: prefer profile.dogs[], fall back to single profile.dog
   const allProfileDogs: DogSummary[] = profile.dogs?.length
     ? profile.dogs
     : profile.dog ? [profile.dog] : [];
@@ -795,8 +957,7 @@ const ProfileCardSkeleton: React.FC = () => (
   </div>
 );
 
-// ─── Buddy Drawer ─────────────────────────────────────────────────────────────
-
+// Buddy Drawer
 const BuddyDrawer: React.FC<{
   buddy: Buddy; token: string;
   onClose: () => void; onRemoved: (buddyId: string) => void;
@@ -823,22 +984,24 @@ const BuddyDrawer: React.FC<{
   };
 
   return (
-    <>
-      <div className="bd-backdrop" onClick={onClose} />
-      <div className="bd-drawer" role="dialog" aria-label={`${buddy.name}'s profile`}>
-        <button className="bd-close" onClick={onClose} title="Close"><X size={18} /></button>
-        {loading
-          ? <ProfileCardSkeleton />
-          : profile
-            ? <ProfileCard profile={profile} isSelf={false} buddySince={buddy.buddySince} onRemoveBuddy={handleRemove} removingBuddy={removing} />
-            : <div className="bd-error"><Dog size={32} strokeWidth={1.2} /><p>Couldn't load profile</p></div>
-        }
-      </div>
-    </>
-  );
+  <>
+    <div className="bd-backdrop" onClick={onClose} />
+    <div className="bd-drawer" role="dialog" aria-label={`${buddy.name}'s profile`}>
+      <button className="bd-close" onClick={onClose} title="Close"><X size={18} /></button>
+      {loading
+        ? <ProfileCardSkeleton />
+        : profile
+          ? <ProfileCard profile={profile} isSelf={false} buddySince={buddy.buddySince} onRemoveBuddy={handleRemove} removingBuddy={removing} />
+          : <div className="bd-error"><Dog size={32} strokeWidth={1.2} /><p>Couldn't load profile</p></div>
+      }
+    </div>
+  </>
+);
 };
 
-// ─── Public Profile Preview ───────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Public Profile Preview
+// ─────────────────────────────────────────────────────────────────────────────
 
 const PublicProfilePreview: React.FC<{
   user: UserProfile; dog: DogProfile | null; allDogs: DogProfile[]; checkins: string[]; token: string;
@@ -872,7 +1035,9 @@ const PublicProfilePreview: React.FC<{
   );
 };
 
-// ─── My Posts Bento Card ──────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// My Posts Bento Card
+// ─────────────────────────────────────────────────────────────────────────────
 
 const MyPostsBentoCard: React.FC<{
   token: string; onViewForum: () => void; onViewPost: (postId: string) => void;
@@ -926,7 +1091,9 @@ const MyPostsBentoCard: React.FC<{
   );
 };
 
-// ─── Main DashboardView ───────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Main DashboardView
+// ─────────────────────────────────────────────────────────────────────────────
 
 interface DashboardViewProps {
   user: UserProfile;
@@ -941,26 +1108,44 @@ type ProfileTab = "preview" | "buddies";
 
 const DashboardView: React.FC<DashboardViewProps> = ({ user, dog, allDogs, token, onNav, onViewForumPost }) => {
   const todayKey = getTodayKey();
-  const today = new Date().toLocaleDateString("en-GB", { weekday: "long" });
+  const today    = new Date().toLocaleDateString("en-GB", { weekday: "long" });
 
-  const [checkins, setCheckins]               = useState<string[]>(() => loadCheckins(user.id));
-  const checkedIn                              = checkins.includes(todayKey);
-  const [allLogs, setAllLogs]                 = useState<Record<string, CareLog>>(() => loadLog());
-  const todayLog: CareLog                      = allLogs[today] ?? { walk: false, fed: false, water: false, playtime: false };
-  const [checkInOpen, setCheckInOpen]         = useState(false);
-  const [showCelebration, setShowCelebration] = useState(false);
+  const [checkins, setCheckins]       = useState<string[]>(() => loadCheckins(user.id));
+  const checkedIn                      = checkins.includes(todayKey);
+
+  const [dogLogs, setDogLogs] = useState<Record<string, Record<string, CareLog>>>(() => {
+    const result: Record<string, Record<string, CareLog>> = {};
+    allDogs.forEach(d => { result[d.id] = loadDogLog(d.id); });
+    if (dog) {
+      const legacy = loadLog();
+      if (Object.keys(legacy).length > 0 && !Object.keys(result[dog.id] ?? {}).length) {
+        result[dog.id] = legacy;
+      }
+    }
+    return result;
+  });
+
+  const [checkInOpen, setCheckInOpen]             = useState(false);
+  const [showCelebration, setShowCelebration]     = useState(false);
   const [celebrationStreak, setCelebrationStreak] = useState(0);
-  const [profileTab, setProfileTab]           = useState<ProfileTab>("preview");
+  const [profileTab, setProfileTab]               = useState<ProfileTab>("preview");
 
   const streak   = calcStreak(checkins);
-  const tip      = TIPS[new Date().getDay() % TIPS.length];
   const hour     = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
 
-  const handleCheckInConfirm = (log: CareLog) => {
-    const updatedLogs = { ...allLogs, [today]: log };
-    setAllLogs(updatedLogs);
-    localStorage.setItem(LOG_KEY, JSON.stringify(updatedLogs));
+  const dogsFullyDone = allDogs.filter(d => {
+    const log = dogLogs[d.id]?.[today] ?? EMPTY_LOG;
+    return LOG_KEYS.every(k => log[k]);
+  });
+  const allDogsCheckedIn = allDogs.length > 0 && dogsFullyDone.length === allDogs.length;
+
+  const handleCheckInConfirm = (updatedDogLogs: Record<string, Record<string, CareLog>>) => {
+    allDogs.forEach(d => {
+      if (updatedDogLogs[d.id]) saveDogLog(d.id, updatedDogLogs[d.id]);
+    });
+    setDogLogs(updatedDogLogs);
+
     if (!checkedIn) {
       const updated = [...checkins, todayKey];
       saveCheckins(user.id, updated);
@@ -992,9 +1177,13 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, dog, allDogs, token
             <p className="dv-hero-eyebrow">{greeting}</p>
             <h1 className="dv-hero-name">{user.name.split(" ")[0]}</h1>
             <p className="dv-hero-sub">
-              {checkedIn
-                ? `${dog?.name ?? "Your dog"} is all checked in for today.`
-                : `Ready for ${dog ? `${dog.name}'s` : "your"} daily check-in?`}
+              {allDogsCheckedIn
+                ? allDogs.length > 1
+                  ? "All your dogs are checked in for today 🐾"
+                  : `${dog?.name ?? "Your dog"} is all checked in for today.`
+                : allDogs.length > 1
+                  ? `Time for your pack's daily check-in (${dogsFullyDone.length}/${allDogs.length} done)`
+                  : `Ready for ${dog ? `${dog.name}'s` : "your"} daily check-in?`}
             </p>
           </div>
           <div className="dv-hero-streak">
@@ -1003,12 +1192,14 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, dog, allDogs, token
           </div>
         </div>
         <button
-          className={`dv-hero-checkin-btn ${checkedIn ? "checked" : ""}`}
+          className={`dv-hero-checkin-btn ${allDogsCheckedIn ? "checked" : ""}`}
           onClick={() => setCheckInOpen(true)}
         >
-          {checkedIn
+          {allDogsCheckedIn
             ? <><Check size={16} /> Checked In</>
-            : <><Footprints size={16} /> {dog?.name ?? "Buddy"} Check-In</>}
+            : <><Bone size={16} />
+                {allDogs.length > 1 ? `Pack Check-In (${dogsFullyDone.length}/${allDogs.length})` : `${dog?.name ?? "Buddy"} Check-In`}
+              </>}
         </button>
       </div>
 
@@ -1071,12 +1262,11 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, dog, allDogs, token
       </div>
 
       {/* CHECK-IN MODAL */}
-      {checkInOpen && (
+      {checkInOpen && allDogs.length > 0 && (
         <CheckInModal
-          dogName={dog?.name ?? "Buddy"}
-          dogAvatar={dog?.avatarUrl}
+          allDogs={allDogs}
           checkins={checkins}
-          initialLog={todayLog}
+          dogLogs={dogLogs}
           onConfirm={handleCheckInConfirm}
           onClose={() => setCheckInOpen(false)}
         />

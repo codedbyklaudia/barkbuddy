@@ -1,11 +1,8 @@
 // ─── SettingsView.tsx ─────────────────────────────────────────────────────────
-// Drop-in replacement for the SettingsView inside Dashboard.tsx
-// Usage: replace the existing SettingsView component with this one.
-
 import React, { useState } from "react";
 import { updateUser, uploadUserAvatar, uploadDogAvatar, updatePreferences } from "../../api/users";
 
-// ── Re-use types from Dashboard (copy or import as needed) ────────────────────
+// ── Types ─────────────────────────────────────────────────────────────────────
 interface UserProfile {
   id: string; name: string; email: string; bio?: string;
   profileComplete: number; avatarUrl?: string;
@@ -20,32 +17,26 @@ interface DogProfile {
 // ── Tiny helpers ──────────────────────────────────────────────────────────────
 const Icon: React.FC<{ name: string; size?: number }> = ({ name, size = 16 }) => {
   const icons: Record<string, React.ReactNode> = {
-    edit: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>,
-    camera: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>,
-    close: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
-    check: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>,
+    edit:    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>,
+    camera:  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>,
+    close:   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+    check:   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>,
     spinner: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="spin-icon"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>,
-    chevron: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><polyline points="9 18 15 12 9 6"/></svg>,
-    dog: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M10 5.172C10 3.782 8.423 2.679 6.5 3c-2 .352-3.5 2.055-3.5 4v3l1 2v2l2 1v-3l4-2 2 2v3l2-1v-2l1-2V7c0-1.933-1.5-3.648-3.5-4C9.577 2.679 8 3.782 8 5.172"/></svg>,
-    plus: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
-    trash: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>,
-    shield: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
-    bell: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>,
-    eye: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
-    eyeOff: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>,
+    dog:     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M10 5.172C10 3.782 8.423 2.679 6.5 3c-2 .352-3.5 2.055-3.5 4v3l1 2v2l2 1v-3l4-2 2 2v3l2-1v-2l1-2V7c0-1.933-1.5-3.648-3.5-4C9.577 2.679 8 3.782 8 5.172"/></svg>,
+    dogFace: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 10L2 2L8.5 8"/><path d="M22 10L22 2L15.5 8"/><rect x="2" y="8" width="20" height="14" rx="2"/><rect x="6.5" y="11.5" width="2.5" height="2.5" fill="currentColor" stroke="none" rx="0.3"/><rect x="15" y="11.5" width="2.5" height="2.5" fill="currentColor" stroke="none" rx="0.3"/><line x1="2" y1="17" x2="22" y2="17"/><path d="M10.5 15.5L12 13L13.5 15.5Z" fill="currentColor" stroke="none"/><path d="M10.5 17 Q10.5 21 12 21 Q13.5 21 13.5 17"/></svg>,
+    plus:    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+    trash:   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>,
+    shield:  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+    bell:    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>,
+    eye:     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
+    eyeOff:  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>,
   };
   return <>{icons[name] ?? null}</>;
 };
 
 // ── Toggle Switch ─────────────────────────────────────────────────────────────
 const Toggle: React.FC<{ on: boolean; onChange: () => void; disabled?: boolean }> = ({ on, onChange, disabled }) => (
-  <button
-    className={`sv-toggle ${on ? "on" : ""}`}
-    onClick={onChange}
-    disabled={disabled}
-    aria-checked={on}
-    role="switch"
-  >
+  <button className={`sv-toggle ${on ? "on" : ""}`} onClick={onChange} disabled={disabled} aria-checked={on} role="switch">
     <span className="sv-toggle-thumb" />
   </button>
 );
@@ -65,10 +56,7 @@ const Row: React.FC<{
       {children}
       {value && <span className="sv-row-value">{value}</span>}
       {action && (
-        <button
-          className={`sv-row-action ${action.variant === "danger" ? "danger" : ""}`}
-          onClick={action.onClick}
-        >
+        <button className={`sv-row-action ${action.variant === "danger" ? "danger" : ""}`} onClick={action.onClick}>
           {action.label}
         </button>
       )}
@@ -143,9 +131,9 @@ const EditProfileModal: React.FC<{
     currentPassword: "", newPassword: "", confirmPassword: "",
   });
   const [showNewPw, setShowNewPw] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState("");
+  const [errors, setErrors]       = useState<Record<string, string>>({});
+  const [loading, setLoading]     = useState(false);
+  const [success, setSuccess]     = useState("");
 
   const validate = () => {
     const e: Record<string, string> = {};
@@ -203,13 +191,13 @@ const EditProfileModal: React.FC<{
             onChange={(e) => setForm({ ...form, email: e.target.value })} />
           {errors.email && <span className="sv-field-err">{errors.email}</span>}
 
-          <label className="sv-label">Bio <span className="sv-optional">optional</span></label>
+          <label className="sv-label">Bio</label>
           <textarea className="sv-input sv-textarea" value={form.bio} maxLength={200} rows={3}
             placeholder="Tell the community about you and your dog…"
             onChange={(e) => setForm({ ...form, bio: e.target.value })} />
           <span className="sv-char-hint">{form.bio.length}/200</span>
 
-          <div className="sv-modal-divider">Change password <span>optional</span></div>
+          <div className="sv-modal-divider">Change password</div>
 
           <label className="sv-label">Current password</label>
           <input className={`sv-input ${errors.currentPassword ? "error" : ""}`} type="password"
@@ -256,10 +244,10 @@ const PreferencesModal: React.FC<{
   const [success, setSuccess]          = useState("");
 
   const PREFS = [
-    { key: "weeklyDigest",     label: "Weekly digest",          hint: "Summary of community activity" },
-    { key: "newServices",      label: "New services near me",   hint: "Service providers in your area" },
-    { key: "communityUpdates", label: "Community updates",      hint: "Replies and likes on your posts" },
-    { key: "dogTips",          label: "Dog care tips",          hint: "Breed-specific advice" },
+    { key: "weeklyDigest",     label: "Weekly digest",         hint: "Summary of community activity" },
+    { key: "newServices",      label: "New services near me",  hint: "Service providers in your area" },
+    { key: "communityUpdates", label: "Community updates",     hint: "Replies and likes on your posts" },
+    { key: "dogTips",          label: "Dog care tips",         hint: "Breed-specific advice" },
   ];
 
   const handleSave = async () => {
@@ -309,7 +297,7 @@ const PreferencesModal: React.FC<{
   );
 };
 
-// Dog Row (inside the My Dogs card)
+// ── Dog Row ───────────────────────────────────────────────────────────────────
 const DogRow: React.FC<{
   dog: DogProfile; onEdit: () => void; onView: () => void;
   token: string; onAvatarUpdate: (url: string) => void;
@@ -456,23 +444,24 @@ const EditDogModal: React.FC<{
   );
 };
 
-//  Main SettingsView 
+// ── Main SettingsView ─────────────────────────────────────────────────────────
 interface SettingsViewProps {
-  user: UserProfile;
-  dog: DogProfile | null;
-  dogs: DogProfile[];  
-  token: string;
-  onUpdate: (u: Partial<UserProfile>) => void;
+  user:        UserProfile;
+  dog:         DogProfile | null;
+  dogs:        DogProfile[];
+  token:       string;
+  onUpdate:    (u: Partial<UserProfile>) => void;
   onDogUpdate: (d: DogProfile) => void;
-  onNav: (key: string) => void; // to jump to "dog" tab
+  onNav:       (key: string) => void;
+  onAddDog:    () => void; // ← triggers AddDogModal in Dashboard
 }
 
 const SettingsView: React.FC<SettingsViewProps> = ({
-  user, dog, dogs, token, onUpdate, onDogUpdate, onNav,
+  user, dog, dogs, token, onUpdate, onDogUpdate, onNav, onAddDog,
 }) => {
-  const [modal, setModal]             = useState<"profile" | "preferences" | null>(null);
-  const [editingDog, setEditingDog]   = useState<DogProfile | null>(null);
-  const [uploadingUser, setUpUser]    = useState(false);
+  const [modal, setModal]           = useState<"profile" | "preferences" | null>(null);
+  const [editingDog, setEditingDog] = useState<DogProfile | null>(null);
+  const [uploadingUser, setUpUser]  = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
 
   const handleUserAvatar = async (file: File) => {
@@ -485,10 +474,11 @@ const SettingsView: React.FC<SettingsViewProps> = ({
 
   return (
     <div className="sv-page">
+
       {/* Avatar Hero */}
       <AvatarHero user={user} onUpload={handleUserAvatar} uploading={uploadingUser} />
 
-      {/* Profile section */}
+      {/* Profile */}
       <Section label="Profile" icon="edit">
         <Card>
           <Row
@@ -545,9 +535,12 @@ const SettingsView: React.FC<SettingsViewProps> = ({
               />
             ))
           )}
-          <button className="sv-add-dog-row" onClick={() => onNav("dog")}>
-            <span className="sv-add-dog-icon"><Icon name="plus" size={14} /></span>
+
+          {/* ── Opens the same 3-step AddDogModal as My Dog page ── */}
+          <button className="sv-add-dog-row" onClick={onAddDog}>
+            <span className="sv-add-dog-icon"><Icon name="dogFace" size={16} /></span>
             <span className="sv-add-dog-label">Add another dog</span>
+            <span className="sv-add-dog-chevron"><Icon name="plus" size={14} /></span>
           </button>
         </Card>
       </Section>
@@ -561,10 +554,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
             noBorder
           >
             <div className="sv-row-right">
-              <Toggle
-                on={user.emailNotifications}
-                onChange={() => setModal("preferences")}
-              />
+              <Toggle on={user.emailNotifications} onChange={() => setModal("preferences")} />
               <button className="sv-row-action" onClick={() => setModal("preferences")}>Manage</button>
             </div>
           </Row>
@@ -584,8 +574,8 @@ const SettingsView: React.FC<SettingsViewProps> = ({
       </Section>
 
       {/* Modals */}
-      {modal === "profile"     && <EditProfileModal    user={user} token={token} onSave={onUpdate} onClose={() => setModal(null)} />}
-      {modal === "preferences" && <PreferencesModal    user={user} token={token} onSave={onUpdate} onClose={() => setModal(null)} />}
+      {modal === "profile"     && <EditProfileModal user={user} token={token} onSave={onUpdate} onClose={() => setModal(null)} />}
+      {modal === "preferences" && <PreferencesModal user={user} token={token} onSave={onUpdate} onClose={() => setModal(null)} />}
       {editingDog              && <EditDogModal dog={editingDog} token={token} onSave={(d) => { onDogUpdate(d); setEditingDog(null); }} onClose={() => setEditingDog(null)} />}
     </div>
   );

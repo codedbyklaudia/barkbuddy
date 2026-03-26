@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useLocation } from 'react-router-dom';
 import "./Dashboard.scss";
 import { useAuth } from "../../context/AuthContext";
+import { useSaved } from "../../context/SavedContext";
 import BuddyCalendar from "../Buddy_Calendar";
 import CommunityForum from "../CommunityForum";
 import DashboardView from './DashboardView';
 import Sidebar from './Sidebar';
 import SettingsView from './SettingsView';
+import SavedView from './SavedView';
 import logoSrc from "../../../images/logo.png";
 
 import {
@@ -96,7 +99,7 @@ function calcProfileComplete(user: UserProfile, dog: DogProfile | null): number 
   return Math.min(score, 100);
 }
 
-// ─── Nav Items (shared reference) ─────────────────────────────────────────────
+// ─── Nav Items ────────────────────────────────────────────────────────────────
 
 const NAV_ITEMS = [
   { key: "home",     label: "Dashboard",      icon: "home"     },
@@ -104,66 +107,67 @@ const NAV_ITEMS = [
   { key: "dog",      label: "My Dog",         icon: "dog"      },
   { key: "calendar", label: "Buddy Calendar", icon: "calendar" },
   { key: "forum",    label: "Forum",          icon: "forum"    },
+  { key: "saved",    label: "Saved",          icon: "bookmark" },
 ];
 
 // ─── Icon ─────────────────────────────────────────────────────────────────────
 
 const Icon: React.FC<{ name: string; size?: number }> = ({ name, size = 18 }) => {
   const icons: Record<string, React.ReactNode> = {
-    home: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg>,
+    home:     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg>,
     settings: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
-    dog: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M10 5.172C10 3.782 8.423 2.679 6.5 3c-2 .352-3.5 2.055-3.5 4v3l1 2v2l2 1v-3l4-2 2 2v3l2-1v-2l1-2V7c0-1.933-1.5-3.648-3.5-4C9.577 2.679 8 3.782 8 5.172"/></svg>,
+    dog:      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M10 5.172C10 3.782 8.423 2.679 6.5 3c-2 .352-3.5 2.055-3.5 4v3l1 2v2l2 1v-3l4-2 2 2v3l2-1v-2l1-2V7c0-1.933-1.5-3.648-3.5-4C9.577 2.679 8 3.782 8 5.172"/></svg>,
     calendar: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>,
-    forum: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
-    logout: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>,
-    bell: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>,
-    edit: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
-    paw: <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><ellipse cx="6" cy="7" rx="2" ry="2.5"/><ellipse cx="18" cy="7" rx="2" ry="2.5"/><ellipse cx="10" cy="4" rx="2" ry="2.5"/><ellipse cx="14" cy="4" rx="2" ry="2.5"/><path d="M12 10c-3.5 0-6 2.5-6 5.5 0 1.5.5 2.5 1.5 3.5H16.5c1-.5 1.5-2 1.5-3.5C18 12.5 15.5 10 12 10z"/></svg>,
-    fire: <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8 6 6 8 6 12c0 3.3 2.7 6 6 6s6-2.7 6-6c0-1.5-.5-3-1.5-4.5C15.5 9 15 10 14 10.5 14.5 8.5 13.5 5 12 2z"/></svg>,
-    check: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>,
-    arrow: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>,
-    arrowLeft: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>,
-    camera: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>,
-    close: <img src="../images/icons/close.svg" width={size} height={size} />,
-    spinner: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="spin-icon"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>,
-    heart: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>,
+    forum:    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
+    bookmark: <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>,
+    logout:   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>,
+    bell:     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>,
+    edit:     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
+    paw:      <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><ellipse cx="6" cy="7" rx="2" ry="2.5"/><ellipse cx="18" cy="7" rx="2" ry="2.5"/><ellipse cx="10" cy="4" rx="2" ry="2.5"/><ellipse cx="14" cy="4" rx="2" ry="2.5"/><path d="M12 10c-3.5 0-6 2.5-6 5.5 0 1.5.5 2.5 1.5 3.5H16.5c1-.5 1.5-2 1.5-3.5C18 12.5 15.5 10 12 10z"/></svg>,
+    fire:     <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8 6 6 8 6 12c0 3.3 2.7 6 6 6s6-2.7 6-6c0-1.5-.5-3-1.5-4.5C15.5 9 15 10 14 10.5 14.5 8.5 13.5 5 12 2z"/></svg>,
+    check:    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>,
+    arrow:    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>,
+    arrowLeft:<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>,
+    camera:   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>,
+    close:    <img src="../images/icons/close.svg" width={size} height={size} />,
+    spinner:  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="spin-icon"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>,
+    heart:    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>,
     heartFilled: <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1.8"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>,
     activity: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>,
-    droplet: <img src="../images/icons/water.png" width={size} height={size} />,
+    droplet:  <img src="../images/icons/water.png" width={size} height={size} />,
     scissors: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>,
-    vaccine: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="m18 2 4 4"/><path d="m17 7 3-3"/><path d="M19 9 8.7 19.3c-1 1-2.5 1-3.4 0l-.6-.6c-1-1-1-2.5 0-3.4L15 5"/><path d="m9 11 4 4"/><path d="m5 19-3 3"/><path d="m14 4 6 6"/></svg>,
-    trophy: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><polyline points="8 21 12 17 16 21"/><line x1="12" y1="17" x2="12" y2="11"/><path d="M17 4H7l-1 7h10l-1-7z"/><path d="M5 4H3v3a2 2 0 0 0 2 2h0"/><path d="M19 4h2v3a2 2 0 0 1-2 2h0"/></svg>,
-    share: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>,
-    food: <img src="../images/icons/pet_bowl.png" width={size} height={size} />,
-    walk: <img src="../images/icons/walk.png" width={size} height={size} />,
-    info: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>,
-    star: <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
-    map: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>,
-    link: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>,
-    penline: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>,
-    x: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+    vaccine:  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="m18 2 4 4"/><path d="m17 7 3-3"/><path d="M19 9 8.7 19.3c-1 1-2.5 1-3.4 0l-.6-.6c-1-1-1-2.5 0-3.4L15 5"/><path d="m9 11 4 4"/><path d="m5 19-3 3"/><path d="m14 4 6 6"/></svg>,
+    trophy:   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><polyline points="8 21 12 17 16 21"/><line x1="12" y1="17" x2="12" y2="11"/><path d="M17 4H7l-1 7h10l-1-7z"/><path d="M5 4H3v3a2 2 0 0 0 2 2h0"/><path d="M19 4h2v3a2 2 0 0 1-2 2h0"/></svg>,
+    share:    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>,
+    food:     <img src="../images/icons/pet_bowl.png" width={size} height={size} />,
+    walk:     <img src="../images/icons/walk.png" width={size} height={size} />,
+    info:     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>,
+    star:     <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
+    map:      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>,
+    link:     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>,
+    penline:  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>,
+    x:        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
     confetti: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M5.5 3 3 5.5l10 10 2.5-2.5L5.5 3z"/><path d="m18 3 3 3-3.5 3.5-3-3L18 3z"/><path d="m3 18 3 3 3.5-3.5-3-3L3 18z"/><circle cx="19.5" cy="19.5" r="1.5"/><circle cx="4.5" cy="12.5" r="1.5"/><circle cx="12.5" cy="4.5" r="1.5"/></svg>,
-    user: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
-    users: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
-    shield: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
-    ball: <img src="../images/icons/ball.png" width={size} height={size} />,
-    bowl: <img src="../images/icons/pet-bowl.png" width={size} height={size} />,
-    dogFace: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 10L2 2L8.5 8"/><path d="M22 10L22 2L15.5 8"/><rect x="2" y="8" width="20" height="14" rx="2"/><rect x="6.5" y="11.5" width="2.5" height="2.5" fill="currentColor" stroke="none" rx="0.3"/><rect x="15" y="11.5" width="2.5" height="2.5" fill="currentColor" stroke="none" rx="0.3"/><line x1="2" y1="17" x2="22" y2="17"/><path d="M10.5 15.5L12 13L13.5 15.5Z" fill="currentColor" stroke="none"/><path d="M10.5 17 Q10.5 21 12 21 Q13.5 21 13.5 17"/></svg>,
-    plus: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
-    comment: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
-    search: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
-    trash: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>,
+    user:     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+    users:    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+    shield:   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+    ball:     <img src="../images/icons/ball.png" width={size} height={size} />,
+    bowl:     <img src="../images/icons/pet-bowl.png" width={size} height={size} />,
+    dogFace:  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 10L2 2L8.5 8"/><path d="M22 10L22 2L15.5 8"/><rect x="2" y="8" width="20" height="14" rx="2"/><rect x="6.5" y="11.5" width="2.5" height="2.5" fill="currentColor" stroke="none" rx="0.3"/><rect x="15" y="11.5" width="2.5" height="2.5" fill="currentColor" stroke="none" rx="0.3"/><line x1="2" y1="17" x2="22" y2="17"/><path d="M10.5 15.5L12 13L13.5 15.5Z" fill="currentColor" stroke="none"/><path d="M10.5 17 Q10.5 21 12 21 Q13.5 21 13.5 17"/></svg>,
+    plus:     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+    comment:  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
+    search:   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
+    trash:    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>,
     userPlus: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>,
-    userCheck: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg>,
-    eye: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
-    eyeOff: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>,
-    award: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>,
+    userCheck:<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg>,
+    eye:      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
+    eyeOff:   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>,
+    award:    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>,
   };
   return <>{icons[name] ?? null}</>;
 };
 
 // ─── Notifications Panel ──────────────────────────────────────────────────────
-
 const NotificationsPanel: React.FC<{
   notifications: AppNotification[]; loading: boolean;
   onClose: () => void; onMarkAllRead: () => void;
@@ -216,7 +220,6 @@ const NotificationsPanel: React.FC<{
 };
 
 // ─── Avatar Upload ────────────────────────────────────────────────────────────
-
 const AvatarUpload: React.FC<{
   url?: string; name: string; size?: "sm" | "lg" | "hero";
   onUpload: (file: File) => Promise<void>; uploading?: boolean;
@@ -239,7 +242,6 @@ const AvatarUpload: React.FC<{
 };
 
 // ─── Dog Photo Hero ───────────────────────────────────────────────────────────
-
 const DogPhotoHero: React.FC<{
   url?: string; name: string; onUpload: (file: File) => Promise<void>; uploading?: boolean;
 }> = ({ url, name, onUpload, uploading }) => {
@@ -261,7 +263,6 @@ const DogPhotoHero: React.FC<{
 };
 
 // ─── Bio Editor ───────────────────────────────────────────────────────────────
-
 const BioEditor: React.FC<{
   bio?: string; token: string;
   onSave: (bio: string, profileComplete: number) => void;
@@ -326,7 +327,6 @@ const BioEditor: React.FC<{
 };
 
 // ─── Edit User Modal ──────────────────────────────────────────────────────────
-
 const EditUserModal: React.FC<{
   user: UserProfile; token: string;
   onSave: (updated: Partial<UserProfile>) => void; onClose: () => void;
@@ -412,7 +412,6 @@ const EditUserModal: React.FC<{
 };
 
 // ─── Edit Dog Modal ───────────────────────────────────────────────────────────
-
 const EditDogModal: React.FC<{
   dog: DogProfile; token: string;
   onSave: (updated: DogProfile) => void; onClose: () => void;
@@ -421,7 +420,6 @@ const EditDogModal: React.FC<{
   const [loading, setLoading] = useState(false);
   const [errors, setErrors]   = useState<Record<string, string>>({});
   const [success, setSuccess] = useState("");
-
 
   const handleSave = async () => {
     if (!form.name.trim()) { setErrors({ name: "Dog name is required" }); return; }
@@ -505,7 +503,6 @@ const EditDogModal: React.FC<{
 };
 
 // ─── Preferences Modal ────────────────────────────────────────────────────────
-
 const PreferencesModal: React.FC<{
   user: UserProfile; token: string;
   onSave: (data: Partial<UserProfile>) => void; onClose: () => void;
@@ -569,7 +566,6 @@ const PreferencesModal: React.FC<{
 };
 
 // ─── Logo ─────────────────────────────────────────────────────────────────────
-
 const BarkBuddyLogo: React.FC<{ size?: "sm" | "md" | "lg" }> = ({ size = "md" }) => {
   const [imgFailed, setImgFailed] = useState(false);
   if (imgFailed) {
@@ -584,11 +580,11 @@ const BarkBuddyLogo: React.FC<{ size?: "sm" | "md" | "lg" }> = ({ size = "md" })
 };
 
 // ─── Mobile Drawer ────────────────────────────────────────────────────────────
-
 const MobileDrawer: React.FC<{
   open: boolean; active: string; onNav: (k: string) => void;
   onClose: () => void; onLogout: () => void; user: UserProfile | null;
-}> = ({ open, active, onNav, onClose, onLogout, user }) => {
+  savedCount: number;
+}> = ({ open, active, onNav, onClose, onLogout, user, savedCount }) => {
   useEffect(() => { document.body.style.overflow = open ? "hidden" : ""; return () => { document.body.style.overflow = ""; }; }, [open]);
   useEffect(() => {
     const fn = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -621,6 +617,9 @@ const MobileDrawer: React.FC<{
               onClick={() => { onNav(item.key); onClose(); }}>
               <span className="mobile-drawer-icon"><Icon name={item.icon} size={18} /></span>
               <span>{item.label}</span>
+              {item.key === "saved" && savedCount > 0 && (
+                <span className="mobile-drawer-badge">{savedCount}</span>
+              )}
             </button>
           ))}
         </nav>
@@ -633,7 +632,6 @@ const MobileDrawer: React.FC<{
 };
 
 // ─── Top Bar ──────────────────────────────────────────────────────────────────
-
 const TopBar: React.FC<{
   user: UserProfile | null; label: string; unreadCount: number;
   notifOpen: boolean; onMenuOpen: () => void; onToggleNotif: () => void;
@@ -666,7 +664,6 @@ const TopBar: React.FC<{
 };
 
 // ─── Dog Helpers ──────────────────────────────────────────────────────────────
-
 function calcAge(dob?: string): string {
   if (!dob) return "Unknown";
   const birth = new Date(dob), now = new Date();
@@ -682,12 +679,6 @@ function humanYears(dob?: string): string {
   let h = ageYrs <= 1 ? ageYrs * 12 : ageYrs <= 2 ? 12 + (ageYrs - 1) * 12 : 24 + (ageYrs - 2) * 4;
   return `≈ ${Math.round(h)} human years`;
 }
-
-const PERSONALITY_ICONS: Record<string, string> = {
-  "high-energy":  "fire",     "playful":     "star",  "gentle":      "heart",
-  "lazy":         "droplet",  "adventurous": "map",   "cuddly":      "heart",
-  "independent":  "activity", "anxious":     "info",
-};
 
 const CARE_TIPS: Record<string, { icon: string; title: string; tip: string }[]> = {
   puppy: [
@@ -711,7 +702,6 @@ const CARE_TIPS: Record<string, { icon: string; title: string; tip: string }[]> 
 };
 
 // ─── Dog Details Section ──────────────────────────────────────────────────────
-
 interface DetailsModalProps { details: DogDetails; onSave: (d: DogDetails) => void; onClose: () => void; }
 
 const DetailsModal: React.FC<DetailsModalProps> = ({ details, onSave, onClose }) => {
@@ -835,9 +825,22 @@ const DogDetailsSection: React.FC<{ dogName: string; dogId: string; token: strin
       <h2 className="dog-details-heading">{dogName}'s details</h2>
       <div className="dog-details-grid">
         {([
-          { key: "details", title: "Details",       has: hasDetails, items: [details.weight, details.bodyCondition, details.activityLevel, details.neutered].filter(Boolean) },
-          { key: "medical", title: "Medical info",  has: hasMedical, items: [details.allergies && `Allergies: ${details.allergies}`, details.healthIssues && `Health: ${details.healthIssues}`, details.medications].filter(Boolean) },
-          { key: "eating",  title: "Eating habits", has: hasEating,  items: [details.eatingStyle, details.treatsPerDay && `${details.treatsPerDay} treats`, details.feedingTimes].filter(Boolean) },
+          { key: "details", title: "Details",       has: hasDetails, items: [
+              details.weight        && `Weight: ${details.weight}`,
+              details.bodyCondition && `Condition: ${details.bodyCondition}`,
+              details.activityLevel && `Activity: ${details.activityLevel}`,
+              details.neutered      && `Neutered: ${details.neutered}`,
+            ].filter(Boolean) },
+          { key: "medical", title: "Medical info",  has: hasMedical, items: [
+              details.allergies    && `Allergies: ${details.allergies}`,
+              details.healthIssues && details.healthIssues.toLowerCase() !== "none" && `Health: ${details.healthIssues}`,
+              details.medications  && details.medications.toLowerCase()  !== "none" && `Medications: ${details.medications}`,
+            ].filter(Boolean) },
+          { key: "eating",  title: "Eating habits", has: hasEating,  items: [
+              details.eatingStyle  && `Style: ${details.eatingStyle}`,
+              details.treatsPerDay && `Treats: ${details.treatsPerDay}`,
+              details.feedingTimes && `Feeding: ${details.feedingTimes}`,
+            ].filter(Boolean) },
         ] as const).map((section) => (
           <div key={section.key} className="detail-card">
             <DetailCardIllustration type={section.key} />
@@ -862,12 +865,7 @@ const DogDetailsSection: React.FC<{ dogName: string; dogId: string; token: strin
   );
 };
 
-// ─── Add Dog Wizard ───────────────────────────────────────────────────────────
-
-interface AddDogFormData { name: string; breed: string; dob: string; lifeStage: string; dobLocked: boolean; personality: string[]; gender: string; }
-const ADD_LIFE_STAGES = [{ key: "puppy", label: "Puppy", age: "0–1 yrs" }, { key: "adult", label: "Adult", age: "1–7 yrs" }, { key: "senior", label: "Senior", age: "7+ yrs" }] as const;
-// ─── Personality categories (Butternut Box style) ────────────────────────────
-// Each category is single-select. PNG images drop in at ../images/personality/
+// ─── Personality helpers ──────────────────────────────────────────────────────
 interface PersonalityOption { key: string; label: string; img: string; }
 interface PersonalityCategory { id: string; question: string; options: PersonalityOption[]; }
 
@@ -876,11 +874,11 @@ const PERSONALITY_CATEGORIES: PersonalityCategory[] = [
     id: "fav_game",
     question: "What's their favourite game?",
     options: [
-      { key: "game_fetch",   label: "Ball chaser",  img: "../images/personality/ball.png"    },
-      { key: "game_tug",     label: "Tug of war",         img: "../images/personality/tug.png"     },
-      { key: "game_chase",   label: "Chasing sticks",          img: "../images/personality/chase.png"   },
-      { key: "game_hide",    label: "Hide & seek",        img: "../images/personality/hide.png"    },
-      { key: "game_chill",   label: "Just chilling",      img: "../images/personality/chill.png"   },
+      { key: "game_fetch",  label: "Ball chaser",      img: "../images/personality/ball.png"    },
+      { key: "game_tug",    label: "Tug of war",        img: "../images/personality/tug.png"     },
+      { key: "game_chase",  label: "Chasing sticks",    img: "../images/personality/chase.png"   },
+      { key: "game_hide",   label: "Hide & seek",       img: "../images/personality/hide_and_seek.png" },
+      { key: "game_chill",  label: "Just chilling",     img: "../images/personality/chill.png"   },
     ],
   },
   {
@@ -898,23 +896,21 @@ const PERSONALITY_CATEGORIES: PersonalityCategory[] = [
     id: "personality",
     question: "How would you describe them?",
     options: [
-      { key: "pers_energetic", label: "High-energy",      img: "../images/personality/energetic.png" },
-      { key: "pers_gentle",    label: "Gentle",     img: "../images/personality/gentle.png"    },
-      { key: "pers_cuddly",    label: "Cuddly",           img: "../images/personality/cuddly.png"    },
-      { key: "pers_playful",   label: "Playful",          img: "../images/personality/playful.png"   },
-      { key: "pers_stubborn",  label: "A little stubborn",img: "../images/personality/stubborn.png"  },
+      { key: "pers_energetic", label: "High-energy",       img: "../images/personality/high_energy.png" },
+      { key: "pers_gentle",    label: "Gentle",            img: "../images/personality/gentle.png"    },
+      { key: "pers_cuddly",    label: "Cuddly",            img: "../images/personality/cuddly.png"    },
+      { key: "pers_playful",   label: "Playful",           img: "../images/personality/playful.png"   },
+      { key: "pers_stubborn",  label: "A little stubborn", img: "../images/personality/stubborn.png"  },
     ],
   },
 ];
 
-// Helper: given the personality array, get the selected key for a category
 const getSelected = (personality: string[], catId: string): string => {
   const cat = PERSONALITY_CATEGORIES.find(c => c.id === catId);
   if (!cat) return "";
   return cat.options.find(o => personality.includes(o.key))?.key ?? "";
 };
 
-// Helper: set one selection per category (replace any existing key from that cat)
 const setSelected = (personality: string[], catId: string, key: string): string[] => {
   const cat = PERSONALITY_CATEGORIES.find(c => c.id === catId);
   if (!cat) return personality;
@@ -927,6 +923,10 @@ function calcLifeStageFromDob(dob: string): string {
   const ageMonths = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth());
   if (ageMonths < 12) return "puppy"; if (ageMonths < 84) return "adult"; return "senior";
 }
+
+// ─── Add Dog Wizard ───────────────────────────────────────────────────────────
+interface AddDogFormData { name: string; breed: string; dob: string; lifeStage: string; dobLocked: boolean; personality: string[]; gender: string; }
+const ADD_LIFE_STAGES = [{ key: "puppy", label: "Puppy", age: "0–1 yrs" }, { key: "adult", label: "Adult", age: "1–7 yrs" }, { key: "senior", label: "Senior", age: "7+ yrs" }] as const;
 
 function useSimpleBreeds() {
   const [breeds, setBreeds]   = useState<{ id: number; name: string }[]>([]);
@@ -997,7 +997,6 @@ const AddDogStepB: React.FC<{ form: AddDogFormData; errors: Record<string, strin
   const dobRef = useRef<HTMLInputElement>(null);
   const handleDobChange = (dob: string) => { if (!dob) { onChange({ dob: "", dobLocked: false }); return; } const stage = calcLifeStageFromDob(dob); onChange({ dob, lifeStage: stage, dobLocked: true }); };
   const handleDobUnknown = () => { if (!dobUnknown) { setDobUnknown(true); onChange({ dob: "", dobLocked: false }); } else { setDobUnknown(false); } };
-
   return (
     <div className="adw-step">
       <p className="adw-step-label">Step 2</p>
@@ -1018,16 +1017,15 @@ const AddDogStepB: React.FC<{ form: AddDogFormData; errors: Record<string, strin
           const isLocked = form.dobLocked, isSelected = form.lifeStage === s.key;
           return (
             <button key={s.key} className={`adw-stage-btn ${isSelected ? "selected" : ""} ${isLocked && !isSelected ? "locked-out" : ""} ${isLocked ? "stage-locked" : ""}`}
-              onClick={() => { if (!isLocked) onChange({ lifeStage: s.key }); }} disabled={isLocked && !isSelected} title={isLocked ? "Life stage is locked to birthday" : undefined}>
+              onClick={() => { if (!isLocked) onChange({ lifeStage: s.key }); }} disabled={isLocked && !isSelected}>
               <span className="adw-stage-icon"><Icon name="dogFace" size={22} /></span>
               <span className="adw-stage-label">{s.label}</span>
               <span className="adw-stage-age">{s.age}</span>
-              {isLocked && isSelected && (<span className="adw-stage-lock-badge" title="Locked to birthday"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" width="10" height="10"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>)}
+              {isLocked && isSelected && (<span className="adw-stage-lock-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" width="10" height="10"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>)}
             </button>
           );
         })}
       </div>
-      {/* ── Personality categories ── */}
       {PERSONALITY_CATEGORIES.map((cat) => (
         <div key={cat.id} className="adw-personality-category">
           <label className="adw-label" style={{ marginTop: "1.3rem" }}>{cat.question}</label>
@@ -1036,11 +1034,8 @@ const AddDogStepB: React.FC<{ form: AddDogFormData; errors: Record<string, strin
             {cat.options.map((opt) => {
               const isSelected = form.personality.includes(opt.key);
               return (
-                <button
-                  key={opt.key}
-                  className={`adw-personality-chip ${isSelected ? "selected" : ""}`}
-                  onClick={() => onChange({ personality: setSelected(form.personality, cat.id, opt.key) })}
-                >
+                <button key={opt.key} className={`adw-personality-chip ${isSelected ? "selected" : ""}`}
+                  onClick={() => onChange({ personality: setSelected(form.personality, cat.id, opt.key) })}>
                   <span className="adw-chip-img">
                     <img src={opt.img} alt={opt.label}
                       onError={(e) => {
@@ -1166,7 +1161,6 @@ const AddDogModal: React.FC<{
 };
 
 // ─── Extra Dog Panel ──────────────────────────────────────────────────────────
-
 const ExtraDogPanel: React.FC<{
   dog: DogProfile; token: string;
   onRemove: (id: string) => void;
@@ -1174,14 +1168,37 @@ const ExtraDogPanel: React.FC<{
   onDogUpdate: (updated: DogProfile) => void;
 }> = ({ dog, token, onRemove, onAvatarUpdate, onDogUpdate }) => {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
-  const [editOpen,  setEditOpen]  = useState(false);
+  const [uploading,    setUploading]    = useState(false);
+  const [editOpen,     setEditOpen]     = useState(false);
+  const [copyFeedback, setCopyFeedback] = useState("");
 
   const handleUpload = async (file: File) => {
     setUploading(true);
     try { await onAvatarUpdate(dog.id, file); }
     catch (err) { console.error(err); }
     finally { setUploading(false); }
+  };
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}/#/dog/${dog.id}`);
+      setCopyFeedback("✓ Copied!"); setTimeout(() => setCopyFeedback(""), 2000);
+    } catch { setCopyFeedback("Failed"); setTimeout(() => setCopyFeedback(""), 2000); }
+  };
+
+  const handleShare = async () => {
+    const url  = `${window.location.origin}/#/dog/${dog.id}`;
+    const text = `Check out ${dog.name}! 🐾 ${url}`;
+    if (navigator.share) {
+      try { await navigator.share({ title: `${dog.name} on BarkBuddy`, text, url }); }
+      catch { /* cancelled */ }
+    } else {
+      try {
+        await navigator.clipboard.writeText(text);
+        setCopyFeedback("✓ Link copied!");
+        setTimeout(() => setCopyFeedback(""), 2000);
+      } catch { /* silent */ }
+    }
   };
 
   return (
@@ -1234,7 +1251,10 @@ const ExtraDogPanel: React.FC<{
       </div>
       <div className="dog-share-banner">
         <div className="dog-share-text"><h3 className="dog-share-title">Share {dog.name}'s profile</h3><p className="dog-share-sub">Show off your pup to friends and family!</p></div>
-        <div className="dog-share-actions"><button className="dog-share-btn"><Icon name="link" size={14} /> Copy link</button><button className="dog-share-btn social"><Icon name="share" size={14} /> Share</button></div>
+        <div className="dog-share-actions">
+          <button className="dog-share-btn" onClick={handleCopyLink}><Icon name="link" size={14} /> {copyFeedback || "Copy link"}</button>
+          <button className="dog-share-btn social" onClick={handleShare}><Icon name="share" size={14} /> Share</button>
+        </div>
         <div className="dog-share-paws" aria-hidden="true">🐾 🐾 🐾</div>
       </div>
       <DogDetailsSection dogName={dog.name} dogId={dog.id} token={token} />
@@ -1254,7 +1274,6 @@ const AddDogRow: React.FC<{ onAdd: () => void }> = ({ onAdd }) => (
 );
 
 // ─── Dog View ─────────────────────────────────────────────────────────────────
-
 const DogView: React.FC<{
   dog: DogProfile | null; allDogs: DogProfile[]; token: string;
   onDogUpdate: (d: DogProfile) => void; onAllDogsUpdate: (dogs: DogProfile[]) => void;
@@ -1277,20 +1296,24 @@ const DogView: React.FC<{
   const handleCopyLink = async () => {
     if (!dog) return;
     try {
-      await navigator.clipboard.writeText(`${window.location.origin}/dog/${dog.id}`);
+      await navigator.clipboard.writeText(`${window.location.origin}/#/dog/${dog.id}`);
       setCopyFeedback("✓ Copied!"); setTimeout(() => setCopyFeedback(""), 2000);
     } catch { setCopyFeedback("Failed to copy"); setTimeout(() => setCopyFeedback(""), 2000); }
   };
 
   const handleShare = async () => {
     if (!dog) return;
-    const url = `${window.location.origin}/dog/${dog.id}`;
+    const url  = `${window.location.origin}/#/dog/${dog.id}`;
+    const text = `Check out ${dog.name}! 🐾 ${url}`;
     if (navigator.share) {
-      try { await navigator.share({ title: `${dog.name}'s Profile`, text: `Check out ${dog.name}! 🐾`, url }); }
+      try { await navigator.share({ title: `${dog.name} on BarkBuddy`, text, url }); }
       catch { /* cancelled */ }
     } else {
-      try { await navigator.clipboard.writeText(`Check out ${dog.name}! 🐾 ${url}`); setCopyFeedback("✓ Link copied!"); setTimeout(() => setCopyFeedback(""), 2000); }
-      catch { console.error("Copy failed"); }
+      try {
+        await navigator.clipboard.writeText(text);
+        setCopyFeedback("✓ Link copied!");
+        setTimeout(() => setCopyFeedback(""), 2000);
+      } catch { /* silent */ }
     }
   };
 
@@ -1386,10 +1409,13 @@ const DogView: React.FC<{
 };
 
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
-
 const Dashboard: React.FC = () => {
-  const { token, logout }           = useAuth();
-  const [activeNav, setActiveNav]   = useState("home");
+  const { token, logout }  = useAuth();
+  const { totalCount: savedCount } = useSaved();
+  const location = useLocation();
+  const [activeNav, setActiveNav] = useState<string>(
+    (location.state as { tab?: string })?.tab ?? "home"
+  );
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [user,    setUser]    = useState<UserProfile | null>(null);
   const [dog,     setDog]     = useState<DogProfile  | null>(null);
@@ -1401,6 +1427,10 @@ const Dashboard: React.FC = () => {
   const [notifOpen,      setNotifOpen]      = useState(false);
   const [forumPostId,    setForumPostId]    = useState<string | null>(null);
   const [forumCommentId, setForumCommentId] = useState<string | null>(null);
+
+  // ── NEW: controls the AddDogModal when triggered from SettingsView ──────────
+  const [settingsAddDogOpen, setSettingsAddDogOpen] = useState(false);
+
   const POLL_INTERVAL_MS = 60_000;
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
@@ -1440,24 +1470,16 @@ const Dashboard: React.FC = () => {
     Promise.all([getProfile(token), getAllDogs(token)])
       .then(([profileRes, dogsRes]) => {
         setUser(profileRes.user);
-
-        // getAllDogs is the source of truth — it has is_main from the DB.
-        // profileRes.dog is a fallback only if getAllDogs returns nothing.
         const dogs: DogProfile[] = dogsRes.dogs ?? [];
-
         if (dogs.length > 0) {
-          // Ensure exactly one dog is flagged isMain.
-          // Priority: DB is_main flag → first dog in list (sorted main-first by query).
           const hasMain = dogs.some((d: any) => d.isMain);
           const merged  = hasMain
             ? dogs
             : dogs.map((d: any, i: number) => ({ ...d, isMain: i === 0 }));
-
           const mainDog = merged.find((d) => d.isMain) ?? merged[0];
           setDog({ ...mainDog, isMain: true });
           setAllDogs(merged);
         } else if (profileRes.dog) {
-          // Fallback: getAllDogs returned nothing, use profile dog
           setDog({ ...profileRes.dog, isMain: true });
           setAllDogs([{ ...profileRes.dog, isMain: true }]);
         } else {
@@ -1469,9 +1491,9 @@ const Dashboard: React.FC = () => {
       .finally(() => setLoading(false));
   }, [token]);
 
-  const handleUserUpdate  = (updated: Partial<UserProfile>) => setUser((p) => p ? { ...p, ...updated } : p);
+  const handleUserUpdate    = (updated: Partial<UserProfile>) => setUser((p) => p ? { ...p, ...updated } : p);
   const handleAllDogsUpdate = (dogs: DogProfile[]) => setAllDogs(dogs);
-  const handleLogout      = () => { logout(); window.location.href = "/"; };
+  const handleLogout        = () => { logout(); window.location.href = "/"; };
 
   const handleDogUpdate = (updated: DogProfile) => {
     setDog(updated);
@@ -1486,8 +1508,12 @@ const Dashboard: React.FC = () => {
   };
 
   const labels: Record<string, string> = {
-    home: "Dashboard", settings: "Settings", dog: "My Dog",
-    calendar: "Buddy Calendar", forum: "Community Forum",
+    home:     "Dashboard",
+    settings: "Settings",
+    dog:      "My Dog",
+    calendar: "Buddy Calendar",
+    forum:    "Community Forum",
+    saved:    "Saved",
   };
 
   if (loading) return <div className="dashboard-loading"><div className="auth-loading-spinner" /></div>;
@@ -1515,13 +1541,13 @@ const Dashboard: React.FC = () => {
       )}
 
       <div className="db-body">
-        {/* ── Sidebar — imported from ./Sidebar ── */}
         <Sidebar
           active={activeNav}
           onNav={setActiveNav}
           onLogout={handleLogout}
           userAvatar={user.avatarUrl}
           userName={user.name}
+          savedCount={savedCount}
         />
 
         <main className="db-content" id="main-content" tabIndex={-1}>
@@ -1533,11 +1559,25 @@ const Dashboard: React.FC = () => {
             />
           )}
 
-          {/* ── SettingsView — imported from ./SettingsView ── */}
           {activeNav === "settings" && token && (
             <SettingsView
               user={user} dog={dog} dogs={allDogs} token={token}
-              onUpdate={handleUserUpdate} onDogUpdate={handleDogUpdate} onNav={setActiveNav}
+              onUpdate={handleUserUpdate}
+              onDogUpdate={handleDogUpdate}
+              onNav={setActiveNav}
+              onAddDog={() => setSettingsAddDogOpen(true)}
+            />
+          )}
+
+          {/* ── AddDogModal triggered from Settings ── */}
+          {settingsAddDogOpen && token && (
+            <AddDogModal
+              token={token}
+              onSave={(newDog) => {
+                handleAllDogsUpdate([...allDogs, { ...newDog, isMain: false }]);
+                setSettingsAddDogOpen(false);
+              }}
+              onClose={() => setSettingsAddDogOpen(false)}
             />
           )}
 
@@ -1564,12 +1604,19 @@ const Dashboard: React.FC = () => {
             </div>
           )}
 
+          {activeNav === "saved" && (
+            <div className="db-view">
+              <SavedView onNav={setActiveNav} />
+            </div>
+          )}
+
         </main>
       </div>
 
       <MobileDrawer
         open={drawerOpen} active={activeNav} onNav={setActiveNav}
-        onClose={() => setDrawerOpen(false)} onLogout={handleLogout} user={user}
+        onClose={() => setDrawerOpen(false)} onLogout={handleLogout}
+        user={user} savedCount={savedCount}
       />
     </div>
   );

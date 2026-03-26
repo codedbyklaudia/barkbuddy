@@ -1,35 +1,33 @@
-import React, { useState, useMemo, useRef, useEffect } from "react";
+import React, { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import "./TipsPage.scss";
-import Footer from './Footer';
+import Footer from "./Footer";
+import { useAuth } from "../context/AuthContext";
+import { useSaved } from "../context/SavedContext";
 
-// Types 
-export type TipPoint = {
-  text: string;
-  sub?: string[];
-};
+export type TipPoint = { text: string; sub?: string[] };
 
 export type Tip = {
-  id:       string;
-  icon:     string;
-  title:    string;
-  summary:  string;
-  points:   TipPoint[];
-  callout?: { label: string; text: string };
+  id:           string;
+  icon:         string;
+  image?:       string;   
+  title:        string;
+  summary:      string;
+  points:       TipPoint[];
+  callout?:     { label: string; text: string };
 };
 
 export type TipCategory = "grooming" | "health" | "training" | "nutrition";
 
 export type TipsPageProps = {
-  category:      TipCategory;
-  title:         string;
-  titleAccent:   string;
-  subtitle:      string;
-  heroIcon:      string;
-  tips:          Tip[];
+  category:    TipCategory;
+  title:       string;
+  titleAccent: string;
+  subtitle:    string;
+  heroIcon:    string;
+  tips:        Tip[];
 };
 
-// Category nav
 const NAV = [
   { label: "Grooming",  path: "/tips/grooming",  icon: "/images/icons/grooming.svg"  },
   { label: "Health",    path: "/tips/health",    icon: "/images/icons/health.svg"    },
@@ -37,117 +35,205 @@ const NAV = [
   { label: "Nutrition", path: "/tips/nutrition", icon: "/images/icons/nutrition.svg" },
 ];
 
-const CATEGORY_LABELS: Record<TipCategory, string> = {
-  grooming:  "Grooming",
-  health:    "Health",
-  training:  "Training",
-  nutrition: "Nutrition",
-};
-
-// ─── Icons ────────────────────────────────────────────────────────────────────
 const SearchIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-    width="18" height="18" aria-hidden="true">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15">
     <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
   </svg>
 );
 
 const CloseIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
-    width="16" height="16" aria-hidden="true">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="13" height="13">
     <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
   </svg>
 );
 
-const ChevronIcon = () => (
+const BookmarkIcon = ({ filled }: { filled: boolean }) => (
+  <svg width="14" height="14" viewBox="0 0 24 24"
+    fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2"
+    strokeLinecap="round" strokeLinejoin="round">
+    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+  </svg>
+);
+
+const ArrowIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
-    width="18" height="18" aria-hidden="true" className="tip-card__chevron">
-    <polyline points="6 9 12 15 18 9"/>
+    width="13" height="13" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="5" y1="12" x2="19" y2="12"/>
+    <polyline points="12 5 19 12 12 19"/>
   </svg>
 );
 
-const ChevronRightIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
+// Locked screen
+const TipsLocked: React.FC<{
+  category: TipCategory; title: string; titleAccent: string;
+}> = ({ category, title, titleAccent }) => (
+  <div className={`tips-locked tips-locked--${category}`}>
+    <div className="tips-locked__veil" />
+    <div className="tips-locked__panel">
+      <span className="tips-locked__paw" aria-hidden="true">🐾</span>
+      <h1 className="tips-locked__heading">
+        {title} <em>{titleAccent}</em>
+      </h1>
+      <p className="tips-locked__body">
+        Expert dog care tips, free for every BarkBuddy member.
+        Log in or create your account to start reading.
+      </p>
+      <div className="tips-locked__ctas">
+        <Link to="/login"    className="tips-locked__cta tips-locked__cta--primary">Log in</Link>
+        <Link to="/register" className="tips-locked__cta tips-locked__cta--ghost">Create free account</Link>
+      </div>
+      <p className="tips-locked__hint">Back to <Link to="/">Home</Link></p>
+    </div>
+  </div>
 );
 
-// ─── Single expandable tip card ───────────────────────────────────────────────
-const TipCard: React.FC<{ tip: Tip; category: TipCategory; index: number; forceOpen?: boolean }> = ({
-  tip, category, index, forceOpen,
-}) => {
-  const [localOpen, setLocalOpen] = useState(false);
-  const bodyRef                   = useRef<HTMLDivElement>(null);
-  const [height, setHeight]       = useState<number>(0);
-
-  const open = forceOpen ?? localOpen;
-
+// Tip modal
+const TipModal: React.FC<{
+  tip:      Tip;
+  category: TipCategory;
+  saved:    boolean;
+  onSave:   () => void;
+  onClose:  () => void;
+}> = ({ tip, category, saved, onSave, onClose }) => {
   useEffect(() => {
-    if (bodyRef.current) setHeight(bodyRef.current.scrollHeight);
-  }, [open, tip]);
+    const fn = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", fn);
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", fn);
+      document.body.style.overflow = "";
+    };
+  }, [onClose]);
 
   return (
     <div
-      className={`tip-card tip-card--${category} ${open ? "tip-card--open" : ""}`}
-      style={{ animationDelay: `${index * 0.045}s` }}
+      className="tip-modal-backdrop"
+      onClick={e => e.target === e.currentTarget && onClose()}
+      role="dialog" aria-modal="true"
     >
-      <button
-        className="tip-card__header"
-        onClick={() => setLocalOpen(o => !o)}
-        aria-expanded={open}
-        aria-controls={`tip-body-${tip.id}`}
-      >
-        <div className="tip-card__icon-wrap">
-          <img src={tip.icon} alt="" className="tip-card__icon" />
-        </div>
-        <div className="tip-card__header-text">
-          <h3 className="tip-card__title">{tip.title}</h3>
-          {!open && <p className="tip-card__summary">{tip.summary}</p>}
-        </div>
-        <div className="tip-card__chevron-wrap">
-          <ChevronIcon />
-        </div>
-      </button>
+      <div className="tip-modal">
+        <button className="tip-modal__close" onClick={onClose} aria-label="Close">
+          <CloseIcon />
+        </button>
 
-      <div
-        id={`tip-body-${tip.id}`}
-        className="tip-card__body"
-        style={{ maxHeight: open ? `${height}px` : 0 }}
-        aria-hidden={!open}
-      >
-        <div ref={bodyRef} className="tip-card__body-inner">
-          <p className="tip-card__body-intro">{tip.summary}</p>
-          <ul className="tip-card__points">
+        {/* Image */}
+        {tip.image ? (
+          <div className="tip-modal__image">
+            <img src={tip.image} alt={tip.title} />
+          </div>
+        ) : (
+          <div className="tip-modal__image tip-modal__image--placeholder">
+            <img src={tip.icon} alt="" className="tip-modal__icon-fallback" />
+          </div>
+        )}
+
+        <div className="tip-modal__body">
+          <div className="tip-modal__meta">
+            <span className="tip-modal__tag">{category}</span>
+            <span className="tip-modal__pts">{tip.points.length} points</span>
+          </div>
+
+          <h2 className="tip-modal__title">{tip.title}</h2>
+          <p className="tip-modal__summary">{tip.summary}</p>
+
+          <ul className="tip-modal__points">
             {tip.points.map((p, i) => (
-              <li key={i} className="tip-card__point">
-                <span className="tip-card__point-text">{p.text}</span>
-                {p.sub && (
-                  <ul className="tip-card__sub-points">
-                    {p.sub.map((s, j) => <li key={j}>{s}</li>)}
-                  </ul>
-                )}
+              <li key={i} className="tip-modal__point">
+                <span className="tip-modal__bullet" />
+                <div>
+                  <span className="tip-modal__point-text">{p.text}</span>
+                  {p.sub && (
+                    <ul className="tip-modal__sub">
+                      {p.sub.map((s, j) => <li key={j}>{s}</li>)}
+                    </ul>
+                  )}
+                </div>
               </li>
             ))}
           </ul>
+
           {tip.callout && (
-            <div className="tip-card__callout">
-              <span className="tip-card__callout-label">{tip.callout.label}</span>
+            <aside className="tip-modal__callout">
+              <span className="tip-modal__callout-label">{tip.callout.label}</span>
               <p>{tip.callout.text}</p>
-            </div>
+            </aside>
           )}
+
+          <button
+            className={`tip-modal__save${saved ? " tip-modal__save--saved" : ""}`}
+            onClick={onSave}
+          >
+            <BookmarkIcon filled={saved} />
+            {saved ? "Saved" : "Save tip"}
+          </button>
         </div>
       </div>
     </div>
   );
 };
 
-// ─── Main page component ──────────────────────────────────────────────────────
+// Tip card
+const TipCard: React.FC<{
+  tip:      Tip;
+  category: TipCategory;
+  saved:    boolean;
+  onSave:   () => void;
+  onOpen:   () => void;
+  index:    number;
+}> = ({ tip, category, saved, onSave, onOpen, index }) => (
+  <article
+    className="tip-card"
+    style={{ animationDelay: `${index * 0.06}s` }}
+  >
+    {/* Illustration / image */}
+    <button className="tip-card__image-wrap" onClick={onOpen} aria-label={`Read tip: ${tip.title}`}>
+      {tip.image ? (
+        <img src={tip.image} alt={tip.title} className="tip-card__image" />
+      ) : (
+        <div className="tip-card__image-placeholder">
+          <img src={tip.icon} alt="" className="tip-card__icon-fallback" />
+        </div>
+      )}
+    </button>
+
+    {/* Bookmark */}
+    <button
+      className={`tip-card__bookmark${saved ? " tip-card__bookmark--saved" : ""}`}
+      onClick={onSave}
+      aria-label={saved ? "Remove bookmark" : "Save tip"}
+      aria-pressed={saved}
+    >
+      <BookmarkIcon filled={saved} />
+    </button>
+
+    {/* Body */}
+    <div className="tip-card__body">
+      <div className="tip-card__meta">
+        <span className="tip-card__tag">{category}</span>
+      </div>
+      <h3 className="tip-card__title">{tip.title}</h3>
+      <p className="tip-card__summary">{tip.summary}</p>
+      <button className="tip-card__read" onClick={onOpen}>
+        Read tip <ArrowIcon />
+      </button>
+    </div>
+  </article>
+);
+
+// Main page 
 const TipsPage: React.FC<TipsPageProps> = ({
   category, title, titleAccent, subtitle, heroIcon, tips,
 }) => {
-  const [query,     setQuery]     = useState("");
-  const [expandAll, setExpandAll] = useState(false);
-  const inputRef                  = useRef<HTMLInputElement>(null);
+  const { token }                        = useAuth();
+  const { isSaved, toggleTip, tipCount } = useSaved();
+
+  const [query,    setQuery]    = useState("");
+  const [openTip,  setOpenTip]  = useState<Tip | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  if (!token) {
+    return <TipsLocked category={category} title={title} titleAccent={titleAccent} />;
+  }
 
   const filtered = useMemo(() => {
     if (!query.trim()) return tips;
@@ -159,141 +245,120 @@ const TipsPage: React.FC<TipsPageProps> = ({
     );
   }, [query, tips]);
 
+  const handleSave = useCallback((tip: Tip) => {
+    toggleTip({ id: tip.id, title: tip.title, summary: tip.summary, category, icon: tip.icon });
+  }, [tips, category, toggleTip]);
+
   return (
     <div className={`tips-page tips-page--${category}`}>
 
-      {/* ── Hero — two-column layout matching TravelPage ─────────────────── */}
-      <section className="tips-hero">
+      {/* Modal */}
+      {openTip && (
+        <TipModal
+          tip={openTip}
+          category={category}
+          saved={isSaved(openTip.id)}
+          onSave={() => handleSave(openTip)}
+          onClose={() => setOpenTip(null)}
+        />
+      )}
 
-        {/* Left — text */}
-        <div className="tips-hero__left">
-          <div className="tips-hero__heading-block">
-
-            <p className="tips-hero__eyebrow">
-              Dog Tips
-            </p>
-
+      {/* Hero banner  */}
+      <header className="tips-hero">
+        <div className="tips-hero__bg" aria-hidden="true">
+          <img src={heroIcon} alt="" className="tips-hero__bg-img" />
+          <div className="tips-hero__bg-veil" />
+        </div>
+        <div className="tips-hero__inner">
+          <div className="tips-hero__text">
+            <p className="tips-hero__eyebrow">Dog Tips</p>
             <h1 className="tips-hero__title">
-              <span>{title}</span>
-              <span><em>{titleAccent}</em></span>
+              {title}<br /><em>{titleAccent}</em>
             </h1>
-
             <p className="tips-hero__sub">{subtitle}</p>
-
-            <div className="tips-hero__meta">
-              <div className="tips-hero__stat">
-                <span className="tips-hero__stat-value">{tips.length}</span>
-                <span className="tips-hero__stat-label">Tips</span>
-              </div>
-              <div className="tips-hero__stat">
-                <span className="tips-hero__stat-value">Free</span>
-                <span className="tips-hero__stat-label">Always</span>
-              </div>
+          </div>
+          <div className="tips-hero__stats">
+            <div className="tips-hero__stat">
+              <strong>{tips.length}</strong>
+              <span>Tips</span>
             </div>
-
+            {tipCount > 0 && (
+              <div className="tips-hero__stat tips-hero__stat--accent">
+                <strong>{tipCount}</strong>
+                <span>Saved</span>
+              </div>
+            )}
           </div>
         </div>
+      </header>
 
-        {/* Right — illustration as full-cover image */}
-        <div className="tips-hero__right" aria-hidden="true">
-          <img
-            src={heroIcon}
-            alt=""
-            className="tips-hero__deco-img"
-          />
-        </div>
-
-      </section>
-
-      {/* Category nav  */}
-      <nav className="tips-nav" aria-label="Tip categories">
-        <div className="tips-nav__inner">
-          {NAV.map(c => (
-            <Link
-              key={c.path}
-              to={c.path}
-              className={`tips-nav__link${c.path === `/tips/${category}` ? " tips-nav__link--active" : ""}`}
-            >
-              <img src={c.icon} alt="" />
-              {c.label}
-            </Link>
-          ))}
-        </div>
-      </nav>
-
-      {/* ── Search + controls ────────────────────────────────────────────── */}
+      {/* Nav + search */}
       <div className="tips-controls">
-        <div className="tips-search">
-          <label htmlFor="tips-search-input" className="tips-search__icon">
-            <SearchIcon />
-          </label>
-          <input
-            ref={inputRef}
-            id="tips-search-input"
-            className="tips-search__input"
-            type="search"
-            placeholder={`Search ${category} tips…`}
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            autoComplete="off"
-          />
-          {query && (
-            <button
-              className="tips-search__clear"
-              onClick={() => { setQuery(""); inputRef.current?.focus(); }}
-              aria-label="Clear search"
-            >
-              <CloseIcon />
-            </button>
-          )}
-        </div>
+        <div className="tips-controls__inner">
+          <nav className="tips-nav" aria-label="Tip categories">
+            {NAV.map(c => (
+              <Link key={c.path} to={c.path}
+                className={`tips-nav__link${c.path === `/tips/${category}` ? " tips-nav__link--active" : ""}`}>
+                <img src={c.icon} alt="" />
+                {c.label}
+              </Link>
+            ))}
+          </nav>
 
-        <div className="tips-controls__right">
-          <button
-            className="tips-controls__expand"
-            onClick={() => setExpandAll(e => !e)}
-          >
-            {expandAll ? "Collapse all" : "Expand all"}
-            <ChevronRightIcon />
-          </button>
+          <div className="tips-search">
+            <span className="tips-search__icon"><SearchIcon /></span>
+            <input
+              ref={inputRef}
+              type="search"
+              className="tips-search__input"
+              placeholder={`Search ${category} tips…`}
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              autoComplete="off"
+            />
+            {query && (
+              <button className="tips-search__clear"
+                onClick={() => { setQuery(""); inputRef.current?.focus(); }}>
+                <CloseIcon />
+              </button>
+            )}
+          </div>
+
+          <p className="tips-count">
+            {query
+              ? <><strong>{filtered.length}</strong> result{filtered.length !== 1 ? "s" : ""}</>
+              : <><strong>{tips.length}</strong> {category} tips</>}
+          </p>
         </div>
       </div>
 
-      {/* ── Tips grid ────────────────────────────────────────────────────── */}
-      <div className="tips-body">
+      {/* Card grid */}
+      <main className="tips-body">
         {filtered.length === 0 ? (
           <div className="tips-empty">
-            <img src={heroIcon} alt="" />
-            <h3>No tips found</h3>
-            <p>
-              Try a different search term — or{" "}
-              <button onClick={() => setQuery("")}>clear the search</button>
+            <p className="tips-empty__title">No tips found</p>
+            <p className="tips-empty__sub">
+              Try a different search or{" "}
+              <button onClick={() => setQuery("")}>clear</button>
             </p>
           </div>
         ) : (
-          <>
-            <div className="tips-body__label">
-              <span>
-                {query
-                  ? `${filtered.length} result${filtered.length !== 1 ? "s" : ""}`
-                  : `${tips.length} ${category} tips`}
-              </span>
-            </div>
-            <div className="tips-grid" key={query}>
-              {filtered.map((tip, i) => (
-                <TipCard
-                  key={tip.id}
-                  tip={tip}
-                  category={category}
-                  index={i}
-                  forceOpen={expandAll ? true : undefined}
-                />
-              ))}
-            </div>
-          </>
+          <div className="tips-grid">
+            {filtered.map((tip, i) => (
+              <TipCard
+                key={tip.id}
+                tip={tip}
+                index={i}
+                category={category}
+                saved={isSaved(tip.id)}
+                onSave={() => handleSave(tip)}
+                onOpen={() => setOpenTip(tip)}
+              />
+            ))}
+          </div>
         )}
-      </div>
-        <Footer />
+      </main>
+      <Footer />
     </div>
   );
 };
