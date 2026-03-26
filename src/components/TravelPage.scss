@@ -145,7 +145,7 @@
 
 .travel-hero__cta {
   font-family: $font-secondary;
-  font-size: 0.8rem;
+  font-size: $t-but-des;
   font-weight: $fw-regular;
   letter-spacing: 0.04em;
   @include cursor;

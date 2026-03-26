@@ -7,6 +7,7 @@ const tips: Tip[] = [
   {
     id: "brushing",
     icon: ICON,
+    image: "../images/tips/brushing-coat.avif",
     title: "Brushing your dog's coat",
     summary: "The right brush used consistently prevents matting, distributes natural oils, and gives you a chance to check for skin issues.",
     points: [
@@ -20,6 +21,7 @@ const tips: Tip[] = [
   {
     id: "bathing",
     icon: ICON,
+    image: "../images/tips/bathing.avif",
     title: "Bathing at home",
     summary: "Every 4–6 weeks is ideal. Too frequent strips natural oils; too infrequent allows skin issues to develop.",
     points: [
@@ -34,6 +36,7 @@ const tips: Tip[] = [
   {
     id: "nails",
     icon: ICON,
+    image: "../images/tips/nail_trimming.avif",
     title: "Nail trimming",
     summary: "Overgrown nails change your dog's gait and put strain on joints. Understanding the quick is the key to confident trimming.",
     points: [
@@ -47,6 +50,7 @@ const tips: Tip[] = [
   {
     id: "ears",
     icon: ICON,
+    image: "../images/tips/ear-cleaning.avif",
     title: "Ear cleaning",
     summary: "Floppy-eared breeds and swimmers need regular ear cleaning to prevent infections. Over-cleaning is just as harmful as neglect.",
     points: [
@@ -60,6 +64,7 @@ const tips: Tip[] = [
   {
     id: "dental",
     icon: ICON,
+    image: "../images/tips/dental-care.jpg",
     title: "Dental care",
     summary: "80% of dogs show dental disease by age three. Daily brushing is gold standard - but effective alternatives exist.",
     points: [
@@ -73,6 +78,7 @@ const tips: Tip[] = [
   {
     id: "shedding",
     icon: ICON,
+    image: "../images/tips/managing-shedding.avif",
     title: "Managing seasonal shedding",
     summary: "Twice-yearly coat blowouts are normal for double-coated breeds. Managing them well saves your furniture and keeps your dog comfortable.",
     points: [
@@ -86,6 +92,7 @@ const tips: Tip[] = [
   {
     id: "professional",
     icon: ICON,
+    image: "../images/tips/grooming1.jpg",
     title: "When to book a professional groomer",
     summary: "Some tasks require professional tools and experience. Knowing when to book prevents injury and saves stress.",
     points: [
@@ -99,6 +106,7 @@ const tips: Tip[] = [
   {
     id: "puppy-grooming",
     icon: ICON,
+    image: "../images/tips/grooming-puppy.avif",
     title: "Grooming a puppy",
     summary: "Early positive experiences build habits for life. The goal at this stage is association, not perfection.",
     points: [
@@ -112,6 +120,7 @@ const tips: Tip[] = [
   {
     id: "coat-types",
     icon: ICON,
+    image: "../images/tips/coat-types.png",
     title: "Understanding coat types",
     summary: "The right grooming approach depends entirely on coat type. What works for a Labrador will harm a Poodle's coat.",
     points: [

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './HeroSection.scss';
+import { Link } from 'react-router-dom';
 
 interface ImageItem {
   id: number;
@@ -35,14 +36,15 @@ const HeroSection: React.FC = () => {
         </h1>
         <p className="hero__subtitle">Begin a lifetime of happiness with your dog!</p>
         <div className="hero__home-buttons">
-          <button className="btn1 btn1--1">
+          <Link to="/service-finder" className="btn1 btn1--1">
             Service Finder
             <i className="bi bi-chevron-double-right"></i>
-          </button>
-          <button className="btn1 btn1--2">
-            Explore Activities
+          </Link>
+
+          <Link to="/travel-page" className="btn1 btn1--2">
+            Travel Guide
             <i className="bi bi-chevron-double-right"></i>
-          </button>
+          </Link>
         </div>
       </div>
 

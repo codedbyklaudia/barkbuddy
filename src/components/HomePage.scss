@@ -14,7 +14,7 @@
   @include flex-between;
   gap: clamp($space-lg, 4vw, $space-xxl * 1.5);
   align-items: center;
-  position: relative;
+  @include relative;
   z-index: 1;
   padding-bottom: clamp($space-lg, 4vh, $space-xl);
 
@@ -47,12 +47,20 @@
       text-align: center;
     }
   }
-
+  &__eyebrow {
+    padding: $space-sm $space-sm;
+    border-radius: $radius-lg;
+    background-color: $twilight-purple;
+    color: $soft-pearl;
+    font-size: $t-but-des;
+  }
   &__title {
     font-family: $font-primary;
     font-size: clamp(1.5rem, 3vw, 2rem);
     color: $text-color-dark;
+    margin-top: $space-xl;
     margin-bottom: $space-md;
+    font-weight: $fw-regular;
     line-height: $lh-tight;
 
     @media (max-width: $bp-tablet) {
@@ -261,7 +269,7 @@
 // WHAT'S ELSE SECTION WRAPPER
 .whats-else-wrapper {
   background-color: $soft-pearl;
-  padding: 0 0 clamp($space-xl, 5vh, $space-xxl);
+  padding: 0;
   position: relative;
   z-index: 5;
   
@@ -272,39 +280,34 @@
 
 // WHAT'S ELSE SECTION 
 .whats-else {
-  padding: clamp($space-xl, 8vh, $space-xxl * 1.5) clamp($space-lg, 5vw, $space-xxl);
+  padding: $space-lg clamp($space-lg, 5vw, $space-xxl) $space-md; // ← flat, controlled padding
   background: linear-gradient(180deg, $misty-lavender 0%, lighten($misty-lavender, 3%) 100%);
   max-width: 85%;
   border-radius: $radius-lg;
   margin: clamp(-8rem, -12vh, -5rem) auto 0;
-  padding-top: clamp($space-sm * 1.5, 10vh, $space-md * 3);
   position: relative;
   z-index: 5;
 
   @media (max-width: $bp-laptop) {
-    padding: $space-xl $space-lg;
-    margin-top: clamp(-6rem, -10vh, -4rem);
-    padding-top: clamp($space-xxl, 12vh, $space-xxl * 2);
     max-width: 90%;
+    margin-top: clamp(-6rem, -10vh, -4rem);
   }
 
   @media (max-width: $bp-tablet) {
-    padding: $space-lg $space-md;
-    margin-top: clamp(-5rem, -8vh, -3rem);
-    padding-top: clamp($space-xl, 10vh, $space-xxl);
     max-width: 94%;
+    margin-top: clamp(-5rem, -8vh, -3rem);
+    padding: $space-md;
   }
 
   @media (max-width: $bp-mobile) {
-    padding: $space-md;
-    margin-top: clamp(-4rem, -6vh, -2.5rem);
-    padding-top: clamp($space-lg, 8vh, $space-xl);
     max-width: 96%;
+    margin-top: clamp(-4rem, -6vh, -2.5rem);
+    padding: $space-md;
     border-radius: $radius-md;
   }
-
   &__title {
     font-family: $font-primary;
+    font-weight: $fw-regular;
     font-size: clamp(1.5rem, 2.5vw, 2rem);
     color: $text-color-dark;
     text-align: center;
@@ -469,7 +472,7 @@
   }
 
   &__number {
-    position: absolute;
+    @include absolute;
     top: $space-md;
     left: $space-md;
     width: 30px;
@@ -516,6 +519,7 @@
     color: $text-color-dark;
     margin-bottom: $space-sm;
     line-height: $lh-tight;
+    font-weight: $fw-regular;
 
     @media (max-width: $bp-tablet) {
       font-size: $t-sub-tab;
@@ -562,130 +566,55 @@
 
 // COMMUNITY SECTION
 .community {
-  padding: clamp($space-xl * 1.5, 10vh, $space-xxl * 2) clamp($space-lg, 5vw, $space-xxl);
+  padding: 0 $space-md $space-xxxl;  
   background-color: $soft-pearl;
-  display: flex;
+  @include center;
+  gap: $space-md;
   align-items: center;
-  gap: clamp($space-xl, 5vw, $space-xxl * 1.5);
+  max-height: 530px;
 
   @media (max-width: $bp-laptop) {
     flex-direction: column-reverse;
-    padding: $space-xl $space-lg;
+    padding: $space-md $space-sm;
     text-align: center;
   }
 
   @media (max-width: $bp-tablet) {
-    padding: $space-lg $space-md;
+    padding: $space-md $space-md;
   }
 
   &__devices {
-    flex: 1.2;
-    position: relative;
-    @include flex-center;
-    background-color: transparent;
-    min-height: 500px;
-    width: 100%;
+  flex: 1.5;
+  @include flex-center;
+  width: 100%;
 
-    @media (max-width: $bp-laptop) {
-      min-height: 450px;
-      margin-top: $space-lg;
-    }
-
-    @media (max-width: $bp-tablet) {
-      min-height: 400px;
-      max-width: 100%;
-    }
-
-    @media (max-width: $bp-mobile) {
-      min-height: 350px;
-      padding: 0 $space-sm;
-    }
+  @media (max-width: $bp-laptop) {
+    margin-top: $space-lg;
   }
+}
 
-  &__device {
-    @include absolute;
-    border-radius: $radius-lg;
+&__device {
+  border-radius: $radius-lg;
 
-    &--mobile {
-      width: clamp(120px, 18vw, 200px);
-      height: auto;
-      left: 5%;
-      top: 10%;
-      z-index: 3;
-      border-radius: clamp(1rem, 2vw, 1.5rem);
+  &--tablet {
+    width: 110%;  
+    max-width: 780px;
+    height: auto;
+    display: block;
+    object-fit: contain;
+    
+    filter: drop-shadow(0 16px 48px rgba($twilight-purple, 0.15));
 
-      @media (max-width: $bp-laptop) {
-        width: 130px;
-        left: 5%;
-        top: 15%;
-      }
-
-      @media (max-width: $bp-tablet) {
-        width: 100px;
-        left: 2%;
-        top: 20%;
-      }
-
-      @media (max-width: $bp-mobile) {
-        width: 80px;
-        left: 0;
-        top: 25%;
-      }
-    }
-
-    &--tablet {
-      width: clamp(220px, 32vw, 350px);
-      height: auto;
-      left: 50%;
-      top: 50%;
-      z-index: 4;
-      transform: translate(-50%, -50%);
-
-      @media (max-width: $bp-laptop) {
-        width: 240px;
-      }
-
-      @media (max-width: $bp-tablet) {
-        width: 200px;
-      }
-
-      @media (max-width: $bp-mobile) {
-        width: 160px;
-        top: 45%;
-      }
-    }
-
-    &--desktop {
-      width: clamp(280px, 38vw, 450px);
-      height: auto;
-      right: 0;
-      bottom: 5%;
-      z-index: 5;
-
-      @media (max-width: $bp-laptop) {
-        width: 290px;
-        right: 0;
-        bottom: 8%;
-      }
-
-      @media (max-width: $bp-tablet) {
-        width: 230px;
-        right: -5%;
-        bottom: 10%;
-      }
-
-      @media (max-width: $bp-mobile) {
-        width: 180px;
-        right: -10%;
-        bottom: 15%;
-      }
-    }
+    @media (max-width: $bp-laptop) { max-width: 560px; }
+    @media (max-width: $bp-tablet) { max-width: 480px; }
+    @media (max-width: $bp-mobile) { max-width: 100%; }
   }
+}
 
   &__content {
     flex: 1;
     max-width: 400px;
-    margin-right: 5vw;
+    margin-right: 10vw;
 
     @media (max-width: $bp-laptop) {
       max-width: 100%;
@@ -696,6 +625,7 @@
     font-family: $font-primary;
     font-size: clamp(1.5rem, 3vw, 2rem);
     color: $text-color-dark;
+    font-weight: $fw-regular;
     margin-bottom: $space-md;
     line-height: $lh-tight;
 
@@ -716,7 +646,7 @@
     font-size: clamp(0.95rem, 1.8vw, 1.0625rem);
     color: $text-color-dark;
     line-height: $lh-normal;
-    margin-bottom: $space-md;
+    margin-bottom: $space-xl;
     opacity: 0.9;
 
     @media (max-width: $bp-tablet) {

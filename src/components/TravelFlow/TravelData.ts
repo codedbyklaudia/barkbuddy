@@ -32,7 +32,7 @@ export const COUNTRIES: Country[] = [
   { id: 'usa',          name: 'USA',          continentId: 'north-america', image: '../../../images/travel/usa.png'          },
   { id: 'canada',       name: 'Canada',       continentId: 'north-america', image: '../../../images/travel/canada.png'       },
   { id: 'mexico',       name: 'Mexico',       continentId: 'north-america', image: '../../../images/travel/mexico.png'       },
-  { id: 'costa-rica',   name: 'Costa Rica',   continentId: 'north-america', image: '../../../images/travel/costa_rica.png'   },
+  { id: 'costa-rica',   name: 'Costa Rica',   continentId: 'north-america', image: '../../../images/travel/costa-rica.png'   },
   { id: 'cuba',         name: 'Cuba',         continentId: 'north-america', image: '../../../images/travel/cuba.png'         },
 
   // Asia
@@ -53,7 +53,7 @@ export const COUNTRIES: Country[] = [
   { id: 'peru',         name: 'Peru',         continentId: 'south-america', image: '../../../images/travel/peru.png'         },
 
   // Oceania
-  { id: 'australia',    name: 'Australia',    continentId: 'australia', image: '../../../images/travel/australia_country.png' },
+  { id: 'australia',    name: 'Australia',    continentId: 'australia', image: '../../../images/travel/australia-c.png' },
   { id: 'new-zealand',  name: 'New Zealand',  continentId: 'australia', image: '../../../images/travel/new_zealand.png'       },
   { id: 'fiji',         name: 'Fiji',         continentId: 'australia', image: '../../../images/travel/fiji.png'               },
 

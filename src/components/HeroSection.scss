@@ -138,6 +138,7 @@
   background-color: $misty-lavender;
   color: $text-color-dark;
   box-shadow: $shadow-lg;
+  text-decoration: none;
 
 
   &:hover {
@@ -151,6 +152,7 @@
   &--2 {
     background-color: $soft-pearl;
     color: $text-color-dark;
+    text-decoration: none;
 
     &:hover {
       background-color: darken($gentle-amethyst, 8%);

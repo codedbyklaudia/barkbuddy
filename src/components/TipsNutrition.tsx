@@ -7,6 +7,7 @@ const tips: Tip[] = [
   {
     id: "reading-labels",
     icon: ICON,
+    image: "../images/tips/how-toread-labels.png",
     title: "How to read a dog food label",
     summary: "Marketing terms are designed to appeal to owners, not indicate nutritional quality. Here's how to cut through the noise.",
     points: [
@@ -21,6 +22,7 @@ const tips: Tip[] = [
   {
     id: "food-types",
     icon: ICON,
+    image: "../images/tips/dry-wet-raw.png",
     title: "Dry, wet, raw, or fresh - which is best?",
     summary: "There is no single universally correct answer. Each format has genuine advantages and disadvantages.",
     points: [
@@ -35,6 +37,7 @@ const tips: Tip[] = [
   {
     id: "portion-sizes",
     icon: ICON,
+    image: "../images/tips/howmuchtofeed.webp",
     title: "How much to feed",
     summary: "Feeding guides are a starting point, not a prescription - and they're usually calculated generously. Body condition matters more than the number on the packet.",
     points: [
@@ -49,6 +52,7 @@ const tips: Tip[] = [
   {
     id: "toxic-foods",
     icon: ICON,
+    image: "../images/tips/toxic-food.png",
     title: "Foods toxic to dogs",
     summary: "Several common foods can cause serious harm or death in very small quantities. This list is worth knowing thoroughly.",
     points: [
@@ -61,6 +65,7 @@ const tips: Tip[] = [
   {
     id: "treats",
     icon: ICON,
+    image: "../images/tips/healthy-treats.jpg",
     title: "Healthy treats",
     summary: "Treats should make up no more than 10% of daily calories. The right treat is small, motivating, and genuinely nutritious.",
     points: [
@@ -74,6 +79,7 @@ const tips: Tip[] = [
   {
     id: "puppy-nutrition",
     icon: ICON,
+    image: "../images/tips/puppy.webp",
     title: "Feeding a puppy",
     summary: "Puppies have significantly different nutritional needs to adults. Getting this right supports healthy development and avoids lifelong problems.",
     points: [
@@ -88,6 +94,7 @@ const tips: Tip[] = [
   {
     id: "senior-feeding",
     icon: ICON,
+    image: "../images/tips/feeding-senior.avif",
     title: "Feeding a senior dog",
     summary: "Ageing affects metabolism, digestion, and organ function. Small nutritional adjustments can significantly improve quality of life.",
     points: [
@@ -102,6 +109,7 @@ const tips: Tip[] = [
   {
     id: "omega-3",
     icon: ICON,
+    image: "../images/tips/omega3.png",
     title: "Omega-3 fatty acids",
     summary: "Omega-3s have the strongest evidence base of any dog supplement. Marine-sourced EPA and DHA provide genuine anti-inflammatory benefit.",
     points: [
@@ -115,6 +123,7 @@ const tips: Tip[] = [
   {
     id: "joint-supplements",
     icon: ICON,
+    image: "../images/tips/joints.png",
     title: "Joint supplements",
     summary: "Glucosamine and chondroitin are widely used for joint health. The evidence is moderate — some dogs respond well, others don't.",
     points: [
@@ -128,6 +137,7 @@ const tips: Tip[] = [
   {
     id: "probiotics",
     icon: ICON,
+    image: "../images/tips/prebiotics.png",
     title: "Probiotics",
     summary: "Dog-specific probiotics have reasonable evidence for GI support. Human probiotics contain different bacterial strains and aren't appropriate.",
     points: [
@@ -141,6 +151,7 @@ const tips: Tip[] = [
   {
     id: "water",
     icon: ICON,
+    image: "../images/tips/hydration.jpg",
     title: "Hydration",
     summary: "Most dogs don't drink enough water. Chronic mild dehydration affects kidney function, digestion, and energy levels.",
     points: [
@@ -154,6 +165,7 @@ const tips: Tip[] = [
   {
     id: "allergies-food",
     icon: ICON,
+    image: "../images/tips/allergies.webp",
     title: "Food allergies and intolerances",
     summary: "True food allergies are less common than owners think but do occur. The diagnostic process requires patience.",
     points: [
@@ -168,6 +180,7 @@ const tips: Tip[] = [
   {
     id: "weight-management",
     icon: ICON,
+    image: "../images/tips/weight.png",
     title: "Weight management",
     summary: "Obesity is the most common preventable health problem in UK dogs. Even modest weight loss produces measurable health improvements.",
     points: [
@@ -182,6 +195,7 @@ const tips: Tip[] = [
   {
     id: "multivitamins",
     icon: ICON,
+    image: "../images/tips/witamins.jpg",
     title: "Multivitamins - when to use them",
     summary: "Dogs on complete and balanced commercial diets do not need multivitamins. Indiscriminate supplementation can cause harm.",
     points: [
@@ -195,6 +209,7 @@ const tips: Tip[] = [
   {
     id: "pancreatitis",
     icon: ICON,
+    image: "../images/tips/pancreatitis.webp",
     title: "Pancreatitis and diet",
     summary: "Pancreatitis is inflammation of the pancreas, often triggered by fatty foods. Diet management is central to prevention and recovery.",
     points: [
@@ -209,6 +224,7 @@ const tips: Tip[] = [
   {
     id: "raw-bones",
     icon: ICON,
+    image: "../images/tips/raw-bones.jpg",
     title: "Raw bones - the full picture",
     summary: "Raw bones are genuinely beneficial for dental health and mental enrichment - but they come with real risks that need to be managed.",
     points: [
@@ -223,6 +239,7 @@ const tips: Tip[] = [
   {
     id: "feeding-schedule",
     icon: ICON,
+    image: "../images/tips/feeding-schedule.png",
     title: "Feeding routine and schedule",
     summary: "Consistent feeding times support digestive health, help with house training, and reduce food-related anxiety.",
     points: [

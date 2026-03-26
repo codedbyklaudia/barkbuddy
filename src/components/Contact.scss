@@ -116,7 +116,7 @@
 .contact-hero__title {
   font-family: $font-primary;
   font-size: clamp(2.4rem, 9vw, 3.4rem);
-  font-weight: $fw-bold;
+  font-weight: $fw-regular;
   color: $soft-pearl;
   line-height: 1.0;
   letter-spacing: -0.03em;
@@ -156,8 +156,7 @@
 
 // CTA row
 .contact-hero__ctas {
-  display: flex;
-  align-items: center;
+  @include center;
   gap: $space-sm;
   flex-wrap: wrap;
   animation: reveal-up 0.65s 0.27s ease both;
@@ -167,8 +166,8 @@
 
 .contact-hero__cta {
   font-family: $font-secondary;
-  font-size: 0.76rem;
-  font-weight: $fw-bold;
+  font-size: 0.8rem;
+  font-weight: $fw-regular;
   letter-spacing: 0.04em;
   cursor: pointer;
   border: none;
@@ -181,6 +180,7 @@
   @media (min-width: $bp-tablet) { font-size: 0.8rem; }
 
   &--primary {
+    font-size: $t-but-des;
     background: $soft-pearl;
     color: $twilight-purple;
     padding: 10px $space-lg;
@@ -400,16 +400,15 @@
   }
 }
 
-// ── Form fields ───────────────────────────────────────────────────────────────
+// Form fields
 .contact-field {
-  display: flex;
-  flex-direction: column;
-  position: relative;
+  @include column;
+  @include relative;
   gap: $space-sm;
 
   &__label {
     font-size: $t-body-des;
-    font-weight: $fw-bold;
+    font-weight: $fw-regular;
     color: rgba($twilight-purple, 0.65);
     letter-spacing: 0.02em;
     span { color: $serene-purple; margin-left: 2px; }
@@ -424,7 +423,7 @@
     border-radius: $radius-md;
     padding: $space-md $space-lg;
     font-family: $font-secondary;
-    font-size: 16px;                   // 16px prevents iOS auto-zoom on focus
+    font-size: 16px;                  
     color: $twilight-purple;
     outline: none;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -474,17 +473,17 @@
   }
 }
 
-// ── Submit button ─────────────────────────────────────────────────────────────
+// Submit button
 .contact-submit {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: $space-sm;
   font-family: $font-secondary;
-  font-size: 0.8rem;
-  font-weight: $fw-bold;
+  font-size: $t-but-des;
+  font-weight: $fw-regular;
+  @include cursor;
   letter-spacing: 0.04em;
-  cursor: pointer;
   border: none;
   transition: all 0.22s ease;
   background: $twilight-purple;
@@ -493,7 +492,7 @@
   border-radius: 4px;
   min-height: 48px;
   white-space: nowrap;
-  width: 100%;                         // mobile: full width
+  width: 100%;                        
 
   @media (min-width: $bp-tablet) {
     width: auto;
@@ -569,13 +568,13 @@
 
   &__label {
     font-size: $t-body-mob;
-    font-weight: $fw-bold;
+    font-weight: $fw-regular;
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: $serene-purple;
     margin-bottom: $space-sm;
     display: block;
-    position: relative;
+    @include relative;
     z-index: 1;
   }
 

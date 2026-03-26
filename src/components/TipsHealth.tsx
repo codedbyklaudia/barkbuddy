@@ -7,6 +7,7 @@ const tips: Tip[] = [
   {
     id: "annual-checkup",
     icon: ICON,
+    image: "../images/tips/annual-health-check.jpg",
     title: "Annual health check",
     summary: "An annual vet visit is the single most valuable thing you can do for your dog's long-term health.",
     points: [
@@ -20,6 +21,7 @@ const tips: Tip[] = [
   {
     id: "vaccinations",
     icon: ICON,
+    image: "../images/tips/vaccine.avif",
     title: "Vaccination schedule",
     summary: "Core vaccines protect against serious, widespread diseases. Non-core vaccines are based on lifestyle and risk.",
     points: [
@@ -33,6 +35,7 @@ const tips: Tip[] = [
   {
     id: "parasites",
     icon: ICON,
+    image: "../images/tips/flea.jpg",
     title: "Flea, tick and worm prevention",
     summary: "Regular parasite prevention protects your dog and your household. The right programme depends on your dog's lifestyle.",
     points: [
@@ -47,6 +50,7 @@ const tips: Tip[] = [
   {
     id: "signs-of-pain",
     icon: ICON,
+    image: "../images/tips/dog-pain.avif",
     title: "Signs your dog is in pain",
     summary: "Dogs instinctively hide pain. By the time it's obvious, they've often been suffering for some time.",
     points: [
@@ -60,6 +64,7 @@ const tips: Tip[] = [
   {
     id: "spaying-neutering",
     icon: ICON,
+    image: "../images/tips/spying.jpg",
     title: "Spaying and neutering",
     summary: "The decision to neuter is significant and nuanced. Timing matters and varies by breed and size.",
     points: [
@@ -73,6 +78,7 @@ const tips: Tip[] = [
   {
     id: "joint-health",
     icon: ICON,
+    image: "../images/tips/joints.jpg",
     title: "Joint health and arthritis",
     summary: "Arthritis affects 1 in 5 adult dogs and is even more common in seniors. It's manageable - but only caught early.",
     points: [
@@ -87,6 +93,7 @@ const tips: Tip[] = [
   {
     id: "first-aid-kit",
     icon: ICON,
+    image: "../images/tips/firstaid.png",
     title: "Building a dog first aid kit",
     summary: "Accidents happen far from a clinic. A well-stocked kit and basic knowledge can stabilise your dog while you arrange professional help.",
     points: [
@@ -100,6 +107,7 @@ const tips: Tip[] = [
   {
     id: "weight",
     icon: ICON,
+    image: "../images/tips/weight.webp",
     title: "Managing your dog's weight",
     summary: "Obesity affects 50–60% of UK pet dogs and significantly shortens life expectancy. Small adjustments make a real difference.",
     points: [
@@ -114,6 +122,7 @@ const tips: Tip[] = [
   {
     id: "dental-health",
     icon: ICON,
+    image: "../images/tips/dental.webp",
     title: "Recognising dental disease",
     summary: "Dental disease is the most common health problem in adult dogs - and largely preventable with a consistent routine.",
     points: [
@@ -126,6 +135,7 @@ const tips: Tip[] = [
   {
     id: "toxic-foods",
     icon: ICON,
+    image: "../images/tips/toxic-food.webp",
     title: "Foods that are toxic to dogs",
     summary: "Some common foods can cause serious harm or death in very small quantities. This is worth knowing thoroughly.",
     points: [
@@ -138,6 +148,7 @@ const tips: Tip[] = [
   {
     id: "heatstroke",
     icon: ICON,
+    image: "../images/tips/heatstroke.png",
     title: "Preventing heatstroke",
     summary: "Heatstroke can kill a dog within minutes. Prevention is straightforward - but recognition and response must be fast.",
     points: [
@@ -152,6 +163,7 @@ const tips: Tip[] = [
   {
     id: "kennel-cough",
     icon: ICON,
+    image: "../images/tips/cough.png",
     title: "Kennel cough",
     summary: "Kennel cough is highly contagious but usually mild. Knowing the signs and how it spreads helps you manage it sensibly.",
     points: [
@@ -165,6 +177,7 @@ const tips: Tip[] = [
   {
     id: "brachycephalic",
     icon: ICON,
+    image: "../images/tips/flat-face.webp",
     title: "Health considerations for flat-faced breeds",
     summary: "Bulldogs, Pugs, French Bulldogs, and similar breeds have specific health needs that owners should understand before getting the dog.",
     points: [
@@ -179,6 +192,7 @@ const tips: Tip[] = [
   {
     id: "senior-health",
     icon: ICON,
+    image: "../images/tips/senior.jpg",
     title: "Caring for a senior dog",
     summary: "Senior dogs need more frequent vet checks, dietary adjustments, and home modifications. Knowing what to expect makes this life stage easier.",
     points: [
@@ -193,6 +207,7 @@ const tips: Tip[] = [
   {
     id: "allergies",
     icon: ICON,
+    image: "../images/tips/allergies.jpg",
     title: "Dog allergies",
     summary: "Allergies are one of the most common reasons for vet visits. Understanding the types helps you advocate better for your dog.",
     points: [
@@ -207,6 +222,7 @@ const tips: Tip[] = [
   {
     id: "mental-health",
     icon: ICON,
+    image: "../images/tips/mental-health.png",
     title: "Your dog's mental health",
     summary: "Emotional and mental wellbeing is as important as physical health. Dogs experience stress, anxiety, and boredom in ways that directly affect behaviour and health.",
     points: [
@@ -220,6 +236,7 @@ const tips: Tip[] = [
   {
     id: "emergencies",
     icon: ICON,
+    image: "../images/tips/emergency.jpg",
     title: "Recognising a veterinary emergency",
     summary: "Some situations need immediate veterinary attention. Recognising them quickly can be the difference between life and death.",
     points: [
@@ -232,6 +249,7 @@ const tips: Tip[] = [
   {
     id: "lungworm",
     icon: ICON,
+    image: "../images/tips/lungworm.webp",
     title: "Lungworm - what every dog owner should know",
     summary: "Lungworm is potentially fatal and is not covered by standard worming treatments. UK cases have increased significantly.",
     points: [

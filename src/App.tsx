@@ -1,5 +1,6 @@
 import './App.css';
 import { useState, useEffect } from 'react';
+import { SavedProvider } from './context/SavedContext';
 import {
   HashRouter as Router,
   Routes,
@@ -10,6 +11,7 @@ import {
 
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute, GuestRoute } from './components/ProtectedRoute';
+import DogProfilePage from "./components/Dashboard/DogProfilePage";
 
 import Navigation from './components/Navigation';
 
@@ -36,7 +38,7 @@ import TipsHealth     from './components/TipsHealth';
 import TipsTraining   from './components/TipsTraining';
 import TipsNutrition  from './components/TipsNutrition';
 import ForumPage  from './components/ForumPage';
-//Policies
+// Policies
 import ForumPolicy  from './components/Legals/ForumPolicy';
 import Terms  from './components/Legals/Terms';
 import PrivacyPolicy  from './components/Legals/Privacy';
@@ -79,6 +81,8 @@ function AppContent() {
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/faq" element={<Faqpage/>} />
         <Route path="/activity/:id" element={<ServiceDetailPage />} />
+        <Route path="/dog/:dogId" element={<DogProfilePage />} />
+
 
         <Route
           path="/travel-page"
@@ -121,9 +125,11 @@ function AppContent() {
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <AppContent />
-      </Router>
+      <SavedProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </SavedProvider>
     </AuthProvider>
   );
 }

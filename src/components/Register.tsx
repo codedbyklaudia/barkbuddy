@@ -11,7 +11,7 @@ import {
 } from "../utils/validation";
 import { getBreedData } from "./breedData";
 
-// Types
+// ─── Types ────────────────────────────────────────────────────────────────────
 interface FormData {
   email:           string;
   name:            string;
@@ -25,23 +25,65 @@ interface FormData {
   personality:     string[];
 }
 
-// Data
+// Static Data 
 const LIFE_STAGES = [
   { key: "puppy",  label: "Puppy",  icon: "../../images/icons/lifestage/puppy.svg",  age: "0–1 yrs" },
   { key: "adult",  label: "Adult",  icon: "../../images/icons/lifestage/adult.svg",  age: "1–7 yrs" },
   { key: "senior", label: "Senior", icon: "../../images/icons/lifestage/senior.svg", age: "7+ yrs"  },
 ] as const;
 
-const PERSONALITIES = [
-  { key: "walks",   label: "Walks & running",   icon: "../../images/icons/personalities/high-energy.svg"  },
-  { key: "sleep",   label: "Sleeping",           icon: "../../images/icons/personalities/playful.svg"      },
-  { key: "treats",  label: "Treats",             icon: "../../images/icons/personalities/gentle.svg"       },
-  { key: "ball",    label: "Playing",            icon: "../../images/icons/personalities/lazy.svg"         },
-  { key: "cuddly",  label: "Cuddles",            icon: "../../images/icons/personalities/love_cuddles.svg" },
-  { key: "anxious", label: "Chasing the ball!",  icon: "../../images/icons/personalities/anxious.svg"      },
+// Personality categories (Butternut Box style) 
+interface PersonalityOption   { key: string; label: string; img: string; }
+interface PersonalityCategory { 
+  id: string; 
+  question: (name: string) => string; 
+  options: PersonalityOption[]; 
+}
+
+const PERSONALITY_CATEGORIES: PersonalityCategory[] = [
+  {
+    id: "fav_game",
+    question: (name: string) => `What's ${name}'s favourite game?`,
+    options: [
+      { key: "game_fetch", label: "Ball chaser",    img: "../../images/personality/ball.png"    },
+      { key: "game_tug",   label: "Tug of war",     img: "../../images/personality/tug.png"     },
+      { key: "game_chase", label: "Chasing sticks", img: "../../images/personality/chase.png"   },
+      { key: "game_hide",  label: "Hide & seek",    img: "../../images/personality/hide_and_seek.png"    },
+      { key: "game_chill", label: "Just chilling",  img: "../../images/personality/chill.png"   },
+    ],
+  },
+  {
+    id: "fav_thing",
+    question: (name: string) => "What does " + name + " love most?",
+    options: [
+      { key: "loves_cuddles", label: "Cuddles",           img: "../../images/personality/cuddles.png" },
+      { key: "loves_treats",  label: "Tricks for treats", img: "../../images/personality/treats.png"  },
+      { key: "loves_walks",   label: "Walkies",           img: "../../images/personality/walks.png"   },
+      { key: "loves_friends", label: "Making friends",    img: "../../images/personality/friends.png" },
+      { key: "loves_sleep",   label: "Sleeping",          img: "../../images/personality/sleep.png"   },
+    ],
+  },
+  {
+    id: "personality",
+    question: (name: string) => `How would you describe ${name}?`,
+    options: [
+      { key: "pers_energetic", label: "High-energy",       img: "../../images/personality/high_energy.png" },
+      { key: "pers_gentle",    label: "Gentle",            img: "../../images/personality/gentle.png"    },
+      { key: "pers_cuddly",    label: "Cuddly",            img: "../../images/personality/cuddly.png"    },
+      { key: "pers_playful",   label: "Playful",           img: "../../images/personality/playful.png"   },
+      { key: "pers_stubborn",  label: "A little stubborn", img: "../../images/personality/stubborn.png"  },
+    ],
+  },
 ];
 
-// Breed Fun Fact Card
+const setSelected = (personality: string[], catId: string, key: string): string[] => {
+  const cat = PERSONALITY_CATEGORIES.find(c => c.id === catId);
+  if (!cat) return personality;
+  const catKeys = cat.options.map(o => o.key);
+  return [...personality.filter(p => !catKeys.includes(p)), key];
+};
+
+// Breed Fun Fact Card 
 const BreedFactCard: React.FC<{ breed: string; dogName?: string }> = ({ breed }) => {
   const [dismissed, setDismissed] = useState(false);
   const [imgError,  setImgError]  = useState(false);
@@ -87,7 +129,7 @@ const BreedFactCard: React.FC<{ breed: string; dogName?: string }> = ({ breed })
   );
 };
 
-// Field Error
+// Field Error 
 const FieldError: React.FC<{ error?: string }> = ({ error }) =>
   error ? <span className="field-error">{error}</span> : null;
 
@@ -122,7 +164,7 @@ const StepIndicator: React.FC<{ current: number; total: number }> = ({ current, 
   </div>
 );
 
-// Eye Toggle
+// Eye Toggle 
 const EyeIcon: React.FC<{ visible: boolean }> = ({ visible }) =>
   visible ? (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -199,7 +241,7 @@ const Step1: React.FC<{
   );
 };
 
-// Step 2: Dog name & breed
+// Step 2: Dog name & breed 
 const Step2: React.FC<{
   data:     FormData;
   errors:   ValidationErrors;
@@ -339,13 +381,6 @@ const Step3: React.FC<{
   const dobRef = React.useRef<HTMLInputElement>(null);
   const [dobUnknown, setDobUnknown] = useState(false);
 
-  const togglePersonality = (key: string) => {
-    const updated = data.personality.includes(key)
-      ? data.personality.filter((p) => p !== key)
-      : [...data.personality, key];
-    onChange("personality", updated);
-  };
-
   const handleDobChange = (dob: string) => {
     onChange("dogDob", dob);
     if (!dob) return;
@@ -362,6 +397,11 @@ const Step3: React.FC<{
     else              { setDobUnknown(false); }
   };
 
+  // Count how many categories have a selection
+  const selectedCatCount = PERSONALITY_CATEGORIES.filter(cat =>
+    cat.options.some(opt => data.personality.includes(opt.key))
+  ).length;
+
   return (
     <div className="step-content split-layout">
       <div className="split-image">
@@ -372,6 +412,7 @@ const Step3: React.FC<{
         <StepIndicator current={3} total={5} />
         <h2 className="step-heading">Step 3.</h2>
 
+        {/* Date of Birth */}
         <label className="field-label">
           When was {data.dogName || "your dog"} born?
           <span className="field-hint"> (optional)</span>
@@ -390,6 +431,7 @@ const Step3: React.FC<{
         {data.dogDob && !errors.dogDob && !dobUnknown && <p className="dob-hint">✓ Life stage auto-selected based on age</p>}
         {dobUnknown && <p className="dob-hint">No worries - you can set the life stage manually below.</p>}
 
+        {/* Life Stage */}
         <label className="field-label" style={{ marginTop: "1.4rem" }}>Life stage</label>
         {errors.lifeStage && <FieldError error={errors.lifeStage} />}
         <div className="life-stage-grid">
@@ -402,18 +444,64 @@ const Step3: React.FC<{
           ))}
         </div>
 
-        <label className="field-label" style={{ marginTop: "1.4rem" }}>
-          What {data.dogName || "your dog"} likes the most?
-          <span className="field-hint"> (pick all that apply)</span>
-        </label>
+        {/* Personality — 3 Butternut Box-style categories */}
+        <div className="reg-personality-header" style={{ marginTop: "1.4rem" }}>
+          <label className="field-label" style={{ margin: 0 }}>
+            Personality
+          </label>
+          {selectedCatCount > 0 && (
+            <span className="reg-personality-progress">
+              {selectedCatCount}/{PERSONALITY_CATEGORIES.length} done
+            </span>
+          )}
+        </div>
         {errors.personality && <FieldError error={errors.personality} />}
-        <div className="personality-grid">
-          {PERSONALITIES.map((p) => (
-            <button key={p.key} type="button" className={`personality-chip ${data.personality.includes(p.key) ? "selected" : ""}`} onClick={() => togglePersonality(p.key)}>
-              <img src={p.icon} alt={p.label} className="chip-icon" />
-              <span className="chip-label">{p.label}</span>
-            </button>
-          ))}
+
+        <div className="reg-personality-section">
+          {PERSONALITY_CATEGORIES.map((cat) => {
+            const hasSelection = cat.options.some(opt => data.personality.includes(opt.key));
+            return (
+              <div key={cat.id} className="reg-personality-cat">
+                <p className={`reg-personality-question ${hasSelection ? "done" : ""}`}>
+                  {hasSelection && (
+                    <span className="reg-personality-tick" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    </span>
+                  )}
+                  {cat.question(data.dogName || "Your dog")}
+                </p>
+                <div className="reg-personality-grid">
+                  {cat.options.map((opt) => {
+                    const isSel = data.personality.includes(opt.key);
+                    return (
+                      <button
+                        key={opt.key}
+                        type="button"
+                        className={`reg-personality-btn ${isSel ? "selected" : ""}`}
+                        onClick={() => onChange("personality", setSelected(data.personality, cat.id, opt.key))}
+                      >
+                        <img
+                          src={opt.img}
+                          alt={opt.label}
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                        />
+                        <span>{opt.label}</span>
+                        {isSel && (
+                          <div className="reg-personality-check" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -440,7 +528,6 @@ const Step4: React.FC<{
           <strong>{data.dogName || "Your dog"}</strong> is a good:
         </label>
 
-        {/* FIX: pointer-events: none on children so clicks always hit the button */}
         <div className="gender-options" style={{ marginTop: "1rem" }}>
           <button
             type="button"
@@ -475,7 +562,7 @@ const Step4: React.FC<{
   );
 };
 
-// Step 5: Accept policies
+// Step 5: Accept policies 
 const Step5: React.FC<{
   accepted: Record<string, boolean>;
   errors:   ValidationErrors;
@@ -538,7 +625,6 @@ const RegisterPage: React.FC = () => {
     privacy: false, terms: false, forum: false,
   });
 
-  // FIX: Use separate handlers for string vs string[] to avoid type conflicts
   const handleChange = useCallback((key: keyof FormData, value: string | string[]) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
     setErrors((prev) => {
@@ -549,7 +635,6 @@ const RegisterPage: React.FC = () => {
     });
   }, []);
 
-  // FIX: Dedicated string-only handler for Step 4 gender selection
   const handleStringChange = useCallback((key: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
     setErrors((prev) => {
@@ -573,8 +658,13 @@ const RegisterPage: React.FC = () => {
   const canProceed = useCallback(() => {
     if (step === 1) return !!(formData.email && formData.name && formData.password && formData.confirmPassword);
     if (step === 2) return !!(formData.dogName && formData.breed);
-    if (step === 3) return !!(formData.lifeStage && formData.personality.length > 0);
-    if (step === 4) return !!(formData.dogGender); // FIX: explicit boolean cast
+    if (step === 3) return !!(
+      formData.lifeStage &&
+      PERSONALITY_CATEGORIES.every(cat =>
+        cat.options.some(opt => formData.personality.includes(opt.key))
+      )
+    );
+    if (step === 4) return !!(formData.dogGender);
     return Object.values(accepted).every(Boolean);
   }, [step, formData, accepted]);
 
@@ -613,7 +703,6 @@ const RegisterPage: React.FC = () => {
     }
   }, [formData, accepted, login, navigate]);
 
-  // FIX: useCallback dependencies are now correct — no stale closures
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key !== "Enter") return;
@@ -640,7 +729,6 @@ const RegisterPage: React.FC = () => {
       {step === 1 && <Step1 data={formData} errors={errors} onChange={(k, v) => handleStringChange(k, v as string)} onContinue={handleNext} canProceed={canProceed()} />}
       {step === 2 && <Step2 data={formData} errors={errors} onChange={(k, v) => handleStringChange(k, v as string)} />}
       {step === 3 && <Step3 data={formData} errors={errors} onChange={handleChange} />}
-      {/* FIX: Pass handleStringChange to Step4 so gender updates reliably */}
       {step === 4 && <Step4 data={formData} errors={errors} onChange={handleStringChange} />}
       {step === 5 && <Step5 accepted={accepted} errors={errors} onToggle={togglePolicy} />}
 

@@ -1081,3 +1081,82 @@
   from { opacity: 0; transform: scale(0.94); }
   to   { opacity: 1; transform: scale(1); }
 }
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// APPEND these styles to the bottom of ServiceDetailPage.scss
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ─── Header top row (badge + save button side by side) ────────────────────────
+.activity-details__header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+// ─── Header variant save button ───────────────────────────────────────────────
+.sdp-save-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(91, 75, 138, 0.2);
+  background: transparent;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: rgba(91, 75, 138, 0.55);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+
+  &:hover {
+    border-color: #5B4B8A;
+    color: #5B4B8A;
+    background: rgba(91, 75, 138, 0.05);
+  }
+
+  &--saved {
+    border-color: #5B4B8A;
+    background: rgba(91, 75, 138, 0.08);
+    color: #5B4B8A;
+  }
+
+  &--pop {
+    animation: sdp-bm-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+}
+
+// Sidebar variant save button
+.__but--save {
+  background: transparent !important;
+  border: 1.5px solid rgba(91, 75, 138, 0.2) !important;
+  color: rgba(91, 75, 138, 0.55) !important;
+
+  &:hover {
+    border-color: #5B4B8A !important;
+    color: #5B4B8A !important;
+    background: rgba(91, 75, 138, 0.05) !important;
+  }
+
+  &.active, &-active {
+    border-color: #5B4B8A !important;
+    background: rgba(91, 75, 138, 0.1) !important;
+    color: #5B4B8A !important;
+  }
+}
+
+.__but--save-pop {
+  animation: sdp-bm-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+// Pop keyframe 
+@keyframes sdp-bm-pop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.18); }
+  70%  { transform: scale(0.93); }
+  100% { transform: scale(1); }
+}

@@ -152,7 +152,6 @@
 
   &__cta {
     font-family: $font-secondary;
-    font-size: 0.78rem;
     font-weight: $fw-regular;
     letter-spacing: 0.04em;
     @include cursor;
@@ -168,6 +167,7 @@
     &--primary {
       background: $soft-pearl;
       color: $twilight-purple;
+      font-size: $t-but-des;
       padding: 11px $space-lg;
       border-radius: 4px;
 
@@ -212,7 +212,7 @@
     @media (min-width: 520px) {
       flex-direction: row;
       border-radius: 8px;
-      max-width: 460px;
+      max-width: 560px;
     }
   }
 

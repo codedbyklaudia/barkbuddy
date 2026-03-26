@@ -3,7 +3,7 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-// ─── Animations ──────────────────────────────────────────────────────────────
+// Animations
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(18px); }
   to   { opacity: 1; transform: translateY(0);    }
@@ -37,12 +37,12 @@
   100%    { opacity: 0; pointer-events: none; }
 }
 
-// ─── Accent variables ─────────────────────────────────────────────────────────
+// Accent variables
 $accent-requirements:  #9b7fe8;
 $accent-documentation: #6db5ea;
 $accent-tips:          #d4a84b;
 
-// ─── Decorative background elements ──────────────────────────────────────────
+// Decorative background elements
 .s0-rings {
   position: fixed;
   top: 0;
@@ -190,7 +190,7 @@ $accent-tips:          #d4a84b;
   display: flex;
   align-items: stretch;
   justify-content: center;
-  padding: $space-xxl 0 $space-lg;
+  padding: $space-xl 0 $space-lg;
 
   @media (max-width: $bp-laptop) { padding: $space-xl 0 $space-lg; }
   @media (max-width: $bp-tablet) { padding: $space-md 0; }
@@ -201,7 +201,7 @@ $accent-tips:          #d4a84b;
 .travel-sidebar {
   @include col-start;
   background-color: $soft-pearl;
-  padding: $space-xl $space-lg $space-lg;
+  padding: $space-xs $space-lg $space-lg;
   height: 100%;
   overflow-y: auto;
 
@@ -209,9 +209,9 @@ $accent-tips:          #d4a84b;
 
   &__logo {
     @include flex-center;
-    justify-content: flex-end;
+    justify-content: flex-start;
     width: 100%;
-    margin-bottom: $space-xl;
+    margin-bottom: $space-sm;
   }
 
   &__logo-img {
@@ -224,16 +224,15 @@ $accent-tips:          #d4a84b;
 
   &__tagline {
     @include type-ui($t-sub-des, $fw-regular);
-    color: $text-color-dark;
+    color: $text-color-dark;    
     line-height: $lh-normal;
-    margin-bottom: $space-xxl;
+    margin-bottom: $space-lg;
   }
 
   &__nav {
     @include flex-between;
     width: 100%;
     margin-top: auto;
-    padding-top: $space-lg;
     gap: $space-sm;
   }
 }
@@ -253,7 +252,9 @@ $accent-tips:          #d4a84b;
     gap: $space-md;
     @include relative;
     padding-bottom: $space-md;
-
+    &:last-child {
+      padding-bottom: 0; 
+    }
     &:not(:last-child) .step-list__connector {
       @include absolute;
       left: 20px;
@@ -292,7 +293,7 @@ $accent-tips:          #d4a84b;
     gap: 4px;
     flex: 1;
     min-width: 0;
-    padding-top: 8px;
+    padding-top: 4px;
   }
 
   &__label {
@@ -302,7 +303,7 @@ $accent-tips:          #d4a84b;
     letter-spacing: 0.01em;
 
     .step-list__item--upcoming & { color: $gentle-amethyst; font-weight: $fw-regular; }
-    .step-list__item--active  & { color: $text-color-dark;  font-weight: $fw-bold; }
+    .step-list__item--active  & { color: $text-color-dark;  font-weight: $fw-regular; }
     .step-list__item--done    & { color: $gentle-amethyst;  font-weight: $fw-regular; }
   }
 
@@ -422,7 +423,7 @@ $accent-tips:          #d4a84b;
     background-color: rgba($serene-purple, 0.12);
     box-shadow: 0 0 0 3px rgba($serene-purple, 0.2);
 
-    .illus-card__label { color: $soft-pearl; font-weight: $fw-bold; }
+    .illus-card__label { color: $soft-pearl; font-weight: $fw-regular; }
   }
 
   &__img-wrap {
@@ -476,7 +477,7 @@ $accent-tips:          #d4a84b;
   }
 }
 
-// ─── Country search bar ───────────────────────────────────────────────────────
+// Country search bar
 .country-search {
   @include center;
   @include margin-center;
@@ -546,7 +547,7 @@ $accent-tips:          #d4a84b;
   }
 }
 
-// ─── Buttons ──────────────────────────────────────────────────────────────────
+// Buttons
 .btn {
   @include none;
   @include flex-center;
@@ -591,7 +592,7 @@ $accent-tips:          #d4a84b;
   }
 }
 
-// ─── Content step ─────────────────────────────────────────────────────────────
+// Content step 
 .content-step {
   width: 100%;
   max-width: 700px;
@@ -630,7 +631,7 @@ $accent-tips:          #d4a84b;
   }
 
   &__counter {
-    @include type-ui($t-forgot-des, $fw-bold);
+    @include type-ui($t-forgot-des, $fw-regular);
     letter-spacing: 0.12em;
     color: rgba($soft-pearl, 0.35);
     white-space: nowrap;
@@ -666,7 +667,7 @@ $accent-tips:          #d4a84b;
   }
 
   &__badge-label {
-    @include type-ui($t-forgot-des, $fw-bold);
+    @include type-ui($t-forgot-des, $fw-regular);
     @include label-caps(0.08em);
 
     .content-step--requirements  & { color: $accent-requirements; }
@@ -769,7 +770,7 @@ $accent-tips:          #d4a84b;
 
     .content-step__arrow-hint {
       @include rel-z;
-      @include type-ui(0.55rem, $fw-bold);
+      @include type-ui(0.55rem, $fw-regular);
       @include label-caps(0.12em);
       opacity: 0;
       transition: opacity 0.2s ease;
@@ -842,7 +843,7 @@ $accent-tips:          #d4a84b;
     @include no-interaction;
     top: $space-xs;
     right: $space-md;
-    @include type-display(4.5rem, $fw-bold);
+    @include type-display(4.5rem, $fw-regular);
     line-height: 1;
     color: rgba($soft-pearl, 0.035);
     letter-spacing: -0.04em;
@@ -851,7 +852,7 @@ $accent-tips:          #d4a84b;
   }
 
   &__card-title {
-    @include type-ui($t-sub-des, $fw-bold);
+    @include type-ui($t-sub-des, $fw-regular);
     color: $soft-pearl;
     line-height: $lh-tight;
     @include rel-z;
@@ -970,7 +971,7 @@ $accent-tips:          #d4a84b;
   }
 
   &__destination-segment { color: rgba($soft-pearl, 0.4); }
-  &__destination-country { color: $soft-pearl; font-weight: $fw-bold; }
+  &__destination-country { color: $soft-pearl; font-weight: $fw-regular; }
 
   &__download-card {
     margin-top: $space-xl;
@@ -1085,7 +1086,7 @@ $accent-tips:          #d4a84b;
     gap: 3px;
     min-width: 0;
 
-    strong { @include type-ui($t-body-des, $fw-bold); color: $soft-pearl; }
+    strong { @include type-ui($t-body-des, $fw-regular); color: $soft-pearl; }
     span   { @include type-ui($t-forgot-des);          color: rgba($soft-pearl, 0.45); }
 
     @media (max-width: $bp-tablet) {
@@ -1122,7 +1123,7 @@ $accent-tips:          #d4a84b;
   @include none;
   @include flex-center;
   gap: $space-sm;
-  @include type-ui($t-body-des, $fw-bold);
+  @include type-ui($t-body-des, $fw-regular);
   color: $soft-pearl;
   background: linear-gradient(135deg, $serene-purple 0%, lighten($twilight-purple, 6%) 100%);
   border-radius: $radius-lg;
@@ -1178,7 +1179,7 @@ $accent-tips:          #d4a84b;
   }
 
   &__label {
-    @include type-ui($t-body-des, $fw-bold);
+    @include type-ui($t-body-des, $fw-regular);
     @include truncate;
     color: $soft-pearl;
     max-width: 100%;
@@ -1206,7 +1207,7 @@ $accent-tips:          #d4a84b;
   }
 
   &__pct {
-    @include type-ui(0.6rem, $fw-bold);
+    @include type-ui(0.6rem, $fw-regular);
     color: $soft-pearl;
     @include rel-z;
   }
@@ -1255,7 +1256,7 @@ $accent-tips:          #d4a84b;
     flex: 1;
 
     .mobile-step-bar__step--upcoming & { color: rgba($soft-pearl, 0.4); }
-    .mobile-step-bar__step--active   & { color: $soft-pearl; font-weight: $fw-bold; }
+    .mobile-step-bar__step--active   & { color: $soft-pearl; font-weight: $fw-regular; }
     .mobile-step-bar__step--done     & { color: rgba($soft-pearl, 0.5); }
   }
 

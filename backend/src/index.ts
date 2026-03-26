@@ -40,9 +40,6 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ─── Static file serving — user & dog uploads ─────────────────────────────────
-// This makes /uploads/users/... and /uploads/dogs/... URLs actually work.
-// Files are saved to <project-root>/uploads/ by multer in the route handlers.
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 // Auth routes
