@@ -528,15 +528,15 @@ const ServiceFinder: React.FC = () => {
             key={activeTab}
             className="fh__bg-image"
             src={activeTab === 'services'
-              ? '../images/Illustrations/Services-Finder-Hero (2).png'
-              : '../images/Illustrations/Activities-Finder-Hero(2).png'}
+              ? '/images/Illustrations/Services-Finder-Hero (2).png'
+              : '/images/Illustrations/Activities-Finder-Hero(2).png'}
             alt=""
           />
         </div>
 
       </section>
 
-      {/* ── FEATURED ─────────────────────────────────────────────────────── */}
+      {/* FEATURED  */}
       <section className="featured-section">
         <div className="featured-section__header">
           <span className="featured-section__eyebrow">Our Selection</span>
@@ -560,7 +560,7 @@ const ServiceFinder: React.FC = () => {
         </div>
       </section>
 
-      {/* ── SEARCH + RESULTS ─────────────────────────────────────────────── */}
+      {/* SEARCH + RESULTS  */}
       <section className="finder-search">
 
         {/* Type icon buttons */}
