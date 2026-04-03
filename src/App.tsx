@@ -1,6 +1,7 @@
 import './App.css';
 import { useState, useEffect } from 'react';
 import { SavedProvider } from './context/SavedContext';
+import { useAuth } from './context/AuthContext';
 import {
   HashRouter as Router,
   Routes,
@@ -38,17 +39,20 @@ import TipsHealth     from './components/TipsHealth';
 import TipsTraining   from './components/TipsTraining';
 import TipsNutrition  from './components/TipsNutrition';
 import ForumPage  from './components/ForumPage';
-// Policies
 import ForumPolicy  from './components/Legals/ForumPolicy';
 import Terms  from './components/Legals/Terms';
 import PrivacyPolicy  from './components/Legals/Privacy';
 import Faqpage  from './components/Legals/Faqpage';
 import ScrollToTop from './components/ScrollToTop';
 
+const SavedWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { token } = useAuth();
+  return <SavedProvider token={token}>{children}</SavedProvider>;
+};
 
+// App content 
 function AppContent() {
   const location = useLocation();
-
   const [isTravelFlowActive, setIsTravelFlowActive] = useState(false);
 
   useEffect(() => {
@@ -66,7 +70,7 @@ function AppContent() {
   const isAuthPage     = authPages.includes(location.pathname);
   const isBusinessPage = location.pathname.startsWith('/register-business');
   const isDashboard    = location.pathname === '/dashboard';
-  const showNav = !isAuthPage && !isBusinessPage && !isDashboard && !isTravelFlowActive;
+  const showNav        = !isAuthPage && !isBusinessPage && !isDashboard && !isTravelFlowActive;
 
   return (
     <div className="App">
@@ -79,10 +83,9 @@ function AppContent() {
         <Route path="/forumpolicy" element={<ForumPolicy />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-        <Route path="/faq" element={<Faqpage/>} />
+        <Route path="/faq" element={<Faqpage />} />
         <Route path="/activity/:id" element={<ServiceDetailPage />} />
         <Route path="/dog/:dogId" element={<DogProfilePage />} />
-
 
         <Route
           path="/travel-page"
@@ -98,10 +101,10 @@ function AppContent() {
 
         <Route path="/register-business" element={<RegisterBusiness />} />
         <Route path="/business/verify-email" element={<VerifyBusinessEmail />} />
-        <Route path="/about"   element={<About />} />
-        <Route path="/contact" element={<Contact />} />
+        <Route path="/about"      element={<About />} />
+        <Route path="/contact"    element={<Contact />} />
         <Route path="/forum-page" element={<ForumPage />} />
-        <Route path="/admin"   element={<AdminPanel />} />
+        <Route path="/admin"      element={<AdminPanel />} />
         <Route path="/business/login"           element={<BusinessLogin />} />
         <Route path="/business/forgot-password" element={<BusinessForgotPassword />} />
         <Route path="/business/reset-password"  element={<BusinessResetPassword />} />
@@ -122,14 +125,15 @@ function AppContent() {
   );
 }
 
+// Root 
 function App() {
   return (
     <AuthProvider>
-      <SavedProvider>
+      <SavedWrapper>        
         <Router>
           <AppContent />
         </Router>
-      </SavedProvider>
+      </SavedWrapper>
     </AuthProvider>
   );
 }

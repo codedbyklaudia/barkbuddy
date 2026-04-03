@@ -9,24 +9,22 @@ const router = Router();
 
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
 
-// ─── Gmail transporter ────────────────────────────────────────────────────────
+// Gmail transporter 
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
+  host:   process.env.SMTP_HOST,
+  port:   Number(process.env.SMTP_PORT) || 465,
   secure: true,
   auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASSWORD,
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
   },
-  tls: {
-    rejectUnauthorized: false, 
-  },
+  tls: { rejectUnauthorized: false },
 });
 
-// ─── Helper: generate secure token ───────────────────────────────────────────
+// Helper: generate secure token 
 const generateToken = () => crypto.randomBytes(32).toString("hex");
 
-// ─── POST /api/password/forgot ────────────────────────────────────────────────
+// POST /api/password/forgot 
 router.post("/forgot", [
   body("email").isEmail().withMessage("Please enter a valid email").normalizeEmail(),
 ], async (req: Request, res: Response): Promise<void> => {
@@ -35,9 +33,7 @@ router.post("/forgot", [
     res.status(400).json({ message: "Please enter a valid email address" });
     return;
   }
-
   const { email } = req.body;
-
   try {
     const userResult = await pool.query(
       "SELECT id, name, email FROM users WHERE email = $1",
@@ -72,7 +68,7 @@ router.post("/forgot", [
 
     // Send email via Gmail
     await transporter.sendMail({
-      from:    `"BarkBuddy 🐾" <${process.env.GMAIL_USER}>`,
+      from: process.env.SMTP_FROM,
       to:      user.email,
       subject: "Reset your BarkBuddy password 🐾",
       html:    generateResetEmailHtml(user.name, resetUrl),

@@ -20,7 +20,10 @@
     gap: 2px;
     border: 1px solid rgba($gentle-amethyst, 0.12);
     box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.06);
-    overflow: hidden;
+
+    // ↓ KEY FIX: was overflow:hidden which clipped icons when collapsed
+    overflow: visible;
+
     transition: width 0.22s cubic-bezier(0.4, 0, 0.2, 1);
     height: calc(100vh - 100px - 2 * #{$space-lg});
     position: sticky;
@@ -66,12 +69,12 @@
   white-space: nowrap;
   overflow: hidden;
   opacity: 0;
-  width: 0;
-  transition: opacity 0.18s, width 0.22s;
+  max-width: 0;
+  transition: opacity 0.18s, max-width 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 
   .db-sidebar.expanded & {
     opacity: 1;
-    width: auto;
+    max-width: 160px;
   }
 }
 
@@ -106,9 +109,10 @@
   color: rgba($text-color-dark, 0.5);
   transition: background 0.16s, color 0.16s;
   width: 100%;
-  min-width: 0;
   text-align: left;
-  overflow: hidden;
+
+  // ↓ KEY FIX: was overflow:hidden — caused icons to be clipped
+  overflow: visible;
 
   &:hover {
     background: rgba($twilight-purple, 0.06);
@@ -122,13 +126,12 @@
 }
 
 .db-nav-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   flex-shrink: 0;
+  min-width: 28px;   // ↓ KEY FIX: min-width prevents icon from collapsing to 0
   width: 28px;
   height: 28px;
-  position: relative; // for badge dot positioning
+  position: relative;
 }
 
 .db-nav-label {
@@ -138,21 +141,19 @@
   white-space: nowrap;
   overflow: hidden;
   opacity: 0;
-  width: 0;
-  transition: opacity 0.18s, width 0.22s;
+  max-width: 0;       // ↓ use max-width instead of width for smoother animation
+  transition: opacity 0.18s, max-width 0.22s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
   gap: $space-sm;
 
   .db-sidebar.expanded & {
     opacity: 1;
-    width: auto;
+    max-width: 160px;
   }
 }
 
 // ─── Saved badge ──────────────────────────────────────────────────────────────
-
-// Small dot — shown on the icon when sidebar is collapsed
 .db-nav-badge-dot {
   position: absolute;
   top: 2px;
@@ -166,7 +167,6 @@
   animation: badge-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-// Count pill — shown next to the label when sidebar is expanded
 .db-nav-badge-pill {
   display: inline-flex;
   align-items: center;
@@ -190,9 +190,9 @@
   to   { transform: scale(1); opacity: 1; }
 }
 
-// ─── Active pip ───────────────────────────────────────────────────────────────
+// Active pip
 .db-nav-pip {
-  position: absolute;
+  @include absolute;
   left: 0;
   top: 20%;
   bottom: 20%;
@@ -201,7 +201,7 @@
   border-radius: 0 3px 3px 0;
 }
 
-// ─── Platform link ────────────────────────────────────────────────────────────
+// Platform link 
 .db-platform-link {
   color: rgba($text-color-dark, 0.4) !important;
   flex-shrink: 0;
@@ -212,10 +212,9 @@
   }
 }
 
-// ─── Logout ───────────────────────────────────────────────────────────────────
+// Logout
 .db-logout {
   color: rgba($text-color-dark, 0.35) !important;
-  margin-top: 0;
   flex-shrink: 0;
 
   &:hover {
@@ -224,8 +223,7 @@
   }
 }
 
-// ─── Mobile drawer badge ──────────────────────────────────────────────────────
-// Used in Dashboard.tsx MobileDrawer for the saved count pill
+// Mobile drawer badge
 .mobile-drawer-badge {
   margin-left: auto;
   min-width: 20px;
@@ -241,4 +239,31 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+}
+
+// Mobile drawer divider
+.mobile-drawer-divider {
+  height: 1px;
+  background: rgba($gentle-amethyst, 0.12);
+  margin: 8px 12px;
+  flex-shrink: 0;
+}
+
+.mobile-drawer-platform {
+  color: rgba($text-color-dark, 0.45) !important;
+  &:hover { color: $twilight-purple !important; }
+}
+
+// Hamburger button 
+.db-topbar-hamburger {
+  @include flex-center;
+  width: 38px;
+  height: 38px;
+  border-radius: $radius-sm;
+  color: $twilight-purple;
+  @include none;
+  @include cursor;
+  transition: all 0.15s;
+
+  .db-hamburger-bar { display: none; }
 }

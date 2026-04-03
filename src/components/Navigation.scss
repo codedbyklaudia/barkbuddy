@@ -1,46 +1,32 @@
 @import '../styles/variables';
 @import '../styles/mixins';
 
-// ─── Global Accessibility Overrides ──────────────────────────────────────────
-// Applied to <html> by applyA11y()
-
-:root {
-  --a11y-font-size: 16px;
-}
-
-html {
-  font-size: var(--a11y-font-size);
-}
+// Global accessibility overrides applied to <html> by applyA11y()
+:root { --a11y-font-size: 16px; }
+html { font-size: var(--a11y-font-size); }
 
 // High contrast
 html.a11y-high-contrast {
   filter: contrast(1.4);
-
-  .navigation {
-    border-bottom-color: currentColor;
-  }
-
+  .navigation { border-bottom-color: currentColor; }
   .navigation__menu-link,
   .navigation__user-item,
-  .navigation__user-trigger-name {
-    color: #000 !important;
-  }
+  .navigation__user-trigger-name { color: #000 !important; }
 }
 
-// Reduced motion — kill all transitions/animations
+// Reduced motion
 html.a11y-reduced-motion *,
 html.a11y-reduced-motion *::before,
 html.a11y-reduced-motion *::after {
-  animation-duration:   0.01ms !important;
+  animation-duration: 0.01ms !important;
   animation-iteration-count: 1 !important;
-  transition-duration:  0.01ms !important;
-  scroll-behavior:      auto  !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
 }
 
-// Dyslexia-friendly font (OpenDyslexic via CDN import in index.html or fallback)
+// Dyslexia font
 html.a11y-dyslexia-font {
   font-family: 'OpenDyslexic', 'Comic Sans MS', cursive !important;
-
   * { font-family: inherit !important; }
 }
 
@@ -55,8 +41,7 @@ html.a11y-large-cursor * {
   cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M8 4l16 12-7 1-4 8z' fill='%23333' stroke='%23fff' stroke-width='1.5'/%3E%3C/svg%3E") 4 4, auto !important;
 }
 
-// ─── Skip Link ────────────────────────────────────────────────────────────────
-
+// Skip link
 .navigation__skip-link {
   position: absolute;
   top: -100px;
@@ -65,18 +50,14 @@ html.a11y-large-cursor * {
   color: $soft-pearl;
   padding: 8px 16px;
   border-radius: 0 0 8px 8px;
-  font-family: $font-secondary;
-  font-size: 0.85rem;
-  font-weight: $fw-bold;
+  @include type-ui(0.85rem, $fw-bold);
   z-index: 9999;
-  text-decoration: none;
+  @include text-none;
   transition: top 0.2s ease;
-
   &:focus { top: 0; }
 }
 
-// ─── Navigation Shell ─────────────────────────────────────────────────────────
-
+// Navigation shell
 .navigation {
   background-color: rgba($soft-pearl, 0.97);
   border-bottom: 1px solid rgba($misty-lavender, 0.45);
@@ -87,7 +68,6 @@ html.a11y-large-cursor * {
   -webkit-backdrop-filter: blur(12px);
   transition: box-shadow 0.25s ease, border-color 0.25s ease;
 
-  // Subtle shadow when scrolled
   &--scrolled {
     box-shadow: 0 4px 24px rgba($twilight-purple, 0.08), 0 1px 0 rgba($misty-lavender, 0.6);
     border-bottom-color: rgba($misty-lavender, 0.7);
@@ -95,7 +75,7 @@ html.a11y-large-cursor * {
 
   &__container {
     max-width: 1400px;
-    margin: 0 auto;
+    @include margin-center;
     padding: 0 clamp($space-lg, 4vw, $space-xxl);
     @include flex-between;
     gap: $space-lg;
@@ -103,14 +83,10 @@ html.a11y-large-cursor * {
     transition: height 0.25s ease;
   }
 
-  // Slightly tighter when scrolled
-  &--scrolled &__container {
-    height: 60px;
-  }
+  &--scrolled &__container { height: 60px; }
 }
 
-// ─── Logo ─────────────────────────────────────────────────────────────────────
-
+// Logo
 .navigation__logo {
   flex-shrink: 0;
   @include center;
@@ -124,12 +100,10 @@ html.a11y-large-cursor * {
   transition: opacity 0.2s ease, transform 0.2s ease;
 
   .navigation--scrolled & { height: 46px; }
-
   &:hover { opacity: 0.85; transform: scale(1.02); }
 }
 
-// ─── Desktop Menu ─────────────────────────────────────────────────────────────
-
+// Desktop menu
 .navigation__menu {
   @include flex-center;
   list-style: none;
@@ -141,25 +115,21 @@ html.a11y-large-cursor * {
   @media (max-width: $bp-laptop) { display: none; }
 }
 
-.navigation__menu-item {
-  @include relative;
-}
+.navigation__menu-item { @include relative; }
 
 .navigation__menu-link {
-  font-family: $font-secondary;
-  font-size: $t-forgot-des;
-  font-weight: $fw-medium;
+  @include type-ui($t-forgot-des, $fw-medium);
   color: $text-color-dark;
-  text-decoration: none;
+  @include text-none;
   @include center;
   gap: 5px;
   padding: 7px 14px;
   border-radius: 8px;
   white-space: nowrap;
   transition: color 0.18s ease, background 0.18s ease;
-  cursor: pointer;
+  @include cursor;
   letter-spacing: 0.01em;
-  position: relative;
+  @include relative;
 
   i { font-size: $t-forgot-des; }
 
@@ -169,10 +139,10 @@ html.a11y-large-cursor * {
     margin-left: 1px;
   }
 
-  // Active underline on hover
+  // Underline on hover
   &::after {
     content: '';
-    position: absolute;
+    @include absolute;
     bottom: 2px;
     left: 14px;
     right: 14px;
@@ -188,36 +158,27 @@ html.a11y-large-cursor * {
   &:hover {
     color: $twilight-purple;
     background: rgba($misty-lavender, 0.4);
-
     .dropdown-arrow { opacity: 0.8; transform: translateY(1px); }
-
     &::after { opacity: 1; transform: scaleX(1); }
   }
 
-  &:focus-visible {
-    outline: 2px solid $twilight-purple;
-    outline-offset: 2px;
-    border-radius: 8px;
-  }
+  &:focus-visible { outline: 2px solid $twilight-purple; outline-offset: 2px; border-radius: 8px; }
 
   @media (max-width: 1160px) {
     font-size: 0;
     padding: 6px 10px;
     gap: 0;
-
     i { font-size: 1rem; }
     .dropdown-arrow { display: none; }
     &::after { display: none; }
   }
 }
 
-// ─── Mega Dropdown ────────────────────────────────────────────────────────────
-
+// Mega dropdown
 .navigation__mega-dropdown {
   @include absolute;
   top: calc(100% + 10px);
-  left: 50%;
-  transform: translateX(-50%);
+  left: -40px;
   background: $soft-pearl;
   border: 1px solid rgba($misty-lavender, 0.7);
   border-radius: 14px;
@@ -225,7 +186,7 @@ html.a11y-large-cursor * {
   padding: $space-lg;
   z-index: 1001;
   animation: nav-fade 0.18s ease both;
-  min-width: 360px;
+  min-width: 300px;
 }
 
 .navigation__mega-grid {
@@ -239,7 +200,7 @@ html.a11y-large-cursor * {
   @include center;
   padding: $space-md $space-lg;
   border-radius: 10px;
-  text-decoration: none;
+  @include text-none;
   color: $text-color-dark;
   transition: all 0.18s ease;
   gap: $space-xs;
@@ -249,39 +210,31 @@ html.a11y-large-cursor * {
     background: rgba($misty-lavender, 0.5);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba($twilight-purple, 0.08);
-
     .navigation__mega-label { color: $twilight-purple; }
     .navigation__mega-icon  { transform: scale(1.08); }
   }
 
-  &:focus-visible {
-    outline: 2px solid $twilight-purple;
-    outline-offset: 2px;
-  }
+  &:focus-visible { outline: 2px solid $twilight-purple; outline-offset: 2px; }
 }
 
 .navigation__mega-icon {
-  width: 72px;
-  height: 72px;
+  width: 64px;
+  height: 64px;
   @include flex-center;
   transition: transform 0.18s ease;
   border-radius: 10px;
   padding: $space-xs;
-
   .menu-icon { width: 100%; height: 100%; object-fit: contain; }
 }
 
 .navigation__mega-label {
-  font-family: $font-secondary;
-  font-size: $t-forgot-des;
-  font-weight: $fw-medium;
+  @include type-ui($t-forgot-des, $fw-medium);
   color: rgba($text-color-dark, 0.75);
   transition: color 0.18s ease;
   letter-spacing: 0.01em;
 }
 
-// ─── Standard Dropdown ────────────────────────────────────────────────────────
-
+// Standard dropdown
 .navigation__dropdown {
   @include absolute;
   top: calc(100% + 10px);
@@ -300,24 +253,13 @@ html.a11y-large-cursor * {
     gap: $space-sm;
     padding: 9px $space-md;
     border-radius: 8px;
-    font-family: $font-secondary;
-    font-size: $t-forgot-des;
-    font-weight: $fw-medium;
+    @include type-ui($t-forgot-des, $fw-medium);
     color: $text-color-dark;
-    text-decoration: none;
+    @include text-none;
     transition: all 0.15s ease;
-
     i { font-size: $t-forgot-des; }
-
-    &:hover {
-      background: rgba($misty-lavender, 0.5);
-      color: $twilight-purple;
-    }
-
-    &:focus-visible {
-      outline: 2px solid $twilight-purple;
-      outline-offset: 2px;
-    }
+    &:hover { background: rgba($misty-lavender, 0.5); color: $twilight-purple; }
+    &:focus-visible { outline: 2px solid $twilight-purple; outline-offset: 2px; }
   }
 }
 
@@ -327,21 +269,17 @@ html.a11y-large-cursor * {
   border-top: 1px solid rgba($misty-lavender, 0.6);
   margin-top: 4px;
   padding-top: 9px !important;
-
   &:hover { background: rgba($misty-lavender, 0.5) !important; }
 }
 
-// ─── CTA Area ─────────────────────────────────────────────────────────────────
-
+// CTA area
 .navigation__cta {
   @include center;
   gap: $space-sm;
   flex-shrink: 0;
-
   @media (max-width: $bp-laptop) { display: none; }
 }
 
-// Vertical divider between a11y btn and auth
 .navigation__cta-divider {
   width: 1px;
   height: 22px;
@@ -350,12 +288,9 @@ html.a11y-large-cursor * {
   flex-shrink: 0;
 }
 
-// ─── Auth Buttons ─────────────────────────────────────────────────────────────
-
+// Auth buttons
 .btn--nav {
-  font-family: $font-secondary;
-  font-size: $t-forgot-des;
-  font-weight: $fw-medium;
+  @include type-ui($t-but-des, $fw-regular);
   padding: 7px 18px;
   border-radius: 8px;
   border: none;
@@ -365,55 +300,40 @@ html.a11y-large-cursor * {
   gap: 6px;
   white-space: nowrap;
   letter-spacing: 0.01em;
-  text-decoration: none;
-
-  i { font-size: 0.8rem; }
-
+  @include text-none;
+  
+  svg {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+  }
+  
   &.btn-login {
     background: transparent;
     color: rgba($twilight-purple, 0.85);
     border: 1.5px solid rgba($twilight-purple, 0.25);
-
-    &:hover {
-      background: rgba($misty-lavender, 0.45);
-      color: $twilight-purple;
-      border-color: rgba($twilight-purple, 0.4);
-    }
+    &:hover { background: rgba($misty-lavender, 0.45); color: $twilight-purple; border-color: rgba($twilight-purple, 0.4); }
   }
 
   &.btn-register {
     background: $twilight-purple;
     color: $soft-pearl;
     border: 1.5px solid transparent;
-    font-weight: $fw-bold;
+    font-weight: $fw-regular;
     letter-spacing: 0.02em;
-
-    &:hover {
-      background: darken($twilight-purple, 7%);
-      transform: translateY(-1px);
-      box-shadow: 0 4px 16px rgba($twilight-purple, 0.3);
-    }
+    &:hover { background: darken($twilight-purple, 7%); transform: translateY(-1px); box-shadow: 0 4px 16px rgba($twilight-purple, 0.3); }
   }
 
-  &:focus-visible {
-    outline: 2px solid $twilight-purple;
-    outline-offset: 3px;
-  }
+  &:focus-visible { outline: 2px solid $twilight-purple; outline-offset: 3px; }
 }
 
-.navigation__auth-placeholder {
-  width: 120px;
-  height: 34px;
-}
+.navigation__auth-placeholder { width: 120px; height: 34px; }
 
-// ─── Avatar ───────────────────────────────────────────────────────────────────
-
+// Avatar
 .navigation__avatar {
   border-radius: 50%;
   background: linear-gradient(135deg, $twilight-purple, $serene-purple);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   overflow: hidden;
   flex-shrink: 0;
 
@@ -431,16 +351,13 @@ html.a11y-large-cursor * {
 }
 
 .navigation__avatar-initials {
-  font-family: $font-secondary;
-  font-size: 0.72rem;
-  font-weight: $fw-bold;
+  @include type-ui(0.72rem, $fw-bold);
   color: $soft-pearl;
   letter-spacing: 0.03em;
   line-height: 1;
 }
 
-// ─── User Menu ────────────────────────────────────────────────────────────────
-
+// User menu
 .navigation__user-menu {
   @include relative;
   flex-shrink: 0;
@@ -458,21 +375,13 @@ html.a11y-large-cursor * {
 
   &:hover,
   &--open {
-    .navigation__avatar--trigger {
-      box-shadow: 0 0 0 3px rgba($twilight-purple, 0.35);
-      transform: scale(1.04);
-    }
+    .navigation__avatar--trigger { box-shadow: 0 0 0 3px rgba($twilight-purple, 0.35); transform: scale(1.04); }
     .navigation__user-trigger-name { color: $twilight-purple; }
     .dropdown-arrow { opacity: 1; color: $twilight-purple; }
   }
 
   &--open .dropdown-arrow { transform: rotate(180deg) !important; }
-
-  &:focus-visible {
-    outline: 2px solid $twilight-purple;
-    outline-offset: 4px;
-    border-radius: 50px;
-  }
+  &:focus-visible { outline: 2px solid $twilight-purple; outline-offset: 4px; border-radius: 50px; }
 
   .dropdown-arrow {
     color: rgba($twilight-purple, 0.35);
@@ -483,21 +392,18 @@ html.a11y-large-cursor * {
 }
 
 .navigation__user-trigger-name {
-  font-family: $font-secondary;
-  font-size: 0.85rem;
-  font-weight: $fw-medium;
+  @include type-ui(0.85rem, $fw-medium);
   color: rgba($text-color-dark, 0.7);
   letter-spacing: 0.01em;
   white-space: nowrap;
   max-width: 90px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  @include truncate;
   margin-left: 10px;
   transition: color 0.2s ease;
 }
 
 .navigation__user-dropdown {
-  position: absolute;
+  @include absolute;
   top: calc(100% + 10px);
   right: 0;
   background: $soft-pearl;
@@ -511,8 +417,7 @@ html.a11y-large-cursor * {
 }
 
 .navigation__user-info {
-  display: flex;
-  align-items: center;
+  @include center;
   gap: $space-md;
   padding: 12px $space-md 10px;
 }
@@ -520,9 +425,7 @@ html.a11y-large-cursor * {
 .navigation__user-info-text { min-width: 0; }
 
 .navigation__user-name {
-  font-family: $font-secondary;
-  font-size: 0.86rem;
-  font-weight: $fw-bold;
+  @include type-ui(0.86rem, $fw-bold);
   color: $text-color-dark;
   white-space: nowrap;
   overflow: hidden;
@@ -531,8 +434,7 @@ html.a11y-large-cursor * {
 }
 
 .navigation__user-email {
-  font-family: $font-secondary;
-  font-size: 0.7rem;
+  @include type-ui(0.7rem);
   color: $gentle-amethyst;
   white-space: nowrap;
   overflow: hidden;
@@ -551,11 +453,9 @@ html.a11y-large-cursor * {
   @include center;
   gap: $space-sm;
   padding: 11px $space-md;
-  font-family: $font-secondary;
-  font-size: 0.92rem;
-  font-weight: $fw-medium;
+  @include type-ui(0.92rem, $fw-medium);
   color: rgba($text-color-dark, 0.75);
-  text-decoration: none;
+  @include text-none;
   background: transparent;
   border: none;
   width: 100%;
@@ -566,16 +466,8 @@ html.a11y-large-cursor * {
 
   svg { color: rgba($twilight-purple, 0.45); flex-shrink: 0; transition: color 0.15s ease; }
 
-  &:hover {
-    background: rgba($misty-lavender, 0.5);
-    color: $twilight-purple;
-    svg { color: $twilight-purple; }
-  }
-
-  &:focus-visible {
-    outline: 2px solid $twilight-purple;
-    outline-offset: 2px;
-  }
+  &:hover { background: rgba($misty-lavender, 0.5); color: $twilight-purple; svg { color: $twilight-purple; } }
+  &:focus-visible { outline: 2px solid $twilight-purple; outline-offset: 2px; }
 
   &--logout {
     color: rgba(#e05252, 0.8);
@@ -584,8 +476,7 @@ html.a11y-large-cursor * {
   }
 }
 
-// ─── Accessibility Button ─────────────────────────────────────────────────────
-
+// Accessibility button
 .navigation__a11y-wrap {
   @include relative;
   flex-shrink: 0;
@@ -601,19 +492,11 @@ html.a11y-large-cursor * {
   border: 1.5px solid rgba($misty-lavender, 0.8);
   background: rgba($misty-lavender, 0.15);
   color: rgba($twilight-purple, 0.65);
-  font-family: $font-secondary;
-  font-size: 0.72rem;
-  font-weight: $fw-medium;
+  @include type-ui(0.72rem, $fw-medium);
   white-space: nowrap;
   transition: all 0.2s ease;
 
-  // The lucide hand icon
-  svg {
-    width: 15px;
-    height: 15px;
-    flex-shrink: 0;
-    transition: transform 0.2s ease;
-  }
+  svg { width: 15px; height: 15px; flex-shrink: 0; transition: transform 0.2s ease; }
 
   &:hover {
     background: rgba($misty-lavender, 0.45);
@@ -629,25 +512,21 @@ html.a11y-large-cursor * {
     svg { transform: rotate(-10deg); }
   }
 
-  &:focus-visible {
-    outline: 2px solid $twilight-purple;
-    outline-offset: 3px;
-  }
+  &:focus-visible { outline: 2px solid $twilight-purple; outline-offset: 3px; }
 
-  // Narrow desktop — icon only, square pill
   @media (max-width: 1160px) {
     width: 36px;
+    height: 36px;
     padding: 0;
     border-radius: 8px;
-    
+    justify-content: center;
     .a11y-btn-label { display: none; }
   }
 }
 
-// ─── Accessibility Panel ──────────────────────────────────────────────────────
-
+// Accessibility panel
 .a11y-panel {
-  position: absolute;
+  @include absolute;
   top: calc(100% + 10px);
   right: 0;
   width: 320px;
@@ -659,26 +538,22 @@ html.a11y-large-cursor * {
   animation: nav-fade 0.2s ease both;
   overflow: hidden;
 
-  // On mobile the panel should sit on the left
   @media (max-width: $bp-laptop) {
     right: auto;
     left: 0;
-    width: 300px;
+    width: 290px;
   }
 }
 
 .a11y-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  @include flex-between;
   padding: 14px 16px 12px;
   border-bottom: 1px solid rgba($misty-lavender, 0.5);
   background: linear-gradient(135deg, rgba($misty-lavender, 0.25), rgba($soft-pearl, 0));
 }
 
 .a11y-panel-title {
-  display: flex;
-  align-items: center;
+  @include center;
   gap: 10px;
 }
 
@@ -688,30 +563,24 @@ html.a11y-large-cursor * {
   border-radius: 10px;
   background: rgba($twilight-purple, 0.1);
   color: $twilight-purple;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   flex-shrink: 0;
 }
 
 .a11y-panel-heading {
-  font-family: $font-secondary;
-  font-size: 0.9rem;
-  font-weight: $fw-bold;
+  @include type-ui(0.9rem, $fw-bold);
   color: $text-color-dark;
   margin: 0;
 }
 
 .a11y-panel-sub {
-  font-family: $font-secondary;
-  font-size: 0.68rem;
+  @include type-ui(0.68rem);
   color: $gentle-amethyst;
-  margin: 0;
-  margin-top: 1px;
+  margin: 1px 0 0;
 }
 
 .a11y-panel-close {
-  @include center;
+  @include flex-center;
   @include cursor;
   width: 28px;
   height: 28px;
@@ -726,17 +595,12 @@ html.a11y-large-cursor * {
   &:focus-visible { outline: 2px solid $twilight-purple; }
 }
 
-.a11y-section {
-  padding: 12px 16px 8px;
-}
+.a11y-section { padding: 12px 16px 8px; }
 
 .a11y-section-label {
-  font-family: $font-secondary;
-  font-size: 0.65rem;
-  font-weight: $fw-bold;
+  @include type-ui(0.65rem, $fw-bold);
+  @include label-caps(0.08em);
   color: $gentle-amethyst;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   margin: 0 0 10px;
 }
 
@@ -754,8 +618,7 @@ html.a11y-large-cursor * {
 }
 
 .a11y-font-btn {
-  @include column;
-  @include center;
+  @include flex-column;
   gap: 4px;
   padding: 8px 4px;
   border-radius: 10px;
@@ -763,8 +626,7 @@ html.a11y-large-cursor * {
   background: transparent;
   @include cursor;
   transition: all 0.15s ease;
-  font-family: $font-secondary;
-  font-size: 0.65rem;
+  @include type-ui(0.65rem);
   color: rgba($text-color-dark, 0.6);
 
   &:hover { border-color: rgba($twilight-purple, 0.3); background: rgba($misty-lavender, 0.35); color: $twilight-purple; }
@@ -799,35 +661,21 @@ html.a11y-large-cursor * {
   border-radius: 8px;
   transition: background 0.15s ease;
 
-  &:not(:last-child) {
-    border-bottom: 1px solid rgba($misty-lavender, 0.3);
-  }
+  &:not(:last-child) { border-bottom: 1px solid rgba($misty-lavender, 0.3); }
 }
 
-.a11y-toggle-icon {
-  font-size: 1rem;
-  width: 22px;
-  text-align: center;
-  flex-shrink: 0;
-}
-
-.a11y-toggle-text {
-  flex: 1;
-  min-width: 0;
-}
+.a11y-toggle-icon { font-size: 1rem; width: 22px; text-align: center; flex-shrink: 0; }
+.a11y-toggle-text { flex: 1; min-width: 0; }
 
 .a11y-toggle-label {
   display: block;
-  font-family: $font-secondary;
-  font-size: 0.8rem;
-  font-weight: $fw-medium;
+  @include type-ui(0.8rem, $fw-medium);
   color: $text-color-dark;
 }
 
 .a11y-toggle-sub {
   display: block;
-  font-family: $font-secondary;
-  font-size: 0.65rem;
+  @include type-ui(0.65rem);
   color: $gentle-amethyst;
   margin-top: 1px;
 }
@@ -840,17 +688,16 @@ html.a11y-large-cursor * {
   border-radius: 11px;
   border: none;
   background: rgba($misty-lavender, 0.8);
-  position: relative;
+  @include relative;
   flex-shrink: 0;
   transition: background 0.2s ease;
 
   &--on { background: $twilight-purple; }
-
   &:focus-visible { outline: 2px solid $twilight-purple; outline-offset: 2px; }
 }
 
 .a11y-switch-thumb {
-  position: absolute;
+  @include absolute;
   top: 3px;
   left: 3px;
   width: 16px;
@@ -866,13 +713,11 @@ html.a11y-large-cursor * {
 .a11y-panel-footer {
   padding: 10px 16px 14px;
   border-top: 1px solid rgba($misty-lavender, 0.5);
-  display: flex;
-  justify-content: center;
+  @include flex-center;
 }
 
 .a11y-reset-btn {
-  font-family: $font-secondary;
-  font-size: 0.72rem;
+  @include type-ui(0.72rem);
   color: $gentle-amethyst;
   background: transparent;
   border: none;
@@ -885,29 +730,40 @@ html.a11y-large-cursor * {
   &:focus-visible { outline: 2px solid $twilight-purple; }
 }
 
-// Mobile a11y row in mobile menu
+// Mobile accessibility row — icon button + label text
 .navigation__mobile-a11y-row {
-  display: flex;
-  align-items: center;
+  @include center;
   gap: $space-sm;
-  padding: 6px $space-md;
-  font-family: $font-secondary;
-  font-size: 0.9rem;
-  font-weight: $fw-medium;
+  padding: 8px $space-md;
+  @include type-ui(0.88rem, $fw-medium);
   color: rgba($text-color-dark, 0.7);
 
-  .navigation__a11y-btn { flex-shrink: 0; }
+  // Force icon-only style for the a11y button here
+  .navigation__a11y-btn {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border-radius: 10px;
+    @include flex-center;
+    .a11y-btn-label { display: none; }
+  }
+
+  // Panel opens leftward so it stays in viewport
+  .a11y-panel {
+    left: 0;
+    right: auto;
+    top: calc(100% + 6px);
+    width: min(290px, 85vw);
+  }
 }
 
-// ─── Hamburger ────────────────────────────────────────────────────────────────
-
+// Hamburger
 .navigation__hamburger {
-  display: none;
-  align-items: center;
-  justify-content: center;
+  display: none !important;
+  @include center;
   background: transparent;
   border: 1.5px solid rgba($misty-lavender, 0.6);
-  cursor: pointer;
+  @include cursor;
   padding: 7px;
   width: 36px;
   height: 36px;
@@ -915,7 +771,7 @@ html.a11y-large-cursor * {
   transition: all 0.18s ease;
   border-radius: 8px;
 
-  @media (max-width: $bp-laptop) { display: flex; }
+  @media (max-width: $bp-laptop) { display: flex !important; }
 
   img { width: 18px; height: 18px; object-fit: contain; }
 
@@ -924,8 +780,7 @@ html.a11y-large-cursor * {
   &:focus { outline: none; }
 }
 
-// ─── Mobile Menu ─────────────────────────────────────────────────────────────
-
+// Mobile menu
 .navigation__mobile {
   @include absolute;
   top: 100%;
@@ -954,11 +809,9 @@ html.a11y-large-cursor * {
     gap: 1px;
 
     li > a {
-      font-family: $font-secondary;
-      font-size: 0.95rem;
-      font-weight: $fw-medium;
+      @include type-ui(0.95rem, $fw-medium);
       color: rgba($text-color-dark, 0.8);
-      text-decoration: none;
+      @include text-none;
       @include center;
       gap: $space-sm;
       padding: 11px $space-md;
@@ -983,9 +836,7 @@ html.a11y-large-cursor * {
   width: 100%;
   background: transparent;
   border: none;
-  font-family: $font-secondary;
-  font-size: 0.95rem;
-  font-weight: $fw-medium;
+  @include type-ui(0.95rem, $fw-medium);
   color: rgba($text-color-dark, 0.8);
   text-align: left;
   padding: 11px $space-md;
@@ -997,12 +848,7 @@ html.a11y-large-cursor * {
 
   i { font-size: 0.9rem; opacity: 0.5; width: 18px; text-align: center; flex-shrink: 0; }
 
-  .dropdown-arrow {
-    transition: transform 0.2s ease;
-    opacity: 0.35;
-    flex-shrink: 0;
-    margin-left: auto;
-  }
+  .dropdown-arrow { transition: transform 0.2s ease; opacity: 0.35; flex-shrink: 0; margin-left: auto; }
 
   &:hover { color: $twilight-purple; background: rgba($misty-lavender, 0.45); i { opacity: 0.85; } }
   &:focus-visible { outline: 2px solid $twilight-purple; }
@@ -1018,14 +864,11 @@ html.a11y-large-cursor * {
     @include center;
     gap: $space-sm;
     padding: 9px $space-md;
-    font-family: $font-secondary;
-    font-size: 0.88rem;
-    font-weight: $fw-medium;
+    @include type-ui(0.88rem, $fw-medium);
     color: rgba($twilight-purple, 0.95);
     border-radius: 7px;
-    text-decoration: none;
+    @include text-none;
     transition: all 0.15s ease;
-
     &:hover { color: $twilight-purple; background: rgba($misty-lavender, 0.45); }
     &:focus-visible { outline: 2px solid $twilight-purple; }
   }
@@ -1042,11 +885,9 @@ html.a11y-large-cursor * {
   @include center;
   gap: $space-md;
   padding: 9px $space-md;
-  text-decoration: none;
+  @include text-none;
   color: rgba($text-color-dark, 0.75);
-  font-family: $font-secondary;
-  font-size: 0.88rem;
-  font-weight: $fw-medium;
+  @include type-ui(0.88rem, $fw-medium);
   transition: all 0.15s ease;
   border-radius: 7px;
 
@@ -1063,16 +904,11 @@ html.a11y-large-cursor * {
   color: $twilight-purple;
   transition: all 0.15s ease;
   flex-shrink: 0;
-
   .menu-icon { width: 20px; height: 20px; }
 }
 
-// ─── Mobile User ──────────────────────────────────────────────────────────────
-
-.navigation__mobile-user {
-  list-style: none;
-  padding: $space-xs 0;
-}
+// Mobile user section
+.navigation__mobile-user { list-style: none; padding: $space-xs 0; }
 
 .navigation__mobile-user-info {
   @include center;
@@ -1086,11 +922,9 @@ html.a11y-large-cursor * {
   @include center;
   gap: $space-sm;
   padding: 10px $space-md;
-  font-family: $font-secondary;
-  font-size: 0.9rem;
-  font-weight: $fw-medium;
+  @include type-ui(0.9rem, $fw-medium);
   color: rgba($text-color-dark, 0.75);
-  text-decoration: none;
+  @include text-none;
   background: transparent;
   border: none;
   width: 100%;
@@ -1116,17 +950,17 @@ html.a11y-large-cursor * {
   gap: $space-md;
   width: 60%;
   padding: $space-md 0 0;
+  margin: 0 auto;
+  align-items: center;
 }
 
-// ─── Dropdown Arrow ───────────────────────────────────────────────────────────
-
+// Dropdown arrow
 .dropdown-arrow {
   transition: transform 0.2s ease;
   &--open { transform: rotate(180deg); }
 }
 
-// ─── Animations ───────────────────────────────────────────────────────────────
-
+// Animations
 @keyframes nav-fade {
   from { opacity: 0; transform: translateY(-6px); }
   to   { opacity: 1; transform: translateY(0); }

@@ -800,7 +800,7 @@
   font-size: 0.84rem;
   font-weight: $fw-bold;
   color: rgba($soft-pearl, 0.92);
-  cursor: pointer;
+  @include cursor;
   transition: filter 0.2s, transform 0.2s, box-shadow 0.2s;
   box-shadow: 0 4px 14px rgba($twilight-purple, 0.28);
   outline: none;
@@ -811,4 +811,9 @@
     box-shadow: 0 6px 20px rgba($twilight-purple, 0.36);
   }
   &:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+}
+.sv-dog-btn {
+  &.danger         { color: rgb(241, 119, 119); border-color: red; }
+  &.danger:hover   { background: rgb(241, 119, 119); color: #fff; }
+  &.confirming     { background: red; color: #fff; }
 }

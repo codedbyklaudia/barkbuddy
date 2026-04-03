@@ -8,9 +8,9 @@ import { useAuth } from '../context/AuthContext';
 import { useSaved } from '../context/SavedContext';
 
 const API_BASE: string = import.meta.env.VITE_API_URL ?? 'http://localhost:4000/api';
+const UPLOADS_BASE: string = (import.meta.env.VITE_API_URL ?? 'http://localhost:4000/api').replace('/api', '');
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
+// Types
 interface Business {
   id: number;
   business_name: string;
@@ -33,7 +33,7 @@ interface Business {
 
 interface Photo {
   id: number;
-  cloudinary_url: string;
+  file_path: string;
   caption?: string;
   is_primary: boolean;
 }
@@ -52,8 +52,7 @@ interface Statistics {
   total_reviews: number;
 }
 
-// ─── Star rating display ──────────────────────────────────────────────────────
-
+// Star rating display 
 const StarRow = ({ rating, size = 16 }: { rating: number; size?: number }) => (
   <>
     {[...Array(5)].map((_, i) => (
@@ -64,8 +63,7 @@ const StarRow = ({ rating, size = 16 }: { rating: number; size?: number }) => (
   </>
 );
 
-// ─── Interactive star picker ──────────────────────────────────────────────────
-
+// Interactive star picker 
 const StarPicker = ({ value, onChange }: { value: number; onChange: (v: number) => void }) => {
   const [hovered, setHovered] = useState(0);
   const display = hovered || value;
@@ -97,8 +95,7 @@ const StarPicker = ({ value, onChange }: { value: number; onChange: (v: number) 
   );
 };
 
-// ─── Save button component ────────────────────────────────────────────────────
-
+// Save button component 
 const SaveButton: React.FC<{
   business: Business;
   averageRating: number;
@@ -111,12 +108,12 @@ const SaveButton: React.FC<{
   const handleSave = () => {
     toggleService({
       id:       String(business.id),
+      itemId:   String(business.id),
       title:    business.business_name,
       category: formatServiceType(business.type),
       address:  `${business.address}, ${business.postcode}`,
       rating:   averageRating > 0 ? averageRating : undefined,
     });
-    // Pop animation feedback
     setPopped(true);
     setTimeout(() => setPopped(false), 400);
   };
@@ -135,20 +132,10 @@ const SaveButton: React.FC<{
     );
   }
 
-  return (
-    <button
-      className={`__but __but--save${saved ? ' __but--save-active' : ''}${popped ? ' __but--save-pop' : ''}`}
-      onClick={handleSave}
-      aria-label={saved ? 'Remove from saved' : 'Save this listing'}
-    >
-      <Bookmark size={16} fill={saved ? 'currentColor' : 'none'} />
-      <span>{saved ? 'Saved ✓' : 'Save listing'}</span>
-    </button>
-  );
+  
 };
 
-// ─── Component ────────────────────────────────────────────────────────────────
-
+// Component 
 const ServiceDetailPage: React.FC = () => {
   const { id }     = useParams<{ id: string }>();
   const navigate   = useNavigate();
@@ -176,7 +163,7 @@ const ServiceDetailPage: React.FC = () => {
   const [reviewError, setReviewError]         = useState('');
   const [reviewSuccess, setReviewSuccess]     = useState(false);
 
-  // ── Fetch ─────────────────────────────────────────────────────────────────
+  // Fetch
 
   useEffect(() => {
     if (!id) return;
@@ -203,7 +190,7 @@ const ServiceDetailPage: React.FC = () => {
     load();
   }, [id]);
 
-  // ── Refresh stats ─────────────────────────────────────────────────────────
+  // Refresh stats
 
   const refreshStats = useCallback(async () => {
     if (!id) return;
@@ -217,7 +204,7 @@ const ServiceDetailPage: React.FC = () => {
     }
   }, [id]);
 
-  // ── Review modal ──────────────────────────────────────────────────────────
+  // Review modal 
 
   const handleOpenReview = () => {
     if (!isLoggedIn) { navigate('/login'); return; }
@@ -268,7 +255,7 @@ const ServiceDetailPage: React.FC = () => {
     }
   };
 
-  // ── Lightbox ──────────────────────────────────────────────────────────────
+  // Lightbox
 
   const openLightbox  = (index: number) => setLightboxIndex(index);
   const closeLightbox = () => setLightboxIndex(null);
@@ -290,8 +277,7 @@ const ServiceDetailPage: React.FC = () => {
     return () => window.removeEventListener('keydown', onKey);
   }, [lightboxIndex, navigateLightbox]);
 
-  // ── Guards ────────────────────────────────────────────────────────────────
-
+  // Guards
   if (loading) return (
     <div className="activity-details">
       <div className="activity-details__loading">
@@ -312,7 +298,7 @@ const ServiceDetailPage: React.FC = () => {
     </div>
   );
 
-  // ── Derived values ────────────────────────────────────────────────────────
+  // Derived values
 
   const primaryPhoto  = photos.find(p => p.is_primary) || photos[0];
   const otherPhotos   = photos.filter(p => p !== primaryPhoto);
@@ -320,35 +306,21 @@ const ServiceDetailPage: React.FC = () => {
   const totalReviews  = statistics.total_reviews || 0;
   const currentPhoto  = lightboxIndex !== null ? photos[lightboxIndex] : null;
 
-  // ── Render ────────────────────────────────────────────────────────────────
+  // Render
 
   return (
     <div className="activity-details">
-
-      {/* Breadcrumb */}
-      <nav className="breadcrumb">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-          <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-        </svg>
-        <span onClick={() => navigate('/')}>Home</span>
-        <span>›</span>
-        <span onClick={() => navigate('/finder')}>Finder</span>
-        <span>›</span>
-        <span>Details</span>
-      </nav>
-
       <section className="activity-details__content">
 
-        {/* ── Left column ── */}
+        {/* Left column */}
         <div className="activity-details__info">
 
-          {/* Header — type badge + title + save button in one row */}
+          {/* Header */}
           <div className="activity-details__header-info">
             <div className="activity-details__header-top">
               <span className="activity-details__type-badge">
                 {formatServiceType(business.type)}
               </span>
-              {/* Save button — header variant, always visible */}
               <SaveButton
                 business={business}
                 averageRating={averageRating}
@@ -375,7 +347,10 @@ const ServiceDetailPage: React.FC = () => {
                 aria-label="Open photo"
               >
                 {primaryPhoto && (
-                  <img src={primaryPhoto.cloudinary_url} alt={business.business_name} />
+                  <img
+                    src={`${UPLOADS_BASE}${primaryPhoto.file_path}`}
+                    alt={business.business_name}
+                  />
                 )}
                 <div className="photo-hero__main-overlay">
                   <span className="photo-hero__zoom-icon"><Search size={46} /></span>
@@ -391,7 +366,10 @@ const ServiceDetailPage: React.FC = () => {
                     role="button"
                     aria-label={`Open photo ${idx + 2}`}
                   >
-                    <img src={photo.cloudinary_url} alt={`${business.business_name} photo ${idx + 2}`} />
+                    <img
+                      src={`${UPLOADS_BASE}${photo.file_path}`}
+                      alt={`${business.business_name} photo ${idx + 2}`}
+                    />
                     {idx === 3 && photos.length > 5 && (
                       <div className="photo-hero__more-overlay">+{photos.length - 5} more</div>
                     )}
@@ -503,7 +481,7 @@ const ServiceDetailPage: React.FC = () => {
           </div>
         </div>
 
-        {/* ── Sidebar ── */}
+        {/* Sidebar */}
         <aside className="activity-details__sidebar">
           <div className="activity-details__cta">
             {business.website ? (
@@ -520,13 +498,11 @@ const ServiceDetailPage: React.FC = () => {
               </a>
             ) : null}
 
-            {/* Write a review */}
             <button className="__but" onClick={handleOpenReview} disabled={authLoading}>
               <SquarePen size={16} />
               <span>{authLoading ? 'Loading…' : isLoggedIn ? 'Write a Review' : 'Sign in to Review'}</span>
             </button>
 
-            {/* Save listing — sidebar variant */}
             <SaveButton
               business={business}
               averageRating={averageRating}
@@ -540,7 +516,10 @@ const ServiceDetailPage: React.FC = () => {
               <div className="gallery-grid">
                 {otherPhotos.slice(4).map((photo, idx) => (
                   <div key={photo.id} className="gallery-item" onClick={() => openLightbox(photos.indexOf(photo))}>
-                    <img src={photo.cloudinary_url} alt={`${business.business_name} photo ${idx + 6}`} />
+                    <img
+                      src={`${UPLOADS_BASE}${photo.file_path}`}
+                      alt={`${business.business_name} photo ${idx + 6}`}
+                    />
                   </div>
                 ))}
               </div>
@@ -549,7 +528,7 @@ const ServiceDetailPage: React.FC = () => {
         </aside>
       </section>
 
-      {/* ── Review modal ── */}
+      {/* Review modal */}
       {showReviewModal && (
         <div className="modal-overlay" onClick={handleCloseReview}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
@@ -598,7 +577,7 @@ const ServiceDetailPage: React.FC = () => {
         </div>
       )}
 
-      {/* ── Lightbox ── */}
+      {/* Lightbox */}
       {currentPhoto && lightboxIndex !== null && (
         <div className="lightbox-overlay" onClick={closeLightbox}>
           <div className="lightbox-content" onClick={e => e.stopPropagation()}>
@@ -606,7 +585,12 @@ const ServiceDetailPage: React.FC = () => {
             {photos.length > 1 && (
               <button className="lightbox__nav lightbox__nav--prev" onClick={() => navigateLightbox(-1)} aria-label="Previous photo">‹</button>
             )}
-            <img key={lightboxIndex} src={currentPhoto.cloudinary_url} alt={business.business_name} className="lightbox__img" />
+            <img
+              key={lightboxIndex}
+              src={`${UPLOADS_BASE}${currentPhoto.file_path}`}
+              alt={business.business_name}
+              className="lightbox__img"
+            />
             {photos.length > 1 && (
               <button className="lightbox__nav lightbox__nav--next" onClick={() => navigateLightbox(1)} aria-label="Next photo">›</button>
             )}
@@ -617,7 +601,6 @@ const ServiceDetailPage: React.FC = () => {
           </div>
         </div>
       )}
-
       <Footer />
     </div>
   );

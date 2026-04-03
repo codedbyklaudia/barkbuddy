@@ -20,6 +20,7 @@ import buddiesRouter from "./routes/buddies";
 import dogsRouter from "./routes/Dogs";
 import reviewRouter from "./routes/Reviews";
 import profileRouter from "./routes/ProfileRoutes";
+import savedRouter from "./routes/saved";
 import multer from "multer";
 
 dotenv.config();
@@ -44,6 +45,7 @@ app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 // Auth routes
 app.use("/api/auth", authRoutes);
+app.use("/api/saved", savedRouter);
 app.use("/api/users", usersRoutes);
 app.use("/api/password", passwordRoutes);
 app.use("/api/health-events", healthEventsRoutes);
@@ -68,15 +70,15 @@ app.get("/api/health", (_, res) => res.json({ status: "ok", timestamp: new Date(
 app.get("/api/listings", async (req, res) => {
   try {
     const {
-      q           = "",
-      category    = "",
+      q             = "",
+      category      = "",
       lat,
       lng,
-      radius      = 25,
-      min_rating  = 0,
+      radius        = "25",
+      min_rating    = "0",
       verified_only = "false",
-      page        = 1,
-      limit       = 9,
+      page          = "1",
+      limit         = "9",
     } = req.query as Record<string, string>;
 
     const offset = (parseInt(page) - 1) * parseInt(limit);

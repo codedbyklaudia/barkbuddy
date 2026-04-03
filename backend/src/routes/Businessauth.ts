@@ -40,7 +40,7 @@ router.post("/login", [
     if (biz.status !== "approved") {
       const messages: Record<string, string> = {
         pending:  "Your application is still under review. We'll email you once it's been approved.",
-        rejected: "Your application was not approved. Please contact us at website.barkbuddy@gmail.com if you have further questions",
+        rejected: "Your application was not approved. Please contact us at paws@barkbuddy.org.uk if you have further questions",
       };
       res.status(403).json({ message: messages[biz.status] ?? "Account not active" });
       return;

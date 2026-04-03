@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Navigation.scss';
-import { Hand, SunDim, Ligature, ArrowDownFromLine, MousePointer2} from 'lucide-react';
+import { Hand, SunDim, Ligature,LogIn, ArrowDownFromLine, MousePointer2, UserRoundPlus} from 'lucide-react';
+
 import { useAuth } from '../context/AuthContext';
 import { getProfile } from '../api/users';
 
@@ -47,7 +48,6 @@ function applyA11y(s: A11ySettings) {
 }
 
 // Accessibility Panel 
-
 const AccessibilityPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const [settings, setSettings] = useState<A11ySettings>(loadA11y);
   const ref = useRef<HTMLDivElement>(null);
@@ -134,8 +134,7 @@ const AccessibilityPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   );
 };
 
-// ─── Accessibility Button ─────────────────────────────────────────────────────
-
+// Accessibility Button
 const AccessibilityButton: React.FC = () => {
   const [open, setOpen] = useState(false);
   useEffect(() => { applyA11y(loadA11y()); }, []);
@@ -153,8 +152,7 @@ const AccessibilityButton: React.FC = () => {
   );
 };
 
-// ─── User Menu ────────────────────────────────────────────────────────────────
-
+// User Menu
 const UserMenu: React.FC = () => {
   const { user: authUser, token, logout } = useAuth();
   const navigate = useNavigate();
@@ -168,7 +166,7 @@ const UserMenu: React.FC = () => {
     if (!token) return;
     getProfile(token)
       .then(({ user }) => { setAvatarUrl(user.avatarUrl); setName(user.name || ''); setEmail(user.email || ''); })
-      .catch(() => { setAvatarUrl(authUser?.avatar || authUser?.avatarUrl); setName(authUser?.name || ''); setEmail(authUser?.email || ''); });
+      .catch(() => { setAvatarUrl(authUser?.avatarUrl); setName(authUser?.name || ''); setEmail(authUser?.email || ''); });
   }, [token]);
 
   useEffect(() => {
@@ -252,7 +250,7 @@ const UserMenu: React.FC = () => {
   );
 };
 
-// ─── Mobile User Menu ─────────────────────────────────────────────────────────
+// Mobile User Menu
 
 const MobileUserMenu: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const { user: authUser, token, logout } = useAuth();
@@ -265,7 +263,7 @@ const MobileUserMenu: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     if (!token) return;
     getProfile(token)
       .then(({ user }) => { setAvatarUrl(user.avatarUrl); setName(user.name || ''); setEmail(user.email || ''); })
-      .catch(() => { setAvatarUrl(authUser?.avatar || authUser?.avatarUrl); setName(authUser?.name || ''); setEmail(authUser?.email || ''); });
+      .catch(() => { setAvatarUrl(authUser?.avatarUrl); setName(authUser?.name || ''); setEmail(authUser?.email || ''); });
   }, [token]);
 
   const initials = name ? name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) : '?';
@@ -311,14 +309,13 @@ const MobileUserMenu: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   );
 };
 
-// ─── Main Navigation ──────────────────────────────────────────────────────────
-
+// Main Navigation
 const Navigation: React.FC = () => {
   const { token, isLoading } = useAuth();
   const isAuthenticated = !!token;
   const [isMenuOpen,     setIsMenuOpen]     = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-  const [closeTimer,     setCloseTimer]     = useState<NodeJS.Timeout | null>(null);
+  const [closeTimer,     setCloseTimer]     = useState<ReturnType<typeof setTimeout> | null>(null);
   const [scrolled,       setScrolled]       = useState(false);
 
   useEffect(() => {
@@ -415,8 +412,8 @@ const Navigation: React.FC = () => {
             <UserMenu />
           ) : (
             <>
-              <Link to="/login"    className="btn--nav btn-login"><i className="bi bi-box-arrow-in-right" aria-hidden="true" /> Login</Link>
-              <Link to="/register" className="btn--nav btn-register">Register</Link>
+              <Link to="/login"    className="btn--nav btn-login"><LogIn /> Log In</Link>
+              <Link to="/register" className="btn--nav btn-register"><UserRoundPlus/> Register</Link>
             </>
           )}
         </div>
@@ -484,8 +481,8 @@ const Navigation: React.FC = () => {
               <MobileUserMenu onClose={toggleMenu} />
             ) : (
               <li className="navigation__mobile-buttons" role="none">
-                <Link to="/login"    className="btn--nav btn-login"    onClick={toggleMenu}><i className="bi bi-box-arrow-in-right" aria-hidden="true" /> Login</Link>
-                <Link to="/register" className="btn--nav btn-register" onClick={toggleMenu}>Register</Link>
+                <Link to="/login"    className="btn--nav btn-login"    onClick={toggleMenu}><LogIn/> Login</Link>
+                <Link to="/register" className="btn--nav btn-register" onClick={toggleMenu}><UserRoundPlus/> Register</Link>
               </li>
             )
           )}

@@ -246,8 +246,8 @@ const TipsPage: React.FC<TipsPageProps> = ({
   }, [query, tips]);
 
   const handleSave = useCallback((tip: Tip) => {
-    toggleTip({ id: tip.id, title: tip.title, summary: tip.summary, category, icon: tip.icon });
-  }, [tips, category, toggleTip]);
+  toggleTip({ itemId: tip.id, id: tip.id, title: tip.title, summary: tip.summary, category, icon: tip.icon });
+}, [tips, category, toggleTip]);
 
   return (
     <div className={`tips-page tips-page--${category}`}>

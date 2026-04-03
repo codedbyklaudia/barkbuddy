@@ -17,11 +17,11 @@ const authRequest = async <T>(
   return data as T;
 };
 
-// Get full profile
+// ── User profile ──────────────────────────────────────────────────────────────
+
 export const getProfile = (token: string) =>
   authRequest<{ user: any; dog: any }>("/users/me", token);
 
-// Update user details
 export const updateUser = (token: string, data: {
   name?:            string;
   email?:           string;
@@ -39,13 +39,22 @@ export const updateUser = (token: string, data: {
 export const uploadUserAvatar = (token: string, file: File) => {
   const form = new FormData();
   form.append("avatar", file);
-  return authRequest<{ message: string; avatarUrl: string }>("/users/me/avatar", token, {
-    method: "POST",
-    body:   form,
-  });
+  return authRequest<{ message: string; avatarUrl: string; profileComplete: number }>(
+    "/users/me/avatar", token, { method: "POST", body: form }
+  );
 };
 
-// Update preferences
+// Upload user banner (profile background)
+export const uploadUserBanner = (token: string, file: File) => {
+  const form = new FormData();
+  form.append("banner", file);
+  return authRequest<{ message: string; bannerUrl: string }>(
+    "/users/me/banner", token, { method: "POST", body: form }
+  );
+};
+
+// ── Preferences ───────────────────────────────────────────────────────────────
+
 export const updatePreferences = (token: string, data: {
   emailNotifications?: boolean;
   preferences?:        Record<string, any>;
@@ -56,7 +65,8 @@ export const updatePreferences = (token: string, data: {
     body:    JSON.stringify(data),
   });
 
-// Update dog details 
+// ── Dog ───────────────────────────────────────────────────────────────────────
+
 export const updateDog = (token: string, data: {
   name?:        string;
   breed?:       string;
@@ -71,17 +81,22 @@ export const updateDog = (token: string, data: {
     body:    JSON.stringify(data),
   });
 
-// Upload dog avatar
 export const uploadDogAvatar = (token: string, file: File) => {
   const form = new FormData();
   form.append("avatar", file);
-  return authRequest<{ message: string; avatarUrl: string }>("/users/me/dog/avatar", token, {
-    method: "POST",
-    body:   form,
-  });
+  return authRequest<{ message: string; avatarUrl: string }>(
+    "/users/me/dog/avatar", token, { method: "POST", body: form }
+  );
 };
 
-//Notifications!
+// Remove an extra (non-main) dog — maps to DELETE /api/users/me/dogs/:dogId
+export const removeDog = (token: string, dogId: string) =>
+  authRequest<{ message: string }>(`/users/me/dogs/${dogId}`, token, {
+    method: "DELETE",
+  });
+
+// ── Notifications ─────────────────────────────────────────────────────────────
+
 export const getNotifications = (token: string) =>
   authRequest<{ notifications: any[]; unread_count: number }>("/notifications", token)
     .then(data => ({
@@ -93,7 +108,7 @@ export const getNotifications = (token: string) =>
         actorAvatar:    n.actor_avatar,
         postId:         n.post_id,
         postTitle:      n.post_title,
-        commentId:      n.comment_id, 
+        commentId:      n.comment_id,
         commentSnippet: n.comment_snippet,
         isRead:         n.is_read,
         createdAt:      n.created_at,
@@ -107,7 +122,8 @@ export const markNotificationsRead = (token: string, ids: string[]) =>
     body:    JSON.stringify({ ids }),
   });
 
-// Buddies 
+// ── Buddies ───────────────────────────────────────────────────────────────────
+
 export const getBuddies = (token: string) =>
   authRequest<{ buddies: any[]; pendingIn: any[]; pendingOut: any[] }>("/buddies", token);
 
@@ -132,18 +148,19 @@ export const removeBuddy = (token: string, buddyId: string) =>
     method: "DELETE",
   });
 
+// Forum posts 
 export const getMyPosts = (token: string) =>
   authRequest<{ posts: any[] }>("/forum/my-posts", token)
     .then(d => d.posts ?? []);
 
 export const deletePost = (token: string, postId: string) =>
-  authRequest<{ message: string }>(`/posts/${postId}`, token, {
+  authRequest<{ message: string }>(`/forum/posts/${postId}`, token, {
     method: "DELETE",
   });
 
-export const updatePost = (token: string, postId: string, data: Partial<Post>) =>
-  authRequest<{ post: any }>(`/posts/${postId}`, token, {
-    method: "PATCH",
+export const updatePost = (token: string, postId: string, data: Record<string, any>) =>
+  authRequest<{ post: any }>(`/forum/posts/${postId}`, token, {
+    method:  "PATCH",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
+    body:    JSON.stringify(data),
   });
