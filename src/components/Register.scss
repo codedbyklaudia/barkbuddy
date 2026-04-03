@@ -1454,3 +1454,249 @@
   from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
   to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
+
+// ─── Email Verification Step (Step 1.5) ──────────────────────────────────────
+// Append these styles to the bottom of Register.scss
+
+// ── Card variant ──
+.verify-card {
+  text-align: center;
+  max-width: 480px;
+  transition: background 0.5s ease, box-shadow 0.5s ease;
+
+  &--success {
+    background: linear-gradient(135deg, $misty-lavender 0%, rgba($serene-purple, 0.15) 100%);
+    box-shadow:
+      0 2px 4px rgba(0, 0, 0, 0.1),
+      0 8px 24px rgba($serene-purple, 0.2),
+      0 24px 48px rgba($twilight-purple, 0.15);
+  }
+}
+
+// ── Icon ──
+.verify-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: $space-lg;
+}
+
+.verify-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba($twilight-purple, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: verifyIconPop 0.5s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+
+  svg {
+    width: 32px;
+    height: 32px;
+    stroke: $twilight-purple;
+  }
+
+  &--done {
+    background: rgba($serene-purple, 0.15);
+    animation: successPop 0.5s cubic-bezier(0.34, 1.6, 0.64, 1) both;
+
+    svg {
+      stroke: $serene-purple;
+      width: 36px;
+      height: 36px;
+      animation: checkDraw 0.4s ease 0.1s both;
+    }
+  }
+}
+
+@keyframes verifyIconPop {
+  from { transform: scale(0.6) rotate(-10deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0deg);    opacity: 1; }
+}
+
+@keyframes successPop {
+  0%   { transform: scale(0.8); background: rgba($serene-purple, 0.05); }
+  50%  { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+
+@keyframes checkDraw {
+  from { stroke-dashoffset: 40; opacity: 0; }
+  to   { stroke-dashoffset: 0;  opacity: 1; }
+}
+
+// ── Headings ──
+.verify-title {
+  font-family: $font-primary;
+  font-size: $t-sub-des;
+  font-weight: $fw-regular;
+  color: $text-color-dark;
+  letter-spacing: 0.04em;
+  margin-bottom: $space-sm;
+
+  @media (max-width: $bp-mobile) { font-size: 1.4rem; }
+}
+
+.verify-sub {
+  font-family: $font-secondary;
+  font-size: $t-link-des;
+  color: $twilight-purple;
+  line-height: $lh-normal;
+  font-weight: $fw-light;
+  margin-bottom: $space-xl;
+
+  strong {
+    font-weight: $fw-bold;
+    color: $text-color-dark;
+    word-break: break-all;
+  }
+
+  @media (max-width: $bp-mobile) { font-size: 0.85rem; }
+}
+
+// ── Send error ──
+.verify-send-error {
+  background: #fff5f5;
+  border: 1.5px solid #fca5a5;
+  color: #b91c1c;
+  border-radius: $radius-md;
+  padding: $space-sm $space-md;
+  font-family: $font-secondary;
+  font-size: 0.8rem;
+  font-weight: $fw-medium;
+  margin-bottom: $space-md;
+  text-align: left;
+}
+
+// ── OTP input row ──
+.otp-input-row {
+  display: flex;
+  gap: $space-sm;
+  justify-content: center;
+  margin: $space-md 0 $space-xs;
+
+  @media (max-width: $bp-mobile) { gap: $space-xs; }
+}
+
+.otp-box {
+  width: 52px;
+  height: 64px;
+  border: 2px solid rgba($gentle-amethyst, 0.4);
+  border-radius: $radius-md;
+  background: rgba($soft-pearl, 0.9);
+  font-family: $font-primary;
+  font-size: 1.6rem;
+  font-weight: $fw-medium;
+  color: $twilight-purple;
+  text-align: center;
+  outline: none;
+  transition: all 0.18s ease;
+  caret-color: $serene-purple;
+
+  &::placeholder { color: rgba($gentle-amethyst, 0.3); }
+
+  &:focus {
+    border-color: $serene-purple;
+    background: $soft-pearl;
+    box-shadow: 0 0 0 3px rgba($serene-purple, 0.12);
+  }
+
+  &.filled {
+    border-color: $twilight-purple;
+    background: $input-color;
+    animation: digitPop 0.2s cubic-bezier(0.34, 1.5, 0.64, 1) both;
+  }
+
+  &.error {
+    border-color: #e05252;
+    background: #fff8f8;
+    animation: shake 0.35s ease both;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  @media (max-width: $bp-mobile) {
+    width: 42px;
+    height: 54px;
+    font-size: 1.3rem;
+  }
+}
+
+@keyframes digitPop {
+  0%   { transform: scale(0.85); }
+  60%  { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-5px); }
+  40%       { transform: translateX(5px); }
+  60%       { transform: translateX(-3px); }
+  80%       { transform: translateX(3px); }
+}
+
+// ── Code error ──
+.verify-code-error {
+  font-family: $font-secondary;
+  font-size: 0.78rem;
+  color: #e05252;
+  font-weight: $fw-medium;
+  margin-bottom: $space-sm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+
+  &::before { content: '⚠'; font-size: 0.7rem; }
+}
+
+// ── Resend area ──
+.verify-resend {
+  margin-top: $space-md;
+  font-family: $font-secondary;
+  font-size: 0.82rem;
+}
+
+.verify-resend-timer {
+  color: $gentle-amethyst;
+  strong { color: $twilight-purple; font-weight: $fw-bold; }
+}
+
+.verify-resend-btn {
+  background: none;
+  border: none;
+  outline: none;
+  color: $serene-purple;
+  font-family: $font-secondary;
+  font-size: 0.82rem;
+  font-weight: $fw-medium;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  padding: 0;
+  transition: color 0.2s;
+
+  &:hover   { color: $twilight-purple; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; text-decoration: none; }
+}
+
+// ── Back link ──
+.verify-back-link {
+  display: block;
+  margin-top: $space-lg;
+  background: none;
+  border: none;
+  outline: none;
+  font-family: $font-secondary;
+  font-size: 0.78rem;
+  color: $gentle-amethyst;
+  cursor: pointer;
+  transition: color 0.2s;
+
+  &:hover { color: $twilight-purple; }
+}

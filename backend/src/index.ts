@@ -36,7 +36,13 @@ const pool = new Pool({
 
 // Middleware
 app.use(cors({
-  origin: process.env.NODE_ENV === "production" ? process.env.CLIENT_URL : true,
+  origin: process.env.NODE_ENV === "production" 
+    ? [
+        "https://barkbuddy.org.uk",
+        "https://www.barkbuddy.org.uk",
+      ]
+    : true,
+  credentials: true,
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
