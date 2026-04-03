@@ -4,7 +4,6 @@ import './ServiceFinder.scss';
 import Footer from './Footer';
 import { formatServiceType } from '../utils/formatservicetype';
 
-const API_BASE: string = import.meta.env.VITE_API_URL ?? 'http://localhost:4000/api';
 const MAPS_KEY: string = import.meta.env.VITE_GOOGLE_MAPS_KEY ?? '';
 
 // Types 
@@ -50,10 +49,13 @@ const ACTIVITY_TYPES = [
   { icon: '../images/icons_1/park_icon.png',       label: 'Park' },
   { icon: '../images/icons_1/beach_icon.png',      label: 'Beaches' },
 ];
+const API_BASE: string = import.meta.env.VITE_API_URL ?? 'http://localhost:4000/api';
+const UPLOADS_BASE: string = (import.meta.env.VITE_API_URL ?? 'http://localhost:4000/api').replace('/api', '');
+
 
 const RADIUS_OPTIONS = [5, 10, 25, 50];
 
-// ─── Google Maps loader ───────────────────────────────────────────────────────
+// Google Maps loader 
 let mapsLoaded = false;
 let mapsCallbacks: (() => void)[] = [];
 
@@ -75,7 +77,7 @@ function loadGoogleMaps(apiKey: string): Promise<void> {
   });
 }
 
-// ─── Map component ────────────────────────────────────────────────────────────
+// Map component
 const UnifiedMap: React.FC<{
   listings: Listing[];
   userLocation: { lat: number; lng: number } | null;
@@ -175,7 +177,7 @@ const UnifiedMap: React.FC<{
         markers.current.push(marker);
       });
 
-      // ── Smart zoom logic ──────────────────────────────────────────────────
+      // Smart zoom logic
       const pinned = listings.filter(l => l.lat && l.lng);
 
       if (pinned.length > 1) {
@@ -204,13 +206,13 @@ const UnifiedMap: React.FC<{
   return <div ref={mapRef} className="unified-finder__map" />;
 };
 
-// ─── Listing row card ─────────────────────────────────────────────────────────
+// Listing row card
 const ListingRow: React.FC<{ listing: Listing }> = ({ listing }) => (
   <Link to={`/activity/${listing.id}`} style={{ textDecoration: 'none' }}>
     <article className="listing-card listing-card--row">
       <div className="listing-card__image listing-card__image--small">
         {listing.primary_photo
-          ? <img src={listing.primary_photo} alt={listing.business_name} />
+          ? <img src={`${UPLOADS_BASE}${listing.primary_photo}`} alt={listing.business_name} />
           : <div className="listing-card__no-photo">🐾</div>}
         {listing.is_new && <span className="listing-card__badge"><i className="bi bi-patch-check" /> New</span>}
       </div>
@@ -242,13 +244,13 @@ const ListingRow: React.FC<{ listing: Listing }> = ({ listing }) => (
   </Link>
 );
 
-// ─── Grid card ────────────────────────────────────────────────────────────────
+// Grid card
 const GridCard: React.FC<{ listing: Listing }> = ({ listing }) => (
   <Link to={`/activity/${listing.id}`} style={{ textDecoration: 'none' }}>
     <article className="listing-card listing-card--grid">
       <div className="listing-card__image">
         {listing.primary_photo
-          ? <img src={listing.primary_photo} alt={listing.business_name} />
+          ? <img src={`${UPLOADS_BASE}${listing.primary_photo}`} alt={listing.business_name} />
           : <div className="listing-card__no-photo">🐾</div>}
         {listing.is_new && <span className="listing-card__badge"><i className="bi bi-patch-check" /> New</span>}
       </div>
@@ -273,7 +275,7 @@ const GridCard: React.FC<{ listing: Listing }> = ({ listing }) => (
   </Link>
 );
 
-// ─── Main component ───────────────────────────────────────────────────────────
+// Main component
 const ServiceFinder: React.FC = () => {
   const [activeTab, setActiveTab]               = useState<TabType>('services');
   const [searchQuery, setSearchQuery]           = useState('');
@@ -309,7 +311,7 @@ const ServiceFinder: React.FC = () => {
 
   const currentTypes = activeTab === 'services' ? SERVICE_TYPES : ACTIVITY_TYPES;
 
-  // ── Featured listings ─────────────────────────────────────────────────────
+  // Featured listings
   useEffect(() => {
     setFeaturedLoading(true);
     const endpoint = activeTab === 'services' ? 'services' : 'activities';
@@ -323,7 +325,7 @@ const ServiceFinder: React.FC = () => {
       .catch(() => setFeaturedLoading(false));
   }, [activeTab]);
 
-  // ── Core search ───────────────────────────────────────────────────────────
+  // Core search 
   const performSearch = useCallback(async (opts: {
     query?: string; location?: string; lat?: number; lng?: number;
     radius?: number; type?: string; newOnly?: boolean;

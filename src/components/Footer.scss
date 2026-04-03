@@ -18,7 +18,6 @@
     max-width: 1200px;
     margin: 0 auto;
     display: grid;
-    // Logo column is compact, links take the rest
     grid-template-columns: 220px 1fr;
     gap: clamp($space-xl, 4vw, $space-xxl);
     padding-bottom: $space-xl;
@@ -31,10 +30,9 @@
     }
   }
 
-  // ── Brand column ────────────────────────────────────────────
+  // Brand column
   &__brand {
-    display: flex;
-    flex-direction: column;
+    @include column;
     align-items: flex-start;
     gap: $space-lg;
 
@@ -51,8 +49,7 @@
   }
 
   &__logo {
-    display: flex;
-    align-items: center;
+    @include center;
   }
 
   &__logo-img {
@@ -73,9 +70,7 @@
     border-radius: $radius-round;
     background-color: rgba($misty-lavender, 0.2);
     color: $text-color-dark;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    @include flex-center;
     transition: all 0.25s ease;
     text-decoration: none;
 
@@ -100,6 +95,7 @@
 
     @media (max-width: $bp-mobile) {
       grid-template-columns: 1fr;
+      margin: 0 auto;
       gap: $space-lg;
       text-align: center;
     }

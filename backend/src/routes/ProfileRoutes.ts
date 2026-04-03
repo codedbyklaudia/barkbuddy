@@ -5,19 +5,19 @@ import { authenticate, AuthRequest } from "../middleware/auth";
 const router = Router();
 router.use(authenticate);
 
-// ─── Shared builder ───────────────────────────────────────────────────────────
+// ── Shared builder ────────────────────────────────────────────────────────────
 async function buildProfile(targetUserId: string, requestingUserId: string) {
 
-  // 1. Core user
+  // Core user — includes banner_url
   const userRes = await pool.query(
-    `SELECT id, name, bio, avatar_url, created_at, profile_complete
+    `SELECT id, name, bio, avatar_url, banner_url, created_at, profile_complete
      FROM users WHERE id = $1`,
     [targetUserId]
   );
   if (!userRes.rowCount) return null;
   const u = userRes.rows[0];
 
-  // 2. ALL dogs — ordered main first
+  // ALL dogs — ordered main first
   const dogsRes = await pool.query(
     `SELECT name, breed, gender, dob,
             life_stage  AS "lifeStage",
@@ -43,7 +43,7 @@ async function buildProfile(targetUserId: string, requestingUserId: string) {
       : (() => { try { return JSON.parse(dog.personality); } catch { return []; } })(),
   }));
 
-  // 3. Buddy count
+  // Buddy count
   const buddyCountRes = await pool.query(
     `SELECT COUNT(*) AS count
      FROM buddy_requests
@@ -53,7 +53,7 @@ async function buildProfile(targetUserId: string, requestingUserId: string) {
   );
   const buddyCount = parseInt(buddyCountRes.rows[0].count, 10);
 
-  // 4. Published post count
+  // Published post count
   const postCountRes = await pool.query(
     `SELECT COUNT(*) AS count
      FROM forum_posts
@@ -62,7 +62,7 @@ async function buildProfile(targetUserId: string, requestingUserId: string) {
   );
   const postCount = parseInt(postCountRes.rows[0].count, 10);
 
-  // 5. Total likes received
+  // Total likes received
   let likesReceived = 0;
   try {
     const likesRes = await pool.query(
@@ -83,17 +83,18 @@ async function buildProfile(targetUserId: string, requestingUserId: string) {
     name:            u.name,
     bio:             u.bio ?? null,
     avatarUrl:       u.avatar_url ?? null,
+    bannerUrl:       u.banner_url ?? null,   // ← added
     createdAt:       u.created_at,
     profileComplete: u.profile_complete ?? 0,
     buddyCount,
     postCount,
     likesReceived,
-    dogs,                 // ← all dogs as array
-    dog: dogs[0] ?? null, // ← kept for backward compat
+    dogs,
+    dog: dogs[0] ?? null,
   };
 }
 
-// ─── GET /api/users/me/profile ────────────────────────────────────────────────
+// ── GET /api/users/me/profile ─────────────────────────────────────────────────
 router.get("/me/profile", async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const profile = await buildProfile(
@@ -108,7 +109,7 @@ router.get("/me/profile", async (req: AuthRequest, res: Response): Promise<void>
   }
 });
 
-// ─── GET /api/users/:userId/profile ──────────────────────────────────────────
+// GET /api/users/:userId/profile
 router.get("/:userId/profile", async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const profile = await buildProfile(

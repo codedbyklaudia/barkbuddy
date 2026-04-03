@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { ChevronsRight, CalendarDays} from "lucide-react";
+import { ChevronsRight} from "lucide-react";
 import "./About.scss";
 import Footer from "./Footer";
 

@@ -10,6 +10,8 @@ import Sidebar from './Sidebar';
 import SettingsView from './SettingsView';
 import SavedView from './SavedView';
 import logoSrc from "../../../images/logo.png";
+import { Logs } from "lucide-react";
+
 
 import {
   getProfile, updateUser, uploadUserAvatar,
@@ -24,8 +26,7 @@ import {
 
 import type { DogDetails } from "../../api/Dogs";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
+//Types
 interface UserProfile {
   id:                 string;
   name:               string;
@@ -65,8 +66,7 @@ export interface AppNotification {
   createdAt:        string;
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
+// Helpers
 async function safeGetNotifications(token: string): Promise<AppNotification[]> {
   try { const res = await getNotifications(token); return res.notifications ?? []; }
   catch { return []; }
@@ -99,19 +99,7 @@ function calcProfileComplete(user: UserProfile, dog: DogProfile | null): number 
   return Math.min(score, 100);
 }
 
-// ─── Nav Items ────────────────────────────────────────────────────────────────
-
-const NAV_ITEMS = [
-  { key: "home",     label: "Dashboard",      icon: "home"     },
-  { key: "settings", label: "Settings",       icon: "settings" },
-  { key: "dog",      label: "My Dog",         icon: "dog"      },
-  { key: "calendar", label: "Buddy Calendar", icon: "calendar" },
-  { key: "forum",    label: "Forum",          icon: "forum"    },
-  { key: "saved",    label: "Saved",          icon: "bookmark" },
-];
-
-// ─── Icon ─────────────────────────────────────────────────────────────────────
-
+// Icon
 const Icon: React.FC<{ name: string; size?: number }> = ({ name, size = 18 }) => {
   const icons: Record<string, React.ReactNode> = {
     home:     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg>,
@@ -167,7 +155,47 @@ const Icon: React.FC<{ name: string; size?: number }> = ({ name, size = 18 }) =>
   return <>{icons[name] ?? null}</>;
 };
 
-// ─── Notifications Panel ──────────────────────────────────────────────────────
+const NAV_ICON_MAP: Record<string, React.FC<{ size?: number }>> = {
+  home:     IconHome,
+  dog:      IconDog,
+  calendar: IconCalendar,
+  settings: IconSettings,
+  saved:    IconBookmark,
+};
+
+// Icons
+function IconHome({ size = 20 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg>;
+}
+function IconDog({ size = 20 }: { size?: number }) {
+  return <img src="./../images/icons/dog_icon.svg" width={size} height={size} />;
+}
+function IconCalendar({ size = 20 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>;
+}
+function IconSettings({ size = 20 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>;
+}
+function IconBookmark({ size = 20 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>;
+}
+function IconLogout({ size = 20 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>;
+}
+function IconPlatform({ size = 20 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
+}
+
+// Nav Items
+const NAV_ITEMS = [
+  { key: "home",     label: "Dashboard",      icon: IconHome     },
+  { key: "dog",      label: "My Dog",         icon: IconDog      },
+  { key: "calendar", label: "Buddy Calendar", icon: IconCalendar },
+  { key: "settings", label: "Settings",       icon: IconSettings },
+  { key: "saved",    label: "Saved",          icon: IconBookmark },
+];
+
+// Notifications Panel
 const NotificationsPanel: React.FC<{
   notifications: AppNotification[]; loading: boolean;
   onClose: () => void; onMarkAllRead: () => void;
@@ -219,7 +247,7 @@ const NotificationsPanel: React.FC<{
   );
 };
 
-// ─── Avatar Upload ────────────────────────────────────────────────────────────
+// Avatar Upload
 const AvatarUpload: React.FC<{
   url?: string; name: string; size?: "sm" | "lg" | "hero";
   onUpload: (file: File) => Promise<void>; uploading?: boolean;
@@ -241,7 +269,7 @@ const AvatarUpload: React.FC<{
   );
 };
 
-// ─── Dog Photo Hero ───────────────────────────────────────────────────────────
+// Dog Photo Hero
 const DogPhotoHero: React.FC<{
   url?: string; name: string; onUpload: (file: File) => Promise<void>; uploading?: boolean;
 }> = ({ url, name, onUpload, uploading }) => {
@@ -262,7 +290,7 @@ const DogPhotoHero: React.FC<{
   );
 };
 
-// ─── Bio Editor ───────────────────────────────────────────────────────────────
+// Bio Editor
 const BioEditor: React.FC<{
   bio?: string; token: string;
   onSave: (bio: string, profileComplete: number) => void;
@@ -326,7 +354,7 @@ const BioEditor: React.FC<{
   );
 };
 
-// ─── Edit User Modal ──────────────────────────────────────────────────────────
+// Edit User Modal
 const EditUserModal: React.FC<{
   user: UserProfile; token: string;
   onSave: (updated: Partial<UserProfile>) => void; onClose: () => void;
@@ -411,7 +439,7 @@ const EditUserModal: React.FC<{
   );
 };
 
-// ─── Edit Dog Modal ───────────────────────────────────────────────────────────
+// Edit Dog Modal
 const EditDogModal: React.FC<{
   dog: DogProfile; token: string;
   onSave: (updated: DogProfile) => void; onClose: () => void;
@@ -502,7 +530,7 @@ const EditDogModal: React.FC<{
   );
 };
 
-// ─── Preferences Modal ────────────────────────────────────────────────────────
+// Preferences Modal
 const PreferencesModal: React.FC<{
   user: UserProfile; token: string;
   onSave: (data: Partial<UserProfile>) => void; onClose: () => void;
@@ -565,7 +593,7 @@ const PreferencesModal: React.FC<{
   );
 };
 
-// ─── Logo ─────────────────────────────────────────────────────────────────────
+// Logo
 const BarkBuddyLogo: React.FC<{ size?: "sm" | "md" | "lg" }> = ({ size = "md" }) => {
   const [imgFailed, setImgFailed] = useState(false);
   if (imgFailed) {
@@ -579,7 +607,7 @@ const BarkBuddyLogo: React.FC<{ size?: "sm" | "md" | "lg" }> = ({ size = "md" })
   return <img src={logoSrc} alt="BarkBuddy" className={`bb-logo-img bb-logo-${size}`} onError={() => setImgFailed(true)} />;
 };
 
-// ─── Mobile Drawer ────────────────────────────────────────────────────────────
+// Mobile Drawer
 const MobileDrawer: React.FC<{
   open: boolean; active: string; onNav: (k: string) => void;
   onClose: () => void; onLogout: () => void; user: UserProfile | null;
@@ -615,7 +643,9 @@ const MobileDrawer: React.FC<{
           {NAV_ITEMS.map((item) => (
             <button key={item.key} className={`mobile-drawer-item ${active === item.key ? "active" : ""}`}
               onClick={() => { onNav(item.key); onClose(); }}>
-              <span className="mobile-drawer-icon"><Icon name={item.icon} size={18} /></span>
+              <span className="mobile-drawer-icon">
+                {(() => { const I = NAV_ICON_MAP[item.key]; return I ? <I size={18} /> : null; })()}
+              </span>
               <span>{item.label}</span>
               {item.key === "saved" && savedCount > 0 && (
                 <span className="mobile-drawer-badge">{savedCount}</span>
@@ -623,15 +653,21 @@ const MobileDrawer: React.FC<{
             </button>
           ))}
         </nav>
+        <div className="mobile-drawer-divider" />
+        <button className="mobile-drawer-item mobile-drawer-platform" onClick={() => { window.location.href = "/"; onClose(); }}>
+          <span className="mobile-drawer-icon"><IconHome size={19} /></span>
+          <span>Go to Platform</span>
+        </button>
         <button className="mobile-drawer-item mobile-drawer-logout" onClick={onLogout}>
-          <span className="mobile-drawer-icon"><Icon name="logout" size={18} /></span><span>Log Out</span>
+          <span className="mobile-drawer-icon"><IconLogout size={19} /></span>
+          <span>Log out</span>
         </button>
       </aside>
     </>
   );
 };
 
-// ─── Top Bar ──────────────────────────────────────────────────────────────────
+// Top Bar
 const TopBar: React.FC<{
   user: UserProfile | null; label: string; unreadCount: number;
   notifOpen: boolean; onMenuOpen: () => void; onToggleNotif: () => void;
@@ -656,14 +692,14 @@ const TopBar: React.FC<{
         </div>
         <span className="db-topbar-name db-desktop-only">{user?.name ?? ""}</span>
         <button className="db-topbar-hamburger db-mobile-only" onClick={onMenuOpen} aria-label="Open menu">
-          <span className="db-hamburger-bar" /><span className="db-hamburger-bar" /><span className="db-hamburger-bar" />
+          <Logs size={22} strokeWidth={1.8} />
         </button>
       </div>
     </header>
   );
 };
 
-// ─── Dog Helpers ──────────────────────────────────────────────────────────────
+// Dog Helpers
 function calcAge(dob?: string): string {
   if (!dob) return "Unknown";
   const birth = new Date(dob), now = new Date();
@@ -680,28 +716,138 @@ function humanYears(dob?: string): string {
   return `≈ ${Math.round(h)} human years`;
 }
 
+// ─── Care Tips (12 per stage) ─────────────────────────────────────────────────
 const CARE_TIPS: Record<string, { icon: string; title: string; tip: string }[]> = {
   puppy: [
-    { icon: "vaccine",  title: "Vaccinations",  tip: "Core vaccines at 8, 12 & 16 weeks. Keep a record!" },
-    { icon: "food",     title: "Feeding",        tip: "3–4 small meals daily. Use age-specific puppy food." },
-    { icon: "activity", title: "Exercise",       tip: "5 mins per month of age, twice daily. Easy on joints." },
-    { icon: "heart",    title: "Socialisation",  tip: "Expose to sounds, people & dogs in the 3–14 week window." },
+    { icon: "vaccine",  title: "Vaccination Windows",       tip: "The primary course runs at 8, 12, and 16 weeks. Maternal antibodies actively interfere with vaccine response before 8 weeks — vaccinating earlier is largely ineffective. Full immunity isn't established until 2 weeks after the final dose, so avoid high-risk environments until then." },
+    { icon: "food",     title: "Feeding Frequency",         tip: "Puppies have small stomachs and fast metabolisms — 3 to 4 meals daily prevents hypoglycaemia, especially in toy breeds. Portion from a single daily allowance rather than adding extra meals. Large breeds should eat from a raised bowl and avoid vigorous exercise within 1 hour of eating to reduce bloat risk." },
+    { icon: "activity", title: "Growth Plate Safety",       tip: "The '5 minutes per month of age' rule exists because growth plates don't close until 12–18 months depending on breed size. Repetitive high-impact exercise on immature cartilage increases the risk of osteochondrosis and angular limb deformities — particularly in Labradors, Goldens, and giant breeds." },
+    { icon: "heart",    title: "Socialisation Science",     tip: "The primary socialisation window closes around 12–14 weeks. During this period, novel stimuli are processed without the same fear response as later in life. Aim for 100 different positive exposures — surfaces, sounds, handling, people types, animals. Quality matters more than quantity: one frightening experience can have lasting effects." },
+    { icon: "scissors", title: "Handling Desensitisation",  tip: "Touch every part of the body daily: inside the mouth, between paw pads, ears, tail base, and under the belly. Pair each with high-value food. Puppies that accept full-body handling are significantly less stressed at vet visits and grooming — reducing the cortisol response that makes future handling harder." },
+    { icon: "droplet",  title: "Hydration & Dehydration",   tip: "Puppies need approximately 60ml of water per kilogram of body weight daily — more during hot weather or after exercise. Early signs of dehydration include skin tenting (skin doesn't snap back when lifted) and tacky gums. Dry kibble diets increase water requirements; wet food contributes roughly 70–80% water by content." },
+    { icon: "trophy",   title: "Operant Conditioning",      tip: "Puppies learn fastest through positive reinforcement in sessions of 3–5 minutes maximum — beyond this, attention drops and errors increase. Mark the exact moment of correct behaviour with a clicker or marker word before delivering the reward. Luring (food in hand) should transition to hand signals within 3–5 repetitions to avoid food dependency." },
+    { icon: "heart",    title: "Neonatal Dental Health",    tip: "Deciduous teeth erupt from 3–6 weeks and are replaced by adult teeth from 12–24 weeks. Begin daily brushing with finger gauze as soon as teeth appear — this period shapes lifelong tolerance. Retained baby teeth (most common in small breeds) trap plaque and must be extracted; check at every puppy vet visit." },
+    { icon: "shield",   title: "Endoparasite Protocol",     tip: "Puppies are born with roundworm larvae that have migrated transplacentally. The standard protocol is worming every 2 weeks from birth to 12 weeks, then monthly to 6 months. Lungworm (Angiostrongylus) is distinct from intestinal worms and requires a specific prescription product — not all broad-spectrum wormers cover it." },
+    { icon: "paw",      title: "Sleep Architecture",        tip: "Puppies require 16–20 hours of sleep daily for neurological development. Disrupting sleep to play or socialise more creates cortisol-driven hyperactivity often misread as high energy. Provide a crate or den where the puppy cannot be disturbed — this also accelerates crate training by associating the space with rest." },
+    { icon: "info",     title: "Bite Inhibition Timing",    tip: "Bite inhibition — learning to control jaw pressure — must be taught before 18 weeks. Dogs that never learned this as puppies cannot moderate a bite if they react in fear or pain as adults. Allow mouthing during play; yelp and withdraw attention for hard bites. Suppressing all mouthing entirely can remove the opportunity to learn pressure control." },
+    { icon: "walk",     title: "Lead Pressure Response",    tip: "Introduce the collar at home for short periods before attaching a lead. When a puppy pulls, stop completely — forward movement must only happen on a loose lead. This is more effective than correction-based methods and prevents the opposition reflex: the instinctive pull-back response triggered when constant leash tension is applied." },
   ],
   adult: [
-    { icon: "food",     title: "Nutrition",      tip: "2 meals per day. Monitor weight and adjust seasonally." },
-    { icon: "activity", title: "Exercise",       tip: "30–60 mins of activity daily based on breed." },
-    { icon: "scissors", title: "Grooming",       tip: "Brush weekly, bathe monthly. Check ears & nails." },
-    { icon: "heart",    title: "Dental Health",  tip: "Brush 2–3x per week to prevent plaque build-up." },
+    { icon: "food",     title: "Caloric Precision",         tip: "Feeding guides on packaging are calculated for entire unspayed/unneutered dogs at average activity — neutered adults typically need 20–30% fewer calories. Body condition scoring (1–9 scale) is more accurate than weight alone: you should feel ribs easily without pressing but not see them. Reassess portions every 3 months as activity and season change." },
+    { icon: "activity", title: "Exercise Physiology",       tip: "Aerobic capacity varies enormously by breed — brachycephalic dogs (Bulldogs, Pugs) have structurally compromised airways that limit oxygen exchange. High-intensity exercise in heat above 20°C risks heatstroke in these breeds within minutes. For scent hounds and working breeds, mental fatigue from nose work can be more tiring than physical exercise at equivalent time." },
+    { icon: "scissors", title: "Coat & Skin Health",        tip: "Over-bathing strips the sebaceous gland secretions that maintain the skin barrier, leading to dry, flaky skin and increased susceptibility to Malassezia (yeast) overgrowth. Monthly bathing is appropriate for most breeds; weekly for dogs with skin conditions only if directed by a vet. Always dry ears thoroughly after bathing — residual moisture is the primary trigger for otitis externa." },
+    { icon: "heart",    title: "Periodontal Disease",       tip: "By age 3, over 80% of dogs show signs of periodontal disease — the leading source of chronic systemic inflammation linked to cardiac and kidney pathology. Daily brushing is the gold standard; enzymatic toothpaste accelerates plaque breakdown. Dental chews have evidence of efficacy only if they carry the VOHC (Veterinary Oral Health Council) seal." },
+    { icon: "shield",   title: "Titre Testing",             tip: "Antibody titre tests measure circulating immunity to core diseases (parvovirus, distemper, hepatitis) and can replace annual boosters if levels are protective — reducing unnecessary antigen exposure. Leptospirosis and kennel cough vaccines do not produce durable titres and typically require annual boosting regardless. Discuss with your vet what your dog's actual risk profile warrants." },
+    { icon: "droplet",  title: "Water Intake as Diagnostic",tip: "A sudden increase in water intake (polydipsia) — defined as more than 100ml per kg per day — is a key early indicator of diabetes mellitus, Cushing's disease, kidney disease, or pyometra in intact females. Track approximate daily intake if you notice increased thirst. A simple water bowl volume test over 24 hours gives your vet useful data." },
+    { icon: "trophy",   title: "Cognitive Enrichment",      tip: "Olfactory enrichment activates more cortical area than any other sense in dogs — a 20-minute nose work session produces equivalent fatigue to a 2-hour walk for many breeds. Scatter feeding, sniff mats, and tracking exercises satisfy this drive. Dogs deprived of mental stimulation redirect into destructive behaviour, excessive barking, or compulsive disorders." },
+    { icon: "heart",    title: "Canine Body Condition",     tip: "Obesity in dogs increases the risk of cruciate ligament rupture, orthopaedic disease, diabetes, and reduces lifespan by up to 2 years. The ideal BCS is 4–5 out of 9: ribs palpable, waist visible from above, abdominal tuck visible from the side. In thick-coated breeds, always palpate rather than assess visually — coats can disguise significant weight gain." },
+    { icon: "walk",     title: "Off-Lead Recall Reliability",tip: "Recall is only reliable if it has been reinforced more than 200 times before it's ever needed in a high-distraction environment. Dogs don't generalise commands automatically — a dog that recalls perfectly in the garden may have zero recall near wildlife or other dogs. Train recall in progressively more distracting settings, and never call a dog to you for anything unpleasant." },
+    { icon: "paw",      title: "Canine Social Dynamics",    tip: "Forced dog-to-dog greetings (on-lead, face-to-face) are the most common trigger for reactive behaviour — it mimics a challenge in canine body language. Parallel walking at distance is far less confrontational. Dogs that play well off-lead may still be reactive on-lead due to frustration; this is distinct from aggression and responds well to specific training protocols." },
+    { icon: "vaccine",  title: "Ectoparasite Resistance",   tip: "Flea populations are developing resistance to older pyrethroid-based treatments — if a product has been used for years without apparent problems it may not be as effective as assumed. Spot-on treatments require intact skin barrier and are rendered ineffective by bathing within 48 hours of application. Isoxazoline-class treatments (oral, monthly) currently show the lowest resistance rates." },
+    { icon: "info",     title: "Xylitol Toxicity",          tip: "Xylitol triggers a dose-dependent insulin release in dogs that does not occur in humans, causing life-threatening hypoglycaemia within 30 minutes of ingestion. It's found in sugar-free gum, some peanut butters, dental products, and increasingly in baked goods. As little as 0.1g per kg bodyweight can be lethal. Check ingredient labels — 'birch sugar' is the same compound." },
   ],
   senior: [
-    { icon: "heart",    title: "Health Checks",   tip: "Bi-annual vet visits to catch age-related issues early." },
-    { icon: "food",     title: "Senior Diet",     tip: "Switch to senior formula. Joint supplements can help." },
-    { icon: "activity", title: "Gentle Exercise", tip: "Shorter, slower walks. Watch for joint pain signs." },
-    { icon: "droplet",  title: "Hydration",       tip: "Senior dogs prone to kidney issues — keep water fresh." },
+    { icon: "heart",    title: "Bi-Annual Health Screening",tip: "A dog aged 8+ is physiologically equivalent to a human in their 60s–70s. Bi-annual blood panels (full CBC, biochemistry, urinalysis, thyroid) catch subclinical kidney disease, early hypothyroidism, and anaemia before clinical signs appear. Kidney disease is detectable on standard bloods only after 75% of nephron function is already lost — SDMA testing detects it at 40% loss." },
+    { icon: "food",     title: "Protein Requirements in Age",tip: "Contrary to older advice, healthy senior dogs do not need protein restriction. Reduced protein accelerates age-related muscle loss (sarcopaenia), which worsens mobility and metabolic function. Only dogs with confirmed chronic kidney disease require phosphorus and protein restriction — and even then, excessive restriction is now questioned. Prioritise high-quality, digestible protein sources." },
+    { icon: "activity", title: "Hydrotherapy & Joint Loading",tip: "Water reduces effective body weight by up to 90% at shoulder depth, allowing pain-free range of motion in arthritic dogs who refuse land exercise. Even 15 minutes of swimming or underwater treadmill work 2–3x weekly maintains muscle mass around affected joints — the single most effective way to reduce osteoarthritis progression. Ask your vet for a referral to a certified canine hydrotherapist." },
+    { icon: "droplet",  title: "Kidney Disease & Water",    tip: "Chronic kidney disease (CKD) is the most common age-related organ failure in dogs. The kidneys lose concentrating ability first, causing compensatory polydipsia — the dog drinks more to flush what the kidneys can't concentrate. Providing multiple water stations, adding water to food, and feeding wet or rehydrated kibble significantly reduces the kidney's daily workload." },
+    { icon: "scissors", title: "Sebaceous Adenoma & Skin",  tip: "Warty, cauliflower-like skin growths in older dogs are typically benign sebaceous adenomas — common and usually harmless. Any growth that changes size rapidly, bleeds spontaneously, or becomes ulcerated warrants a fine needle aspirate to rule out mast cell tumour or other malignancy. Monthly full-body palpation during grooming is the most reliable way to catch new masses early." },
+    { icon: "trophy",   title: "Canine Cognitive Dysfunction",tip: "Canine Cognitive Dysfunction Syndrome (CCDS) affects an estimated 14–35% of dogs over 8 and is mechanistically similar to Alzheimer's — the same amyloid-beta plaques are present. Symptoms include disorientation, reversed sleep cycles, loss of house training, and reduced interaction. Selegiline is the only licensed pharmaceutical treatment; dietary supplements rich in antioxidants and medium-chain triglycerides show supportive evidence." },
+    { icon: "heart",    title: "Pain Quantification",       tip: "Dogs are instinctively stoic — overt pain vocalisation typically indicates severe acute pain. Chronic pain manifests as behavioural changes: reluctance to jump, altered gait, withdrawal from interaction, increased sleep, or uncharacteristic aggression when touched. The Helsinki Chronic Pain Index and Glasgow Pain Scale are validated owner-completed tools that help quantify pain levels for your vet." },
+    { icon: "shield",   title: "Dental Disease & Systemic Risk",tip: "Untreated periodontal disease in seniors creates a continuous bacteraemia (bacteria entering the bloodstream) that the ageing immune system cannot clear effectively. Research in dogs mirrors human findings linking oral bacteria to endocarditis and kidney pathology. Annual dental scaling under anaesthesia is significantly safer than leaving progressive periodontal disease untreated in an otherwise healthy dog." },
+    { icon: "paw",      title: "Orthopaedic Bedding",       tip: "Memory foam orthopedic beds reduce pressure point pain in dogs with hip dysplasia, spondylosis, or generalised osteoarthritis — joints bear approximately 3x body weight during the act of lying down on a hard surface. Beds with low entry height reduce the pain of rising. Heated pads at around 38°C improve synovial fluid viscosity and joint mobility, particularly in cold weather." },
+    { icon: "info",     title: "Anaesthetic Risk in Seniors",tip: "Age alone does not contraindicate anaesthesia, but pre-anaesthetic blood work is essential to identify subclinical organ compromise. The greatest risks are hypotension and hypothermia during recovery, not the anaesthetic agents themselves. A senior dog with well-managed disease under an experienced vet carries lower risk than leaving a painful dental or tumour untreated. Do not avoid necessary procedures based on age alone." },
+    { icon: "vaccine",  title: "Immune Senescence",         tip: "The ageing immune system mounts a weaker vaccine response (immunosenescence) — the same mechanism that makes flu vaccines less effective in elderly humans. Core vaccines should be continued on schedule, but titre testing is particularly valuable in seniors to confirm adequate response rather than assuming annual boosters are producing protective immunity. Discuss a tailored protocol with your vet." },
+    { icon: "walk",     title: "Thermoregulation Decline",  tip: "Senior dogs lose subcutaneous fat and have less efficient peripheral vasoconstriction, making them significantly more vulnerable to both cold and heat stress. Core body temperature drops faster in cold weather and rises faster in heat compared to younger dogs. A well-fitted coat adds meaningful warmth in temperatures below 7°C for lean or short-coated seniors, and is not merely cosmetic." },
   ],
 };
 
-// ─── Dog Details Section ──────────────────────────────────────────────────────
+// ─── Daily tip rotation ───────────────────────────────────────────────────────
+function getDailyTips(stage: string): { icon: string; title: string; tip: string }[] {
+  const tips = CARE_TIPS[stage] ?? CARE_TIPS.adult;
+  const now  = new Date();
+  let seed   = now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate();
+  for (let i = 0; i < stage.length; i++) seed += stage.charCodeAt(i);
+  const shuffled = [...tips];
+  let s = seed;
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    s = (s * 1664525 + 1013904223) & 0xffffffff;
+    const j = Math.abs(s) % (i + 1);
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled.slice(0, 3);
+}
+
+// ─── Care Guide Cards ─────────────────────────────────────────────────────────
+const CARD_TINTS = ["#c8daea", "#e8c4c4", "#c4d9c4"] as const;
+
+const CareGuideFallbackIcon: React.FC = () => (
+  <div className="cg-tip-icon-fallback">
+    <svg width="44" height="44" viewBox="0 0 24 24" fill="none"
+      stroke="rgba(100,80,160,0.35)" strokeWidth="1.4"
+      strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    </svg>
+  </div>
+);
+
+const CareGuideCards: React.FC<{
+  stage: string;
+  dogsAtStage: string[];
+}> = ({ stage, dogsAtStage }) => {
+  const tips = getDailyTips(stage);
+  const [imgFailed, setImgFailed] = useState<boolean[]>([false, false, false]);
+
+  const handleImgError = (i: number) => {
+    setImgFailed((prev) => {
+      const next = [...prev];
+      next[i] = true;
+      return next;
+    });
+  };
+
+  return (
+    <div className="cg-cards-section">
+      <div className="cg-cards-header">
+        <div>
+          <h3 className="cg-cards-title">Care Guide</h3>
+          {dogsAtStage.length > 0 && (
+            <p className="cg-cards-for">For {dogsAtStage.join(" & ")} 🐾</p>
+          )}
+        </div>
+        <span className={`cg-cards-stage-pill stage-${stage}`}>{stage}</span>
+      </div>
+
+      <div className="cg-cards-grid">
+        {tips.map((tip, i) => (
+          <div key={tip.title} className="cg-tip-card">
+            <div className="cg-tip-illustration" style={{ background: CARD_TINTS[i] }}>
+              {imgFailed[i] ? (
+                <CareGuideFallbackIcon />
+              ) : (
+                <img
+                  src={`../images/care/care-${stage}-${i + 1}.png`}
+                  alt={tip.title}
+                  className="cg-tip-img"
+                  onError={() => handleImgError(i)}
+                />
+              )}
+            </div>
+            <div className="cg-tip-body">
+              <div className="cg-tip-body-header">
+                <h4 className="cg-tip-title">{tip.title}</h4>
+                <span className="cg-tip-num">0{i + 1}</span>
+              </div>
+              <p className="cg-tip-text">{tip.tip}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Dog Details Section
 interface DetailsModalProps { details: DogDetails; onSave: (d: DogDetails) => void; onClose: () => void; }
 
 const DetailsModal: React.FC<DetailsModalProps> = ({ details, onSave, onClose }) => {
@@ -865,7 +1011,7 @@ const DogDetailsSection: React.FC<{ dogName: string; dogId: string; token: strin
   );
 };
 
-// ─── Personality helpers ──────────────────────────────────────────────────────
+// Personality helpers
 interface PersonalityOption { key: string; label: string; img: string; }
 interface PersonalityCategory { id: string; question: string; options: PersonalityOption[]; }
 
@@ -924,7 +1070,7 @@ function calcLifeStageFromDob(dob: string): string {
   if (ageMonths < 12) return "puppy"; if (ageMonths < 84) return "adult"; return "senior";
 }
 
-// ─── Add Dog Wizard ───────────────────────────────────────────────────────────
+// Add Dog Wizard
 interface AddDogFormData { name: string; breed: string; dob: string; lifeStage: string; dobLocked: boolean; personality: string[]; gender: string; }
 const ADD_LIFE_STAGES = [{ key: "puppy", label: "Puppy", age: "0–1 yrs" }, { key: "adult", label: "Adult", age: "1–7 yrs" }, { key: "senior", label: "Senior", age: "7+ yrs" }] as const;
 
@@ -1317,10 +1463,10 @@ const DogView: React.FC<{
     }
   };
 
-  const handleAddDog       = (newDog: DogProfile) => onAllDogsUpdate([...allDogs, { ...newDog, isMain: false }]);
-  const handleRemoveDog    = async (id: string) => { try { await deleteExtraDog(token, id); onAllDogsUpdate(allDogs.filter((d) => d.id !== id)); } catch (err) { console.error(err); } };
-  const handleExtraAvatar  = async (dogId: string, file: File) => { try { const { avatarUrl } = await uploadDogAvatarById(token, dogId, file); onAllDogsUpdate(allDogs.map((d) => d.id === dogId ? { ...d, avatarUrl } : d)); } catch (err) { console.error(err); } };
-  const handleExtraUpdate  = (updated: DogProfile) => onAllDogsUpdate(allDogs.map((d) => d.id === updated.id ? updated : d));
+  const handleAddDog      = (newDog: DogProfile) => onAllDogsUpdate([...allDogs, { ...newDog, isMain: false }]);
+  const handleRemoveDog   = async (id: string) => { try { await deleteExtraDog(token, id); onAllDogsUpdate(allDogs.filter((d) => d.id !== id)); } catch (err) { console.error(err); } };
+  const handleExtraAvatar = async (dogId: string, file: File) => { try { const { avatarUrl } = await uploadDogAvatarById(token, dogId, file); onAllDogsUpdate(allDogs.map((d) => d.id === dogId ? { ...d, avatarUrl } : d)); } catch (err) { console.error(err); } };
+  const handleExtraUpdate = (updated: DogProfile) => onAllDogsUpdate(allDogs.map((d) => d.id === updated.id ? updated : d));
 
   if (!dog) {
     return <div className="db-view"><div className="db-placeholder"><Icon name="paw" size={40} /><p>No dog profile found. Add your dog in Settings!</p></div></div>;
@@ -1386,20 +1532,14 @@ const DogView: React.FC<{
       <AddDogRow onAdd={() => setAddOpen(true)} />
       {addOpen && <AddDogModal token={token} onSave={handleAddDog} onClose={() => setAddOpen(false)} />}
 
+      {/* ─── Daily Care Guide Cards ────────────────────────────────────────── */}
       {Array.from(new Set([dog.lifeStage, ...extraDogs.map((d) => d.lifeStage)])).map((stage) => {
-        const tips = CARE_TIPS[stage] ?? CARE_TIPS.adult;
-        const stageLabel = stage === "puppy" ? "Puppies" : stage === "senior" ? "Senior Dogs" : "Adult Dogs";
-        const dogsAtStage = [...(dog.lifeStage === stage ? [dog.name] : []), ...extraDogs.filter((d) => d.lifeStage === stage).map((d) => d.name)];
+        const dogsAtStage = [
+          ...(dog.lifeStage === stage ? [dog.name] : []),
+          ...extraDogs.filter((d) => d.lifeStage === stage).map((d) => d.name),
+        ];
         return (
-          <div key={stage} className="db-card dog-tips-card">
-            <div className="dog-tips-header">
-              <div><h3 className="db-card-title">Care Guide for {stageLabel}</h3>{dogsAtStage.length > 0 && <p className="dog-tips-for">{dogsAtStage.join(" & ")}</p>}</div>
-              <span className={`dog-tips-stage-badge stage-${stage}`}>{stage}</span>
-            </div>
-            <div className="dog-tips-grid">
-              {tips.map((tip) => (<div key={tip.title} className="dog-tip-item"><div className="dog-tip-icon"><Icon name={tip.icon} size={18} /></div><div className="dog-tip-body"><p className="dog-tip-title">{tip.title}</p><p className="dog-tip-text">{tip.tip}</p></div></div>))}
-            </div>
-          </div>
+          <CareGuideCards key={stage} stage={stage} dogsAtStage={dogsAtStage} />
         );
       })}
 
@@ -1427,8 +1567,6 @@ const Dashboard: React.FC = () => {
   const [notifOpen,      setNotifOpen]      = useState(false);
   const [forumPostId,    setForumPostId]    = useState<string | null>(null);
   const [forumCommentId, setForumCommentId] = useState<string | null>(null);
-
-  // ── NEW: controls the AddDogModal when triggered from SettingsView ──────────
   const [settingsAddDogOpen, setSettingsAddDogOpen] = useState(false);
 
   const POLL_INTERVAL_MS = 60_000;
@@ -1501,6 +1639,15 @@ const Dashboard: React.FC = () => {
     setUser((u) => u ? { ...u, profileComplete: calcProfileComplete(u, updated) } : u);
   };
 
+  const handleDogRemove = async (dogId: string) => {
+    try {
+      await deleteExtraDog(token!, dogId);
+      setAllDogs((prev) => prev.filter((d) => d.id !== dogId));
+    } catch (err) {
+      console.error("Failed to remove dog:", err);
+    }
+  };
+
   const handleViewForumPost = (postId: string) => {
     setForumPostId(postId);
     setForumCommentId(null);
@@ -1564,12 +1711,12 @@ const Dashboard: React.FC = () => {
               user={user} dog={dog} dogs={allDogs} token={token}
               onUpdate={handleUserUpdate}
               onDogUpdate={handleDogUpdate}
+              onDogRemove={handleDogRemove}
               onNav={setActiveNav}
               onAddDog={() => setSettingsAddDogOpen(true)}
             />
           )}
 
-          {/* ── AddDogModal triggered from Settings ── */}
           {settingsAddDogOpen && token && (
             <AddDogModal
               token={token}

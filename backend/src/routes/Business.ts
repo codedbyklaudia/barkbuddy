@@ -2,49 +2,53 @@ import { Router, Request, Response } from "express";
 import { body, validationResult } from "express-validator";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
+import fs from "fs";
+import path from "path";
 import multer from "multer";
 import nodemailer from "nodemailer";
-import { v2 as cloudinary } from "cloudinary";
 import pool from "../db";
 import { geocodeUKAddress } from "../utils/geocode";
 
 const router = Router();
 
 const CLIENT_URL = process.env.CLIENT_URL  || "http://localhost:5173";
-const GMAIL_USER = process.env.GMAIL_USER;
-const GMAIL_PASS = process.env.GMAIL_APP_PASSWORD;
 
-// ─── Gmail transporter ────────────────────────────────────────────────────────
+
+// Gmail transporter 
 const transporter = nodemailer.createTransport({
-  host:   "smtp.gmail.com",
-  port:   465,
+  host:   process.env.SMTP_HOST,
+  port:   Number(process.env.SMTP_PORT) || 465,
   secure: true,
-  auth: { user: GMAIL_USER, pass: GMAIL_PASS },
-  tls:  { rejectUnauthorized: false },
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+  tls: { rejectUnauthorized: false },
 });
 
 transporter.verify((error) => {
   if (error) console.error("❌ Business mailer config error:", error);
-  else       console.log("✅ Business mailer ready — connected to Gmail as", GMAIL_USER);
+  else       console.log("✅ Business mailer ready —", process.env.SMTP_USER);
 });
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// Helpers
 const generateToken = () => crypto.randomBytes(32).toString("hex");
 
-/** Single helper for all Cloudinary uploads — eliminates duplicated Promise boilerplate */
-async function uploadToCloudinary(
+// ─── Save photo to local disk ─────────────────────────────────────────────────
+async function savePhotoLocally(
   buffer: Buffer,
-  options: Parameters<typeof cloudinary.uploader.upload_stream>[0]
-): Promise<any> {
-  return new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(options, (error, result) =>
-      error ? reject(error) : resolve(result)
-    );
-    stream.end(buffer);
-  });
+  originalName: string,
+  businessId: number
+): Promise<{ fileName: string; filePath: string }> {
+  const ext       = path.extname(originalName) || ".jpg";
+  const fileName  = `biz_${businessId}_cover_${Date.now()}${ext}`;
+  const uploadDir = path.join(__dirname, "../../uploads/business_photos");
+  await fs.promises.mkdir(uploadDir, { recursive: true });
+  await fs.promises.writeFile(path.join(uploadDir, fileName), buffer);
+  return { fileName, filePath: `/uploads/business_photos/${fileName}` };
 }
 
-// ─── Multer ───────────────────────────────────────────────────────────────────
+// ─── Multer (memory storage — we write to disk manually) ─────────────────────
 const upload = multer({
   storage: multer.memoryStorage(),
   limits:  { fileSize: 10 * 1024 * 1024 },
@@ -78,7 +82,7 @@ function formatErrors(result: ReturnType<typeof validationResult>) {
   }, {});
 }
 
-// ─── Email ────────────────────────────────────────────────────────────────────
+// Email
 async function sendVerificationEmail(
   to: string,
   personalName: string,
@@ -87,7 +91,7 @@ async function sendVerificationEmail(
   isActivity: boolean
 ): Promise<void> {
   await transporter.sendMail({
-    from:    `"BarkBuddy for Business 🐾" <${GMAIL_USER}>`,
+    from: process.env.SMTP_FROM,
     to,
     subject: isActivity
       ? `Verify your email - BarkBuddy application for ${businessName}`
@@ -213,7 +217,7 @@ const generateVerificationEmailHtml = (
 </html>
 `;
 
-// POST /api/business/register/service 
+// ─── POST /api/business/register/service ─────────────────────────────────────
 router.post(
   "/register/service",
   upload.single("photo"),
@@ -281,19 +285,16 @@ router.post(
 
       await client.query("COMMIT");
 
-      // Photo upload AFTER commit — failure cannot roll back account or token
+      // Photo save AFTER commit — failure is non-fatal
       if (req.file) {
         try {
-          const photoResult = await uploadToCloudinary(req.file.buffer, {
-            folder:    "barkbuddy/business-photos",
-            public_id: `biz_${businessId}_cover`,
-          });
+          const { fileName, filePath } = await savePhotoLocally(req.file.buffer, req.file.originalname, businessId);
           await pool.query(
-            `INSERT INTO business_photos (business_id, cloudinary_id, cloudinary_url, is_primary) VALUES ($1,$2,$3,true)`,
-            [businessId, photoResult.public_id, photoResult.secure_url]
+            `INSERT INTO business_photos (business_id, file_name, file_path, is_primary) VALUES ($1,$2,$3,true)`,
+            [businessId, fileName, filePath]
           );
         } catch (photoErr) {
-          console.error("Photo upload error (service):", photoErr);
+          console.error("Photo save error (service):", photoErr);
         }
       }
 
@@ -320,7 +321,7 @@ router.post(
   }
 );
 
-// POST /api/business/register/activity 
+// ─── POST /api/business/register/activity ────────────────────────────────────
 router.post(
   "/register/activity",
   upload.fields([{ name: "document", maxCount: 1 }, { name: "photo", maxCount: 1 }]),
@@ -362,17 +363,19 @@ router.post(
       const passwordHash = await bcrypt.hash(password, 12);
       const coords = await geocodeUKAddress(address, postcode).catch(() => null);
 
-      // Document upload BEFORE transaction — required data, early failure is correct
-      let cloudinaryResult: any;
+      // Save document to local disk BEFORE transaction — required data, early failure is correct
+      let docFileName: string;
+      let docFilePath: string;
       try {
-        cloudinaryResult = await uploadToCloudinary(docFile.buffer, {
-          folder:        "barkbuddy/business-docs",
-          resource_type: docFile.mimetype === "application/pdf" ? "raw" : "image",
-          public_id:     `doc_${Date.now()}`,
-        });
-      } catch (uploadErr) {
-        console.error("Cloudinary document upload error:", uploadErr);
-        res.status(500).json({ message: "Failed to upload document. Please try again." });
+        const ext = path.extname(docFile.originalname) || ".pdf";
+        docFileName = `doc_${Date.now()}${ext}`;
+        const docDir = path.join(__dirname, "../../uploads/business_docs");
+        await fs.promises.mkdir(docDir, { recursive: true });
+        await fs.promises.writeFile(path.join(docDir, docFileName), docFile.buffer);
+        docFilePath = `/uploads/business_docs/${docFileName}`;
+      } catch (docErr) {
+        console.error("Document save error:", docErr);
+        res.status(500).json({ message: "Failed to save document. Please try again." });
         return;
       }
 
@@ -397,7 +400,7 @@ router.post(
       await client.query(
         `INSERT INTO business_activity_documents (business_id, cloudflare_id, cloudflare_url, filename)
          VALUES ($1,$2,$3,$4)`,
-        [businessId, cloudinaryResult.public_id, cloudinaryResult.secure_url, docFile.originalname]
+        [businessId, docFileName, docFilePath, docFile.originalname]
       );
 
       const token     = generateToken();
@@ -409,20 +412,17 @@ router.post(
 
       await client.query("COMMIT");
 
-      // Photo upload AFTER commit — failure is non-fatal
+      // Photo save AFTER commit — failure is non-fatal
       const photoFile = files?.photo?.[0];
       if (photoFile) {
         try {
-          const photoResult = await uploadToCloudinary(photoFile.buffer, {
-            folder:    "barkbuddy/business-photos",
-            public_id: `biz_${businessId}_cover`,
-          });
+          const { fileName, filePath } = await savePhotoLocally(photoFile.buffer, photoFile.originalname, businessId);
           await pool.query(
-            `INSERT INTO business_photos (business_id, cloudinary_id, cloudinary_url, is_primary) VALUES ($1,$2,$3,true)`,
-            [businessId, photoResult.public_id, photoResult.secure_url]
+            `INSERT INTO business_photos (business_id, file_name, file_path, is_primary) VALUES ($1,$2,$3,true)`,
+            [businessId, fileName, filePath]
           );
         } catch (photoErr) {
-          console.error("Photo upload error (activity):", photoErr);
+          console.error("Photo save error (activity):", photoErr);
         }
       }
 
@@ -449,7 +449,7 @@ router.post(
   }
 );
 
-// GET /api/business/verify-email
+// ─── GET /api/business/verify-email ──────────────────────────────────────────
 router.get("/verify-email", async (req: Request, res: Response): Promise<void> => {
   const { token } = req.query as { token: string };
 
@@ -487,7 +487,6 @@ router.get("/verify-email", async (req: Request, res: Response): Promise<void> =
       return;
     }
 
-    // Not yet verified — mark account and token
     await client.query("BEGIN");
     await client.query(
       "UPDATE business_accounts SET email_verified = true, updated_at = NOW() WHERE id = $1",
@@ -512,12 +511,12 @@ router.get("/verify-email", async (req: Request, res: Response): Promise<void> =
   }
 });
 
-// ─── GET /api/business/test-email ─────────────────────────────────────────────
+// GET /api/business/test-email
 router.get("/test-email", async (req: Request, res: Response): Promise<void> => {
-  const to = (req.query.to as string) || GMAIL_USER;
+  const to = (req.query.to as string) || process.env.SMTP_USER || "";
   try {
     await transporter.sendMail({
-      from:    `"BarkBuddy 🐾" <${GMAIL_USER}>`,
+      from: process.env.SMTP_FROM,
       to,
       subject: "BarkBuddy business mailer test",
       html:    "<p>If you can read this, Gmail is configured correctly! 🐾</p>",

@@ -4,62 +4,68 @@ import bcrypt from "bcryptjs";
 import pool from "../db";
 import { authenticate, AuthRequest } from "../middleware/auth";
 import multer from "multer";
-import { v2 as cloudinary } from "cloudinary";
-import { Readable } from "stream";
+import path from "path";
+import fs from "fs";
 
 const router = Router();
 
-// ─── Cloudinary config ────────────────────────────────────────────────────────
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key:    process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+const UPLOADS_ROOT = path.join(process.cwd(), "uploads");
 
-// ─── Multer — memory storage (we stream to Cloudinary) ───────────────────────
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits:  { fileSize: 5 * 1024 * 1024 },
-  fileFilter: (_req, file, cb) => {
-    if (file.mimetype.startsWith("image/")) cb(null, true);
-    else cb(new Error("Only image files are allowed"));
-  },
-});
-
-// ─── Helper: upload buffer to Cloudinary ─────────────────────────────────────
-const uploadToCloudinary = (buffer: Buffer, folder: string): Promise<string> =>
-  new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(
-      { folder, transformation: [{ width: 400, height: 400, crop: "fill" }] },
-      (err, result) => {
-        if (err || !result) reject(err);
-        else resolve(result.secure_url);
-      }
-    );
-    Readable.from(buffer).pipe(stream);
+const createLocalStorage = (subfolder: string) =>
+  multer.diskStorage({
+    destination: (_req, _file, cb) => {
+      const dir = path.join(UPLOADS_ROOT, subfolder);
+      fs.mkdirSync(dir, { recursive: true });
+      cb(null, dir);
+    },
+    filename: (_req, file, cb) => {
+      const ext  = path.extname(file.originalname).toLowerCase() || ".jpg";
+      const name = `${Date.now()}-${Math.round(Math.random() * 1e6)}${ext}`;
+      cb(null, name);
+    },
   });
 
-// ─── Helper: recalculate profile_complete ────────────────────────────────────
+const imageFilter: multer.Options["fileFilter"] = (_req, file, cb) => {
+  if (file.mimetype.startsWith("image/")) cb(null, true);
+  else cb(new Error("Only image files are allowed"));
+};
+
+// One multer instance per upload type so files land in the right folder
+const uploadUserAvatar  = multer({ storage: createLocalStorage("users"),   limits: { fileSize: 5 * 1024 * 1024 }, fileFilter: imageFilter });
+const uploadUserBanner  = multer({ storage: createLocalStorage("banners"),  limits: { fileSize: 8 * 1024 * 1024 }, fileFilter: imageFilter });
+const uploadDogAvatar   = multer({ storage: createLocalStorage("dogs"),     limits: { fileSize: 5 * 1024 * 1024 }, fileFilter: imageFilter });
+
+// Builds the public URL from a saved file path
+const toPublicUrl = (req: AuthRequest, filePath: string): string => {
+  const normalised = filePath.replace(/\\/g, "/");
+  const idx        = normalised.indexOf("/uploads/");
+  const relative   = idx !== -1
+    ? normalised.slice(idx)
+    : `/uploads/${path.basename(filePath)}`;
+  return `${req.protocol}://${req.get("host")}${relative}`;
+};
+
+// Helper: recalculate profile_complete
 const calcProfileComplete = (user: {
   name?: string; bio?: string; avatar_url?: string;
 }, hasDog: boolean, dogHasPersonality: boolean): number => {
   let score = 0;
-  if (user.name?.trim())     score += 20;
-  if (user.bio?.trim())      score += 20;
-  if (user.avatar_url)       score += 20;
-  if (hasDog)                score += 20;
-  if (dogHasPersonality)     score += 20;
+  if (user.name?.trim())  score += 20;
+  if (user.bio?.trim())   score += 20;
+  if (user.avatar_url)    score += 20;
+  if (hasDog)             score += 20;
+  if (dogHasPersonality)  score += 20;
   return score;
 };
 
-// ─── All routes require auth ──────────────────────────────────────────────────
+// All routes require auth
 router.use(authenticate);
 
-// ─── GET /api/users/me ────────────────────────────────────────────────────────
+// ── GET /api/users/me ─────────────────────────────────────────────────────────
 router.get("/me", async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userResult = await pool.query(
-      `SELECT id, name, email, bio, profile_complete, avatar_url,
+      `SELECT id, name, email, bio, profile_complete, avatar_url, banner_url,
               email_notifications, preferences, created_at, updated_at
        FROM users WHERE id = $1`,
       [req.user!.userId]
@@ -72,8 +78,6 @@ router.get("/me", async (req: AuthRequest, res: Response): Promise<void> => {
 
     const user = userResult.rows[0];
 
-    // ── FIX: order by is_main so the primary dog always comes first,
-    //         and alias columns to camelCase so the frontend gets them correctly
     const dogResult = await pool.query(
       `SELECT
          id, name, gender, breed, dob,
@@ -98,12 +102,12 @@ router.get("/me", async (req: AuthRequest, res: Response): Promise<void> => {
         bio:                user.bio ?? "",
         profileComplete:    user.profile_complete,
         avatarUrl:          user.avatar_url,
+        bannerUrl:          user.banner_url ?? null,
         emailNotifications: user.email_notifications,
         preferences:        user.preferences || {},
         createdAt:          user.created_at,
         updatedAt:          user.updated_at,
       },
-      // dog already has camelCase keys from the aliases above
       dog,
     });
   } catch (err) {
@@ -112,7 +116,7 @@ router.get("/me", async (req: AuthRequest, res: Response): Promise<void> => {
   }
 });
 
-// ─── PATCH /api/users/me ─────────────────────────────────────────────────────
+// ── PATCH /api/users/me ───────────────────────────────────────────────────────
 router.patch("/me", [
   body("name").optional().trim().isLength({ min: 2, max: 100 }).withMessage("Name must be 2–100 characters"),
   body("email").optional().isEmail().withMessage("Please enter a valid email").normalizeEmail(),
@@ -183,7 +187,7 @@ router.patch("/me", [
     const result = await pool.query(
       `UPDATE users SET ${updates.join(", ")}, updated_at = NOW()
        WHERE id = $${params.length}
-       RETURNING id, name, email, bio, avatar_url, profile_complete, updated_at`,
+       RETURNING id, name, email, bio, avatar_url, banner_url, profile_complete, updated_at`,
       params
     );
 
@@ -193,7 +197,7 @@ router.patch("/me", [
       "SELECT id, personality FROM dogs WHERE user_id = $1 LIMIT 1",
       [userId]
     );
-    const dog               = dogResult.rows[0] ?? null;
+    const dog                = dogResult.rows[0] ?? null;
     const newProfileComplete = calcProfileComplete(
       { name: updatedUser.name, bio: updatedUser.bio, avatar_url: updatedUser.avatar_url },
       !!dog,
@@ -210,6 +214,7 @@ router.patch("/me", [
         bio:             updatedUser.bio ?? "",
         profileComplete: newProfileComplete,
         avatarUrl:       updatedUser.avatar_url,
+        bannerUrl:       updatedUser.banner_url ?? null,
         updatedAt:       updatedUser.updated_at,
       },
     });
@@ -219,13 +224,16 @@ router.patch("/me", [
   }
 });
 
-// ─── POST /api/users/me/avatar ────────────────────────────────────────────────
-router.post("/me/avatar", upload.single("avatar"), async (req: AuthRequest, res: Response): Promise<void> => {
+// ── POST /api/users/me/avatar ─────────────────────────────────────────────────
+router.post("/me/avatar", uploadUserAvatar.single("avatar"), async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     if (!req.file) { res.status(400).json({ message: "No image provided" }); return; }
 
-    const avatarUrl = await uploadToCloudinary(req.file.buffer, "barkbuddy/users");
-    await pool.query("UPDATE users SET avatar_url = $1, updated_at = NOW() WHERE id = $2", [avatarUrl, req.user!.userId]);
+    const avatarUrl = toPublicUrl(req, req.file.path);
+    await pool.query(
+      "UPDATE users SET avatar_url = $1, updated_at = NOW() WHERE id = $2",
+      [avatarUrl, req.user!.userId]
+    );
 
     const userResult = await pool.query("SELECT name, bio FROM users WHERE id = $1", [req.user!.userId]);
     const dogResult  = await pool.query("SELECT id, personality FROM dogs WHERE user_id = $1 LIMIT 1", [req.user!.userId]);
@@ -244,7 +252,25 @@ router.post("/me/avatar", upload.single("avatar"), async (req: AuthRequest, res:
   }
 });
 
-// ─── PATCH /api/users/me/preferences ─────────────────────────────────────────
+// ── POST /api/users/me/banner ─────────────────────────────────────────────────
+router.post("/me/banner", uploadUserBanner.single("banner"), async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    if (!req.file) { res.status(400).json({ message: "No image provided" }); return; }
+
+    const bannerUrl = toPublicUrl(req, req.file.path);
+    await pool.query(
+      "UPDATE users SET banner_url = $1, updated_at = NOW() WHERE id = $2",
+      [bannerUrl, req.user!.userId]
+    );
+
+    res.json({ message: "Banner updated", bannerUrl });
+  } catch (err) {
+    console.error("POST /users/me/banner error:", err);
+    res.status(500).json({ message: "Failed to upload banner" });
+  }
+});
+
+// ── PATCH /api/users/me/preferences ──────────────────────────────────────────
 router.patch("/me/preferences", async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { emailNotifications, preferences } = req.body;
@@ -270,8 +296,7 @@ router.patch("/me/preferences", async (req: AuthRequest, res: Response): Promise
   }
 });
 
-// ─── PATCH /api/users/me/dog ──────────────────────────────────────────────────
-// Updates the primary (is_main = true) dog
+// ── PATCH /api/users/me/dog ───────────────────────────────────────────────────
 router.patch("/me/dog", async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { name, breed, gender, dob, lifeStage, personality } = req.body;
@@ -288,7 +313,6 @@ router.patch("/me/dog", async (req: AuthRequest, res: Response): Promise<void> =
 
     if (updates.length === 0) { res.status(400).json({ message: "No changes provided" }); return; }
 
-    // ── FIX: target only the primary dog (is_main = true)
     params.push(req.user!.userId);
     const result = await pool.query(
       `UPDATE dogs SET ${updates.join(", ")}, updated_at = NOW()
@@ -318,15 +342,12 @@ router.patch("/me/dog", async (req: AuthRequest, res: Response): Promise<void> =
   }
 });
 
-// ─── POST /api/users/me/dog/avatar ────────────────────────────────────────────
-// Uploads avatar for the primary dog via Cloudinary
-router.post("/me/dog/avatar", upload.single("avatar"), async (req: AuthRequest, res: Response): Promise<void> => {
+// ── POST /api/users/me/dog/avatar ─────────────────────────────────────────────
+router.post("/me/dog/avatar", uploadDogAvatar.single("avatar"), async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     if (!req.file) { res.status(400).json({ message: "No image provided" }); return; }
 
-    const avatarUrl = await uploadToCloudinary(req.file.buffer, "barkbuddy/dogs");
-
-    // ── FIX: target only the primary dog (is_main = true)
+    const avatarUrl = toPublicUrl(req, req.file.path);
     await pool.query(
       "UPDATE dogs SET avatar_url = $1, updated_at = NOW() WHERE user_id = $2 AND is_main = true",
       [avatarUrl, req.user!.userId]
@@ -339,7 +360,7 @@ router.post("/me/dog/avatar", upload.single("avatar"), async (req: AuthRequest, 
   }
 });
 
-// ─── POST /api/users/me/dogs ──────────────────────────────────────────────────
+// ── POST /api/users/me/dogs ───────────────────────────────────────────────────
 router.post("/me/dogs", [
   body("name").notEmpty().trim().isLength({ min: 2, max: 100 }).withMessage("Dog name must be 2–100 characters"),
   body("gender").isIn(["male", "female"]).withMessage("Gender must be male or female"),
@@ -347,10 +368,13 @@ router.post("/me/dogs", [
   body("dob").optional().isISO8601().withMessage("DOB must be a valid date"),
   body("life_stage").isIn(["puppy", "adult", "senior"]).withMessage("Invalid life stage"),
   body("personality").optional().isArray().withMessage("Personality must be an array"),
-], upload.none(), async (req: AuthRequest, res: Response): Promise<void> => {
+], multer().none(), async (req: AuthRequest, res: Response): Promise<void> => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    res.status(400).json({ message: "Validation failed", errors: errors.array().reduce((acc: Record<string, string>, err: any) => { acc[err.path] = err.msg; return acc; }, {}) });
+    res.status(400).json({
+      message: "Validation failed",
+      errors: errors.array().reduce((acc: Record<string, string>, err: any) => { acc[err.path] = err.msg; return acc; }, {}),
+    });
     return;
   }
 
@@ -378,7 +402,7 @@ router.post("/me/dogs", [
   }
 });
 
-// ─── GET /api/users/me/dogs ───────────────────────────────────────────────────
+// ── GET /api/users/me/dogs ────────────────────────────────────────────────────
 router.get("/me/dogs", async (req: AuthRequest, res: Response): Promise<void> => {
   const userId = req.user!.userId;
   try {
@@ -394,7 +418,7 @@ router.get("/me/dogs", async (req: AuthRequest, res: Response): Promise<void> =>
   }
 });
 
-// ─── PATCH /api/users/me/dogs/:dogId ─────────────────────────────────────────
+// ── PATCH /api/users/me/dogs/:dogId ──────────────────────────────────────────
 router.patch("/me/dogs/:dogId", async (req: AuthRequest, res: Response): Promise<void> => {
   const dogId  = req.params.dogId;
   const userId = req.user!.userId;
@@ -404,11 +428,11 @@ router.patch("/me/dogs/:dogId", async (req: AuthRequest, res: Response): Promise
   const params: any[]     = [];
   const addUpdate = (field: string, val: any) => { params.push(val); updates.push(`${field} = $${params.length}`); };
 
-  if (name)                    addUpdate("name",        name);
-  if (breed)                   addUpdate("breed",       breed);
-  if (gender)                  addUpdate("gender",      gender);
-  if (dob !== undefined)       addUpdate("dob",         dob || null);
-  if (life_stage)              addUpdate("life_stage",  life_stage);
+  if (name)                      addUpdate("name",        name);
+  if (breed)                     addUpdate("breed",       breed);
+  if (gender)                    addUpdate("gender",      gender);
+  if (dob !== undefined)         addUpdate("dob",         dob || null);
+  if (life_stage)                addUpdate("life_stage",  life_stage);
   if (personality !== undefined) addUpdate("personality", JSON.stringify(personality));
 
   if (updates.length === 0) { res.status(400).json({ message: "No changes provided" }); return; }
@@ -423,7 +447,6 @@ router.patch("/me/dogs/:dogId", async (req: AuthRequest, res: Response): Promise
     );
 
     if (result.rows.length === 0) { res.status(404).json({ message: "Dog not found" }); return; }
-
     res.json({ message: "Dog updated", dog: result.rows[0] });
   } catch (err) {
     console.error("PATCH /users/me/dogs/:dogId error:", err);
@@ -431,7 +454,7 @@ router.patch("/me/dogs/:dogId", async (req: AuthRequest, res: Response): Promise
   }
 });
 
-// ─── DELETE /api/users/me/dogs/:dogId ────────────────────────────────────────
+// ── DELETE /api/users/me/dogs/:dogId ─────────────────────────────────────────
 router.delete("/me/dogs/:dogId", async (req: AuthRequest, res: Response): Promise<void> => {
   const dogId  = req.params.dogId;
   const userId = req.user!.userId;
@@ -449,15 +472,15 @@ router.delete("/me/dogs/:dogId", async (req: AuthRequest, res: Response): Promis
   }
 });
 
-// ─── POST /api/users/me/dogs/:dogId/avatar ────────────────────────────────────
-router.post("/me/dogs/:dogId/avatar", upload.single("avatar"), async (req: AuthRequest, res: Response): Promise<void> => {
+// ── POST /api/users/me/dogs/:dogId/avatar ─────────────────────────────────────
+router.post("/me/dogs/:dogId/avatar", uploadDogAvatar.single("avatar"), async (req: AuthRequest, res: Response): Promise<void> => {
   if (!req.file) { res.status(400).json({ message: "No image provided" }); return; }
 
   const dogId  = req.params.dogId;
   const userId = req.user!.userId;
 
   try {
-    const avatarUrl = await uploadToCloudinary(req.file.buffer, "barkbuddy/dogs");
+    const avatarUrl = toPublicUrl(req, req.file.path);
     await pool.query(
       "UPDATE dogs SET avatar_url = $1, updated_at = NOW() WHERE id = $2 AND user_id = $3",
       [avatarUrl, dogId, userId]
@@ -469,7 +492,7 @@ router.post("/me/dogs/:dogId/avatar", upload.single("avatar"), async (req: AuthR
   }
 });
 
-// ─── GET /api/users/search ────────────────────────────────────────────────────
+// ── GET /api/users/search ─────────────────────────────────────────────────────
 router.get("/search", async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const query = (req.query.q as string || "").trim();

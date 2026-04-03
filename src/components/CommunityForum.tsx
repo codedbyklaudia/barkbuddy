@@ -7,10 +7,10 @@ import {
   type ForumPost, type ForumComment,
 } from "../api/Forum";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// Types 
 interface ForumCommentWithLikes extends ForumComment {
-  likesCount?: number;
-  likedByMe?: boolean;
+  likesCount: number;
+  likedByMe: boolean;
   parentId?:   string | null;
   replies?:     ForumCommentWithLikes[];
 }
@@ -23,7 +23,7 @@ interface CommunityForumProps {
   userName?:           string;
 }
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+// Constants
 const CATEGORIES = ["All","General","Teething","Travel","Vets","Allergies","Training","Nutrition","Grooming","Dog-friendly","Health","Other"];
 
 const CAT_COLORS: Record<string, { color: string; bg: string }> = {
@@ -240,8 +240,8 @@ const InlineComments: React.FC<{
       const res = isLiked ? await unlikeComment(token, id) : await likeComment(token, id);
       if (res?.likesCount !== undefined) {
         setComments(prev => update(prev, 0).map(c =>
-          c.id === id ? { ...c, likesCount: res.likesCount }
-            : { ...c, replies: (c.replies ?? []).map(r => r.id === id ? { ...r, likesCount: res.likesCount } : r) }
+          c.id === id ? { ...c, likesCount: res.likesCount ?? 0 }
+  : { ...c, replies: (c.replies ?? []).map(r => r.id === id ? { ...r, likesCount: res.likesCount ?? 0 } : r) }
         ));
       }
     } catch {

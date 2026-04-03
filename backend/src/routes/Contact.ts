@@ -3,14 +3,17 @@ import nodemailer from "nodemailer";
 
 const router = Router();
 
-const GMAIL_USER = process.env.GMAIL_USER;
-const GMAIL_PASS = process.env.GMAIL_APP_PASSWORD;
-const CONTACT_TO = "website.barkbuddy@gmail.com";
+const CONTACT_TO = "paws@barkbuddy.org.uk";
 
 // Gmail transporter 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: { user: GMAIL_USER, pass: GMAIL_PASS },
+  host:   process.env.SMTP_HOST,
+  port:   Number(process.env.SMTP_PORT) || 465,
+  secure: true,
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
   tls: { rejectUnauthorized: false },
 });
 
@@ -35,7 +38,7 @@ router.post("/", async (req: Request, res: Response) => {
   try {
     // Email to BarkBuddy inbox 
     await transporter.sendMail({
-      from:     `"BarkBuddy Contact Form" <${GMAIL_USER}>`,
+      from: process.env.SMTP_FROM,
       to:       CONTACT_TO,
       replyTo:  email,
       subject:  `[BarkBuddy] ${subject ?? "New message"} — from ${name}`,
@@ -88,7 +91,7 @@ router.post("/", async (req: Request, res: Response) => {
 
     // Auto-reply to the sender
     await transporter.sendMail({
-      from:    `"BarkBuddy" <${GMAIL_USER}>`,
+      from: process.env.SMTP_FROM,
       to:      email,
       subject: "We received your message 🐾",
       html: `
@@ -123,7 +126,7 @@ router.post("/", async (req: Request, res: Response) => {
 
   } catch (err) {
     console.error("Contact form email error:", err);
-    return res.status(500).json({ message: "Failed to send message. Please email us directly at website.barkbuddy@gmail.com" });
+    return res.status(500).json({ message: "Failed to send message. Please email us directly at paws@barkbuddy.org.uk" });
   }
 });
 

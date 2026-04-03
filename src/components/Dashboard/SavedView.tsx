@@ -95,8 +95,7 @@ function ago(ms: number): string {
 
 type Tab = "all" | "tip" | "service";
 
-// ─── Tip Card — rich expandable ───────────────────────────────────────────────
-
+// Tip Card — rich expandable 
 const TipCard: React.FC<{
   item: SavedTip; onRemove: (id: string) => void; delay: number;
 }> = ({ item, onRemove, delay }) => {
@@ -171,7 +170,8 @@ const ServiceCard: React.FC<{
   const bodyRef         = useRef<HTMLDivElement>(null);
   const [h, setH]       = useState(0);
   const cat             = getCat(item);
-  const path            = `/activity/${item.id}`;
+  const path            = `/activity/${item.itemId}`;
+
 
   useEffect(() => { if (bodyRef.current) setH(bodyRef.current.scrollHeight); }, [open]);
 
@@ -189,7 +189,7 @@ const ServiceCard: React.FC<{
         <div className="sv-card__copy">
           <h3 className="sv-card__title">{item.title}</h3>
           <p className="sv-card__sub">
-            {[item.address, item.distance, item.rating ? `★ ${item.rating.toFixed(1)}` : null]
+            {[item.address, item.distance, item.rating ? `★ ${Number(item.rating).toFixed(1)}` : null]
               .filter(Boolean).join(" · ")}
           </p>
         </div>

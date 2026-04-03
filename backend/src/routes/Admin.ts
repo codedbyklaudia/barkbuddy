@@ -1,26 +1,38 @@
 import { Router, Request, Response } from "express";
 import crypto from "crypto";
+import fs from "fs";
+import path from "path";
+import multer from "multer";
 import nodemailer from "nodemailer";
 import pool from "../db";
 
-const router  = Router();
-const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
+const router     = Router();
+const CLIENT_URL   = process.env.CLIENT_URL   || "http://localhost:5173";
 const ADMIN_SECRET = process.env.ADMIN_SECRET || "changeme";
 
-// ─── Gmail transporter ────────────────────────────────────────────────────────
+// Multer for photo uploads
+const photoUpload = multer({
+  storage: multer.memoryStorage(),
+  limits:  { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const allowed = ["image/jpeg", "image/png", "image/webp"];
+    allowed.includes(file.mimetype) ? cb(null, true) : cb(new Error("Only JPG, PNG or WEBP allowed"));
+  },
+});
+
+// Mail transporter
 const transporter = nodemailer.createTransport({
-  host:   "smtp.gmail.com",
-  port:   465,
+  host:   process.env.SMTP_HOST,
+  port:   Number(process.env.SMTP_PORT) || 465,
   secure: true,
   auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASSWORD,
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
   },
   tls: { rejectUnauthorized: false },
 });
 
-// ─── Middleware: simple admin auth via secret header ─────────────────────────
-// Add  x-admin-secret: <your secret>  header to all admin requests
+// Middleware: simple admin auth via secret header
 function requireAdmin(req: Request, res: Response, next: Function) {
   const secret = req.headers["x-admin-secret"];
   if (!secret || secret !== ADMIN_SECRET) {
@@ -30,7 +42,7 @@ function requireAdmin(req: Request, res: Response, next: Function) {
   next();
 }
 
-// ─── Username generator — random-word-combo-NNN ───────────────────────────────
+// Username generator
 const ADJECTIVES = [
   "golden","happy","brave","gentle","swift","wild","calm","bright",
   "clever","eager","fluffy","jolly","kind","lively","merry","noble",
@@ -45,7 +57,7 @@ const NOUNS = [
 function generateUsername(): string {
   const adj  = ADJECTIVES[Math.floor(Math.random() * ADJECTIVES.length)];
   const noun = NOUNS[Math.floor(Math.random() * NOUNS.length)];
-  const num  = Math.floor(100 + Math.random() * 900); // 3-digit
+  const num  = Math.floor(100 + Math.random() * 900);
   return `${adj}-${noun}-${num}`;
 }
 
@@ -58,12 +70,10 @@ async function uniqueUsername(): Promise<string> {
     );
     if (rows.length === 0) return candidate;
   }
-  // Fallback: append random hex
   return `${generateUsername()}-${crypto.randomBytes(3).toString("hex")}`;
 }
 
-// ─── GET /api/admin/businesses ───────────────────────────────────────────────
-// Returns all businesses with their status, sorted newest first
+// GET /api/admin/businesses
 router.get("/businesses", requireAdmin, async (req: Request, res: Response) => {
   const { status } = req.query;
 
@@ -90,7 +100,7 @@ router.get("/businesses", requireAdmin, async (req: Request, res: Response) => {
   }
 });
 
-// ─── GET /api/admin/businesses/:id ───────────────────────────────────────────
+// GET /api/admin/businesses/:id
 router.get("/businesses/:id", requireAdmin, async (req: Request, res: Response) => {
   try {
     const { rows } = await pool.query(
@@ -98,7 +108,7 @@ router.get("/businesses/:id", requireAdmin, async (req: Request, res: Response) 
               bsd.price_list, bsd.additional_info,
               bad.cloudflare_url AS document_url, bad.filename AS document_filename
        FROM business_accounts ba
-       LEFT JOIN business_service_details  bsd ON bsd.business_id = ba.id
+       LEFT JOIN business_service_details    bsd ON bsd.business_id = ba.id
        LEFT JOIN business_activity_documents bad ON bad.business_id = ba.id
        WHERE ba.id = $1`,
       [req.params.id]
@@ -114,28 +124,19 @@ router.get("/businesses/:id", requireAdmin, async (req: Request, res: Response) 
   }
 });
 
-// ─── POST /api/admin/businesses/:id/approve ──────────────────────────────────
+// POST /api/admin/businesses/:id/approve
 router.post("/businesses/:id/approve", requireAdmin, async (req: Request, res: Response) => {
   const { id } = req.params;
-
   try {
     const { rows } = await pool.query(
       "SELECT * FROM business_accounts WHERE id = $1",
       [id]
     );
-    if (rows.length === 0) {
-      res.status(404).json({ message: "Business not found" });
-      return;
-    }
+    if (rows.length === 0) { res.status(404).json({ message: "Business not found" }); return; }
 
     const biz = rows[0];
+    if (biz.status === "approved") { res.status(409).json({ message: "Already approved" }); return; }
 
-    if (biz.status === "approved") {
-      res.status(409).json({ message: "Already approved" });
-      return;
-    }
-
-    // Generate unique username
     const username = await uniqueUsername();
 
     await pool.query(
@@ -145,11 +146,10 @@ router.post("/businesses/:id/approve", requireAdmin, async (req: Request, res: R
       [username, id]
     );
 
-    // Send approval email with username
     const isActivity = biz.category === "activities";
     try {
       await transporter.sendMail({
-        from:    `"BarkBuddy for Business 🐾" <${process.env.GMAIL_USER}>`,
+        from:    process.env.SMTP_FROM,
         to:      biz.email,
         subject: `🎉 You're live on BarkBuddy — here's your login`,
         html:    approvalEmailHtml(biz.personal_name, biz.business_name, username, isActivity),
@@ -157,7 +157,6 @@ router.post("/businesses/:id/approve", requireAdmin, async (req: Request, res: R
       console.log("✅ Approval email sent to:", biz.email);
     } catch (emailErr) {
       console.error("❌ Approval email failed:", emailErr);
-      // Don't fail the approval if email fails
     }
 
     res.json({
@@ -171,35 +170,29 @@ router.post("/businesses/:id/approve", requireAdmin, async (req: Request, res: R
   }
 });
 
-// ─── POST /api/admin/businesses/:id/reject ───────────────────────────────────
+// POST /api/admin/businesses/:id/reject
 router.post("/businesses/:id/reject", requireAdmin, async (req: Request, res: Response) => {
   const { id } = req.params;
   const { reason } = req.body;
-
   try {
     const { rows } = await pool.query(
       "SELECT * FROM business_accounts WHERE id = $1 AND deleted_at IS NULL",
       [id]
     );
-    if (rows.length === 0) {
-      res.status(404).json({ message: "Business not found" });
-      return;
-    }
+    if (rows.length === 0) { res.status(404).json({ message: "Business not found" }); return; }
 
     const biz = rows[0];
 
     await pool.query("BEGIN");
 
-    // Save to permanent rejections history
     await pool.query(
       `INSERT INTO business_rejections
          (email, personal_name, business_name, category, type, address, postcode, rejection_reason, applied_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
       [biz.email, biz.personal_name, biz.business_name, biz.category,
        biz.type, biz.address, biz.postcode, reason || null, biz.created_at]
     );
 
-    // Soft-delete the account so they can re-register with same email
     await pool.query(
       `UPDATE business_accounts
        SET status = 'rejected', deleted_at = NOW(), updated_at = NOW()
@@ -209,10 +202,9 @@ router.post("/businesses/:id/reject", requireAdmin, async (req: Request, res: Re
 
     await pool.query("COMMIT");
 
-    // Send rejection email
     try {
       await transporter.sendMail({
-        from:    `"BarkBuddy for Business 🐾" <${process.env.GMAIL_USER}>`,
+        from:    process.env.SMTP_FROM,
         to:      biz.email,
         subject: `Your BarkBuddy application for ${biz.business_name}`,
         html:    rejectionEmailHtml(biz.personal_name, biz.business_name, reason),
@@ -230,7 +222,164 @@ router.post("/businesses/:id/reject", requireAdmin, async (req: Request, res: Re
   }
 });
 
-// ─── Email templates ──────────────────────────────────────────────────────────
+// GET /api/admin/businesses/:id/photos
+router.get("/businesses/:id/photos", requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, file_name, file_path, caption, is_primary, created_at
+       FROM business_photos
+       WHERE business_id = $1
+       ORDER BY is_primary DESC, created_at ASC`,
+      [req.params.id]
+    );
+    res.json({ photos: rows });
+  } catch (err) {
+    console.error("Get photos error:", err);
+    res.status(500).json({ message: "Failed to load photos." });
+  }
+});
+
+// POST /api/admin/businesses/:id/photos
+router.post("/businesses/:id/photos", requireAdmin, photoUpload.single("photo"), async (req: Request, res: Response) => {
+  if (!req.file) { res.status(400).json({ message: "No file uploaded." }); return; }
+  try {
+    const businessId = parseInt(req.params.id);
+    const caption    = (req.body.caption as string) || null;
+    const isPrimary  = req.body.is_primary === "true";
+
+    const ext       = path.extname(req.file.originalname) || ".jpg";
+    const fileName  = `biz_${businessId}_${Date.now()}${ext}`;
+    const uploadDir = path.join(__dirname, "../../uploads/business_photos");
+    await fs.promises.mkdir(uploadDir, { recursive: true });
+    await fs.promises.writeFile(path.join(uploadDir, fileName), req.file.buffer);
+    const filePath = `/uploads/business_photos/${fileName}`;
+
+    // Unset existing primary if this is being set as primary
+    if (isPrimary) {
+      await pool.query(
+        "UPDATE business_photos SET is_primary = false WHERE business_id = $1",
+        [businessId]
+      );
+    }
+
+    const { rows } = await pool.query(
+      `INSERT INTO business_photos (business_id, file_name, file_path, caption, is_primary, created_at)
+       VALUES ($1,$2,$3,$4,$5,NOW())
+       RETURNING *`,
+      [businessId, fileName, filePath, caption, isPrimary]
+    );
+
+    res.status(201).json({ message: "Photo uploaded.", photo: rows[0] });
+  } catch (err) {
+    console.error("Upload photo error:", err);
+    res.status(500).json({ message: "Failed to upload photo." });
+  }
+});
+
+// PATCH /api/admin/businesses/:id/photos/:photoId/primary
+router.patch("/businesses/:id/photos/:photoId/primary", requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const businessId = parseInt(req.params.id);
+    const photoId    = parseInt(req.params.photoId);
+
+    await pool.query(
+      "UPDATE business_photos SET is_primary = false WHERE business_id = $1",
+      [businessId]
+    );
+    await pool.query(
+      "UPDATE business_photos SET is_primary = true WHERE id = $1 AND business_id = $2",
+      [photoId, businessId]
+    );
+
+    res.json({ message: "Primary photo updated." });
+  } catch (err) {
+    console.error("Set primary error:", err);
+    res.status(500).json({ message: "Failed to update primary photo." });
+  }
+});
+
+// DELETE /api/admin/businesses/:id/photos/:photoId
+router.delete("/businesses/:id/photos/:photoId", requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const businessId = parseInt(req.params.id);
+    const photoId    = parseInt(req.params.photoId);
+
+    const { rows } = await pool.query(
+      "SELECT file_name FROM business_photos WHERE id = $1 AND business_id = $2",
+      [photoId, businessId]
+    );
+    if (rows.length === 0) { res.status(404).json({ message: "Photo not found." }); return; }
+
+    // Delete file from disk (silent fail if already missing)
+    const filePath = path.join(__dirname, "../../uploads/business_photos", rows[0].file_name);
+    await fs.promises.unlink(filePath).catch(() => {});
+
+    await pool.query(
+      "DELETE FROM business_photos WHERE id = $1 AND business_id = $2",
+      [photoId, businessId]
+    );
+
+    res.json({ message: "Photo deleted." });
+  } catch (err) {
+    console.error("Delete photo error:", err);
+    res.status(500).json({ message: "Failed to delete photo." });
+  }
+});
+
+// DELETE /api/admin/businesses/:id
+router.delete("/businesses/:id", requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const { rows } = await pool.query(
+      "SELECT id, business_name FROM business_accounts WHERE id = $1 AND deleted_at IS NULL",
+      [req.params.id]
+    );
+    if (rows.length === 0) { res.status(404).json({ message: "Business not found." }); return; }
+
+    // Delete associated photos from disk
+    const { rows: photos } = await pool.query(
+      "SELECT file_name FROM business_photos WHERE business_id = $1",
+      [req.params.id]
+    );
+    for (const photo of photos) {
+      const filePath = path.join(__dirname, "../../uploads/business_photos", photo.file_name);
+      await fs.promises.unlink(filePath).catch(() => {});
+    }
+
+    // Hard delete everything associated
+    await pool.query("BEGIN");
+    await pool.query("DELETE FROM business_photos            WHERE business_id = $1", [req.params.id]);
+    await pool.query("DELETE FROM business_service_details   WHERE business_id = $1", [req.params.id]);
+    await pool.query("DELETE FROM business_activity_documents WHERE business_id = $1", [req.params.id]);
+    await pool.query("DELETE FROM business_verification_tokens WHERE business_id = $1", [req.params.id]);
+    await pool.query("DELETE FROM business_accounts          WHERE id = $1", [req.params.id]);
+    await pool.query("COMMIT");
+
+    console.log(`🗑 Business ${req.params.id} (${rows[0].business_name}) permanently deleted by admin`);
+    res.json({ message: `${rows[0].business_name} has been permanently deleted.` });
+  } catch (err) {
+    await pool.query("ROLLBACK").catch(() => {});
+    console.error("Delete business error:", err);
+    res.status(500).json({ message: "Failed to delete business." });
+  }
+});
+
+// GET /api/admin/rejections
+router.get("/rejections", requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT r.*,
+              (SELECT COUNT(*) FROM business_rejections r2 WHERE r2.email = r.email) AS total_attempts
+       FROM business_rejections r
+       ORDER BY r.rejected_at DESC`
+    );
+    res.json({ rejections: rows });
+  } catch (err) {
+    console.error("Rejections list error:", err);
+    res.status(500).json({ message: "Failed to fetch rejections" });
+  }
+});
+
+// Email templates
 const approvalEmailHtml = (
   name: string,
   businessName: string,
@@ -255,28 +404,22 @@ const approvalEmailHtml = (
           <td style="padding:40px 40px 32px;">
             <p style="color:#1e1b4b;font-size:15px;margin:0 0 16px;">Hi <strong>${name}</strong>,</p>
             <p style="color:#4b5563;font-size:14px;line-height:1.7;margin:0 0 24px;">
-              Great news — <strong>${businessName}</strong> has been ${isActivity ? "verified and approved" : "approved"} and is now listed on BarkBuddy.
-              Dog owners in your area can find you right now! 🐾
+              Great news — <strong>${businessName}</strong> has been ${isActivity ? "verified and approved" : "approved"} and is now listed on BarkBuddy. Dog owners in your area can find you right now! 🐾
             </p>
-
-            <!-- Username box -->
             <div style="background:#f4f1fb;border:2px solid #7c3aed;border-radius:12px;padding:24px;margin:0 0 28px;text-align:center;">
               <p style="font-size:12px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#7c3aed;margin:0 0 10px;">Your login username</p>
               <p style="font-size:26px;font-weight:700;color:#2d1b69;letter-spacing:0.06em;margin:0 0 10px;font-family:monospace;">${username}</p>
               <p style="font-size:12px;color:#6b7280;margin:0;">Save this — you'll need it to log in to your dashboard</p>
             </div>
-
             <p style="color:#4b5563;font-size:14px;line-height:1.7;margin:0 0 8px;">
               Use your username + the password you set during registration to log in at:
             </p>
             <p style="margin:0 0 24px;">
               <a href="${CLIENT_URL}/#/business/login" style="color:#5b21b6;font-size:14px;">${CLIENT_URL}/#/business/login</a>
             </p>
-
             <p style="color:#6b7280;font-size:13px;line-height:1.6;margin:0 0 8px;">
               From your dashboard you can manage your listing, update your details, and change your username at any time in Settings.
             </p>
-
             <p style="color:#9ca3af;font-size:12px;line-height:1.5;margin:24px 0 0;border-top:1px solid #f3f4f6;padding-top:20px;">
               If you have any questions, reply to this email or contact us at website.barkbuddy@gmail.com
             </p>
@@ -342,22 +485,5 @@ const rejectionEmailHtml = (
   </table>
 </body>
 </html>`;
-
-// ─── GET /api/admin/rejections ───────────────────────────────────────────────
-// Full rejection history — never deleted
-router.get("/rejections", requireAdmin, async (req: Request, res: Response) => {
-  try {
-    const { rows } = await pool.query(
-      `SELECT r.*,
-              (SELECT COUNT(*) FROM business_rejections r2 WHERE r2.email = r.email) AS total_attempts
-       FROM business_rejections r
-       ORDER BY r.rejected_at DESC`
-    );
-    res.json({ rejections: rows });
-  } catch (err) {
-    console.error("Rejections list error:", err);
-    res.status(500).json({ message: "Failed to fetch rejections" });
-  }
-});
 
 export default router;

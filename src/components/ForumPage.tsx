@@ -12,8 +12,8 @@ import {
 const API_BASE: string = import.meta.env.VITE_API_URL ?? 'http://localhost:4000/api';
 
 interface ForumCommentWithLikes extends ForumComment {
-  likesCount?: number;
-  likedByMe?: boolean;
+  likesCount: number;
+  likedByMe: boolean;
   parentId?:   string | null;
   replies?:     ForumCommentWithLikes[];
 }
@@ -482,8 +482,8 @@ const PostDetail: React.FC<{
       const result = isLiked ? await unlikeComment(token, id) : await likeComment(token, id);
       if (result?.likesCount !== undefined) {
         setComments(prev => prev.map(c => {
-          if (c.id === id) return { ...c, likesCount: result.likesCount };
-          if (c.replies?.length) return { ...c, replies: c.replies.map(r => r.id === id ? { ...r, likesCount: result.likesCount } : r) };
+          if (c.id === id) return { ...c, likesCount: result.likesCount ?? 0 };
+          if (c.replies?.length) return { ...c, replies: c.replies.map(r => r.id === id ? { ...r, likesCount: result.likesCount ?? 0 } : r) };
           return c;
         }));
       }
@@ -530,7 +530,7 @@ const PostDetail: React.FC<{
 
         {/* Author meta row — avatar + name + date stacked */}
         <div className="post-detail-author">
-          <UserAvatar name={post.userName} url={post.userAvatar} size={38} />
+          <UserAvatar name={post.userName ?? ''} url={post.userAvatar} size={38} />
           <div className="post-detail-author__info">
             <span className="post-detail-author__name">{post.userName}</span>
             <span className="post-detail-author__date">{formatDate(post.createdAt)}</span>
@@ -637,7 +637,7 @@ const ForumPage: React.FC<CommunityForumProps> = ({ initialPostId, initialCommen
 
   useEffect(() => { fetchPosts(activeCategory, search); }, [activeCategory, search]);
 
-  const handleNewPost    = (post: ForumPost) => { setPosts(prev => [{ commentsCount: 0, ...post }, ...prev]); setTotal(t => t + 1); };
+  const handleNewPost    = (post: ForumPost) => { setPosts(prev => [{ ...post, commentsCount: post.commentsCount ?? 0 }, ...prev]); setTotal(t => t + 1); };
   const handleDeletePost = async (id: string) => {
     if (!token) return;
     try { await deletePost(token, id); setPosts(prev => prev.filter(p => p.id !== id)); setTotal(t => t - 1); }

@@ -15,7 +15,7 @@ async function geocodeSearchLocation(location: string): Promise<{ lat: number; l
     const pc = postcodeMatch[1].replace(/\s+/, " ").toUpperCase();
     try {
       const res  = await fetch(`https://api.postcodes.io/postcodes/${encodeURIComponent(pc)}`);
-      const data = await res.json();
+      const data = await res.json() as any;
       if (data.status === 200) return { lat: data.result.latitude, lng: data.result.longitude };
     } catch {}
   }
@@ -25,7 +25,7 @@ async function geocodeSearchLocation(location: string): Promise<{ lat: number; l
   if (outwardMatch) {
     try {
       const res  = await fetch(`https://api.postcodes.io/outcodes/${encodeURIComponent(outwardMatch[1].toUpperCase())}`);
-      const data = await res.json();
+      const data = await res.json() as any;
       if (data.status === 200) return { lat: data.result.latitude, lng: data.result.longitude };
     } catch {}
   }
@@ -33,7 +33,7 @@ async function geocodeSearchLocation(location: string): Promise<{ lat: number; l
   // 3. Place / city / area name
   try {
     const res  = await fetch(`https://api.postcodes.io/places?q=${encodeURIComponent(trimmed)}&limit=1`);
-    const data = await res.json();
+    const data = await res.json() as any;
     if (data.status === 200 && data.result?.length > 0) {
       return { lat: parseFloat(data.result[0].latitude), lng: parseFloat(data.result[0].longitude) };
     }
@@ -42,7 +42,7 @@ async function geocodeSearchLocation(location: string): Promise<{ lat: number; l
   // 4. Partial postcode autocomplete
   try {
     const res  = await fetch(`https://api.postcodes.io/postcodes?q=${encodeURIComponent(trimmed)}&limit=1`);
-    const data = await res.json();
+    const data = await res.json() as any;
     if (data.status === 200 && data.result?.length > 0) {
       return { lat: data.result[0].latitude, lng: data.result[0].longitude };
     }
@@ -71,7 +71,6 @@ router.get("/services", async (req: Request, res: Response) => {
   } = req.query as Record<string, string>;
 
   try {
-    // Resolve coords — GPS coords take priority over text location
     let searchLat: number | null = null;
     let searchLng: number | null = null;
 
@@ -87,20 +86,18 @@ router.get("/services", async (req: Request, res: Response) => {
     const hasLocation = searchLat !== null && searchLng !== null;
     const newOnly     = new_only === "true";
 
-    // Build param list dynamically
     const params: any[] = [];
     let p = 1;
 
-    // Coords params (must come first so distExpr references are correct)
-    let distanceSql = "NULL::numeric";
+    let distanceSql    = "NULL::numeric";
     let distanceFilter = "";
-    let orderBy = "ba.approved_at DESC";
+    let orderBy        = "ba.approved_at DESC";
 
     if (hasLocation) {
-      params.push(searchLat, searchLng); // $1, $2
-      distanceSql = `ROUND(CAST(${distExpr(`$1`, `$2`)} AS numeric), 1)`;
+      params.push(searchLat, searchLng);
+      distanceSql    = `ROUND(CAST(${distExpr(`$1`, `$2`)} AS numeric), 1)`;
       distanceFilter = `AND ba.lat IS NOT NULL AND ba.lng IS NOT NULL AND ${distExpr(`$1`, `$2`)} <= $3`;
-      params.push(radiusKm); // $3
+      params.push(radiusKm);
       orderBy = `${distExpr(`$1`, `$2`)} ASC`;
       p = 4;
     }
@@ -116,7 +113,7 @@ router.get("/services", async (req: Request, res: Response) => {
         ba.lat, ba.lng, ba.contact_phone, ba.contact_email, ba.website,
         ba.description, ba.approved_at,
         bsd.price_list,
-        (SELECT cloudinary_url FROM business_photos
+        (SELECT file_path FROM business_photos
          WHERE business_id = ba.id AND is_primary = true LIMIT 1) AS primary_photo,
         (SELECT COUNT(*) FROM business_photos WHERE business_id = ba.id)::int AS photo_count,
         (ba.approved_at > NOW() - INTERVAL '30 days') AS is_new,
@@ -185,9 +182,9 @@ router.get("/activities", async (req: Request, res: Response) => {
 
     const params: any[] = [];
     let p = 1;
-    let distanceSql  = "NULL::numeric";
+    let distanceSql    = "NULL::numeric";
     let distanceFilter = "";
-    let orderBy = "ba.approved_at DESC";
+    let orderBy        = "ba.approved_at DESC";
 
     if (hasLocation) {
       params.push(searchLat, searchLng);
@@ -208,7 +205,7 @@ router.get("/activities", async (req: Request, res: Response) => {
         ba.id, ba.business_name, ba.type, ba.address, ba.postcode,
         ba.lat, ba.lng, ba.contact_phone, ba.contact_email, ba.website,
         ba.description, ba.approved_at,
-        (SELECT cloudinary_url FROM business_photos
+        (SELECT file_path FROM business_photos
          WHERE business_id = ba.id AND is_primary = true LIMIT 1) AS primary_photo,
         (SELECT COUNT(*) FROM business_photos WHERE business_id = ba.id)::int AS photo_count,
         (ba.approved_at > NOW() - INTERVAL '30 days') AS is_new,
@@ -257,7 +254,7 @@ router.get("/services/:id", async (req: Request, res: Response) => {
     );
     if (rows.length === 0) { res.status(404).json({ message: "Not found" }); return; }
     const { rows: photos } = await pool.query(
-      "SELECT cloudinary_url, caption, is_primary FROM business_photos WHERE business_id = $1 ORDER BY is_primary DESC, created_at ASC",
+      "SELECT file_path, caption, is_primary FROM business_photos WHERE business_id = $1 ORDER BY is_primary DESC, created_at ASC",
       [req.params.id]
     );
     res.json({ service: rows[0], photos });
@@ -278,22 +275,19 @@ router.get("/activities/:id", async (req: Request, res: Response) => {
     );
     if (rows.length === 0) { res.status(404).json({ message: "Not found" }); return; }
     const { rows: photos } = await pool.query(
-      "SELECT cloudinary_url, caption, is_primary FROM business_photos WHERE business_id = $1 ORDER BY is_primary DESC, created_at ASC",
+      "SELECT file_path, caption, is_primary FROM business_photos WHERE business_id = $1 ORDER BY is_primary DESC, created_at ASC",
       [req.params.id]
     );
     res.json({ activity: rows[0], photos });
   } catch { res.status(500).json({ message: "Failed to load activity." }); }
 });
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// NEW: GET /api/listings/:id (UNIFIED - works for both services and activities)
+// ─── GET /api/listings/:id (UNIFIED) ─────────────────────────────────────────
 // IMPORTANT: This MUST be LAST because it matches ANY /:id pattern
-// ═══════════════════════════════════════════════════════════════════════════════
 router.get("/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    // Get business details (works for both services and activities)
     const businessResult = await pool.query(
       `SELECT 
         id, business_name, type, category, address, postcode,
@@ -312,16 +306,14 @@ router.get("/:id", async (req: Request, res: Response) => {
 
     const business = businessResult.rows[0];
 
-    // Get photos
     const photosResult = await pool.query(
-      `SELECT id, cloudinary_url, caption, is_primary 
+      `SELECT id, file_path, caption, is_primary 
        FROM business_photos 
        WHERE business_id = $1 
        ORDER BY is_primary DESC, created_at ASC`,
       [id]
     );
 
-    // Get reviews for this business
     const reviewsResult = await pool.query(
       `SELECT 
         id, user_name, user_email, rating, comment, created_at
@@ -331,7 +323,6 @@ router.get("/:id", async (req: Request, res: Response) => {
       [id]
     );
 
-    // Get statistics (average rating and total reviews)
     const statsResult = await pool.query(
       `SELECT 
         AVG(rating)::NUMERIC(3,2) as average_rating, 
@@ -343,14 +334,12 @@ router.get("/:id", async (req: Request, res: Response) => {
 
     const statistics = statsResult.rows[0] || { average_rating: 0, total_reviews: 0 };
 
-    // Return unified response
     res.json({
-      business: business,
-      photos: photosResult.rows,
-      reviews: reviewsResult.rows,
-      statistics: statistics
+      business,
+      photos:     photosResult.rows,
+      reviews:    reviewsResult.rows,
+      statistics,
     });
-
   } catch (err) {
     console.error("Error fetching listing details:", err);
     res.status(500).json({ error: 'Failed to fetch listing details' });
@@ -376,7 +365,7 @@ router.post("/geocode-existing", async (req: Request, res: Response) => {
         );
         success++;
       } else { failed++; }
-      await new Promise(r => setTimeout(r, 50)); 
+      await new Promise(r => setTimeout(r, 50));
     }
     res.json({ message: `Geocoded ${success}. Failed: ${failed}.`, success, failed });
   } catch (err) {

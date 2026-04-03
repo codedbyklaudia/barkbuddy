@@ -14,7 +14,7 @@ interface DogProfile {
   dob?: string; lifeStage: string; personality: string[]; avatarUrl?: string;
 }
 
-// ── Tiny helpers ──────────────────────────────────────────────────────────────
+// Tiny helpers 
 const Icon: React.FC<{ name: string; size?: number }> = ({ name, size = 16 }) => {
   const icons: Record<string, React.ReactNode> = {
     edit:    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>,
@@ -23,7 +23,7 @@ const Icon: React.FC<{ name: string; size?: number }> = ({ name, size = 16 }) =>
     check:   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>,
     spinner: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="spin-icon"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>,
     dog:     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M10 5.172C10 3.782 8.423 2.679 6.5 3c-2 .352-3.5 2.055-3.5 4v3l1 2v2l2 1v-3l4-2 2 2v3l2-1v-2l1-2V7c0-1.933-1.5-3.648-3.5-4C9.577 2.679 8 3.782 8 5.172"/></svg>,
-    dogFace: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 10L2 2L8.5 8"/><path d="M22 10L22 2L15.5 8"/><rect x="2" y="8" width="20" height="14" rx="2"/><rect x="6.5" y="11.5" width="2.5" height="2.5" fill="currentColor" stroke="none" rx="0.3"/><rect x="15" y="11.5" width="2.5" height="2.5" fill="currentColor" stroke="none" rx="0.3"/><line x1="2" y1="17" x2="22" y2="17"/><path d="M10.5 15.5L12 13L13.5 15.5Z" fill="currentColor" stroke="none"/><path d="M10.5 17 Q10.5 21 12 21 Q13.5 21 13.5 17"/></svg>,
+    dogFace: <img src="./../images/icons/dog_icon.svg" width={size} height={size} />,
     plus:    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
     trash:   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>,
     shield:  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
@@ -41,7 +41,7 @@ const Toggle: React.FC<{ on: boolean; onChange: () => void; disabled?: boolean }
   </button>
 );
 
-// ── Row ───────────────────────────────────────────────────────────────────────
+// Row 
 const Row: React.FC<{
   label: string; hint?: string; value?: React.ReactNode;
   action?: { label: string; onClick: () => void; variant?: "default" | "danger" };
@@ -299,10 +299,11 @@ const PreferencesModal: React.FC<{
 
 // ── Dog Row ───────────────────────────────────────────────────────────────────
 const DogRow: React.FC<{
-  dog: DogProfile; onEdit: () => void; onView: () => void;
+  dog: DogProfile; onEdit: () => void; onRemove: () => void;
   token: string; onAvatarUpdate: (url: string) => void;
-}> = ({ dog, onEdit, onView, token, onAvatarUpdate }) => {
-  const [uploading, setUploading] = useState(false);
+}> = ({ dog, onEdit, onRemove, token, onAvatarUpdate }) => {
+  const [uploading, setUploading]       = useState(false);
+  const [confirmRemove, setConfirmRemove] = useState(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   const calcAge = (dob?: string) => {
@@ -318,6 +319,16 @@ const DogRow: React.FC<{
       const res = await uploadDogAvatar(token, file);
       onAvatarUpdate(res.avatarUrl);
     } finally { setUploading(false); }
+  };
+
+  const handleRemoveClick = () => {
+    if (confirmRemove) {
+      onRemove();
+    } else {
+      setConfirmRemove(true);
+      // Auto-reset confirmation state after 3 seconds if user doesn't confirm
+      setTimeout(() => setConfirmRemove(false), 3000);
+    }
   };
 
   return (
@@ -341,7 +352,12 @@ const DogRow: React.FC<{
         </span>
       </div>
       <div className="sv-dog-actions">
-        <button className="sv-dog-btn" onClick={onView}>View</button>
+        <button
+          className={`sv-dog-btn danger ${confirmRemove ? "confirming" : ""}`}
+          onClick={handleRemoveClick}
+        >
+          {confirmRemove ? "Sure?" : "Remove"}
+        </button>
         <button className="sv-dog-btn primary" onClick={onEdit}>Edit</button>
       </div>
     </div>
@@ -374,7 +390,7 @@ const EditDogModal: React.FC<{
     setLoading(true);
     try {
       const { updateDog } = await import("../../api/users");
-      const res = await updateDog(token, { ...form, id: dog.id });
+      const res = await updateDog(token, { ...form });
       setSuccess("Saved!"); onSave(res.dog); setTimeout(onClose, 700);
     } catch (err: any) {
       setErrors(err.errors ?? { general: err.message || "Something went wrong" });
@@ -452,12 +468,13 @@ interface SettingsViewProps {
   token:       string;
   onUpdate:    (u: Partial<UserProfile>) => void;
   onDogUpdate: (d: DogProfile) => void;
+  onDogRemove: (dogId: string) => void; // ← new: called when a dog is removed
   onNav:       (key: string) => void;
-  onAddDog:    () => void; // ← triggers AddDogModal in Dashboard
+  onAddDog:    () => void;
 }
 
 const SettingsView: React.FC<SettingsViewProps> = ({
-  user, dog, dogs, token, onUpdate, onDogUpdate, onNav, onAddDog,
+  user, dog, dogs, token, onUpdate, onDogUpdate, onDogRemove, onNav, onAddDog,
 }) => {
   const [modal, setModal]           = useState<"profile" | "preferences" | null>(null);
   const [editingDog, setEditingDog] = useState<DogProfile | null>(null);
@@ -517,7 +534,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
       </Section>
 
       {/* My Dogs */}
-      <Section label="My dogs" icon="dog">
+      <Section label="My dogs" icon="dogFace">
         <Card>
           {allDogs.length === 0 ? (
             <div className="sv-dogs-empty">
@@ -530,17 +547,16 @@ const SettingsView: React.FC<SettingsViewProps> = ({
                 dog={d}
                 token={token}
                 onEdit={() => setEditingDog(d)}
-                onView={() => onNav("dog")}
+                onRemove={() => onDogRemove(d.id)}
                 onAvatarUpdate={(url) => onDogUpdate({ ...d, avatarUrl: url })}
               />
             ))
           )}
 
-          {/* ── Opens the same 3-step AddDogModal as My Dog page ── */}
+          {/* Opens the same 3-step AddDogModal as My Dog page */}
           <button className="sv-add-dog-row" onClick={onAddDog}>
             <span className="sv-add-dog-icon"><Icon name="dogFace" size={16} /></span>
             <span className="sv-add-dog-label">Add another dog</span>
-            <span className="sv-add-dog-chevron"><Icon name="plus" size={14} /></span>
           </button>
         </Card>
       </Section>

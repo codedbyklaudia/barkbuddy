@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from 'react-router-dom';
 
-
 // Icons 
 function IconHome({ size = 20 }: { size?: number }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg>;
@@ -26,17 +25,15 @@ function IconPlatform({ size = 20 }: { size?: number }) {
 }
 
 // Nav config
-
 const NAV_ITEMS = [
   { key: "home",     label: "Dashboard",      icon: IconHome     },
-  { key: "dog",      label: "My Dog",         icon: IconDog      },
+  { key: "dog",      label: "My Dog",         icon: IconDog     },
   { key: "calendar", label: "Buddy Calendar", icon: IconCalendar },
   { key: "settings", label: "Settings",       icon: IconSettings },
   { key: "saved",    label: "Saved",          icon: IconBookmark },
 ];
 
 // Component 
-
 export const Sidebar: React.FC<{
   active:      string;
   onNav:       (k: string) => void;
