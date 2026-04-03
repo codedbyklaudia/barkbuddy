@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './Article.scss';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { PlaneTakeoff, BrushCleaning, Lock, Ruler, Fan, ChevronsRight } from 'lucide-react';
 import Footer from '../Footer';
 
@@ -198,9 +198,12 @@ const ArticleTravelBags: React.FC<ArticlePageProps> = ({ onBack }) => {
           <div>
             <strong>Planning to fly abroad?</strong>
             <p>Check our travel requirements guide to make sure your dog's documentation is in order before you book.</p>
-            <Link to="/travel-page" className="article-callout__btn">
-                Check travel requirements <ChevronsRight />
-            </Link>
+            <button
+              className="article-callout__btn"
+              onClick={() => { window.location.hash = '#/travel-page'; }}
+            >
+              Check travel requirements <ChevronsRight />
+            </button>
           </div>
         </div>
       </article>

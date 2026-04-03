@@ -36,14 +36,25 @@ const pool = new Pool({
 
 // Middleware
 app.use(cors({
-  origin: process.env.NODE_ENV === "production" 
-    ? [
-        "https://barkbuddy.org.uk",
-        "https://www.barkbuddy.org.uk",
-      ]
-    : true,
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    
+    const allowed = [
+      "https://barkbuddy.org.uk",
+      "https://www.barkbuddy.org.uk",
+      "http://localhost:5173",
+      "http://barkbuddy.org.uk",
+    ];
+    
+    if (allowed.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(null, true);
+    }
+  },
   credentials: true,
 }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

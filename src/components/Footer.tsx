@@ -35,7 +35,7 @@ const Footer: React.FC = () => {
           <div className="footer__column">
             <h3 className="footer__column-title">Explore</h3>
             <ul className="footer__list">
-              <li><Link to="/care-tips">Dog Care</Link></li>
+              <li><Link to="/tips/health">Dog Care</Link></li>
               <li><Link to="/service-finder">BarkBuddy Discover</Link></li>
               <li><Link to="/travel-page">Travel Guide</Link></li>
               <li><Link to="/about">About BarkBuddy</Link></li>
@@ -48,7 +48,7 @@ const Footer: React.FC = () => {
             <ul className="footer__list">
         
               <li><Link to="/faq">FAQ</Link></li>
-              <li><a href="/register-business">For Businesses</a></li>
+              <li><Link to="/business/login">For Businesses</Link></li>
               <li><Link to="/forum-page">Parents Forum</Link></li>
             </ul>
           </div>
