@@ -94,7 +94,7 @@ const Contact: React.FC = () => {
         setStatus("error");
       }
     } catch {
-      setError("Could not reach the server. Please email us directly at paws@barkbuddy.co.uk");
+      setError("Could not reach the server. Please email us directly at paws@barkbuddy.org.uk");
       setStatus("error");
     }
   };

@@ -238,7 +238,7 @@ const ForumPolicy: React.FC = () => {
               <div className="policy-contact">
                 <div className="policy-contact__row">
                   <i className="bi bi-envelope" />
-                  <span>Email: <a href="mailto:paws@barkbuddy.co.uk">paws@barkbuddy.co.uk</a></span>
+                  <span>Email: <a href="mailto:paws@barkbuddy.org.uk">paws@barkbuddy.org.uk</a></span>
                 </div>
                 <div className="policy-contact__row">
                   <i className="bi bi-flag" />
@@ -300,7 +300,7 @@ const ForumPolicy: React.FC = () => {
                 </div>
                 <div className="policy-contact__row">
                   <i className="bi bi-envelope" />
-                  <span><a href="mailto:hello@barkbuddy.co.uk">paws@barkbuddy.co.uk</a></span>
+                  <span><a href="mailto:hello@barkbuddy.org.uk">paws@barkbuddy.org.uk</a></span>
                 </div>
               </div>
             </div>

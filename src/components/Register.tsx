@@ -83,6 +83,263 @@ const setSelected = (personality: string[], catId: string, key: string): string[
   return [...personality.filter(p => !catKeys.includes(p)), key];
 };
 
+// ─── Email Verification API calls ─────────────────────────────────────────────
+// Wire these up to your Express backend:
+//   POST /api/auth/send-verification  { email } → 200 OK
+//   POST /api/auth/verify-code        { email, code } → { valid: boolean }
+
+const sendVerificationEmail = async (email: string): Promise<void> => {
+  const res = await fetch("/api/auth/send-verification", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.message || "Failed to send verification email.");
+  }
+};
+
+const verifyEmailCode = async (email: string, code: string): Promise<boolean> => {
+  const res = await fetch("/api/auth/verify-code", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, code }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.message || "Verification failed. Please try again.");
+  }
+  const data = await res.json();
+  return data.valid === true;
+};
+
+// ─── OTP Input Component ──────────────────────────────────────────────────────
+const OtpInput: React.FC<{
+  value:    string[];
+  onChange: (digits: string[]) => void;
+  disabled?: boolean;
+  hasError?: boolean;
+}> = ({ value, onChange, disabled, hasError }) => {
+  const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
+
+  const focus = (i: number) => inputsRef.current[i]?.focus();
+
+  const handleChange = (i: number, raw: string) => {
+    const digit = raw.replace(/\D/g, "").slice(-1);
+    const next  = [...value];
+    next[i]     = digit;
+    onChange(next);
+    if (digit && i < 5) focus(i + 1);
+  };
+
+  const handleKeyDown = (i: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace") {
+      if (value[i]) {
+        const next = [...value]; next[i] = ""; onChange(next);
+      } else if (i > 0) {
+        focus(i - 1);
+      }
+    } else if (e.key === "ArrowLeft" && i > 0) {
+      focus(i - 1);
+    } else if (e.key === "ArrowRight" && i < 5) {
+      focus(i + 1);
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6).split("");
+    const next   = [...value];
+    pasted.forEach((d, idx) => { if (idx < 6) next[idx] = d; });
+    onChange(next);
+    const lastFilled = Math.min(pasted.length, 5);
+    focus(lastFilled);
+  };
+
+  return (
+    <div className="otp-input-row">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <input
+          key={i}
+          ref={(el) => { inputsRef.current[i] = el; }}
+          className={`otp-box ${value[i] ? "filled" : ""} ${hasError ? "error" : ""}`}
+          type="text"
+          inputMode="numeric"
+          maxLength={1}
+          value={value[i] || ""}
+          disabled={disabled}
+          onChange={(e) => handleChange(i, e.target.value)}
+          onKeyDown={(e) => handleKeyDown(i, e)}
+          onPaste={handlePaste}
+          onFocus={(e) => e.target.select()}
+          aria-label={`Digit ${i + 1}`}
+        />
+      ))}
+    </div>
+  );
+};
+
+// ─── Step 1.5: Email Verification ─────────────────────────────────────────────
+const RESEND_COOLDOWN = 60;
+
+const Step1_5: React.FC<{
+  email:      string;
+  onVerified: () => void;
+  onBack:     () => void;
+}> = ({ email, onVerified, onBack }) => {
+  const [digits,    setDigits]    = useState<string[]>(Array(6).fill(""));
+  const [sending,   setSending]   = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [verified,  setVerified]  = useState(false);
+  const [codeError, setCodeError] = useState("");
+  const [sendError, setSendError] = useState("");
+  const [cooldown,  setCooldown]  = useState(RESEND_COOLDOWN);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Send the code on mount
+  useEffect(() => {
+    doSend();
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const startCooldown = () => {
+    setCooldown(RESEND_COOLDOWN);
+    timerRef.current = setInterval(() => {
+      setCooldown((c) => {
+        if (c <= 1) { clearInterval(timerRef.current!); return 0; }
+        return c - 1;
+      });
+    }, 1000);
+  };
+
+  const doSend = async () => {
+    setSending(true);
+    setSendError("");
+    try {
+      await sendVerificationEmail(email);
+      startCooldown();
+    } catch (err: any) {
+      setSendError(err.message || "Couldn't send the code. Please try again.");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleResend = () => {
+    if (cooldown > 0 || sending) return;
+    setDigits(Array(6).fill(""));
+    setCodeError("");
+    doSend();
+  };
+
+  const handleVerify = async () => {
+    const code = digits.join("");
+    if (code.length < 6) { setCodeError("Please enter the full 6-digit code."); return; }
+    setVerifying(true);
+    setCodeError("");
+    try {
+      const valid = await verifyEmailCode(email, code);
+      if (valid) {
+        setVerified(true);
+        setTimeout(() => onVerified(), 1400);
+      } else {
+        setCodeError("That code doesn't match. Double-check and try again.");
+      }
+    } catch (err: any) {
+      setCodeError(err.message || "Verification failed. Please try again.");
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  const isFull = digits.every(Boolean);
+
+  return (
+    <div className="step-content step1-layout">
+      <div className={`step1-card verify-card ${verified ? "verify-card--success" : ""}`}>
+
+        {/* Icon */}
+        <div className="verify-icon-wrap">
+          {verified ? (
+            <div className="verify-icon verify-icon--done">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
+          ) : (
+            <div className="verify-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <rect x="2" y="4" width="20" height="16" rx="3" />
+                <polyline points="2,4 12,13 22,4" />
+              </svg>
+            </div>
+          )}
+        </div>
+
+        {verified ? (
+          <>
+            <h2 className="verify-title">Email verified!</h2>
+            <p className="verify-sub">Taking you to the next step… 🐾</p>
+          </>
+        ) : (
+          <>
+            <h2 className="verify-title">Check your inbox</h2>
+            <p className="verify-sub">
+              We've sent a 6-digit code to<br />
+              <strong>{email}</strong>
+            </p>
+
+            {sendError && (
+              <div className="verify-send-error">⚠️ {sendError}</div>
+            )}
+
+            <StepIndicator current={2} total={6} />
+
+            <OtpInput
+              value={digits}
+              onChange={(d) => { setDigits(d); setCodeError(""); }}
+              disabled={verifying || verified}
+              hasError={!!codeError}
+            />
+
+            {codeError && <p className="verify-code-error">{codeError}</p>}
+
+            <button
+              className={`btn-next1 ${!isFull || verifying ? "disabled" : ""}`}
+              disabled={!isFull || verifying}
+              onClick={handleVerify}
+            >
+              {verifying ? <><span className="btn-spinner" /> Verifying…</> : "Verify email"}
+            </button>
+
+            <div className="verify-resend">
+              {cooldown > 0 ? (
+                <span className="verify-resend-timer">
+                  Resend code in <strong>{cooldown}s</strong>
+                </span>
+              ) : (
+                <button
+                  className="verify-resend-btn"
+                  onClick={handleResend}
+                  disabled={sending}
+                >
+                  {sending ? "Sending…" : "Resend code"}
+                </button>
+              )}
+            </div>
+
+            <button className="verify-back-link" onClick={onBack}>
+              ← Wrong email? Go back
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
 // Breed Fun Fact Card 
 const BreedFactCard: React.FC<{ breed: string; dogName?: string }> = ({ breed }) => {
   const [dismissed, setDismissed] = useState(false);
@@ -276,7 +533,7 @@ const Step2: React.FC<{
         <div className="image-overlay" />
       </div>
       <div className="split-form">
-        <StepIndicator current={2} total={5} />
+        <StepIndicator current={3} total={6} />
         <h2 className="step-heading">Step 2.</h2>
 
         <label className="field-label">What's your dog's name?</label>
@@ -397,7 +654,6 @@ const Step3: React.FC<{
     else              { setDobUnknown(false); }
   };
 
-  // Count how many categories have a selection
   const selectedCatCount = PERSONALITY_CATEGORIES.filter(cat =>
     cat.options.some(opt => data.personality.includes(opt.key))
   ).length;
@@ -409,10 +665,9 @@ const Step3: React.FC<{
         <div className="image-overlay" />
       </div>
       <div className="split-form">
-        <StepIndicator current={3} total={5} />
+        <StepIndicator current={4} total={6} />
         <h2 className="step-heading">Step 3.</h2>
 
-        {/* Date of Birth */}
         <label className="field-label">
           When was {data.dogName || "your dog"} born?
           <span className="field-hint"> (optional)</span>
@@ -431,7 +686,6 @@ const Step3: React.FC<{
         {data.dogDob && !errors.dogDob && !dobUnknown && <p className="dob-hint">✓ Life stage auto-selected based on age</p>}
         {dobUnknown && <p className="dob-hint">No worries - you can set the life stage manually below.</p>}
 
-        {/* Life Stage */}
         <label className="field-label" style={{ marginTop: "1.4rem" }}>Life stage</label>
         {errors.lifeStage && <FieldError error={errors.lifeStage} />}
         <div className="life-stage-grid">
@@ -444,7 +698,6 @@ const Step3: React.FC<{
           ))}
         </div>
 
-        {/* Personality — 3 Butternut Box-style categories */}
         <div className="reg-personality-header" style={{ marginTop: "1.4rem" }}>
           <label className="field-label" style={{ margin: 0 }}>
             Personality
@@ -521,7 +774,7 @@ const Step4: React.FC<{
         <div className="image-overlay" />
       </div>
       <div className="split-form">
-        <StepIndicator current={4} total={5} />
+        <StepIndicator current={5} total={6} />
         <h2 className="step-heading">Step 4.</h2>
 
         <label className="field-label">
@@ -581,7 +834,7 @@ const Step5: React.FC<{
         <div className="image-overlay" />
       </div>
       <div className="split-form">
-        <StepIndicator current={5} total={5} />
+        <StepIndicator current={6} total={6} />
         <h2 className="step-heading">Step 5 (last!).</h2>
         <p className="step4-intro">Before you finish setting up your account, please review and accept the following:</p>
         <div className="policy-list">
@@ -605,15 +858,18 @@ const Step5: React.FC<{
   );
 };
 
-// Main Page
+// ─── Main Page ────────────────────────────────────────────────────────────────
 const RegisterPage: React.FC = () => {
   const navigate  = useNavigate();
   const { login } = useAuth();
 
-  const [step,     setStep]     = useState(1);
-  const [errors,   setErrors]   = useState<ValidationErrors>({});
-  const [apiError, setApiError] = useState<string>("");
-  const [loading,  setLoading]  = useState(false);
+  // step 1 = account details, 1.5 = email verify, 2–5 = dog + policies
+  // We represent 1.5 as step 1 + emailVerified flag
+  const [step,          setStep]          = useState(1);
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [errors,        setErrors]        = useState<ValidationErrors>({});
+  const [apiError,      setApiError]      = useState<string>("");
+  const [loading,       setLoading]       = useState(false);
 
   const [formData, setFormData] = useState<FormData>({
     email: "", name: "", password: "", confirmPassword: "",
@@ -629,9 +885,7 @@ const RegisterPage: React.FC = () => {
     setFormData((prev) => ({ ...prev, [key]: value }));
     setErrors((prev) => {
       if (!prev[key]) return prev;
-      const e = { ...prev };
-      delete e[key];
-      return e;
+      const e = { ...prev }; delete e[key]; return e;
     });
   }, []);
 
@@ -639,9 +893,7 @@ const RegisterPage: React.FC = () => {
     setFormData((prev) => ({ ...prev, [key]: value }));
     setErrors((prev) => {
       if (!prev[key]) return prev;
-      const e = { ...prev };
-      delete e[key];
-      return e;
+      const e = { ...prev }; delete e[key]; return e;
     });
   }, []);
 
@@ -649,11 +901,12 @@ const RegisterPage: React.FC = () => {
     setAccepted((prev) => ({ ...prev, [key]: !prev[key] }));
     setErrors((prev) => {
       if (!prev[key]) return prev;
-      const e = { ...prev };
-      delete e[key];
-      return e;
+      const e = { ...prev }; delete e[key]; return e;
     });
   }, []);
+
+  // Logical step for display/navigation (email verify is step 1.5 — shown when step===1 && !emailVerified after first "Continue")
+  const [showVerify, setShowVerify] = useState(false);
 
   const canProceed = useCallback(() => {
     if (step === 1) return !!(formData.email && formData.name && formData.password && formData.confirmPassword);
@@ -677,8 +930,25 @@ const RegisterPage: React.FC = () => {
     if (!isValid(stepErrors)) { setErrors(stepErrors); return; }
     setErrors({});
     setApiError("");
+
+    // After step 1, show email verify if not yet verified
+    if (step === 1 && !emailVerified) {
+      setShowVerify(true);
+      return;
+    }
+
     setStep((s) => s + 1);
-  }, [step, formData]);
+  }, [step, formData, emailVerified]);
+
+  const handleVerified = useCallback(() => {
+    setEmailVerified(true);
+    setShowVerify(false);
+    setStep(2);
+  }, []);
+
+  const handleBackFromVerify = useCallback(() => {
+    setShowVerify(false);
+  }, []);
 
   const handleSubmit = useCallback(async () => {
     const stepErrors = validateStep5(accepted);
@@ -693,7 +963,7 @@ const RegisterPage: React.FC = () => {
       if (err.errors) {
         setErrors(err.errors);
         const errorKeys = Object.keys(err.errors);
-        if (errorKeys.some((k) => ["email","name","password","confirmPassword"].includes(k))) setStep(1);
+        if (errorKeys.some((k) => ["email","name","password","confirmPassword"].includes(k))) { setStep(1); setShowVerify(false); }
         else if (errorKeys.some((k) => ["dogName","breed"].includes(k))) setStep(2);
       } else {
         setApiError(err.message || "Something went wrong. Please try again.");
@@ -704,6 +974,7 @@ const RegisterPage: React.FC = () => {
   }, [formData, accepted, login, navigate]);
 
   useEffect(() => {
+    if (showVerify) return; // disable Enter on verify screen
     const handleKey = (e: KeyboardEvent) => {
       if (e.key !== "Enter") return;
       if (!canProceed()) return;
@@ -712,7 +983,28 @@ const RegisterPage: React.FC = () => {
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [step, canProceed, handleNext, handleSubmit]);
+  }, [step, showVerify, canProceed, handleNext, handleSubmit]);
+
+  // ── Render ──
+  if (showVerify) {
+    return (
+      <div className="register-page">
+        <PageDecorations />
+        <Link to={"/"} className="reg-home-btn" aria-label="Back to home">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20">
+            <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z" />
+            <polyline points="9 21 9 12 15 12 15 21" />
+          </svg>
+          Home
+        </Link>
+        <Step1_5
+          email={formData.email}
+          onVerified={handleVerified}
+          onBack={handleBackFromVerify}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="register-page">
@@ -737,7 +1029,11 @@ const RegisterPage: React.FC = () => {
       {step > 1 && (
         <div className={`reg-actions ${step === 1 ? "centered" : "split"}`}>
           {step > 1 && (
-            <button className="btn-back" onClick={() => { setStep((s) => s - 1); setErrors({}); setApiError(""); }}>
+            <button className="btn-back" onClick={() => {
+              // Going back from step 2 re-shows verify if they came through it
+              if (step === 2) { setShowVerify(true); setStep(1); return; }
+              setStep((s) => s - 1); setErrors({}); setApiError("");
+            }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18">
                 <polyline points="15 18 9 12 15 6" />
               </svg>

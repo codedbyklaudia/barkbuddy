@@ -1,13 +1,37 @@
 import { Router, Request, Response } from "express";
 import { body, validationResult } from "express-validator";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
+import nodemailer from "nodemailer";
 import pool from "../db";
 import { signToken } from "../utils/jwt";
 import { authenticate, AuthRequest } from "../middleware/auth";
 
 const router = Router();
 
-// ─── Validation rules ─────────────────────────────────────────────────────────
+// ─── Email Verification Store ─────────────────────────────────────────────────
+// In-memory store: email → { code, expiresAt }
+// For production, replace with Redis or a `verification_codes` DB table.
+
+const pendingCodes = new Map<string, { code: string; expiresAt: number }>();
+const CODE_TTL_MS  = 10 * 60 * 1000; // 10 minutes
+
+const transporter = nodemailer.createTransport({
+  host:   process.env.SMTP_HOST,
+  port:   Number(process.env.SMTP_PORT) || 587,
+  secure: false,
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+});
+
+function generateCode(): string {
+  return String(crypto.randomInt(100000, 999999));
+}
+
+// ─── Validation Rules ─────────────────────────────────────────────────────────
+
 const registerValidation = [
   body("email")
     .isEmail().withMessage("Please enter a valid email address")
@@ -40,7 +64,106 @@ const loginValidation = [
   body("password").notEmpty().withMessage("Password is required"),
 ];
 
+// ─── POST /api/auth/send-verification ────────────────────────────────────────
+// Body: { email: string }
+// Generates a 6-digit code, stores it, and emails it to the user.
+
+router.post("/send-verification", async (req: Request, res: Response): Promise<void> => {
+  const { email } = req.body;
+
+  if (!email || typeof email !== "string") {
+    res.status(400).json({ message: "A valid email is required." });
+    return;
+  }
+
+  const code      = generateCode();
+  const expiresAt = Date.now() + CODE_TTL_MS;
+
+  pendingCodes.set(email.toLowerCase(), { code, expiresAt });
+
+  try {
+    await transporter.sendMail({
+      from:    `"BarkBuddy 🐾" <${process.env.SMTP_USER}>`,
+      to:      email,
+      subject: "Your BarkBuddy verification code",
+      html: `
+        <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px;">
+          <h2 style="color: #4c2d6e; margin-bottom: 8px;">Verify your email 🐾</h2>
+          <p style="color: #6b5b7b; margin-bottom: 24px;">
+            Use the code below to verify your email address. It expires in 10 minutes.
+          </p>
+          <div style="
+            background: #f3eeff;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            letter-spacing: 0.3em;
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #4c2d6e;
+            margin-bottom: 24px;
+          ">${code}</div>
+          <p style="color: #9b7ab5; font-size: 0.85rem;">
+            If you didn't create a BarkBuddy account, you can safely ignore this email.
+          </p>
+        </div>
+      `,
+    });
+
+    res.status(200).json({ message: "Verification email sent." });
+  } catch (err) {
+    console.error("Email send error:", err);
+    res.status(500).json({ message: "Failed to send the verification email. Please try again." });
+  }
+});
+
+// ─── POST /api/auth/verify-code ──────────────────────────────────────────────
+// Body: { email: string, code: string }
+// Returns: { valid: boolean }
+
+router.post("/verify-code", (req: Request, res: Response): void => {
+  const { email, code } = req.body;
+
+  if (!email || !code) {
+    res.status(400).json({ message: "Email and code are required." });
+    return;
+  }
+
+  const record = pendingCodes.get(email.toLowerCase());
+
+  if (!record) {
+    res.status(400).json({
+      valid: false,
+      message: "No verification code found for this email. Please request a new one.",
+    });
+    return;
+  }
+
+  if (Date.now() > record.expiresAt) {
+    pendingCodes.delete(email.toLowerCase());
+    res.status(400).json({
+      valid: false,
+      message: "Your code has expired. Please request a new one.",
+    });
+    return;
+  }
+
+  // Constant-time comparison to prevent timing attacks
+  const expected = Buffer.from(record.code);
+  const received = Buffer.from(code);
+  const valid    =
+    expected.length === received.length &&
+    crypto.timingSafeEqual(expected, received);
+
+  if (valid) {
+    pendingCodes.delete(email.toLowerCase()); // Single-use — delete on success
+  }
+
+  res.status(200).json({ valid });
+});
+
 // ─── POST /api/auth/register ──────────────────────────────────────────────────
+
 router.post("/register", registerValidation, async (req: Request, res: Response): Promise<void> => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -62,7 +185,6 @@ router.post("/register", registerValidation, async (req: Request, res: Response)
   const client = await pool.connect();
 
   try {
-    // Check if email already exists
     const existing = await client.query(
       "SELECT id FROM users WHERE email = $1",
       [email]
@@ -75,10 +197,8 @@ router.post("/register", registerValidation, async (req: Request, res: Response)
       return;
     }
 
-    // Hash password
     const passwordHash = await bcrypt.hash(password, 12);
 
-    // Save user + dog in a transaction
     await client.query("BEGIN");
 
     const userResult = await client.query(
@@ -138,6 +258,7 @@ router.post("/register", registerValidation, async (req: Request, res: Response)
 });
 
 // ─── POST /api/auth/login ─────────────────────────────────────────────────────
+
 router.post("/login", loginValidation, async (req: Request, res: Response): Promise<void> => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -215,6 +336,7 @@ router.post("/login", loginValidation, async (req: Request, res: Response): Prom
 });
 
 // ─── GET /api/auth/me ─────────────────────────────────────────────────────────
+
 router.get("/me", authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userResult = await pool.query(

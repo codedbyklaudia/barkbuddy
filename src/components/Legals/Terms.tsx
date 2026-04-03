@@ -209,7 +209,7 @@ const Terms: React.FC = () => {
                 <li className="policy-list__item">BarkBuddy is not responsible for refunds, cancellations, or disputes arising from bookings made through or facilitated by the Platform</li>
               </ul>
               <div className="policy-section__callout">
-                <p>If you have a dispute with a business, please contact them in the first instance. If you believe a listing is fraudulent or misleading, please report it to us at <strong>paws@barkbuddy.co.uk</strong>.</p>
+                <p>If you have a dispute with a business, please contact them in the first instance. If you believe a listing is fraudulent or misleading, please report it to us at <strong>paws@barkbuddy.org.uk</strong>.</p>
               </div>
             </div>
           </section>
@@ -361,11 +361,11 @@ const Terms: React.FC = () => {
                 </div>
                 <div className="policy-contact__row">
                   <i className="bi bi-envelope" />
-                  <span><a href="mailto:hello@barkbuddy.co.uk">paws@barkbuddy.co.uk</a></span>
+                  <span><a href="mailto:paws@barkbuddy.org.uk">paws@barkbuddy.org.uk</a></span>
                 </div>
                 <div className="policy-contact__row">
                   <i className="bi bi-globe" />
-                  <span><a href="https://www.barkbuddy.co.uk" target="_blank" rel="noopener noreferrer">www.barkbuddy.co.uk</a></span>
+                  <span><a href="https://www.barkbuddy.org.uk" target="_blank" rel="noopener noreferrer">www.barkbuddy.org.uk</a></span>
                 </div>
               </div>
             </div>

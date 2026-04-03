@@ -328,7 +328,7 @@ const PrivacyPolicy: React.FC = () => {
             <p className="policy-section__number">09</p>
             <h2 className="policy-section__title">Your Rights</h2>
             <div className="policy-section__body">
-              <p>Under UK GDPR, you have the following rights in relation to your personal data. You may exercise any of these rights by contacting us at <strong>paws@barkbuddy.co.uk</strong>:</p>
+              <p>Under UK GDPR, you have the following rights in relation to your personal data. You may exercise any of these rights by contacting us at <strong>paws@barkbuddy.org.uk</strong>:</p>
               <ul className="policy-list">
                 <li className="policy-list__item"><strong>Right of Access</strong> - request a copy of the personal data we hold about you (a Subject Access Request)</li>
                 <li className="policy-list__item"><strong>Right to Rectification</strong> - ask us to correct inaccurate or incomplete data</li>
@@ -350,7 +350,7 @@ const PrivacyPolicy: React.FC = () => {
             <h2 className="policy-section__title">Children's Privacy</h2>
             <div className="policy-section__body">
               <p>BarkBuddy is intended for users who are <strong>18 years of age or older</strong>. We do not knowingly collect personal data from anyone under the age of 18.</p>
-              <p>If you believe a child has provided us with personal data without parental consent, please contact us immediately at <strong>paws@barkbuddy.co.uk</strong> and we will take steps to delete that data as soon as reasonably practicable.</p>
+              <p>If you believe a child has provided us with personal data without parental consent, please contact us immediately at <strong>paws@barkbuddy.org.uk</strong> and we will take steps to delete that data as soon as reasonably practicable.</p>
             </div>
           </section>
 
@@ -414,7 +414,7 @@ const PrivacyPolicy: React.FC = () => {
                 </div>
                 <div className="policy-contact__row">
                   <i className="bi bi-envelope" />
-                  <span><a href="mailto:paws@barkbuddy.co.uk">paws@barkbuddy.co.uk</a></span>
+                  <span><a href="mailto:paws@barkbuddy.org.uk">paws@barkbuddy.org.uk</a></span>
                 </div>
               </div>
               <p>If you are unhappy with how we have handled your personal data and we have been unable to resolve your concern, you have the right to lodge a complaint with the <strong>Information Commissioner's Office (ICO)</strong>, the UK's data protection supervisory authority:</p>
