@@ -26,15 +26,11 @@ const transporter = nodemailer.createTransport({
   tls: { rejectUnauthorized: false },
 });
 
-transporter.verify((error) => {
-  if (error) console.error("❌ Business mailer config error:", error);
-  else       console.log("✅ Business mailer ready —", process.env.SMTP_USER);
-});
 
 // Helpers
 const generateToken = () => crypto.randomBytes(32).toString("hex");
 
-// ─── Save photo to local disk ─────────────────────────────────────────────────
+// Save photo to local disk 
 async function savePhotoLocally(
   buffer: Buffer,
   originalName: string,
