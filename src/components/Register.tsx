@@ -87,7 +87,7 @@ const setSelected = (personality: string[], catId: string, key: string): string[
 const BASE = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
 
 const sendVerificationEmail = async (email: string): Promise<void> => {
-  const res = await fetch("/api/auth/send-verification", {
+  const res = await fetch(`${BASE}/auth/send-verification`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email }),
@@ -99,7 +99,7 @@ const sendVerificationEmail = async (email: string): Promise<void> => {
 };
 
 const verifyEmailCode = async (email: string, code: string): Promise<boolean> => {
-  const res = await fetch("/api/auth/verify-code", {
+  const res = await fetch(`${BASE}/auth/verify-code`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, code }),
