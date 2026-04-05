@@ -32,7 +32,7 @@ const HeroSection: React.FC = () => {
       <div className="hero__content">
         <h1 className="hero__title">
           Everything Dog Parents Need:<br />
-          Care, Services, Travel & Activities
+          Care, Services, & Travel
         </h1>
         <p className="hero__subtitle">Begin a lifetime of happiness with your dog!</p>
         <div className="hero__home-buttons">

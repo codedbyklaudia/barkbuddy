@@ -9,17 +9,14 @@ import { authenticate, AuthRequest } from "../middleware/auth";
 
 const router = Router();
 
-// ─── Email Verification Store ─────────────────────────────────────────────────
-// In-memory store: email → { code, expiresAt }
-// For production, replace with Redis or a `verification_codes` DB table.
-
+// Email Verification Store
 const pendingCodes = new Map<string, { code: string; expiresAt: number }>();
 const CODE_TTL_MS  = 10 * 60 * 1000; // 10 minutes
 
 const transporter = nodemailer.createTransport({
   host:   process.env.SMTP_HOST,
-  port:   Number(process.env.SMTP_PORT) || 587,
-  secure: false,
+  port:   Number(process.env.SMTP_PORT) || 465,
+  secure: true,
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
@@ -30,8 +27,7 @@ function generateCode(): string {
   return String(crypto.randomInt(100000, 999999));
 }
 
-// ─── Validation Rules ─────────────────────────────────────────────────────────
-
+// Validation Rules
 const registerValidation = [
   body("email")
     .isEmail().withMessage("Please enter a valid email address")
