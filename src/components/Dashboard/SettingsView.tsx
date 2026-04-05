@@ -1,8 +1,7 @@
-// ─── SettingsView.tsx ─────────────────────────────────────────────────────────
 import React, { useState } from "react";
 import { updateUser, uploadUserAvatar, uploadDogAvatar, updatePreferences } from "../../api/users";
 
-// ── Types ─────────────────────────────────────────────────────────────────────
+// Types
 interface UserProfile {
   id: string; name: string; email: string; bio?: string;
   profileComplete: number; avatarUrl?: string;
@@ -34,7 +33,7 @@ const Icon: React.FC<{ name: string; size?: number }> = ({ name, size = 16 }) =>
   return <>{icons[name] ?? null}</>;
 };
 
-// ── Toggle Switch ─────────────────────────────────────────────────────────────
+// Toggle Switch
 const Toggle: React.FC<{ on: boolean; onChange: () => void; disabled?: boolean }> = ({ on, onChange, disabled }) => (
   <button className={`sv-toggle ${on ? "on" : ""}`} onClick={onChange} disabled={disabled} aria-checked={on} role="switch">
     <span className="sv-toggle-thumb" />
@@ -64,12 +63,12 @@ const Row: React.FC<{
   </div>
 );
 
-// ── Card ──────────────────────────────────────────────────────────────────────
+// Card
 const Card: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className }) => (
   <div className={`sv-card ${className ?? ""}`}>{children}</div>
 );
 
-// ── Section ───────────────────────────────────────────────────────────────────
+// Section
 const Section: React.FC<{ label: string; icon?: string; children: React.ReactNode }> = ({ label, icon, children }) => (
   <div className="sv-section">
     <div className="sv-section-label">
@@ -80,7 +79,7 @@ const Section: React.FC<{ label: string; icon?: string; children: React.ReactNod
   </div>
 );
 
-// ── Avatar Hero ───────────────────────────────────────────────────────────────
+// Avatar Hero
 const AvatarHero: React.FC<{
   user: UserProfile; onUpload: (f: File) => Promise<void>; uploading: boolean;
 }> = ({ user, onUpload, uploading }) => {
@@ -121,7 +120,7 @@ const AvatarHero: React.FC<{
   );
 };
 
-// ── Edit Profile Modal ────────────────────────────────────────────────────────
+// Edit Profile Modal
 const EditProfileModal: React.FC<{
   user: UserProfile; token: string;
   onSave: (u: Partial<UserProfile>) => void; onClose: () => void;
@@ -233,7 +232,7 @@ const EditProfileModal: React.FC<{
   );
 };
 
-// ── Preferences Modal ─────────────────────────────────────────────────────────
+// Preferences Modal
 const PreferencesModal: React.FC<{
   user: UserProfile; token: string;
   onSave: (d: Partial<UserProfile>) => void; onClose: () => void;
@@ -297,7 +296,7 @@ const PreferencesModal: React.FC<{
   );
 };
 
-// ── Dog Row ───────────────────────────────────────────────────────────────────
+// Dog Row
 const DogRow: React.FC<{
   dog: DogProfile; onEdit: () => void; onRemove: () => void;
   token: string; onAvatarUpdate: (url: string) => void;
@@ -364,7 +363,7 @@ const DogRow: React.FC<{
   );
 };
 
-// ── Edit Dog Modal ────────────────────────────────────────────────────────────
+// Edit Dog Modal
 const EditDogModal: React.FC<{
   dog: DogProfile; token: string;
   onSave: (d: DogProfile) => void; onClose: () => void;
@@ -460,7 +459,7 @@ const EditDogModal: React.FC<{
   );
 };
 
-// ── Main SettingsView ─────────────────────────────────────────────────────────
+// Main SettingsView 
 interface SettingsViewProps {
   user:        UserProfile;
   dog:         DogProfile | null;
@@ -468,7 +467,7 @@ interface SettingsViewProps {
   token:       string;
   onUpdate:    (u: Partial<UserProfile>) => void;
   onDogUpdate: (d: DogProfile) => void;
-  onDogRemove: (dogId: string) => void; // ← new: called when a dog is removed
+  onDogRemove: (dogId: string) => void;
   onNav:       (key: string) => void;
   onAddDog:    () => void;
 }
@@ -479,8 +478,28 @@ const SettingsView: React.FC<SettingsViewProps> = ({
   const [modal, setModal]           = useState<"profile" | "preferences" | null>(null);
   const [editingDog, setEditingDog] = useState<DogProfile | null>(null);
   const [uploadingUser, setUpUser]  = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
-
+  const handleDeleteAccount = async () => {
+  if (!deleteConfirm) {
+    setDeleteConfirm(true);
+    setTimeout(() => setDeleteConfirm(false), 4000);
+    return;
+  }
+  setDeleting(true);
+  try {
+    await fetch(`${import.meta.env.VITE_API_URL}/users/me`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    localStorage.clear();
+    window.location.href = "/";
+  } catch (err) {
+    console.error("Delete account error:", err);
+    setDeleting(false);
+    setDeleteConfirm(false);
+  }
+};
   const handleUserAvatar = async (file: File) => {
     setUpUser(true);
     try { const res = await uploadUserAvatar(token, file); onUpdate({ avatarUrl: res.avatarUrl }); }
@@ -583,7 +602,11 @@ const SettingsView: React.FC<SettingsViewProps> = ({
           <Row
             label="Delete account"
             hint="Permanently delete your account and all data. This cannot be undone."
-            action={{ label: deleteConfirm ? "Are you sure?" : "Delete account", onClick: () => setDeleteConfirm(true), variant: "danger" }}
+            action={{
+              label: deleting ? "Deleting…" : deleteConfirm ? "Yes, delete everything" : "Delete account",
+              onClick: handleDeleteAccount,
+              variant: "danger",
+            }}
             noBorder
           />
         </Card>
