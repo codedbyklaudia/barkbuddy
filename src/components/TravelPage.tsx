@@ -103,7 +103,7 @@ const TravelPage: React.FC<TravelPageProps> = ({ onFlowChange }) => {
           </div>
         </div>
         <div className="travel-hero__right">
-          <img className="travel-hero__image" src="../images/travelling.png" alt="Person travelling with their dog" />
+          <img className="travel-hero__image" src="../images/Travelling.webp" alt="Person travelling and looking at mountains with their dog" />
         </div>
       </section>
 
