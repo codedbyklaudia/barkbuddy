@@ -2,35 +2,25 @@ import { Router, Request, Response } from "express";
 import { body, validationResult } from "express-validator";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import pool from "../db";
 import { signToken } from "../utils/jwt";
 import { authenticate, AuthRequest } from "../middleware/auth";
 
 const router = Router();
 
-// Email Verification Store
+// ─── Resend Client ────────────────────────────────────────────────────────────
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+// ─── Email Verification Store ─────────────────────────────────────────────────
 const pendingCodes = new Map<string, { code: string; expiresAt: number }>();
 const CODE_TTL_MS  = 10 * 60 * 1000; // 10 minutes
-
-const transporter = nodemailer.createTransport({
-  host:   process.env.SMTP_HOST,
-  port:   587,
-  secure: false,  
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-  tls: {
-    rejectUnauthorized: false,
-  },
-});
 
 function generateCode(): string {
   return String(crypto.randomInt(100000, 999999));
 }
 
-// Validation Rules
+// ─── Validation Rules ─────────────────────────────────────────────────────────
 const registerValidation = [
   body("email")
     .isEmail().withMessage("Please enter a valid email address")
@@ -64,9 +54,6 @@ const loginValidation = [
 ];
 
 // ─── POST /api/auth/send-verification ────────────────────────────────────────
-// Body: { email: string }
-// Generates a 6-digit code, stores it, and emails it to the user.
-
 router.post("/send-verification", async (req: Request, res: Response): Promise<void> => {
   const { email } = req.body;
 
@@ -81,8 +68,8 @@ router.post("/send-verification", async (req: Request, res: Response): Promise<v
   pendingCodes.set(email.toLowerCase(), { code, expiresAt });
 
   try {
-    await transporter.sendMail({
-      from:    `"BarkBuddy 🐾" <${process.env.SMTP_USER}>`,
+    await resend.emails.send({
+      from:    "BarkBuddy <paws@barkbuddy.org.uk>",
       to:      email,
       subject: "Your BarkBuddy verification code",
       html: `
@@ -117,9 +104,6 @@ router.post("/send-verification", async (req: Request, res: Response): Promise<v
 });
 
 // ─── POST /api/auth/verify-code ──────────────────────────────────────────────
-// Body: { email: string, code: string }
-// Returns: { valid: boolean }
-
 router.post("/verify-code", (req: Request, res: Response): void => {
   const { email, code } = req.body;
 
@@ -147,7 +131,6 @@ router.post("/verify-code", (req: Request, res: Response): void => {
     return;
   }
 
-  // Constant-time comparison to prevent timing attacks
   const expected = Buffer.from(record.code);
   const received = Buffer.from(code);
   const valid    =
@@ -155,14 +138,13 @@ router.post("/verify-code", (req: Request, res: Response): void => {
     crypto.timingSafeEqual(expected, received);
 
   if (valid) {
-    pendingCodes.delete(email.toLowerCase()); // Single-use — delete on success
+    pendingCodes.delete(email.toLowerCase());
   }
 
   res.status(200).json({ valid });
 });
 
 // ─── POST /api/auth/register ──────────────────────────────────────────────────
-
 router.post("/register", registerValidation, async (req: Request, res: Response): Promise<void> => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -257,7 +239,6 @@ router.post("/register", registerValidation, async (req: Request, res: Response)
 });
 
 // ─── POST /api/auth/login ─────────────────────────────────────────────────────
-
 router.post("/login", loginValidation, async (req: Request, res: Response): Promise<void> => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -335,7 +316,6 @@ router.post("/login", loginValidation, async (req: Request, res: Response): Prom
 });
 
 // ─── GET /api/auth/me ─────────────────────────────────────────────────────────
-
 router.get("/me", authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userResult = await pool.query(
