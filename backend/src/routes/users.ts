@@ -30,12 +30,10 @@ const imageFilter: multer.Options["fileFilter"] = (_req, file, cb) => {
   else cb(new Error("Only image files are allowed"));
 };
 
-// One multer instance per upload type so files land in the right folder
 const uploadUserAvatar  = multer({ storage: createLocalStorage("users"),   limits: { fileSize: 5 * 1024 * 1024 }, fileFilter: imageFilter });
 const uploadUserBanner  = multer({ storage: createLocalStorage("banners"),  limits: { fileSize: 8 * 1024 * 1024 }, fileFilter: imageFilter });
 const uploadDogAvatar   = multer({ storage: createLocalStorage("dogs"),     limits: { fileSize: 5 * 1024 * 1024 }, fileFilter: imageFilter });
 
-// Builds the public URL from a saved file path
 const toPublicUrl = (req: AuthRequest, filePath: string): string => {
   const normalised = filePath.replace(/\\/g, "/");
   const idx        = normalised.indexOf("/uploads/");
@@ -61,7 +59,7 @@ const calcProfileComplete = (user: {
 // All routes require auth
 router.use(authenticate);
 
-// ── GET /api/users/me ─────────────────────────────────────────────────────────
+// GET /api/users/me
 router.get("/me", async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userResult = await pool.query(
@@ -116,7 +114,7 @@ router.get("/me", async (req: AuthRequest, res: Response): Promise<void> => {
   }
 });
 
-// ── PATCH /api/users/me ───────────────────────────────────────────────────────
+// PATCH /api/users/me
 router.patch("/me", [
   body("name").optional().trim().isLength({ min: 2, max: 100 }).withMessage("Name must be 2–100 characters"),
   body("email").optional().isEmail().withMessage("Please enter a valid email").normalizeEmail(),
@@ -224,7 +222,25 @@ router.patch("/me", [
   }
 });
 
-// ── POST /api/users/me/avatar ─────────────────────────────────────────────────
+//Delete account
+router.delete("/me", authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    await client.query("DELETE FROM dogs WHERE user_id = $1", [req.user!.userId]);
+    await client.query("DELETE FROM users WHERE id = $1", [req.user!.userId]);
+    await client.query("COMMIT");
+    res.status(200).json({ message: "Account deleted." });
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error("Delete account error:", err);
+    res.status(500).json({ message: "Something went wrong." });
+  } finally {
+    client.release();
+  }
+});
+
+// POST /api/users/me/avatar
 router.post("/me/avatar", uploadUserAvatar.single("avatar"), async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     if (!req.file) { res.status(400).json({ message: "No image provided" }); return; }
@@ -252,7 +268,7 @@ router.post("/me/avatar", uploadUserAvatar.single("avatar"), async (req: AuthReq
   }
 });
 
-// ── POST /api/users/me/banner ─────────────────────────────────────────────────
+// POST /api/users/me/banner
 router.post("/me/banner", uploadUserBanner.single("banner"), async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     if (!req.file) { res.status(400).json({ message: "No image provided" }); return; }
@@ -270,7 +286,7 @@ router.post("/me/banner", uploadUserBanner.single("banner"), async (req: AuthReq
   }
 });
 
-// ── PATCH /api/users/me/preferences ──────────────────────────────────────────
+// PATCH /api/users/me/preferences
 router.patch("/me/preferences", async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { emailNotifications, preferences } = req.body;
@@ -296,7 +312,7 @@ router.patch("/me/preferences", async (req: AuthRequest, res: Response): Promise
   }
 });
 
-// ── PATCH /api/users/me/dog ───────────────────────────────────────────────────
+// PATCH /api/users/me/dog
 router.patch("/me/dog", async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { name, breed, gender, dob, lifeStage, personality } = req.body;
@@ -342,7 +358,7 @@ router.patch("/me/dog", async (req: AuthRequest, res: Response): Promise<void> =
   }
 });
 
-// ── POST /api/users/me/dog/avatar ─────────────────────────────────────────────
+// POST /api/users/me/dog/avatar
 router.post("/me/dog/avatar", uploadDogAvatar.single("avatar"), async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     if (!req.file) { res.status(400).json({ message: "No image provided" }); return; }
@@ -360,7 +376,7 @@ router.post("/me/dog/avatar", uploadDogAvatar.single("avatar"), async (req: Auth
   }
 });
 
-// ── POST /api/users/me/dogs ───────────────────────────────────────────────────
+// POST /api/users/me/dogs
 router.post("/me/dogs", [
   body("name").notEmpty().trim().isLength({ min: 2, max: 100 }).withMessage("Dog name must be 2–100 characters"),
   body("gender").isIn(["male", "female"]).withMessage("Gender must be male or female"),
@@ -402,7 +418,7 @@ router.post("/me/dogs", [
   }
 });
 
-// ── GET /api/users/me/dogs ────────────────────────────────────────────────────
+// GET /api/users/me/dogs
 router.get("/me/dogs", async (req: AuthRequest, res: Response): Promise<void> => {
   const userId = req.user!.userId;
   try {
@@ -418,7 +434,7 @@ router.get("/me/dogs", async (req: AuthRequest, res: Response): Promise<void> =>
   }
 });
 
-// ── PATCH /api/users/me/dogs/:dogId ──────────────────────────────────────────
+// PATCH /api/users/me/dogs/:dogId
 router.patch("/me/dogs/:dogId", async (req: AuthRequest, res: Response): Promise<void> => {
   const dogId  = req.params.dogId;
   const userId = req.user!.userId;
@@ -454,7 +470,7 @@ router.patch("/me/dogs/:dogId", async (req: AuthRequest, res: Response): Promise
   }
 });
 
-// ── DELETE /api/users/me/dogs/:dogId ─────────────────────────────────────────
+// DELETE /api/users/me/dogs/:dogId
 router.delete("/me/dogs/:dogId", async (req: AuthRequest, res: Response): Promise<void> => {
   const dogId  = req.params.dogId;
   const userId = req.user!.userId;
@@ -472,7 +488,7 @@ router.delete("/me/dogs/:dogId", async (req: AuthRequest, res: Response): Promis
   }
 });
 
-// ── POST /api/users/me/dogs/:dogId/avatar ─────────────────────────────────────
+// POST /api/users/me/dogs/:dogId/avatar
 router.post("/me/dogs/:dogId/avatar", uploadDogAvatar.single("avatar"), async (req: AuthRequest, res: Response): Promise<void> => {
   if (!req.file) { res.status(400).json({ message: "No image provided" }); return; }
 
@@ -492,7 +508,7 @@ router.post("/me/dogs/:dogId/avatar", uploadDogAvatar.single("avatar"), async (r
   }
 });
 
-// ── GET /api/users/search ─────────────────────────────────────────────────────
+// GET /api/users/search
 router.get("/search", async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const query = (req.query.q as string || "").trim();
