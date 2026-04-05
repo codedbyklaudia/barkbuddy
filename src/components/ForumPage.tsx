@@ -50,7 +50,7 @@ const formatDate = (d: string | number | null | undefined) => {
   return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.');
 };
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// Helpers 
 const UserAvatar: React.FC<{ name: string; url?: string; size?: number }> = ({ name, url, size = 32 }) => (
   <div className="forum-avatar" style={{ width: size, height: size }}>
     {url
@@ -81,7 +81,7 @@ const CommentIcon = () => (
   </svg>
 );
 
-// ─── Locked / Guest ───────────────────────────────────────────────────────────
+// Locked / Guest
 const ForumLocked: React.FC = () => (
   <div className="forum-locked">
     <div className="forum-locked__blur-bg" aria-hidden="true">
@@ -116,7 +116,7 @@ const ForumLocked: React.FC = () => (
   </div>
 );
 
-// ─── Toast ────────────────────────────────────────────────────────────────────
+// Toast
 const Toast: React.FC<{ message: string; type?: 'success' | 'error' }> = ({ message, type = 'success' }) => (
   <div className={`forum-toast forum-toast--${type}`}>
     <i className={`bi ${type === 'success' ? 'bi-check-circle' : 'bi-exclamation-circle'}`} />
@@ -721,7 +721,7 @@ const ForumPage: React.FC<CommunityForumProps> = ({ initialPostId, initialCommen
 
           <div className="forum-page-hero__right" aria-hidden="true">
             <img
-              src="/images/forum.png"
+              src="/images/Forum.webp"
               alt=""
               onError={e => (e.currentTarget.style.display = 'none')}
             />

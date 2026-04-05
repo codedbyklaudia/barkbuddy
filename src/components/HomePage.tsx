@@ -120,7 +120,7 @@ const HomePage: React.FC = () => {
                   Get verified & let dog owners discover you by searching for dog-friendly places across the UK.Create a professional listing for your dog-friendly hotel, café, restaurant, pub, cinema, holiday rental, or activity space. Showcase your amenities, upload photos, highlight your dog policy, and tell visitors what makes your venue special.
                 </p>
                 <div className="feature-card__visual">
-                  <img src="../../images/hotels.png" alt="Business Listing" />
+                  <img src="../../images/hotels.webp" alt="Business Listing" />
                 </div>
               </div>
             </div>
@@ -146,7 +146,7 @@ const HomePage: React.FC = () => {
       {/* Community Section */}
       <section className="community">
         <div className="community__devices">
-          <img src="../../images/mockup.png" alt="Forum on Tablet" className="community__device community__device--tablet" />
+          <img src="../../images/mockup.webp" alt="Forum on Tablet" className="community__device community__device--tablet" />
         </div>
         <div className="community__content">
           <h2 className="community__title">Dog-Parents Community</h2>

@@ -138,60 +138,59 @@
 
 .rb-hero__right {
   background-color: $soft-pearl;
-  padding: $space-md;
+  padding: $space-xxl $space-lg;
   @include column;
+  justify-content: center;
   @include relative;
   z-index: 0;
   min-height: 100dvh;
 
   @media (min-width: $bp-tablet) {
-    padding: $space-lg $space-xl;
+    padding: $space-xxl $space-xxl;
   }
 
   @media (min-width: $bp-laptop) {
     padding: $space-xl $space-xl;
     min-height: auto;
+    justify-content: flex-start;
   }
 }
 
 .rb-hero__right-heading {
   font-family: $font-primary;
-  font-size: $t-tit-mob;
+  font-size: clamp(1.5rem, 6vw, 2.2rem);
   font-weight: $fw-regular;
   color: $twilight-purple;
   letter-spacing: 0.02em;
-  margin-bottom: $space-lg;
+  margin-bottom: $space-xl;
   line-height: 1.15;
   animation: rbReveal 0.7s 0.2s ease both;
 
   @media (min-width: $bp-tablet) {
-    font-size: $t-tit-tab;
-    margin-bottom: $space-xl;
-    line-height: 1.1;
+    font-size: clamp(1.8rem, 4vw, 2.4rem);
+    margin-bottom: $space-xxl;
   }
 
   @media (min-width: $bp-laptop) {
     font-size: $t-tit-des;
+    line-height: 1.1;
   }
 }
 
 .rb-cat-grid {
   @include column;
-  gap: $space-sm;
-  margin-bottom: $space-lg;
+  gap: $space-lg;
+  margin-bottom: $space-xxl;
   width: 100%;
   animation: rbReveal 0.7s 0.25s ease both;
-
-  @media (min-width: $bp-tablet) {
-    gap: $space-md;
-    margin-bottom: $space-xl;
-  }
 }
 
 .rb-cat-card {
-  @include center;
-  gap: $space-sm;
-  padding: $space-md;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: $space-lg;
+  padding: $space-xl;
   background: $soft-pearl;
   border: 1.5px solid rgba($twilight-purple, 0.1);
   border-radius: $radius-lg;
@@ -200,11 +199,6 @@
   transition: all 0.22s ease;
   @include relative;
   overflow: hidden;
-
-  @media (min-width: $bp-tablet) {
-    padding: $space-lg;
-    gap: $space-md;
-  }
 
   @media (min-width: $bp-laptop) {
     padding: $space-xl;
@@ -235,13 +229,13 @@
 
 .rb-cat-card__icon {
   flex-shrink: 0;
-  width: 52px; height: 52px;
+  width: 100px; height: 100px;
   border-radius: $radius-md;
   @include flex-center;
   padding: $space-xs;
 
   @media (min-width: $bp-tablet) {
-    width: 80px; height: 80px;
+    width: 110px; height: 110px;
   }
 
   @media (min-width: $bp-laptop) {
@@ -255,16 +249,12 @@
 
 .rb-cat-card__title {
   font-family: $font-primary;
-  font-size: $t-sub-mob;
+  font-size: clamp(1.1rem, 4vw, 1.3rem);
   font-weight: $fw-regular;
   color: $twilight-purple;
   letter-spacing: 0.02em;
-  margin-bottom: $space-xs;
+  margin-bottom: $space-sm;
   line-height: 1.2;
-
-  @media (min-width: $bp-tablet) {
-    font-size: $t-sub-tab;
-  }
 
   @media (min-width: $bp-laptop) {
     font-size: $t-sub-des;
@@ -272,27 +262,26 @@
 }
 
 .rb-cat-card__desc {
-  font-size: $t-body-mob;
+  font-size: $t-body-des;
   color: rgba($twilight-purple, 0.5);
   line-height: $lh-normal;
   margin-bottom: $space-sm;
-  display: none;
-
-  @media (min-width: 400px) { display: block; }
+  display: block;
 }
 
 .rb-cat-card__tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  justify-content: center;
+  gap: 5px;
 
   span {
-    font-size: 0.72rem;
+    font-size: 0.78rem;
     font-weight: $fw-regular;
     color: rgba($twilight-purple, 0.4);
     background: rgba($twilight-purple, 0.05);
     border: 1px solid rgba($twilight-purple, 0.1);
-    padding: 2px 6px;
+    padding: 3px 8px;
     border-radius: $radius-lg;
     letter-spacing: 0.02em;
   }
@@ -300,11 +289,12 @@
 
 .rb-cat-card__arrow {
   flex-shrink: 0;
-  width: 28px; height: 28px;
-  border-radius: 50%;
+  width: 36px; height: 36px;
+  border-radius: $radius-round;
+  display: none;
   @include flex-center;
 
-  @media (min-width: $bp-tablet) { width: 32px; height: 32px; }
+  @media (min-width: $bp-tablet) { width: 40px; height: 40px; }
 
   .rb-cat-card--activities & { background: rgba($serene-purple, 0.08); }
   .rb-cat-card--services   & { background: rgba($gentle-amethyst, 0.1); }
@@ -312,9 +302,7 @@
   svg {
     display: block;
     transition: transform 0.2s ease;
-    width: 14px; height: 14px;
-
-    @media (min-width: $bp-tablet) { width: 16px; height: 16px; }
+    width: 18px; height: 18px;
   }
 
   .rb-cat-card--activities & svg { stroke: $serene-purple; }
@@ -354,7 +342,7 @@
   border-radius: $radius-md;
   transition: all 0.2s ease;
   white-space: nowrap;
-  min-height: 30px;
+  min-height: 44px;
   letter-spacing: 0.03em;
   box-shadow: 0 2px 12px rgba($twilight-purple, 0.2);
 
@@ -446,11 +434,6 @@
   border-bottom: 1px solid rgba($misty-lavender, 0.15);
   border-radius: $radius-md;
   flex-shrink: 0;
-
-  @media (min-width: $bp-laptop) {
-    padding: $space-sm $space-md;
-    border-bottom-width: 1px;
-  }
 }
 
 .rb-sidebar__cat-img {
@@ -493,9 +476,7 @@
   gap: 0;
   flex-shrink: 0;
 
-  @media (min-width: $bp-laptop) {
-    margin-top: $space-xl;
-  }
+  @media (min-width: $bp-laptop) { margin-top: $space-xl; }
 }
 
 .rb-step {
@@ -553,7 +534,7 @@
   margin-left: 12px;
   transition: background 0.3s ease;
 
-  @media (min-width: $bp-laptop) { height: 18px; margin-left: 15px; }
+  @media (min-width: $bp-laptop) { margin-left: 15px; }
 
   &--done { background: #059669; }
 }
@@ -818,14 +799,11 @@
   min-height: 80px;
   line-height: 1.65;
 
-  @media (min-width: $bp-tablet) {
-    min-height: 96px;
-  }
+  @media (min-width: $bp-tablet) { min-height: 96px; }
 }
 
 .rb-pw-wrap {
   @include relative;
-
   .rb-input { padding-right: 3rem; }
 }
 
@@ -859,14 +837,10 @@
 .rb-type-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: $space-xs;
+  gap: $space-sm;
   margin-top: $space-sm;
 
-  @media (min-width: 400px) {
-    gap: $space-sm;
-  }
-
-  @media (min-width: 520px) {
+  @media (min-width: 480px) {
     grid-template-columns: repeat(3, 1fr);
   }
 
@@ -887,7 +861,7 @@
   text-align: center;
   transition: all 0.2s ease;
   font-family: $font-secondary;
-  min-height: 90px;
+  min-height: 100px;
 
   @media (min-width: $bp-tablet) {
     gap: $space-xs;
@@ -909,7 +883,7 @@
   }
 
   &__icon {
-    width: 36px; height: 36px;
+    width: 44px; height: 44px;
     @include flex-center;
     flex-shrink: 0;
 
@@ -922,23 +896,16 @@
       width: 64px; height: 64px;
     }
 
-    img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      display: block;
-    }
+    img { width: 100%; height: 100%; object-fit: contain; display: block; }
   }
 
   &__label {
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     font-weight: $fw-regular;
     color: $text-color-dark;
     line-height: $lh-tight;
 
-    @media (min-width: $bp-tablet) {
-      font-size: $t-body-des;
-    }
+    @media (min-width: $bp-tablet) { font-size: $t-body-des; }
   }
 
   &__desc {
@@ -1002,11 +969,11 @@
   }
 
   &__icon {
-    width: 44px; height: 44px;
+    width: 48px; height: 48px;
     background: rgba($serene-purple, 0.08);
     border-radius: $radius-md;
     @include flex-center;
-    font-size: 1.2rem;
+    font-size: 1.4rem;
 
     @media (min-width: $bp-tablet) { width: 64px; height: 64px; font-size: 1.8rem; }
   }
@@ -1095,9 +1062,7 @@
   border-radius: $radius-md;
   border: 1px solid rgba($twilight-purple, 0.07);
 
-  @media (min-width: $bp-tablet) {
-    padding: $space-md $space-lg;
-  }
+  @media (min-width: $bp-tablet) { padding: $space-md $space-lg; }
 
   &__title {
     font-size: 0.68rem;
@@ -1153,7 +1118,7 @@
   }
 
   &__icon {
-    width: 44px; height: 44px;
+    width: 48px; height: 48px;
     background: rgba($serene-purple, 0.08);
     border-radius: $radius-md;
     @include flex-center;
@@ -1261,10 +1226,7 @@
     align-self: flex-start;
     padding-top: 3px;
 
-    @media (min-width: $bp-tablet) {
-      align-self: center;
-      padding-top: 0;
-    }
+    @media (min-width: $bp-tablet) { align-self: center; padding-top: 0; }
   }
 }
 
@@ -1277,9 +1239,7 @@
   border: 1px solid #fed7aa;
   border-radius: $radius-md;
 
-  @media (min-width: $bp-tablet) {
-    padding: $space-md $space-lg;
-  }
+  @media (min-width: $bp-tablet) { padding: $space-md $space-lg; }
 
   svg { stroke: #d97706; flex-shrink: 0; margin-top: 2px; }
 
@@ -1311,9 +1271,7 @@
   font-weight: $fw-medium;
   color: #b91c1c;
 
-  @media (min-width: $bp-tablet) {
-    padding: $space-md $space-lg;
-  }
+  @media (min-width: $bp-tablet) { padding: $space-md $space-lg; }
 
   svg { stroke: #b91c1c; flex-shrink: 0; }
 }
@@ -1403,15 +1361,13 @@
 .rb-success {
   min-height: 100dvh;
   @include flex-column;
-  padding: $space-4xl $space-md $space-xl;
+  padding: $space-4xl $space-lg $space-xl;
   background: $soft-pearl;
   @include relative;
   overflow: hidden;
   text-align: center;
 
-  @media (min-width: $bp-tablet) {
-    padding: 5rem $space-xl;
-  }
+  @media (min-width: $bp-tablet) { padding: 5rem $space-xl; }
 
   &::before {
     content: '';
@@ -1426,15 +1382,16 @@
   }
 
   &__icon {
-    width: 90px; height: 90px;
-    margin: 0 auto $space-lg;
+    width: 100px; height: 100px;
+    margin: 0 auto $space-xl;
     @include flex-center;
     background: linear-gradient(135deg, $misty-lavender, $gentle-amethyst);
     border-radius: $radius-round;
     box-shadow: 0 10px 25px rgba($gentle-amethyst, 0.25);
     animation: rbPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
 
-    @media (min-width: $bp-tablet) { width: 150px; height: 150px; margin-bottom: $space-xl; }
+    @media (min-width: $bp-tablet) { width: 150px; height: 150px; }
 
     img { width: 85%; height: 85%; object-fit: contain; }
 
@@ -1480,10 +1437,7 @@
     text-align: center;
     animation: rbReveal 0.5s 0.35s ease both;
 
-    @media (min-width: $bp-tablet) {
-      width: auto;
-      padding: $space-md $space-xxl;
-    }
+    @media (min-width: $bp-tablet) { width: auto; padding: $space-md $space-xxl; }
 
     &:hover {
       transform: translateY(-3px);

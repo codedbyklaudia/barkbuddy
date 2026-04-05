@@ -11,7 +11,7 @@ import {
 } from "../utils/validation";
 import { getBreedData } from "./breedData";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// Types 
 interface FormData {
   email:           string;
   name:            string;
@@ -83,10 +83,8 @@ const setSelected = (personality: string[], catId: string, key: string): string[
   return [...personality.filter(p => !catKeys.includes(p)), key];
 };
 
-// ─── Email Verification API calls ─────────────────────────────────────────────
-// Wire these up to your Express backend:
-//   POST /api/auth/send-verification  { email } → 200 OK
-//   POST /api/auth/verify-code        { email, code } → { valid: boolean }
+// Email Verification API calls
+const BASE = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
 
 const sendVerificationEmail = async (email: string): Promise<void> => {
   const res = await fetch("/api/auth/send-verification", {
@@ -114,7 +112,7 @@ const verifyEmailCode = async (email: string, code: string): Promise<boolean> =>
   return data.valid === true;
 };
 
-// ─── OTP Input Component ──────────────────────────────────────────────────────
+// OTP Input Component
 const OtpInput: React.FC<{
   value:    string[];
   onChange: (digits: string[]) => void;
@@ -180,7 +178,7 @@ const OtpInput: React.FC<{
   );
 };
 
-// ─── Step 1.5: Email Verification ─────────────────────────────────────────────
+// Step 1.5: Email Verification
 const RESEND_COOLDOWN = 60;
 
 const Step1_5: React.FC<{
@@ -201,7 +199,6 @@ const Step1_5: React.FC<{
   useEffect(() => {
     doSend();
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const startCooldown = () => {
@@ -858,13 +855,10 @@ const Step5: React.FC<{
   );
 };
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
+// Main Page 
 const RegisterPage: React.FC = () => {
   const navigate  = useNavigate();
   const { login } = useAuth();
-
-  // step 1 = account details, 1.5 = email verify, 2–5 = dog + policies
-  // We represent 1.5 as step 1 + emailVerified flag
   const [step,          setStep]          = useState(1);
   const [emailVerified, setEmailVerified] = useState(false);
   const [errors,        setErrors]        = useState<ValidationErrors>({});
@@ -905,7 +899,6 @@ const RegisterPage: React.FC = () => {
     });
   }, []);
 
-  // Logical step for display/navigation (email verify is step 1.5 — shown when step===1 && !emailVerified after first "Continue")
   const [showVerify, setShowVerify] = useState(false);
 
   const canProceed = useCallback(() => {
@@ -985,7 +978,7 @@ const RegisterPage: React.FC = () => {
     return () => window.removeEventListener("keydown", handleKey);
   }, [step, showVerify, canProceed, handleNext, handleSubmit]);
 
-  // ── Render ──
+  // Render
   if (showVerify) {
     return (
       <div className="register-page">
