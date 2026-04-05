@@ -87,7 +87,7 @@ const HomePage: React.FC = () => {
               <div className="feature-card__content">
                 <h3 className="feature-card__title">Travel Guide</h3>
                 <p className="feature-card__description">
-                  Check travel requirements and documentation for destinations - all the essentials you need to visit the location to find exactly what you need.
+                  Check travel requirements and documentation for destinations - all the essentials you need to visit the locations you want to travel to!
                 </p>
                 <div className="feature-card__visual">
                   <img src="../../images/italy_travel.png" alt="Dog Travel Map" />
@@ -101,7 +101,7 @@ const HomePage: React.FC = () => {
               <div className="feature-card__content">
                 <h3 className="feature-card__title">Find Dog-Friendly Places</h3>
                 <p className="feature-card__description">
-                  Search nearby vets, groomers, dog parks, and pet-friendly cafes and restaurants - find exactly what you need, location to find exactly what you need.
+                  Search nearby vets, groomers, dog parks, and pet-friendly cafes and restaurants - find exactly what you need, near your location!
                 </p>
                 <div className="feature-card__visual">
                   <img src="../../images/vets.png" alt="Dog Services" />
