@@ -55,7 +55,7 @@ const ArticleAnxiety: React.FC<ArticlePageProps> = ({ onBack }) => {
           is the first step to making travel something they can actually handle.
         </p>
         <div className="article-hero__img-wrap">
-          <img src="../images/dog_anxiety.avif" alt="Anxious dog during travel" className="article-hero__img" />
+          <img src="../images/dog_anxiety.webp" alt="Anxious dog during travel" className="article-hero__img" />
           <div className="article-hero__img-caption">Anxiety shows up differently in every dog - but the signs are learnable</div>
         </div>
       </header>

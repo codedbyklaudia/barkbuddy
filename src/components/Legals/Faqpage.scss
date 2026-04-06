@@ -488,42 +488,53 @@
   }
 
   &__actions {
-    @include center;
-    gap: $space-md;
-    flex-wrap: wrap;
-    margin-top: $space-sm;
+  @include center;
+  gap: $space-md;
+  flex-wrap: wrap;
+  margin-top: $space-sm;
+  width: 100%; // ← add this
+  justify-content: center; // ← add this explicitly
+
+  @media (max-width: $bp-mobile) {
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+}
+
+&__btn {
+  @include center;
+  gap: $space-sm;
+  color: $soft-pearl !important;
+  border: 1px solid $soft-pearl;
+  @include type-ui($t-but-des, $fw-regular);
+  text-decoration: none;
+  padding: 12px $space-xl;
+  border-radius: 4px;
+  transition: all 0.22s ease;
+  border: none;
+  @include cursor;
+
+  @media (max-width: $bp-mobile) {
+    width: 100%;
+    max-width: 260px;
+    justify-content: center;
   }
 
-  &__btn {
-    @include center;
-    gap: $space-sm;
-    @include type-ui($t-but-des, $fw-regular);
-    text-decoration: none;
-    padding: 12px $space-xl;
-    border-radius: 4px;
-    transition: all 0.22s ease;
-    border: none;
-    @include cursor;
+  &--ghost {
+    background: transparent;
+    color: rgba($soft-pearl, 0.5);
+    border-bottom: 1px solid rgba($soft-pearl, 0.2);
+    border-radius: 0;
+    padding: 12px 0;
 
-    &--primary {
-      background: $soft-pearl;
-      color: $twilight-purple;
-
-      &:hover {
-        background: $misty-lavender;
-        transform: translateY(-2px);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-      }
+    @media (max-width: $bp-mobile) {
+      border: 1px solid rgba($soft-pearl, 0.2);
+      border-radius: 4px;
+      padding: 12px $space-xl;
     }
 
-    &--ghost {
-      background: transparent;
-      color: rgba($soft-pearl, 0.5);
-      border-bottom: 1px solid rgba($soft-pearl, 0.2);
-      border-radius: 0;
-      padding: 12px 0;
-
-      &:hover { color: $soft-pearl; border-color: $soft-pearl; }
-    }
+    &:hover { color: $soft-pearl; border-color: $soft-pearl; }
   }
+}
 }

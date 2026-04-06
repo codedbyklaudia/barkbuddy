@@ -12,15 +12,15 @@ const HeroSection: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
   
   const column1Images: ImageItem[] = [
-    { id: 1, src: '../../images/labrador.jpg', alt: 'Image 1' },
-    { id: 2, src: '../../images/pug.jpg', alt: 'Image 4' },
-    { id: 7, src: '../../images/husky.jpg', alt: 'Image 7' }
+    { id: 1, src: '../../images/labrador.webp', alt: 'Labrador' },
+    { id: 2, src: '../../images/pug.webp', alt: 'Pug' },
+    { id: 7, src: '../../images/husky.webp', alt: 'Husky' }
   ];
 
   const column2Images: ImageItem[] = [
-    { id: 3, src: '../../images/border-collie.jpg', alt: 'Image 2' },
-    { id: 4, src: '../../images/corgi.jpg', alt: 'Image 5' },
-    { id: 8, src: '../../images/mixed-breed.jpg', alt: 'Image 8' }
+    { id: 3, src: '../../images/border-collie.webp', alt: 'Border Collie' },
+    { id: 4, src: '../../images/corgi.webp', alt: 'Corgi' },
+    { id: 8, src: '../../images/mixed-breed.webp', alt: 'Mixed-breed dog' }
   ];
 
   useEffect(() => {

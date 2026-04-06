@@ -3,7 +3,7 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-// ─── Animations ───────────────────────────────────────────────────────────────
+// Animations
 @keyframes fade-up {
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -26,8 +26,12 @@
   70%  { transform: scale(0.88); }
   100% { transform: scale(1); }
 }
+@keyframes dropdown-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 
-// ─── Accent tokens ────────────────────────────────────────────────────────────
+// Accent tokens
 .tips-page {
   --accent:        #{$serene-purple};
   --accent-light:  #{rgba($serene-purple, 0.08)};
@@ -54,7 +58,7 @@
   }
 }
 
-// ─── Page shell ───────────────────────────────────────────────────────────────
+// Page shell
 .tips-page {
   min-height: 100dvh;
   background: $soft-pearl;
@@ -62,10 +66,10 @@
   overflow-x: hidden;
 }
 
-// Hero 
+// Hero
 .tips-hero {
   @include relative;
-  height: clamp(240px, 32vw, 380px);
+  height: clamp(220px, 32vw, 380px);
   overflow: hidden;
 
   &__bg { @include absolute; inset: 0; }
@@ -117,7 +121,7 @@
 
   &__title {
     font-family: $font-primary;
-    font-size: clamp(2rem, 4.5vw, 3.6rem);
+    font-size: clamp(1.6rem, 4.5vw, 3.6rem);
     font-weight: $fw-regular;
     color: $soft-pearl;
     letter-spacing: -0.03em;
@@ -127,7 +131,7 @@
   }
 
   &__sub {
-    font-size: clamp(0.82rem, 1.2vw, 0.9rem);
+    font-size: clamp(0.8rem, 1.2vw, 0.9rem);
     color: rgba($soft-pearl, 0.45);
     line-height: 1.7;
     max-width: 380px;
@@ -179,7 +183,7 @@
   }
 }
 
-// ─── Controls bar (nav + search) ──────────────────────────────────────────────
+// Controls bar
 .tips-controls {
   background: #fff;
   border-bottom: 1px solid rgba($twilight-purple, 0.07);
@@ -191,27 +195,38 @@
 
 .tips-controls__inner {
   max-width: 1200px;
+  padding: $space-sm clamp(1rem, 3vw, 2rem);
+  min-height: 56px;
   margin: 0 auto;
   padding: 0 clamp(1rem, 3vw, 2rem);
-  display: flex;
-  align-items: center;
-  gap: $space-lg;
-  overflow-x: auto;
-  scrollbar-width: none;
-  &::-webkit-scrollbar { display: none; }
+  @include center;
+  gap: $space-md;
+  min-height: 52px;
+
+   @media (min-width: $bp-tablet) {
+    padding: 0 clamp(1rem, 3vw, 2rem);
+    min-height: 52px;
+  }
 }
 
-// ─── Category nav ─────────────────────────────────────────────────────────────
+// Nav wrapper
 .tips-nav {
   display: flex;
   align-items: center;
   flex-shrink: 0;
 }
 
+// Desktop tabs — shown above tablet
+.tips-nav__tabs {
+  display: flex;
+  align-items: center;
+
+  @media (max-width: $bp-tablet) { display: none; }
+}
+
 .tips-nav__link {
   display: inline-flex;
   align-items: center;
-  gap: $space-xs;
   padding: $space-md $space-lg;
   font-size: $t-body-des;
   font-weight: $fw-medium;
@@ -222,80 +237,157 @@
   transition: color 0.2s, border-color 0.2s;
   flex-shrink: 0;
 
-  img {
-    width: 16px; height: 16px;
-    object-fit: contain;
-    opacity: 0.3;
-    transition: opacity 0.2s, transform 0.2s;
-  }
-
-  &:hover {
-    color: $twilight-purple;
-    img { opacity: 0.6; transform: scale(1.1); }
-  }
+  &:hover { color: $twilight-purple; }
 
   &--active {
     color: $twilight-purple;
     font-weight: $fw-bold;
     border-bottom-color: var(--accent);
-    img { opacity: 1; }
   }
 }
 
-// Search 
+// Mobile dropdown — shown on tablet and below
+.tips-nav__dropdown {
+  display: none;
+  position: relative;
+
+  @media (max-width: $bp-tablet) {
+    display: block;
+  }
+}
+
+.tips-nav__dropdown-trigger {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+  padding: 8px $space-md;
+  background: var(--accent-light);
+  border: 1.5px solid var(--accent-border);
+  border-radius: $radius-md;
+  font-family: $font-secondary;
+  font-size: $t-body-des;
+  font-weight: $fw-bold;
+  color: $twilight-purple;
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+  transition: background 0.2s, border-color 0.2s;
+
+  &:hover {
+    background: var(--accent-mid);
+  }
+
+  span {
+    color: var(--accent);
+  }
+
+  svg {
+    stroke: var(--accent);
+    flex-shrink: 0;
+  }
+}
+
+.tips-nav__dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  background: #fff;
+  border: 1px solid rgba($twilight-purple, 0.1);
+  border-radius: $radius-md;
+  box-shadow: 0 8px 24px rgba($twilight-purple, 0.14);
+  min-width: 160px;
+  z-index: 200;
+  overflow: hidden;
+  animation: dropdown-in 0.18s ease both;
+}
+
+.tips-nav__dropdown-item {
+  display: block;
+  padding: 10px $space-md;
+  font-family: $font-secondary;
+  font-size: $t-body-des;
+  font-weight: $fw-medium;
+  color: rgba($twilight-purple, 0.6);
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover {
+    background: var(--accent-light);
+    color: $twilight-purple;
+  }
+
+  &.active {
+    color: var(--accent);
+    font-weight: $fw-bold;
+    background: var(--accent-light);
+  }
+}
+
+// Search
 .tips-search {
   @include relative;
   @include center;
   flex: 1;
-  max-width: 360px;
-  margin-left: auto;
+  min-width: 0;
+  background: rgba($twilight-purple, 0.04);
+  border: 1.5px solid rgba($twilight-purple, 0.1);
+  border-radius: 999px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+
+  // Focus ring on the wrapper, not the input
+  &:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-light);
+    background: #fff;
+  }
+
+  @media (min-width: $bp-tablet) {
+    max-width: 360px;
+    margin-left: auto;
+  }
 
   &__icon {
-    @include absolute;
+    position: absolute;
     left: 12px;
-    color: rgba($twilight-purple, 0.3);
+    color: rgba($twilight-purple, 0.35);
     display: flex;
     pointer-events: none;
+    flex-shrink: 0;
   }
 
   &__input {
     width: 100%;
-    background: rgba($twilight-purple, 0.04);
-    border: 1px solid rgba($twilight-purple, 0.1);
+    background: transparent;
+    border: none;
     border-radius: 999px;
-    padding: 7px 32px 7px 34px;
+    padding: 9px 32px 9px 34px;
     font-family: $font-secondary;
     font-size: $t-body-des;
     color: $twilight-purple;
     outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
 
-    &::placeholder { color: rgba($twilight-purple, 0.25); }
-
-    &:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-light);
-    }
-
+    &::placeholder { color: rgba($twilight-purple, 0.3); }
     &::-webkit-search-cancel-button { display: none; }
   }
 
   &__clear {
     @include absolute;
     right: 8px;
-    background: rgba($twilight-purple, 0.06);
+    background: rgba($twilight-purple, 0.08);
     border: none;
     border-radius: 50%;
     width: 20px; height: 20px;
-    @include  flex-center;
+    @include flex-center;
     @include cursor;
-    color: rgba($twilight-purple, 0.4);
+    color: rgba($twilight-purple, 0.45);
     transition: background 0.15s;
-    &:hover { background: rgba($twilight-purple, 0.12); }
+    flex-shrink: 0;
+
+    &:hover { background: rgba($twilight-purple, 0.14); }
   }
 }
 
-// Count 
+// Count
 .tips-count {
   font-size: $t-body-des;
   color: rgba($twilight-purple, 0.35);
@@ -307,9 +399,11 @@
     color: var(--accent);
     font-weight: $fw-regular;
   }
+
+  @media (max-width: $bp-mobile) { display: none; }
 }
 
-// Body 
+// Body
 .tips-body {
   max-width: 1200px;
   margin: 0 auto;
@@ -331,7 +425,7 @@
   }
 }
 
-// Tip card 
+// Tip card
 .tip-card {
   background: #fff;
   border-radius: $radius-lg;
@@ -348,12 +442,12 @@
     box-shadow: 0 12px 32px rgba($twilight-purple, 0.1);
   }
 
-  // Image / illustration 
   &__image-wrap {
     display: block;
     width: 100%;
     aspect-ratio: 4 / 3;
-    @include none;
+    background: none;
+    border: none;
     padding: 0;
     @include cursor;
     overflow: hidden;
@@ -385,10 +479,8 @@
     width: 56px; height: 56px;
     object-fit: contain;
     opacity: 0.35;
-    filter: hue-rotate(0deg);
   }
 
-  // Bookmark
   &__bookmark {
     @include absolute;
     top: $space-md;
@@ -417,7 +509,6 @@
     }
   }
 
-  // Body
   &__body {
     padding: $space-lg;
     @include column;
@@ -425,9 +516,7 @@
     flex: 1;
   }
 
-  &__meta {
-    @include flex-between;
-  }
+  &__meta { @include flex-between; }
 
   &__tag {
     font-size: 0.65rem;
@@ -435,14 +524,6 @@
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--accent);
-  }
-
-  &__pts {
-    font-size: 0.65rem;
-    font-weight: $fw-bold;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: rgba($twilight-purple, 0.22);
   }
 
   &__title {
@@ -469,7 +550,8 @@
     display: inline-flex;
     align-items: center;
     gap: $space-xs;
-    @include none;
+    background: none;
+    border: none;
     padding: 0;
     font-family: $font-secondary;
     font-size: $t-body-des;
@@ -481,13 +563,12 @@
     transition: gap 0.2s;
 
     &:hover { gap: $space-sm; }
-
     svg { flex-shrink: 0; transition: transform 0.2s; }
     &:hover svg { transform: translateX(2px); }
   }
 }
 
-// Tip modal 
+// Tip modal
 .tip-modal-backdrop {
   position: fixed;
   inset: 0;
@@ -524,7 +605,6 @@
     @include cursor;
     color: rgba($twilight-purple, 0.5);
     transition: background 0.2s, color 0.2s;
-
     &:hover { background: #fff; color: $twilight-purple; }
   }
 
@@ -534,15 +614,8 @@
     overflow: hidden;
     background: linear-gradient(135deg, rgba($misty-lavender, 0.4), rgba($serene-purple, 0.15));
 
-    img {
-      width: 100%; height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    &--placeholder {
-      @include flex-center;
-    }
+    img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    &--placeholder { @include flex-center; }
   }
 
   &__icon-fallback {
@@ -551,9 +624,7 @@
     opacity: 0.3;
   }
 
-  &__body {
-    padding: $space-xl;
-  }
+  &__body { padding: $space-xl; }
 
   &__meta {
     @include flex-between;
@@ -566,14 +637,6 @@
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--accent);
-  }
-
-  &__pts {
-    font-size: 0.65rem;
-    font-weight: $fw-bold;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: rgba($twilight-purple, 0.25);
   }
 
   &__title {
@@ -594,59 +657,6 @@
     font-style: italic;
     border-left: 3px solid var(--accent-border);
     padding-left: $space-md;
-  }
-
-  &__points {
-    list-style: none;
-    @include column;
-    gap: $space-md;
-    margin-bottom: $space-xl;
-  }
-
-  &__point {
-    display: flex;
-    gap: $space-md;
-    align-items: flex-start;
-  }
-
-  &__bullet {
-    flex-shrink: 0;
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: var(--accent);
-    margin-top: 7px;
-  }
-
-  &__point-text {
-    font-size: $t-body-des;
-    color: rgba($twilight-purple, 0.68);
-    line-height: 1.7;
-    display: block;
-  }
-
-  &__sub {
-    list-style: none;
-    margin-top: $space-sm;
-    padding-left: $space-md;
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-
-    li {
-      font-size: $t-body-des;
-      color: rgba($twilight-purple, 0.42);
-      line-height: 1.6;
-      padding-left: $space-md;
-      position: relative;
-
-      &::before {
-        content: '—';
-        position: absolute;
-        left: 0;
-        font-size: 0.8em;
-        color: rgba($twilight-purple, 0.2);
-      }
-    }
   }
 
   &__callout {
@@ -703,7 +713,7 @@
   }
 }
 
-// ─── Empty state ──────────────────────────────────────────────────────────────
+// Empty state
 .tips-empty {
   text-align: center;
   padding: clamp(4rem, 8vw, 6rem) $space-xl;
@@ -721,8 +731,7 @@
     color: rgba($twilight-purple, 0.45);
 
     button {
-      background: none;
-      border: none;
+      @include none;
       color: var(--accent);
       font-family: $font-secondary;
       font-size: inherit;
@@ -733,93 +742,7 @@
   }
 }
 
-// ─── Locked screen ────────────────────────────────────────────────────────────
-.tips-locked {
-  min-height: 100dvh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: $space-xl $space-lg;
-  background: $soft-pearl;
-  position: relative;
-
-  &__veil {
-    position: absolute; inset: 0;
-    background: rgba($soft-pearl, 0.6);
-    z-index: 0;
-  }
-
-  &__panel {
-    position: relative; z-index: 1;
-    background: #fff;
-    border: 1.5px solid rgba($twilight-purple, 0.1);
-    border-radius: $radius-lg;
-    padding: clamp(2rem, 5vw, 3.5rem);
-    width: 100%; max-width: 440px;
-    text-align: center;
-    box-shadow: 0 20px 50px rgba($twilight-purple, 0.1);
-  }
-
-  &__paw { font-size: 2.2rem; display: block; margin-bottom: $space-md; }
-
-  &__heading {
-    font-family: $font-primary;
-    font-size: clamp(1.4rem, 3vw, 1.9rem);
-    font-weight: $fw-regular;
-    color: $twilight-purple;
-    line-height: 1.15;
-    margin-bottom: $space-md;
-
-    em { font-style: italic; color: var(--accent); }
-  }
-
-  &__body {
-    font-size: $t-body-des;
-    color: rgba($twilight-purple, 0.52);
-    line-height: 1.7;
-    margin-bottom: $space-xl;
-  }
-
-  &__ctas {
-    display: flex;
-    gap: $space-md;
-    justify-content: center;
-    flex-wrap: wrap;
-    margin-bottom: $space-lg;
-  }
-
-  &__cta {
-    display: inline-flex;
-    align-items: center;
-    padding: 11px 26px;
-    border-radius: $radius-lg;
-    font-family: $font-secondary;
-    font-size: $t-body-des;
-    font-weight: $fw-regular;
-    text-decoration: none;
-    transition: all 0.2s;
-
-    &--primary {
-      background: $twilight-purple;
-      color: $soft-pearl;
-      &:hover { background: var(--accent); transform: translateY(-2px); }
-    }
-    &--ghost {
-      background: transparent;
-      color: $twilight-purple;
-      border: 1.5px solid rgba($twilight-purple, 0.18);
-      &:hover { border-color: var(--accent); color: var(--accent); }
-    }
-  }
-
-  &__hint {
-    font-size: 0.8rem;
-    color: rgba($twilight-purple, 0.35);
-    a { color: var(--accent); text-decoration: underline; }
-  }
-}
-
-// Reduced motion 
+// Reduced motion
 @media (prefers-reduced-motion: reduce) {
   .tip-card,
   .tip-modal,

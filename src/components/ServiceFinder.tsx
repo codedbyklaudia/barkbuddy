@@ -39,7 +39,7 @@ type TabType = 'services' | 'activities';
 const SERVICE_TYPES = [
   { icon: '../images/icons_1/grooming_icon.png', label: 'Groomer' },
   { icon: '../images/icons_1/vet_icon.png',      label: 'Vet' },
-  { icon: '/images/icons_1/trainer_icon.png',           label: 'Behaviorist' },
+  { icon: '/images/icons_1/trainer_icon.png',    label: 'Behaviorist' },
   { icon: '../images/icons_1/petshop_icon.png',  label: 'Pet Shop' },
 ];
 
@@ -49,9 +49,9 @@ const ACTIVITY_TYPES = [
   { icon: '../images/icons_1/park_icon.png',       label: 'Park' },
   { icon: '../images/icons_1/beach_icon.png',      label: 'Beaches' },
 ];
+
 const API_BASE: string = import.meta.env.VITE_API_URL ?? 'http://localhost:4000/api';
 const UPLOADS_BASE: string = (import.meta.env.VITE_API_URL ?? 'http://localhost:4000/api').replace('/api', '');
-
 
 const RADIUS_OPTIONS = [5, 10, 25, 50];
 
@@ -90,7 +90,6 @@ const UnifiedMap: React.FC<{
   const circle  = useRef<google.maps.Circle | null>(null);
   const infoWin = useRef<google.maps.InfoWindow | null>(null);
 
-  // UK centre — shown until user searches
   const UK_CENTRE = { lat: 54.5, lng: -3.5 };
   const UK_ZOOM   = 6;
 
@@ -99,7 +98,6 @@ const UnifiedMap: React.FC<{
     loadGoogleMaps(MAPS_KEY).then(() => {
       if (!mapRef.current) return;
 
-      // Default to UK overview; only zoom in once user provides a location
       const hasContext = !!(searchCoords || userLocation);
       const centre     = searchCoords || userLocation || UK_CENTRE;
 
@@ -116,13 +114,11 @@ const UnifiedMap: React.FC<{
         infoWin.current = new google.maps.InfoWindow();
       }
 
-      // Clear previous markers / circle
       markers.current.forEach(m => m.setMap(null));
       markers.current = [];
       circle.current?.setMap(null);
       circle.current = null;
 
-      // Radius circle
       if (searchCoords && radiusKm) {
         circle.current = new google.maps.Circle({
           map: mapInst.current, center: searchCoords, radius: radiusKm * 1000,
@@ -131,7 +127,6 @@ const UnifiedMap: React.FC<{
         });
       }
 
-      // User location dot
       if (userLocation) {
         new google.maps.Marker({
           position: userLocation, map: mapInst.current,
@@ -144,7 +139,6 @@ const UnifiedMap: React.FC<{
         });
       }
 
-      // Listing pins
       listings.forEach(l => {
         if (!l.lat || !l.lng) return;
         const marker = new google.maps.Marker({
@@ -177,21 +171,17 @@ const UnifiedMap: React.FC<{
         markers.current.push(marker);
       });
 
-      // Smart zoom logic
       const pinned = listings.filter(l => l.lat && l.lng);
 
       if (pinned.length > 1) {
-        // Multiple results → fit all pins + search centre
         const bounds = new google.maps.LatLngBounds();
         if (searchCoords) bounds.extend(searchCoords);
         pinned.forEach(l => { if (l.lat && l.lng) bounds.extend({ lat: l.lat, lng: l.lng }); });
         mapInst.current!.fitBounds(bounds, 80);
       } else if (searchCoords) {
-        // 0 or 1 result → centre on search area at radius-appropriate zoom
         mapInst.current!.setCenter(searchCoords);
         mapInst.current!.setZoom(radiusKm ? Math.max(10, 14 - Math.log2(radiusKm)) : 11);
       } else {
-        // No search at all → UK overview
         mapInst.current!.setCenter(UK_CENTRE);
         mapInst.current!.setZoom(UK_ZOOM);
       }
@@ -294,6 +284,15 @@ const ServiceFinder: React.FC = () => {
   const [filters, setFilters]                   = useState<Filters>({ radius: 10, type: '', newOnly: false });
   const [searchMeta, setSearchMeta]             = useState<{ radiusKm: number | null; locationFound: boolean } | null>(null);
 
+  // ── Ref for scrolling to results ──────────────────────────────────────────
+  const resultsRef = useRef<HTMLDivElement>(null);
+
+  const scrollToResults = useCallback(() => {
+    setTimeout(() => {
+      resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100); // small delay so results have started rendering
+  }, []);
+
   const faqData = [
     {
       question: 'How do I book a service or activity?',
@@ -365,7 +364,7 @@ const ServiceFinder: React.FC = () => {
 
   useEffect(() => { performSearch({}); }, [activeTab, performSearch]);
 
-  // ── GPS detect ────────────────────────────────────────────────────────────
+  // GPS detect
   const detectLocation = () => {
     if (!navigator.geolocation) { setLocationError('Geolocation not supported.'); return; }
     setLocationError('');
@@ -377,6 +376,7 @@ const ServiceFinder: React.FC = () => {
         setSearchCoords(coords);
         setLocationInput('My location');
         performSearch({ ...filters, query: searchQuery, lat: coords.lat, lng: coords.lng });
+        scrollToResults();
       },
       err => {
         setLocationInput('');
@@ -390,6 +390,7 @@ const ServiceFinder: React.FC = () => {
     );
   };
 
+  // Type button click → filter + scroll
   const handleTypeClick = (label: string) => {
     const newType = filters.type === label ? '' : label;
     const next    = { ...filters, type: newType };
@@ -401,14 +402,17 @@ const ServiceFinder: React.FC = () => {
       lng: userLocation?.lng,
       ...next,
     });
+    scrollToResults();
   };
 
+  // Search bar submit → search + scroll
   const handleSearch = () => {
     if (locationInput === 'My location' && userLocation) {
       performSearch({ query: searchQuery, lat: userLocation.lat, lng: userLocation.lng, ...filters });
     } else {
       performSearch({ query: searchQuery, location: locationInput, ...filters });
     }
+    scrollToResults();
   };
 
   const handleApplyFilters = () => { setFiltersOpen(false); handleSearch(); };
@@ -462,7 +466,7 @@ const ServiceFinder: React.FC = () => {
             <div className="fh__ctas">
               <button
                 className="fh__cta fh__cta--primary"
-                onClick={() => document.querySelector('.finder-search')?.scrollIntoView({ behavior: 'smooth' })}
+                onClick={scrollToResults}
               >
                 {activeTab === 'services' ? 'Find a service' : 'Explore now'}
                 <i className="bi bi-chevron-double-right" />
@@ -528,15 +532,15 @@ const ServiceFinder: React.FC = () => {
             key={activeTab}
             className="fh__bg-image"
             src={activeTab === 'services'
-              ? '/images/Illustrations/Services-Finder-Hero (2).png'
-              : '/images/Illustrations/Activities-Finder-Hero(2).png'}
+              ? '/images/Illustrations/Services-Finder-Hero (2).webp'
+              : '/images/Illustrations/Activities-Finder-Hero(2).webp'}
             alt=""
           />
         </div>
 
       </section>
 
-      {/* FEATURED  */}
+      {/* FEATURED */}
       <section className="featured-section">
         <div className="featured-section__header">
           <span className="featured-section__eyebrow">Our Selection</span>
@@ -560,13 +564,12 @@ const ServiceFinder: React.FC = () => {
         </div>
       </section>
 
-      {/* SEARCH + RESULTS  */}
+      {/* SEARCH + RESULTS */}
       <section className="finder-search">
 
         {/* Type icon buttons */}
         <div className="finder-search__types">
           {currentTypes.map(cat => (
-            // Wrapper div: flex-column so label sits below circle in normal flow
             <div
               key={cat.label}
               className={`type-btn ${filters.type === cat.label ? 'type-btn--active' : ''}`}
@@ -687,8 +690,8 @@ const ServiceFinder: React.FC = () => {
 
         {error && <p className="finder-search__error">{error}</p>}
 
-        {/* Map + Results side-by-side */}
-        <div className="search-results-layout">
+        {/* ── Results anchor ── */}
+        <div ref={resultsRef} className="search-results-layout">
           <div className="search-results-layout__map-wrapper">
             <UnifiedMap
               listings={listings}

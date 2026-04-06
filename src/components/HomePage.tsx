@@ -48,7 +48,7 @@ const HomePage: React.FC = () => {
         </div>
         <div className="app-features__preview">
           <div className="app-features__phone-mockup">
-            <img src="../../images/google-store.png" alt="BarkBuddy App Preview" />
+            <img src="../../images/google-store.webp" alt="BarkBuddy App Preview" />
             <div className="app-features__labels">
               <span className="feature-label feature-label--training">Reminders</span>
               <span className="feature-label feature-label--health">Health tracker</span>

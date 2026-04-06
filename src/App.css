@@ -1,5 +1,4 @@
-@import './styles/dark-mode.scss';
-
+@import './styles/a11y-font-scaling-patch.scss';
 * {
   margin: 0;
   padding: 0;
@@ -20,18 +19,12 @@ body {
   width: 100vw;
   min-height: 100vh;
 }
-
-/* Remove default button styles */
 button {
   font-family: inherit;
 }
-
-/* Remove default input styles */
 input {
   font-family: inherit;
 }
-
-/* Smooth scrolling */
 html {
   scroll-behavior: smooth;
 }

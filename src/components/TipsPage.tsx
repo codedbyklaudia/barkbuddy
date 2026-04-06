@@ -10,7 +10,7 @@ export type TipPoint = { text: string; sub?: string[] };
 export type Tip = {
   id:           string;
   icon:         string;
-  image?:       string;   
+  image?:       string;
   title:        string;
   summary:      string;
   points:       TipPoint[];
@@ -29,10 +29,10 @@ export type TipsPageProps = {
 };
 
 const NAV = [
-  { label: "Grooming",  path: "/tips/grooming",  icon: "/images/icons/grooming.svg"  },
-  { label: "Health",    path: "/tips/health",    icon: "/images/icons/health.svg"    },
-  { label: "Training",  path: "/tips/training",  icon: "/images/icons/training.svg"  },
-  { label: "Nutrition", path: "/tips/nutrition", icon: "/images/icons/nutrition.svg" },
+  { label: "Grooming",  path: "/tips/grooming"  },
+  { label: "Health",    path: "/tips/health"    },
+  { label: "Training",  path: "/tips/training"  },
+  { label: "Nutrition", path: "/tips/nutrition" },
 ];
 
 const SearchIcon = () => (
@@ -63,31 +63,14 @@ const ArrowIcon = () => (
   </svg>
 );
 
-// Locked screen
-const TipsLocked: React.FC<{
-  category: TipCategory; title: string; titleAccent: string;
-}> = ({ category, title, titleAccent }) => (
-  <div className={`tips-locked tips-locked--${category}`}>
-    <div className="tips-locked__veil" />
-    <div className="tips-locked__panel">
-      <span className="tips-locked__paw" aria-hidden="true">🐾</span>
-      <h1 className="tips-locked__heading">
-        {title} <em>{titleAccent}</em>
-      </h1>
-      <p className="tips-locked__body">
-        Expert dog care tips, free for every BarkBuddy member.
-        Log in or create your account to start reading.
-      </p>
-      <div className="tips-locked__ctas">
-        <Link to="/login"    className="tips-locked__cta tips-locked__cta--primary">Log in</Link>
-        <Link to="/register" className="tips-locked__cta tips-locked__cta--ghost">Create free account</Link>
-      </div>
-      <p className="tips-locked__hint">Back to <Link to="/">Home</Link></p>
-    </div>
-  </div>
+const ChevronIcon = ({ open }: { open: boolean }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="12" height="12"
+    style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>
+    <polyline points="6 9 12 15 18 9"/>
+  </svg>
 );
 
-// Tip modal
+// ─── Tip Modal ────────────────────────────────────────────────────────────────
 const TipModal: React.FC<{
   tip:      Tip;
   category: TipCategory;
@@ -116,7 +99,6 @@ const TipModal: React.FC<{
           <CloseIcon />
         </button>
 
-        {/* Image */}
         {tip.image ? (
           <div className="tip-modal__image">
             <img src={tip.image} alt={tip.title} />
@@ -128,9 +110,9 @@ const TipModal: React.FC<{
         )}
 
         <div className="tip-modal__body">
+          {/* points count removed */}
           <div className="tip-modal__meta">
             <span className="tip-modal__tag">{category}</span>
-            <span className="tip-modal__pts">{tip.points.length} points</span>
           </div>
 
           <h2 className="tip-modal__title">{tip.title}</h2>
@@ -172,7 +154,7 @@ const TipModal: React.FC<{
   );
 };
 
-// Tip card
+// ─── Tip Card ─────────────────────────────────────────────────────────────────
 const TipCard: React.FC<{
   tip:      Tip;
   category: TipCategory;
@@ -181,11 +163,7 @@ const TipCard: React.FC<{
   onOpen:   () => void;
   index:    number;
 }> = ({ tip, category, saved, onSave, onOpen, index }) => (
-  <article
-    className="tip-card"
-    style={{ animationDelay: `${index * 0.06}s` }}
-  >
-    {/* Illustration / image */}
+  <article className="tip-card" style={{ animationDelay: `${index * 0.06}s` }}>
     <button className="tip-card__image-wrap" onClick={onOpen} aria-label={`Read tip: ${tip.title}`}>
       {tip.image ? (
         <img src={tip.image} alt={tip.title} className="tip-card__image" />
@@ -196,7 +174,6 @@ const TipCard: React.FC<{
       )}
     </button>
 
-    {/* Bookmark */}
     <button
       className={`tip-card__bookmark${saved ? " tip-card__bookmark--saved" : ""}`}
       onClick={onSave}
@@ -206,8 +183,8 @@ const TipCard: React.FC<{
       <BookmarkIcon filled={saved} />
     </button>
 
-    {/* Body */}
     <div className="tip-card__body">
+      {/* points count removed from card too */}
       <div className="tip-card__meta">
         <span className="tip-card__tag">{category}</span>
       </div>
@@ -220,7 +197,7 @@ const TipCard: React.FC<{
   </article>
 );
 
-// Main page 
+// ─── Main Page ────────────────────────────────────────────────────────────────
 const TipsPage: React.FC<TipsPageProps> = ({
   category, title, titleAccent, subtitle, heroIcon, tips,
 }) => {
@@ -229,11 +206,21 @@ const TipsPage: React.FC<TipsPageProps> = ({
 
   const [query,    setQuery]    = useState("");
   const [openTip,  setOpenTip]  = useState<Tip | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [navOpen,  setNavOpen]  = useState(false);
+  const inputRef    = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  if (!token) {
-    return <TipsLocked category={category} title={title} titleAccent={titleAccent} />;
-  }
+  const currentNav = NAV.find(c => c.path === `/tips/${category}`);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setNavOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   const filtered = useMemo(() => {
     if (!query.trim()) return tips;
@@ -246,13 +233,12 @@ const TipsPage: React.FC<TipsPageProps> = ({
   }, [query, tips]);
 
   const handleSave = useCallback((tip: Tip) => {
-  toggleTip({ itemId: tip.id, id: tip.id, title: tip.title, summary: tip.summary, category, icon: tip.icon });
-}, [tips, category, toggleTip]);
+    toggleTip({ itemId: tip.id, id: tip.id, title: tip.title, summary: tip.summary, category, icon: tip.icon });
+  }, [tips, category, toggleTip]);
 
   return (
     <div className={`tips-page tips-page--${category}`}>
 
-      {/* Modal */}
       {openTip && (
         <TipModal
           tip={openTip}
@@ -263,7 +249,6 @@ const TipsPage: React.FC<TipsPageProps> = ({
         />
       )}
 
-      {/* Hero banner  */}
       <header className="tips-hero">
         <div className="tips-hero__bg" aria-hidden="true">
           <img src={heroIcon} alt="" className="tips-hero__bg-img" />
@@ -292,17 +277,50 @@ const TipsPage: React.FC<TipsPageProps> = ({
         </div>
       </header>
 
-      {/* Nav + search */}
       <div className="tips-controls">
         <div className="tips-controls__inner">
+
           <nav className="tips-nav" aria-label="Tip categories">
-            {NAV.map(c => (
-              <Link key={c.path} to={c.path}
-                className={`tips-nav__link${c.path === `/tips/${category}` ? " tips-nav__link--active" : ""}`}>
-                <img src={c.icon} alt="" />
-                {c.label}
-              </Link>
-            ))}
+
+            {/* Mobile dropdown only */}
+            <div className="tips-nav__dropdown" ref={dropdownRef}>
+              <button
+                className="tips-nav__dropdown-trigger"
+                onClick={(e) => { e.stopPropagation(); setNavOpen(v => !v); }}
+                aria-expanded={navOpen}
+                aria-haspopup="listbox"
+              >
+                <span>{currentNav?.label ?? "Categories"}</span>
+                <ChevronIcon open={navOpen} />
+              </button>
+              {navOpen && (
+                <div className="tips-nav__dropdown-menu" role="listbox">
+                  {NAV.map(c => (
+                    <Link
+                      key={c.path}
+                      to={c.path}
+                      role="option"
+                      aria-selected={c.path === `/tips/${category}`}
+                      className={`tips-nav__dropdown-item${c.path === `/tips/${category}` ? " active" : ""}`}
+                      onClick={() => setNavOpen(false)}
+                    >
+                      {c.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Desktop tab links only */}
+            <div className="tips-nav__tabs">
+              {NAV.map(c => (
+                <Link key={c.path} to={c.path}
+                  className={`tips-nav__link${c.path === `/tips/${category}` ? " tips-nav__link--active" : ""}`}>
+                  {c.label}
+                </Link>
+              ))}
+            </div>
+
           </nav>
 
           <div className="tips-search">
@@ -311,7 +329,7 @@ const TipsPage: React.FC<TipsPageProps> = ({
               ref={inputRef}
               type="search"
               className="tips-search__input"
-              placeholder={`Search ${category} tips…`}
+              placeholder={`Search…`}
               value={query}
               onChange={e => setQuery(e.target.value)}
               autoComplete="off"
@@ -332,7 +350,6 @@ const TipsPage: React.FC<TipsPageProps> = ({
         </div>
       </div>
 
-      {/* Card grid */}
       <main className="tips-body">
         {filtered.length === 0 ? (
           <div className="tips-empty">

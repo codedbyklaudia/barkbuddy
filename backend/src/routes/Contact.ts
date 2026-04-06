@@ -1,27 +1,17 @@
 import { Router, Request, Response } from "express";
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
 const router = Router();
 
-const CONTACT_TO = "paws@barkbuddy.org.uk";
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-// Gmail transporter 
-const transporter = nodemailer.createTransport({
-  host:   process.env.SMTP_HOST,
-  port:   Number(process.env.SMTP_PORT) || 465,
-  secure: true,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-  tls: { rejectUnauthorized: false },
-});
+const CONTACT_TO   = "paws@barkbuddy.org.uk";
+const CONTACT_FROM = "BarkBuddy <paws@barkbuddy.org.uk>";
 
 // POST /api/contact
 router.post("/", async (req: Request, res: Response) => {
   const { name, email, subject, message } = req.body;
 
-  // Basic validation
   if (!name?.trim() || !email?.trim() || !message?.trim()) {
     return res.status(400).json({ message: "Name, email and message are required." });
   }
@@ -36,11 +26,11 @@ router.post("/", async (req: Request, res: Response) => {
   }
 
   try {
-    // Email to BarkBuddy inbox 
-    await transporter.sendMail({
-      from: process.env.SMTP_FROM,
+    // Email to BarkBuddy inbox
+    await resend.emails.send({
+      from:     CONTACT_FROM,
       to:       CONTACT_TO,
-      replyTo:  email,
+      replyTo: email,
       subject:  `[BarkBuddy] ${subject ?? "New message"} — from ${name}`,
       html: `
         <div style="font-family: Marcellus, serif; max-width: 600px; margin: 0 auto; padding: 32px; background: #3A2F51; border-radius: 12px;">
@@ -52,19 +42,19 @@ router.post("/", async (req: Request, res: Response) => {
 
           <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
             <tr>
-              <td style="padding: 10px 0; border-bottom: 1px solid #3a2f51; width: 110px;">
-                <span style="font-size: 12px; font-weight: bold; letter-spacing: 0.1em; text-transform: uppercase; color: #f7f7f7;">From:</span>
+              <td style="padding: 10px 0; border-bottom: 1px solid #5a4a7a; width: 110px;">
+                <span style="font-size: 12px; font-weight: bold; letter-spacing: 0.1em; text-transform: uppercase; color: #f7f7f7;">From</span>
               </td>
-              <td style="padding: 10px 0; border-bottom: 1px solid #3a2f51; font-size: 15px; color: #f7f7f7;">
+              <td style="padding: 10px 0; border-bottom: 1px solid #5a4a7a; font-size: 15px; color: #f7f7f7;">
                 ${name}
               </td>
             </tr>
             <tr>
-              <td style="padding: 10px 0; border-bottom: 1px solid #3a2f51;">
+              <td style="padding: 10px 0; border-bottom: 1px solid #5a4a7a;">
                 <span style="font-size: 12px; font-weight: bold; letter-spacing: 0.1em; text-transform: uppercase; color: #f7f7f7;">Email</span>
               </td>
-              <td style="padding: 10px 0; border-bottom: 1px solid #3a2f51; font-size: 15px; color: #f7f7f7;">
-                <a href="mailto:${email}" style="color: #f7f7f7; text-decoration: none;">${email}</a>
+              <td style="padding: 10px 0; border-bottom: 1px solid #5a4a7a; font-size: 15px; color: #f7f7f7;">
+                <a href="mailto:${email}" style="color: #b79ebe; text-decoration: none;">${email}</a>
               </td>
             </tr>
             <tr>
@@ -90,8 +80,8 @@ router.post("/", async (req: Request, res: Response) => {
     });
 
     // Auto-reply to the sender
-    await transporter.sendMail({
-      from: process.env.SMTP_FROM,
+    await resend.emails.send({
+      from:    CONTACT_FROM,
       to:      email,
       subject: "We received your message 🐾",
       html: `
@@ -125,7 +115,7 @@ router.post("/", async (req: Request, res: Response) => {
     return res.status(200).json({ message: "Message sent successfully." });
 
   } catch (err) {
-    console.error("Contact form email error:", err);
+    console.error("Contact form Resend error:", err);
     return res.status(500).json({ message: "Failed to send message. Please email us directly at paws@barkbuddy.org.uk" });
   }
 });
