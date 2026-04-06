@@ -331,7 +331,6 @@ const AccountFields: React.FC<{
           hasError={!!errors.email || emailCheckState === "taken"}
           className={emailCheckState === "available" ? "rb-input--valid" : ""}
         />
-        {/* Show inline status UNLESS a hard validation error is already showing */}
         {!errors.email
           ? <EmailStatus state={emailCheckState} />
           : <FieldError error={errors.email} />
@@ -413,7 +412,7 @@ const ServiceStep1: React.FC<{
       <div className="rb-field" style={{ marginTop: "1.5rem" }}>
         <label className="rb-label">Type of service</label>
         <TypeGrid types={SERVICE_TYPES} selected={data.serviceType} onSelect={v => onChange("serviceType", v)} error={errors.serviceType} />
-        <a href="mailto:hello@barkbuddy.com?subject=New service type request" className="rb-not-listed">
+        <a href="mailto:paws@barkbuddy.org.uk?subject=New service type request" className="rb-not-listed">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
           Not listed? Contact us — we can add it!
         </a>
@@ -567,13 +566,13 @@ const ActivityStep2: React.FC<{ data: ActivityFormData; errors: ValidationErrors
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18" aria-hidden="true">
           <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="1" fill="currentColor"/>
         </svg>
-        <p>Without proof we can't list your venue. Questions? <a href="mailto:paws@barkbuddy.co.uk">paws@barkbuddy.co.uk</a></p>
+        <p>Without proof we can't list your venue. Questions? <a href="mailto:paws@barkbuddy.org.uk">paws@barkbuddy.org.uk</a></p>
       </div>
     </div>
   );
 };
 
-// ─── Validation ───────────────────────────────────────────────────────────────
+// Validation
 function validateService(d: ServiceFormData): ValidationErrors {
   const e: ValidationErrors = {};
   if (!d.personalName.trim())  e.personalName  = "Name is required";
@@ -616,7 +615,7 @@ function validateActivity1(d: ActivityFormData): ValidationErrors {
   return e;
 }
 
-// ─── Success
+// Success
 const SuccessScreen: React.FC<{ category: BusinessCategory; businessName: string }> = ({ category, businessName }) => (
   <div className="rb-success">
     <span className="rb-success__icon" aria-hidden="true"><img src="../images/icons_1/success_message.png" alt="Success Picture" /></span>
@@ -630,7 +629,7 @@ const SuccessScreen: React.FC<{ category: BusinessCategory; businessName: string
   </div>
 );
 
-// ─── Main Page
+// Main Page
 const RegisterBusinessPage: React.FC = () => {
   const [category, setCategory] = useState<BusinessCategory>("");
   const [step,     setStep]     = useState(0);
@@ -638,8 +637,6 @@ const RegisterBusinessPage: React.FC = () => {
   const [apiError, setApiError] = useState("");
   const [loading,  setLoading]  = useState(false);
   const [done,     setDone]     = useState(false);
-
-  // Live email availability state
   const [emailCheckState, setEmailCheckState] = useState<EmailCheckState>("idle");
   const emailCheckController = useRef<AbortController | null>(null);
 
@@ -665,12 +662,10 @@ const RegisterBusinessPage: React.FC = () => {
   serviceDataRef.current  = serviceData;
   activityDataRef.current = activityData;
 
-  // ── Email live check ─────────────────────────────────────────────────────────
+  // Email live check 
   const checkEmailNow = useCallback(async (email: string) => {
-    // Cancel any in-flight check
     emailCheckController.current?.abort();
 
-    // Don't fire if email is empty or invalid format
     if (!email.trim() || !EMAIL_RE.test(email)) {
       setEmailCheckState("idle");
       return;
@@ -693,7 +688,6 @@ const RegisterBusinessPage: React.FC = () => {
         setEmailCheckState("available");
       } else {
         setEmailCheckState("taken");
-        // Also surface as a field error so it's unmissable
         setErrors(prev => ({ ...prev, email: "An account with this email already exists." }));
       }
     } catch (err: any) {
@@ -702,7 +696,6 @@ const RegisterBusinessPage: React.FC = () => {
     }
   }, []);
 
-  // Reset email check when email field changes
   const patchService = (k: keyof ServiceFormData, v: string) => {
     setServiceData(p => ({ ...p, [k]: v }));
     setErrors(p => { const e = { ...p }; delete e[k as string]; return e; });
@@ -734,7 +727,6 @@ const RegisterBusinessPage: React.FC = () => {
     setErrors(p => { const e = { ...p }; delete e.document; return e; });
   };
 
-  // onBlur handler — fires the actual API check
   const handleEmailBlur = useCallback(() => {
     const email = category === "services"
       ? serviceDataRef.current.email
@@ -813,13 +805,10 @@ const RegisterBusinessPage: React.FC = () => {
         setApiError("Please wait — we're checking email availability.");
         return;
       }
-      // If user never blurred the email (emailCheckState === "idle" and email is valid), run the check now
       if (emailCheckState === "idle" && EMAIL_RE.test(serviceDataRef.current.email)) {
         setLoading(true);
         await checkEmailNow(serviceDataRef.current.email);
         setLoading(false);
-        // After the async check, re-read the state via ref won't work — re-validate on next click
-        // So we abort here and let the user see the result
         return;
       }
       submitService();
@@ -855,8 +844,6 @@ const RegisterBusinessPage: React.FC = () => {
       submitActivity();
     }
   };
-
-  // Reset email check state when returning to step 0
   const handleReset = () => {
     setStep(0); setCategory(""); setErrors({}); setApiError("");
     setEmailCheckState("idle");
@@ -962,7 +949,7 @@ const RegisterBusinessPage: React.FC = () => {
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
                   Change category
                 </button>
-                <p className="rb-sidebar__help">Questions? <a href="mailto:hello@barkbuddy.com">paws@barkbuddy.co.uk</a></p>
+                <p className="rb-sidebar__help">Questions? <a href="mailto:paws@barkbuddy.org.uk">paws@barkbuddy.org.uk</a></p>
               </div>
             </div>
           </aside>

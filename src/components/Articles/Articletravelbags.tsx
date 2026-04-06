@@ -198,12 +198,6 @@ const ArticleTravelBags: React.FC<ArticlePageProps> = ({ onBack }) => {
           <div>
             <strong>Planning to fly abroad?</strong>
             <p>Check our travel requirements guide to make sure your dog's documentation is in order before you book.</p>
-            <button
-              className="article-callout__btn"
-              onClick={() => { window.location.hash = '#/travel-page'; }}
-            >
-              Check travel requirements <ChevronsRight />
-            </button>
           </div>
         </div>
       </article>
