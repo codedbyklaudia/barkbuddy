@@ -63,7 +63,7 @@ const About: React.FC = () => {
         {/* Right — photo */}
         <div className="about-hero__right" aria-hidden="true">
           <img
-            src="../images/Illustrations/paw-hand.png"
+            src="../images/Illustrations/paw-hand.webp"
             alt=""
             className="about-hero__image"
           />

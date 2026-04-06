@@ -269,7 +269,7 @@ const TipsHealth: React.FC = () => (
     title="Health"
     titleAccent="& wellbeing"
     subtitle="Prevention is better than cure. Clear, practical health guidance - from vaccination schedules to recognising early warning signs your vet needs to know about."
-    heroIcon="../images/Illustrations/Health-art.png"
+    heroIcon="../images/Illustrations/Health-art.webp"
     tips={tips}
   />
 );

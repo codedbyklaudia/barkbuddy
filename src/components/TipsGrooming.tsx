@@ -139,7 +139,7 @@ const TipsGrooming: React.FC = () => (
     title="Grooming"
     titleAccent="guide"
     subtitle="Practical, detailed grooming advice for every coat type - from daily brushing routines to knowing when to call in a professional."
-    heroIcon="../images/Illustrations/grooming-art(1).png"
+    heroIcon="../images/Illustrations/grooming-art(1).webp"
     tips={tips}
   />
 );

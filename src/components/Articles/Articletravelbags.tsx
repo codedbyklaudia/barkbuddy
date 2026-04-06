@@ -56,7 +56,7 @@ const ArticleTravelBags: React.FC<ArticlePageProps> = ({ onBack }) => {
           for you, your pup, and the person in the next seat. We tested 12 bags so you don't have to.
         </p>
         <div className="article-hero__img-wrap">
-          <img src="../images/dog_inplane.jpg" alt="Dog in travel bag on airplane" className="article-hero__img" />
+          <img src="../images/dog_inplane.webp" alt="Dog in travel bag on airplane" className="article-hero__img" />
           <div className="article-hero__img-caption">The right bag = a calmer flight for everyone</div>
         </div>
       </header>

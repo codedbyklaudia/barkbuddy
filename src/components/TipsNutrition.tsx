@@ -259,7 +259,7 @@ const TipsNutrition: React.FC = () => (
     title="Nutrition"
     titleAccent="& feeding"
     subtitle="Clear, unbiased guidance on dog nutrition - understanding ingredients labels, choosing the right food, and building a feeding routine that keeps your dog healthy long-term."
-    heroIcon="../images/Illustrations/nutrition-art(1).png"
+    heroIcon="../images/Illustrations/nutrition-art(1).webp"
     tips={tips}
   />
 );

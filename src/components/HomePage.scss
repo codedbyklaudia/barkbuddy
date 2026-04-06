@@ -56,8 +56,11 @@
     background-color: $twilight-purple;
     color: $soft-pearl;
     font-size: $t-but-des;
-    margin-top: $space-xxl;
-    
+    display: inline-block;
+    margin-top: $space-xl;
+      @media (max-width: $bp-tablet) {
+      margin-top: $space-lg;
+      }
   }
   &__title {
     font-family: $font-primary;

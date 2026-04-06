@@ -259,7 +259,7 @@ const TipsTraining: React.FC = () => (
     title="Training"
     titleAccent="& behaviour"
     subtitle="Science-backed training advice to build confidence, strengthen your bond, and tackle problem behaviours — from first commands to fixing habits that have crept in."
-    heroIcon="../images/Illustrations/training-art(1).png"
+    heroIcon="../images/Illustrations/training-art(1).webp"
     tips={tips}
   />
 );
