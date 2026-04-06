@@ -42,7 +42,7 @@
   grid-template-columns: 1fr;
 
   @media (min-width: $bp-laptop) {
-    grid-template-columns: 600px 1fr;
+    grid-template-columns: 560px 1fr;
   }
 }
 
@@ -136,6 +136,7 @@
   &:hover { color: rgba($misty-lavender, 0.75); }
 }
 
+// Right panel
 .rb-hero__right {
   background-color: $soft-pearl;
   padding: $space-xxl $space-lg;
@@ -150,9 +151,9 @@
   }
 
   @media (min-width: $bp-laptop) {
-    padding: $space-xl $space-xl;
+    padding: $space-xxl clamp($space-xl, 5vw, 80px);
     min-height: auto;
-    justify-content: flex-start;
+    justify-content: center;
   }
 }
 
@@ -182,27 +183,36 @@
   gap: $space-lg;
   margin-bottom: $space-xxl;
   width: 100%;
+  max-width: 700px;
   animation: rbReveal 0.7s 0.25s ease both;
+
+  @media (min-width: $bp-laptop) {
+    max-width: 820px;
+  }
 }
 
+// Category cards — column on mobile, row on desktop
 .rb-cat-card {
+  display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: $space-lg;
-  padding: $space-xl;
+  gap: $space-md;
+  padding: $space-xl $space-lg;
   background: $soft-pearl;
   border: 1.5px solid rgba($twilight-purple, 0.1);
   border-radius: $radius-lg;
   @include cursor;
-  text-align: left;
   transition: all 0.22s ease;
   @include relative;
   overflow: hidden;
 
-  @media (min-width: $bp-laptop) {
-    padding: $space-xl;
-    gap: $space-lg;
+  @media (min-width: $bp-tablet) {
+    flex-direction: row;
+    align-items: center;
+    text-align: left;
+    gap: $space-xl;
+    padding: $space-xl $space-xxl;
   }
 
   &::before {
@@ -235,11 +245,11 @@
   padding: $space-xs;
 
   @media (min-width: $bp-tablet) {
-    width: 110px; height: 110px;
+    width: 130px; height: 130px;
   }
 
   @media (min-width: $bp-laptop) {
-    width: 150px; height: 150px;
+    width: 160px; height: 160px;
   }
 
   img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -275,6 +285,10 @@
   justify-content: center;
   gap: 5px;
 
+  @media (min-width: $bp-tablet) {
+    justify-content: flex-start;
+  }
+
   span {
     font-size: 0.78rem;
     font-weight: $fw-regular;
@@ -289,12 +303,16 @@
 
 .rb-cat-card__arrow {
   flex-shrink: 0;
-  width: 36px; height: 36px;
-  border-radius: $radius-round;
+  width: 40px; height: 40px;
+  border-radius: 50%;
   display: none;
-  @include flex-center;
 
-  @media (min-width: $bp-tablet) { width: 40px; height: 40px; }
+  @media (min-width: $bp-tablet) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+  }
 
   .rb-cat-card--activities & { background: rgba($serene-purple, 0.08); }
   .rb-cat-card--services   & { background: rgba($gentle-amethyst, 0.1); }

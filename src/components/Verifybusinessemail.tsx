@@ -88,7 +88,7 @@ const VerifyBusinessEmail: React.FC = () => {
             <div className="vbe-icon vbe-icon--error" aria-hidden="true">❌</div>
             <h1 className="vbe-title">Verification failed</h1>
             <p className="vbe-text">{message}</p>
-            <a href="mailto:website.barkbuddy@gmail.com" className="vbe-btn vbe-btn--outline">
+            <a href="mailto:paws@barkbuddy.org.uk" className="vbe-btn vbe-btn--outline">
               Contact support
             </a>
           </>

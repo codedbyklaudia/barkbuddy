@@ -2,29 +2,18 @@ import { Router, Request, Response } from "express";
 import { body, validationResult } from "express-validator";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import pool from "../db";
 
 const router = Router();
 
+const resend     = new Resend(process.env.RESEND_API_KEY);
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
+const FROM       = "BarkBuddy <paws@barkbuddy.org.uk>";
 
-// Gmail transporter 
-const transporter = nodemailer.createTransport({
-  host:   process.env.SMTP_HOST,
-  port:   Number(process.env.SMTP_PORT) || 465,
-  secure: true,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-  tls: { rejectUnauthorized: false },
-});
-
-// Helper: generate secure token 
 const generateToken = () => crypto.randomBytes(32).toString("hex");
 
-// POST /api/password/forgot 
+// ─── POST /api/password/forgot ────────────────────────────────────────────────
 router.post("/forgot", [
   body("email").isEmail().withMessage("Please enter a valid email").normalizeEmail(),
 ], async (req: Request, res: Response): Promise<void> => {
@@ -33,7 +22,9 @@ router.post("/forgot", [
     res.status(400).json({ message: "Please enter a valid email address" });
     return;
   }
+
   const { email } = req.body;
+
   try {
     const userResult = await pool.query(
       "SELECT id, name, email FROM users WHERE email = $1",
@@ -54,21 +45,18 @@ router.post("/forgot", [
       [user.id]
     );
 
-    // Generate token — expires in 1 hour
     const token     = generateToken();
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
     await pool.query(
-      `INSERT INTO password_reset_tokens (user_id, token, expires_at)
-       VALUES ($1, $2, $3)`,
+      `INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES ($1, $2, $3)`,
       [user.id, token, expiresAt]
     );
 
     const resetUrl = `${CLIENT_URL}/#/reset-password?token=${token}`;
 
-    // Send email via Gmail
-    await transporter.sendMail({
-      from: process.env.SMTP_FROM,
+    await resend.emails.send({
+      from:    FROM,
       to:      user.email,
       subject: "Reset your BarkBuddy password 🐾",
       html:    generateResetEmailHtml(user.name, resetUrl),
@@ -124,7 +112,6 @@ router.post("/reset", [
     }
 
     const { id: tokenId, user_id: userId } = tokenResult.rows[0];
-
     const passwordHash = await bcrypt.hash(password, 12);
 
     await pool.query("BEGIN");
@@ -150,10 +137,7 @@ router.post("/reset", [
 router.get("/verify-token", async (req: Request, res: Response): Promise<void> => {
   const { token } = req.query as { token: string };
 
-  if (!token) {
-    res.status(400).json({ valid: false });
-    return;
-  }
+  if (!token) { res.status(400).json({ valid: false }); return; }
 
   try {
     const result = await pool.query(
