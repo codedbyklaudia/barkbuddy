@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.scss";
+import { polyline } from "framer-motion/client";
 
 const BASE = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
 
-// ─── Decorations ──────────────────────────────────────────────────────────────
+// Decorations 
 const ForgotDecorations: React.FC = () => (
   <>
     <div className="s0-rings" aria-hidden="true">
@@ -23,7 +24,7 @@ const ForgotDecorations: React.FC = () => (
   </>
 );
 
-// ─── Forgot Password Page ─────────────────────────────────────────────────────
+// Forgot Password Page
 const ForgotPasswordPage: React.FC = () => {
   const navigate = useNavigate();
 
@@ -103,7 +104,7 @@ const ForgotPasswordPage: React.FC = () => {
               </div>
             </>
           ) : (
-            // ── Success state ──
+            // Success state
             <div className="forgot-success">
               <div className="forgot-success-icon">📬</div>
               <h2 className="forgot-success-title">Check your inbox!</h2>
