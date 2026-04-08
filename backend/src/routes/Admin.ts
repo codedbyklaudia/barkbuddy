@@ -1,16 +1,18 @@
 import { Router, Request, Response } from "express";
 import crypto from "crypto";
-import fs from "fs";
-import path from "path";
 import multer from "multer";
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import pool from "../db";
+import { uploadToCloudinary } from "../lib/uploadCloudinary";
+import cloudinary from "../lib/cloudinary";
 
 const router     = Router();
 const CLIENT_URL   = process.env.CLIENT_URL   || "http://localhost:5173";
 const ADMIN_SECRET = process.env.ADMIN_SECRET || "changeme";
+const FROM         = "BarkBuddy <paws@barkbuddy.org.uk>";
 
-// Multer for photo uploads
+const resend = new Resend(process.env.RESEND_API_KEY);
+
 const photoUpload = multer({
   storage: multer.memoryStorage(),
   limits:  { fileSize: 10 * 1024 * 1024 },
@@ -19,18 +21,14 @@ const photoUpload = multer({
     allowed.includes(file.mimetype) ? cb(null, true) : cb(new Error("Only JPG, PNG or WEBP allowed"));
   },
 });
-
-// Mail transporter
-const transporter = nodemailer.createTransport({
-  host:   process.env.SMTP_HOST,
-  port:   Number(process.env.SMTP_PORT) || 465,
-  secure: true,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-  tls: { rejectUnauthorized: false },
-});
+function extractPublicId(url: string): string | null {
+  try {
+    const match = url.match(/\/upload\/(?:v\d+\/)?(.+?)(\.[^.]+)?$/);
+    return match ? match[1] : null;
+  } catch {
+    return null;
+  }
+}
 
 // Middleware: simple admin auth via secret header
 function requireAdmin(req: Request, res: Response, next: Function) {
@@ -148,8 +146,8 @@ router.post("/businesses/:id/approve", requireAdmin, async (req: Request, res: R
 
     const isActivity = biz.category === "activities";
     try {
-      await transporter.sendMail({
-        from:    process.env.SMTP_FROM,
+      await resend.emails.send({
+        from:    FROM,
         to:      biz.email,
         subject: `🎉 You're live on BarkBuddy — here's your login`,
         html:    approvalEmailHtml(biz.personal_name, biz.business_name, username, isActivity),
@@ -203,8 +201,8 @@ router.post("/businesses/:id/reject", requireAdmin, async (req: Request, res: Re
     await pool.query("COMMIT");
 
     try {
-      await transporter.sendMail({
-        from:    process.env.SMTP_FROM,
+      await resend.emails.send({
+        from:    FROM,
         to:      biz.email,
         subject: `Your BarkBuddy application for ${biz.business_name}`,
         html:    rejectionEmailHtml(biz.personal_name, biz.business_name, reason),
@@ -247,14 +245,11 @@ router.post("/businesses/:id/photos", requireAdmin, photoUpload.single("photo"),
     const caption    = (req.body.caption as string) || null;
     const isPrimary  = req.body.is_primary === "true";
 
-    const ext       = path.extname(req.file.originalname) || ".jpg";
-    const fileName  = `biz_${businessId}_${Date.now()}${ext}`;
-    const uploadDir = path.join(__dirname, "../../uploads/business_photos");
-    await fs.promises.mkdir(uploadDir, { recursive: true });
-    await fs.promises.writeFile(path.join(uploadDir, fileName), req.file.buffer);
-    const filePath = `/uploads/business_photos/${fileName}`;
+    const photoUrl = await uploadToCloudinary(req.file.buffer, "barkbuddy/business_photos", {
+      resource_type: "image",
+      public_id: `biz_${businessId}_${Date.now()}`,
+    });
 
-    // Unset existing primary if this is being set as primary
     if (isPrimary) {
       await pool.query(
         "UPDATE business_photos SET is_primary = false WHERE business_id = $1",
@@ -266,7 +261,7 @@ router.post("/businesses/:id/photos", requireAdmin, photoUpload.single("photo"),
       `INSERT INTO business_photos (business_id, file_name, file_path, caption, is_primary, created_at)
        VALUES ($1,$2,$3,$4,$5,NOW())
        RETURNING *`,
-      [businessId, fileName, filePath, caption, isPrimary]
+      [businessId, req.file.originalname, photoUrl, caption, isPrimary]
     );
 
     res.status(201).json({ message: "Photo uploaded.", photo: rows[0] });
@@ -305,14 +300,18 @@ router.delete("/businesses/:id/photos/:photoId", requireAdmin, async (req: Reque
     const photoId    = parseInt(req.params.photoId);
 
     const { rows } = await pool.query(
-      "SELECT file_name FROM business_photos WHERE id = $1 AND business_id = $2",
+      "SELECT file_path FROM business_photos WHERE id = $1 AND business_id = $2",
       [photoId, businessId]
     );
     if (rows.length === 0) { res.status(404).json({ message: "Photo not found." }); return; }
 
-    // Delete file from disk (silent fail if already missing)
-    const filePath = path.join(__dirname, "../../uploads/business_photos", rows[0].file_name);
-    await fs.promises.unlink(filePath).catch(() => {});
+    // Delete from Cloudinary — non-fatal if it fails
+    const publicId = extractPublicId(rows[0].file_path);
+    if (publicId) {
+      await cloudinary.uploader.destroy(publicId).catch((err) =>
+        console.error("Cloudinary delete error:", err)
+      );
+    }
 
     await pool.query(
       "DELETE FROM business_photos WHERE id = $1 AND business_id = $2",
@@ -335,23 +334,27 @@ router.delete("/businesses/:id", requireAdmin, async (req: Request, res: Respons
     );
     if (rows.length === 0) { res.status(404).json({ message: "Business not found." }); return; }
 
-    // Delete associated photos from disk
     const { rows: photos } = await pool.query(
-      "SELECT file_name FROM business_photos WHERE business_id = $1",
+      "SELECT file_path FROM business_photos WHERE business_id = $1",
       [req.params.id]
     );
+
+    // Delete all photos from Cloudinary — non-fatal
     for (const photo of photos) {
-      const filePath = path.join(__dirname, "../../uploads/business_photos", photo.file_name);
-      await fs.promises.unlink(filePath).catch(() => {});
+      const publicId = extractPublicId(photo.file_path);
+      if (publicId) {
+        await cloudinary.uploader.destroy(publicId).catch((err) =>
+          console.error("Cloudinary delete error:", err)
+        );
+      }
     }
 
-    // Hard delete everything associated
     await pool.query("BEGIN");
-    await pool.query("DELETE FROM business_photos            WHERE business_id = $1", [req.params.id]);
-    await pool.query("DELETE FROM business_service_details   WHERE business_id = $1", [req.params.id]);
-    await pool.query("DELETE FROM business_activity_documents WHERE business_id = $1", [req.params.id]);
+    await pool.query("DELETE FROM business_photos              WHERE business_id = $1", [req.params.id]);
+    await pool.query("DELETE FROM business_service_details     WHERE business_id = $1", [req.params.id]);
+    await pool.query("DELETE FROM business_activity_documents  WHERE business_id = $1", [req.params.id]);
     await pool.query("DELETE FROM business_verification_tokens WHERE business_id = $1", [req.params.id]);
-    await pool.query("DELETE FROM business_accounts          WHERE id = $1", [req.params.id]);
+    await pool.query("DELETE FROM business_accounts            WHERE id = $1",          [req.params.id]);
     await pool.query("COMMIT");
 
     console.log(`🗑 Business ${req.params.id} (${rows[0].business_name}) permanently deleted by admin`);
@@ -421,7 +424,7 @@ const approvalEmailHtml = (
               From your dashboard you can manage your listing, update your details, and change your username at any time in Settings.
             </p>
             <p style="color:#9ca3af;font-size:12px;line-height:1.5;margin:24px 0 0;border-top:1px solid #f3f4f6;padding-top:20px;">
-              If you have any questions, reply to this email or contact us at website.barkbuddy@gmail.com
+              If you have any questions, reply to this email or contact us at paws@barkbuddy.org.uk
             </p>
           </td>
         </tr>
@@ -468,7 +471,7 @@ const rejectionEmailHtml = (
             </div>` : ""}
             <p style="color:#4b5563;font-size:14px;line-height:1.7;margin:0 0 24px;">
               If you believe this is an error or would like to reapply with additional information,
-              please reply to this email or contact us at website.barkbuddy@gmail.com
+              please reply to this email or contact us at paws@barkbuddy.org.uk
             </p>
             <p style="color:#9ca3af;font-size:12px;line-height:1.5;margin:0;border-top:1px solid #f3f4f6;padding-top:20px;">
               We appreciate your interest in BarkBuddy and wish you all the best.
