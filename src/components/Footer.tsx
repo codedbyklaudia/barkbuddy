@@ -66,7 +66,7 @@ const Footer: React.FC = () => {
 
       {/* Copyright */}
       <div className="footer__bottom">
-        <p>© BarkBuddy 2026. Copyright reserved. <span className="footer__heart">PROUDLY</span> founded and created with 💜 by <a href="#" className="footer__creator">codedbyklaudia</a></p>
+        <p>© BarkBuddy 2026. Copyright reserved. <span className="footer__heart">PROUDLY</span> founded and created with 💜 by <a href="https://codedbyklaudia.co.uk/" className="footer__creator">codedbyklaudia</a></p>
       </div>
     </footer>
   );

@@ -108,6 +108,7 @@
 
   &__column-title {
     font-family: $font-primary;
+    margin: 0 auto;
     font-size: $t-but-des;
     font-weight: $fw-regular;
     letter-spacing: 0.14em;
@@ -119,7 +120,7 @@
   &__list {
     list-style: none;
     padding: 0;
-    margin: 0;
+    margin: 0 auto;
     @include column;
     gap: $space-sm;
 

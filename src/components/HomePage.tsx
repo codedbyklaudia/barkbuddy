@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import './HomePage.scss';
 import HeroSection from './HeroSection';
 import Footer from './Footer';
+import { Link } from 'react-router-dom';
 
 const HomePage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'parents' | 'business'>('parents');
@@ -156,9 +157,9 @@ const HomePage: React.FC = () => {
           <p className="community__description">
             Share tips, ask questions, and connect with fellow dog parents. Understand the journey.
           </p>
-          <button className="btn btn--primary">
+          <Link to="/forum-page" className="btn btn--primary">
             Join Now <i className="bi bi-chat"></i>
-          </button>
+          </Link>
         </div>
       </section>
 
