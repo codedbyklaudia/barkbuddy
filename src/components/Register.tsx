@@ -10,7 +10,6 @@ import {
   type ValidationErrors, isValid,
 } from "../utils/validation";
 import { getBreedData } from "./breedData";
-
 // Types 
 interface FormData {
   email:           string;
@@ -24,7 +23,6 @@ interface FormData {
   lifeStage:       "puppy" | "adult" | "senior" | "";
   personality:     string[];
 }
-
 // Static Data 
 const LIFE_STAGES = [
   { key: "puppy",  label: "Puppy",  icon: "../../images/icons/lifestage/puppy.svg",  age: "0–1 yrs" },
@@ -75,16 +73,30 @@ const PERSONALITY_CATEGORIES: PersonalityCategory[] = [
     ],
   },
 ];
-
 const setSelected = (personality: string[], catId: string, key: string): string[] => {
   const cat = PERSONALITY_CATEGORIES.find(c => c.id === catId);
   if (!cat) return personality;
   const catKeys = cat.options.map(o => o.key);
   return [...personality.filter(p => !catKeys.includes(p)), key];
 };
-
-// Email Verification API calls
+// Email Verification
 const BASE = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+
+// Check if email already exists in the database
+const checkEmailExists = async (email: string): Promise<boolean> => {
+  try {
+    const res = await fetch(`${BASE}/auth/check-email`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    if (!res.ok) return false;
+    const data = await res.json();
+    return data.exists === true;
+  } catch {
+    return false;
+  }
+};
 
 const sendVerificationEmail = async (email: string): Promise<void> => {
   const res = await fetch(`${BASE}/auth/send-verification`, {
@@ -97,7 +109,6 @@ const sendVerificationEmail = async (email: string): Promise<void> => {
     throw new Error(data.message || "Failed to send verification email.");
   }
 };
-
 const verifyEmailCode = async (email: string, code: string): Promise<boolean> => {
   const res = await fetch(`${BASE}/auth/verify-code`, {
     method: "POST",
@@ -144,7 +155,6 @@ const OtpInput: React.FC<{
       focus(i + 1);
     }
   };
-
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
     const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6).split("");
@@ -154,7 +164,6 @@ const OtpInput: React.FC<{
     const lastFilled = Math.min(pasted.length, 5);
     focus(lastFilled);
   };
-
   return (
     <div className="otp-input-row">
       {Array.from({ length: 6 }).map((_, i) => (
@@ -177,10 +186,8 @@ const OtpInput: React.FC<{
     </div>
   );
 };
-
 // Step 1.5: Email Verification
 const RESEND_COOLDOWN = 60;
-
 const Step1_5: React.FC<{
   email:      string;
   onVerified: () => void;
@@ -382,7 +389,6 @@ const BreedFactCard: React.FC<{ breed: string; dogName?: string }> = ({ breed })
     </div>
   );
 };
-
 // Field Error 
 const FieldError: React.FC<{ error?: string }> = ({ error }) =>
   error ? <span className="field-error">{error}</span> : null;
@@ -405,7 +411,6 @@ const PageDecorations: React.FC = () => (
     <div className="reg-deco-line right" aria-hidden="true" />
   </>
 );
-
 // Step Indicator
 const StepIndicator: React.FC<{ current: number; total: number }> = ({ current, total }) => (
   <div className="step-indicator">
@@ -417,7 +422,6 @@ const StepIndicator: React.FC<{ current: number; total: number }> = ({ current, 
     ))}
   </div>
 );
-
 // Eye Toggle 
 const EyeIcon: React.FC<{ visible: boolean }> = ({ visible }) =>
   visible ? (
@@ -431,15 +435,16 @@ const EyeIcon: React.FC<{ visible: boolean }> = ({ visible }) =>
       <line x1="1" y1="1" x2="23" y2="23" />
     </svg>
   );
-
 // Step 1: Name, email & password
 const Step1: React.FC<{
-  data:       FormData;
-  errors:     ValidationErrors;
-  onChange:   (k: keyof FormData, v: string) => void;
-  onContinue: () => void;
-  canProceed: boolean;
-}> = ({ data, errors, onChange, onContinue, canProceed }) => {
+  data:            FormData;
+  errors:          ValidationErrors;
+  onChange:        (k: keyof FormData, v: string) => void;
+  onContinue:      () => void;
+  canProceed:      boolean;
+  emailExists:     boolean;
+  emailChecking:   boolean;
+}> = ({ data, errors, onChange, onContinue, canProceed, emailExists, emailChecking }) => {
   const [showPw,  setShowPw]  = useState(false);
   const [showCpw, setShowCpw] = useState(false);
 
@@ -458,8 +463,32 @@ const Step1: React.FC<{
 
         <div className="field-grid">
           <div className="field-wrap">
-            <input className={`field-input ${errors.email ? "error" : ""}`} type="email" placeholder="Your email address" value={data.email} onChange={(e) => onChange("email", e.target.value)} />
+            <div className="email-input-wrap">
+              <input
+                className={`field-input ${errors.email || emailExists ? "error" : ""} ${emailChecking ? "checking" : ""}`}
+                type="email"
+                placeholder="Your email address"
+                value={data.email}
+                onChange={(e) => onChange("email", e.target.value)}
+              />
+              {emailChecking && (
+                <span className="email-checking-spinner" aria-label="Checking email…" />
+              )}
+              {!emailChecking && data.email && !errors.email && !emailExists && (
+                <span className="email-check-ok" aria-label="Email available">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="16" height="16">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                </span>
+              )}
+            </div>
             <FieldError error={errors.email} />
+            {emailExists && !errors.email && (
+              <span className="field-error">
+                This email is already registered.{" "}
+                <Link to="/login" className="email-exists-login-link">Log in instead?</Link>
+              </span>
+            )}
           </div>
           <div className="field-wrap">
             <input className={`field-input ${errors.name ? "error" : ""}`} type="text" placeholder="Your name" value={data.name} onChange={(e) => onChange("name", e.target.value)} />
@@ -481,7 +510,11 @@ const Step1: React.FC<{
           </div>
         </div>
 
-        <button className={`btn-next1 ${!canProceed ? "disabled" : ""}`} disabled={!canProceed} onClick={onContinue}>
+        <button
+          className={`btn-next1 ${!canProceed || emailExists || emailChecking ? "disabled" : ""}`}
+          disabled={!canProceed || emailExists || emailChecking}
+          onClick={onContinue}
+        >
           Continue
         </button>
 
@@ -865,6 +898,12 @@ const RegisterPage: React.FC = () => {
   const [apiError,      setApiError]      = useState<string>("");
   const [loading,       setLoading]       = useState(false);
 
+  // Email duplicate check state
+  const [emailExists,   setEmailExists]   = useState(false);
+  const [emailChecking, setEmailChecking] = useState(false);
+  const emailDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastCheckedEmail = useRef<string>("");
+
   const [formData, setFormData] = useState<FormData>({
     email: "", name: "", password: "", confirmPassword: "",
     dogName: "", dogGender: "", breed: "",
@@ -874,6 +913,10 @@ const RegisterPage: React.FC = () => {
   const [accepted, setAccepted] = useState<Record<string, boolean>>({
     privacy: false, terms: false, forum: false,
   });
+
+  // Validate email format simply
+  const isEmailFormatValid = (email: string) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const handleChange = useCallback((key: keyof FormData, value: string | string[]) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
@@ -889,6 +932,26 @@ const RegisterPage: React.FC = () => {
       if (!prev[key]) return prev;
       const e = { ...prev }; delete e[key]; return e;
     });
+
+    // Debounced email existence check
+    if (key === "email") {
+      setEmailExists(false);
+      if (emailDebounceRef.current) clearTimeout(emailDebounceRef.current);
+
+      if (!isEmailFormatValid(value)) {
+        setEmailChecking(false);
+        return;
+      }
+
+      setEmailChecking(true);
+      emailDebounceRef.current = setTimeout(async () => {
+        if (value === lastCheckedEmail.current) { setEmailChecking(false); return; }
+        lastCheckedEmail.current = value;
+        const exists = await checkEmailExists(value);
+        setEmailExists(exists);
+        setEmailChecking(false);
+      }, 500);
+    }
   }, []);
 
   const togglePolicy = useCallback((key: string) => {
@@ -902,7 +965,7 @@ const RegisterPage: React.FC = () => {
   const [showVerify, setShowVerify] = useState(false);
 
   const canProceed = useCallback(() => {
-    if (step === 1) return !!(formData.email && formData.name && formData.password && formData.confirmPassword);
+    if (step === 1) return !!(formData.email && formData.name && formData.password && formData.confirmPassword) && !emailExists && !emailChecking;
     if (step === 2) return !!(formData.dogName && formData.breed);
     if (step === 3) return !!(
       formData.lifeStage &&
@@ -912,7 +975,7 @@ const RegisterPage: React.FC = () => {
     );
     if (step === 4) return !!(formData.dogGender);
     return Object.values(accepted).every(Boolean);
-  }, [step, formData, accepted]);
+  }, [step, formData, accepted, emailExists, emailChecking]);
 
   const handleNext = useCallback(() => {
     let stepErrors: ValidationErrors = {};
@@ -921,6 +984,10 @@ const RegisterPage: React.FC = () => {
     if (step === 3) stepErrors = validateStep3({ ...formData });
     if (step === 4) stepErrors = validateStep4({ dogGender: formData.dogGender });
     if (!isValid(stepErrors)) { setErrors(stepErrors); return; }
+
+    // Extra guard: block if email taken
+    if (step === 1 && emailExists) return;
+
     setErrors({});
     setApiError("");
 
@@ -931,7 +998,7 @@ const RegisterPage: React.FC = () => {
     }
 
     setStep((s) => s + 1);
-  }, [step, formData, emailVerified]);
+  }, [step, formData, emailVerified, emailExists]);
 
   const handleVerified = useCallback(() => {
     setEmailVerified(true);
@@ -1011,7 +1078,17 @@ const RegisterPage: React.FC = () => {
         Home
       </Link>
 
-      {step === 1 && <Step1 data={formData} errors={errors} onChange={(k, v) => handleStringChange(k, v as string)} onContinue={handleNext} canProceed={canProceed()} />}
+      {step === 1 && (
+        <Step1
+          data={formData}
+          errors={errors}
+          onChange={(k, v) => handleStringChange(k, v as string)}
+          onContinue={handleNext}
+          canProceed={canProceed()}
+          emailExists={emailExists}
+          emailChecking={emailChecking}
+        />
+      )}
       {step === 2 && <Step2 data={formData} errors={errors} onChange={(k, v) => handleStringChange(k, v as string)} />}
       {step === 3 && <Step3 data={formData} errors={errors} onChange={handleChange} />}
       {step === 4 && <Step4 data={formData} errors={errors} onChange={handleStringChange} />}

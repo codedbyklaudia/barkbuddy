@@ -595,16 +595,19 @@ html.a11y-large-cursor * {
   &::-webkit-scrollbar-thumb { background: rgba($misty-lavender, 0.7); border-radius: 2px; }
 }
 
-// Full-screen dimmed backdrop — wraps the mobile panel
+// Full-screen dimmed backdrop — portaled to document.body
+// so it escapes the nav's backdrop-filter stacking context
 .a11y-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 1100;
+  z-index: 9999;   // above everything including nav z-index:1000
   background: rgba(darken($twilight-purple, 30%), 0.45);
   backdrop-filter: blur(3px);
   -webkit-backdrop-filter: blur(3px);
   animation: backdrop-in 0.2s ease both;
-  @include flex-center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   // Invisible dismiss button fills the entire backdrop
   &__dismiss {
@@ -616,8 +619,17 @@ html.a11y-large-cursor * {
     z-index: 0;
   }
 
-  // Panel sits above the dismiss layer
-  .a11y-panel--mobile { @include relative; z-index: 1; }
+  // Panel sits above the dismiss layer and is centred by flex
+  .a11y-panel--mobile {
+    position: relative;
+    z-index: 1;
+    // Reset any absolute/fixed positioning — flex on the backdrop centres it
+    top: auto;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    transform: none;
+  }
 }
 
 .a11y-panel-header {
