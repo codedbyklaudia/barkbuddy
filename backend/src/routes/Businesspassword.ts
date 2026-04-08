@@ -3,14 +3,13 @@ import { body, validationResult } from "express-validator";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { Resend } from "resend";
-import nodemailer from "nodemailer";
 import pool from "../db";
 
 const router = Router();
 
 const resend     = new Resend(process.env.RESEND_API_KEY);
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
-const FROM       = "BarkBuddy <paws@barkbuddy.org.uk>";
+const FROM       = "BarkBuddy for Business <paws@barkbuddy.org.uk>";
 
 const generateToken = () => crypto.randomBytes(32).toString("hex");
 
@@ -40,14 +39,13 @@ router.post("/forgot", [
 
     const biz = rows[0];
 
-    // Invalidate existing tokens
     await pool.query(
       "UPDATE business_password_reset_tokens SET used = true WHERE business_id = $1 AND used = false",
       [biz.id]
     );
 
     const token     = generateToken();
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
 
     await pool.query(
       "INSERT INTO business_password_reset_tokens (business_id, token, expires_at) VALUES ($1, $2, $3)",
@@ -56,8 +54,8 @@ router.post("/forgot", [
 
     const resetUrl = `${CLIENT_URL}/#/business/reset-password?token=${token}`;
 
-    await resend.sendMail({
-      from:    `"BarkBuddy for Business 🐾" <${process.env.GMAIL_USER}>`,
+    await resend.emails.send({
+      from:    FROM,
       to:      email,
       subject: "Reset your BarkBuddy Business password",
       html: `
@@ -91,7 +89,7 @@ router.post("/forgot", [
   }
 });
 
-// ─── POST /api/business/password/reset ───────────────────────────────────────
+// POST /api/business/password/reset
 router.post("/reset", [
   body("token").notEmpty(),
   body("password").isLength({ min: 8 }).matches(/[A-Z]/).matches(/[0-9]/),
@@ -146,7 +144,7 @@ router.post("/reset", [
   }
 });
 
-// ─── GET /api/business/password/verify-token ─────────────────────────────────
+// GET /api/business/password/verify-token
 router.get("/verify-token", async (req: Request, res: Response): Promise<void> => {
   const { token } = req.query as { token: string };
   if (!token) { res.status(400).json({ valid: false }); return; }
