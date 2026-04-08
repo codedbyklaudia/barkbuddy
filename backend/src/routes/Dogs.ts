@@ -1,27 +1,13 @@
 import { Router, Response } from "express";
 import multer from "multer";
-import path from "path";
-import fs from "fs";
 import pool from "../db";
 import { authenticate, AuthRequest } from "../middleware/auth";
+import { uploadToCloudinary } from "../lib/uploadCloudinary";
 
 const router = Router();
 
-// ── Multer — local disk storage ───────────────────────────────────────────────
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    const dir = path.join(__dirname, "../../uploads/dogs");
-    fs.mkdirSync(dir, { recursive: true });
-    cb(null, dir);
-  },
-  filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `dog-${Date.now()}${ext}`);
-  },
-});
-
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
     if (!file.mimetype.startsWith("image/")) return cb(new Error("Images only"));
@@ -29,7 +15,7 @@ const upload = multer({
   },
 });
 
-// ── Ownership guard ────────────────────────────────────────────────────────────
+// Ownership guard
 async function ownsDog(userId: string, dogId: string): Promise<boolean> {
   const { rows } = await pool.query(
     "SELECT id FROM dogs WHERE id = $1 AND user_id = $2",
@@ -170,11 +156,7 @@ router.post("/:id/avatar", authenticate, upload.single("avatar"), async (req: Au
     if (!(await ownsDog(userId, id))) { res.status(403).json({ message: "Not authorized" }); return; }
     if (!req.file)                    { res.status(400).json({ message: "No file uploaded" }); return; }
 
-    // Build absolute URL so the frontend can use it directly in <img src>
-    // Works both locally (http://localhost:4000) and on FastPanda (your domain)
-    const protocol = req.headers["x-forwarded-proto"] || req.protocol;
-    const host     = req.headers["x-forwarded-host"]  || req.get("host");
-    const avatarUrl = `${protocol}://${host}/uploads/dogs/${req.file.filename}`;
+    const avatarUrl = await uploadToCloudinary(req.file.buffer, "barkbuddy/dogs");
 
     await pool.query(
       "UPDATE dogs SET avatar_url = $1, updated_at = NOW() WHERE id = $2",
@@ -268,10 +250,11 @@ router.put("/:id/details", authenticate, async (req: AuthRequest, res: Response)
   }
 });
 
+// GET /api/dogs/:id/public
 router.get("/:id/public", async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
- 
+
     const { rows } = await pool.query(
       `SELECT
          d.id,
@@ -303,12 +286,12 @@ router.get("/:id/public", async (req: AuthRequest, res: Response): Promise<void>
        WHERE d.id = $1`,
       [id]
     );
- 
+
     if (rows.length === 0) {
       res.status(404).json({ message: "Dog not found" });
       return;
     }
- 
+
     res.json({ dog: rows[0] });
   } catch (err) {
     console.error("GET /dogs/:id/public error:", err);

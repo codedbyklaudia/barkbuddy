@@ -4,44 +4,20 @@ import bcrypt from "bcryptjs";
 import pool from "../db";
 import { authenticate, AuthRequest } from "../middleware/auth";
 import multer from "multer";
-import path from "path";
-import fs from "fs";
+import { uploadToCloudinary } from "../lib/uploadCloudinary";
 
 const router = Router();
 
-const UPLOADS_ROOT = path.join(process.cwd(), "uploads");
-
-const createLocalStorage = (subfolder: string) =>
-  multer.diskStorage({
-    destination: (_req, _file, cb) => {
-      const dir = path.join(UPLOADS_ROOT, subfolder);
-      fs.mkdirSync(dir, { recursive: true });
-      cb(null, dir);
-    },
-    filename: (_req, file, cb) => {
-      const ext  = path.extname(file.originalname).toLowerCase() || ".jpg";
-      const name = `${Date.now()}-${Math.round(Math.random() * 1e6)}${ext}`;
-      cb(null, name);
-    },
-  });
+const memStorage = multer.memoryStorage();
 
 const imageFilter: multer.Options["fileFilter"] = (_req, file, cb) => {
   if (file.mimetype.startsWith("image/")) cb(null, true);
   else cb(new Error("Only image files are allowed"));
 };
 
-const uploadUserAvatar  = multer({ storage: createLocalStorage("users"),   limits: { fileSize: 5 * 1024 * 1024 }, fileFilter: imageFilter });
-const uploadUserBanner  = multer({ storage: createLocalStorage("banners"),  limits: { fileSize: 8 * 1024 * 1024 }, fileFilter: imageFilter });
-const uploadDogAvatar   = multer({ storage: createLocalStorage("dogs"),     limits: { fileSize: 5 * 1024 * 1024 }, fileFilter: imageFilter });
-
-const toPublicUrl = (req: AuthRequest, filePath: string): string => {
-  const normalised = filePath.replace(/\\/g, "/");
-  const idx        = normalised.indexOf("/uploads/");
-  const relative   = idx !== -1
-    ? normalised.slice(idx)
-    : `/uploads/${path.basename(filePath)}`;
-  return `${req.protocol}://${req.get("host")}${relative}`;
-};
+const uploadUserAvatar = multer({ storage: memStorage, limits: { fileSize: 5 * 1024 * 1024 }, fileFilter: imageFilter });
+const uploadUserBanner = multer({ storage: memStorage, limits: { fileSize: 8 * 1024 * 1024 }, fileFilter: imageFilter });
+const uploadDogAvatar  = multer({ storage: memStorage, limits: { fileSize: 5 * 1024 * 1024 }, fileFilter: imageFilter });
 
 // Helper: recalculate profile_complete
 const calcProfileComplete = (user: {
@@ -222,7 +198,7 @@ router.patch("/me", [
   }
 });
 
-//Delete account
+// DELETE /api/users/me
 router.delete("/me", authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   const client = await pool.connect();
   try {
@@ -245,7 +221,8 @@ router.post("/me/avatar", uploadUserAvatar.single("avatar"), async (req: AuthReq
   try {
     if (!req.file) { res.status(400).json({ message: "No image provided" }); return; }
 
-    const avatarUrl = toPublicUrl(req, req.file.path);
+    const avatarUrl = await uploadToCloudinary(req.file.buffer, "barkbuddy/users");
+
     await pool.query(
       "UPDATE users SET avatar_url = $1, updated_at = NOW() WHERE id = $2",
       [avatarUrl, req.user!.userId]
@@ -273,7 +250,8 @@ router.post("/me/banner", uploadUserBanner.single("banner"), async (req: AuthReq
   try {
     if (!req.file) { res.status(400).json({ message: "No image provided" }); return; }
 
-    const bannerUrl = toPublicUrl(req, req.file.path);
+    const bannerUrl = await uploadToCloudinary(req.file.buffer, "barkbuddy/banners");
+
     await pool.query(
       "UPDATE users SET banner_url = $1, updated_at = NOW() WHERE id = $2",
       [bannerUrl, req.user!.userId]
@@ -363,7 +341,8 @@ router.post("/me/dog/avatar", uploadDogAvatar.single("avatar"), async (req: Auth
   try {
     if (!req.file) { res.status(400).json({ message: "No image provided" }); return; }
 
-    const avatarUrl = toPublicUrl(req, req.file.path);
+    const avatarUrl = await uploadToCloudinary(req.file.buffer, "barkbuddy/dogs");
+
     await pool.query(
       "UPDATE dogs SET avatar_url = $1, updated_at = NOW() WHERE user_id = $2 AND is_main = true",
       [avatarUrl, req.user!.userId]
@@ -496,7 +475,8 @@ router.post("/me/dogs/:dogId/avatar", uploadDogAvatar.single("avatar"), async (r
   const userId = req.user!.userId;
 
   try {
-    const avatarUrl = toPublicUrl(req, req.file.path);
+    const avatarUrl = await uploadToCloudinary(req.file.buffer, "barkbuddy/dogs");
+
     await pool.query(
       "UPDATE dogs SET avatar_url = $1, updated_at = NOW() WHERE id = $2 AND user_id = $3",
       [avatarUrl, dogId, userId]

@@ -2,21 +2,19 @@ import { Router, Request, Response } from "express";
 import { body, validationResult } from "express-validator";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
+import { Resend } from "resend";
 import nodemailer from "nodemailer";
 import pool from "../db";
 
 const router = Router();
-const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
 
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com", port: 465, secure: true,
-  auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD },
-  tls: { rejectUnauthorized: false },
-});
+const resend     = new Resend(process.env.RESEND_API_KEY);
+const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
+const FROM       = "BarkBuddy <paws@barkbuddy.org.uk>";
 
 const generateToken = () => crypto.randomBytes(32).toString("hex");
 
-// ─── POST /api/business/password/forgot ──────────────────────────────────────
+// POST /api/business/password/forgot
 router.post("/forgot", [
   body("email").isEmail().normalizeEmail(),
 ], async (req: Request, res: Response): Promise<void> => {
@@ -58,7 +56,7 @@ router.post("/forgot", [
 
     const resetUrl = `${CLIENT_URL}/#/business/reset-password?token=${token}`;
 
-    await transporter.sendMail({
+    await resend.sendMail({
       from:    `"BarkBuddy for Business 🐾" <${process.env.GMAIL_USER}>`,
       to:      email,
       subject: "Reset your BarkBuddy Business password",
