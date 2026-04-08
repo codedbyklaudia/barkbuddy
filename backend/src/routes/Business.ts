@@ -499,21 +499,6 @@ router.get("/verify-email", async (req: Request, res: Response): Promise<void> =
   }
 });
 
-// GET /api/business/test-email
-router.get("/test-email", async (req: Request, res: Response): Promise<void> => {
-  const to = (req.query.to as string) || process.env.SMTP_USER || "";
-  try {
-    await transporter.sendMail({
-      from: process.env.SMTP_FROM,
-      to,
-      subject: "BarkBuddy business mailer test",
-      html:    "<p>If you can read this, Gmail is configured correctly! 🐾</p>",
-    });
-    res.json({ ok: true, message: `Test email sent to ${to}` });
-  } catch (err: any) {
-    res.status(500).json({ ok: false, code: err?.code, message: err?.message, response: err?.response });
-  }
-});
 
 // ─── GET /api/business/check-email ────────────────────────────────────────────
 router.get("/check-email", async (req: Request, res: Response): Promise<void> => {
