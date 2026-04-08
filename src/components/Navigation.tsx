@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Navigation.scss';
-import { Hand, SunDim, Ligature,LogIn, ArrowDownFromLine, MousePointer2, UserRoundPlus} from 'lucide-react';
+import { Hand, SunDim, Ligature, LogIn, ArrowDownFromLine, MousePointer2, UserRoundPlus } from 'lucide-react';
 
 import { useAuth } from '../context/AuthContext';
 import { getProfile } from '../api/users';
@@ -10,6 +10,8 @@ const GroomingIcon  = () => <img src='../../images/icons/grooming.svg'  alt="Gro
 const NutritionIcon = () => <img src='../../images/icons/nutrition.svg' alt="Nutrition" className="menu-icon" />;
 const TrainingIcon  = () => <img src='../../images/icons/training.svg'  alt="Training"  className="menu-icon" />;
 const HealthIcon    = () => <img src='../../images/icons/health.svg'    alt="Health"    className="menu-icon" />;
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface A11ySettings {
   fontSize:      'normal' | 'large' | 'xl';
@@ -47,18 +49,49 @@ function applyA11y(s: A11ySettings) {
   try { localStorage.setItem('bb_a11y', JSON.stringify(s)); } catch {}
 }
 
-// Accessibility Panel 
-const AccessibilityPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+// ─── NavAvatar ────────────────────────────────────────────────────────────────
+
+interface NavAvatarProps {
+  src?:      string;
+  initials?: string;
+  alt?:      string;
+  size?:     'sm' | 'md' | 'lg' | 'xl' | 'trigger' | 'mobile';
+}
+
+const NavAvatar: React.FC<NavAvatarProps> = ({ src, initials = '?', alt = 'User avatar', size = 'md' }) => (
+  <div className={`nav-avatar nav-avatar--${size}`} aria-hidden="true">
+    {src ? <img src={src} alt={alt} /> : <span>{initials}</span>}
+  </div>
+);
+
+// ─── Accessibility Panel ──────────────────────────────────────────────────────
+// Accepts an `onClose` and renders its own backdrop when `isMobile` is true.
+// On desktop it stays as a positioned dropdown; on mobile it's a fixed overlay.
+
+interface A11yPanelProps {
+  onClose:  () => void;
+  isMobile?: boolean;
+}
+
+const AccessibilityPanel: React.FC<A11yPanelProps> = ({ onClose, isMobile = false }) => {
   const [settings, setSettings] = useState<A11ySettings>(loadA11y);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const click = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) onClose(); };
-    const key   = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    document.addEventListener('mousedown', click);
-    document.addEventListener('keydown',   key);
-    return () => { document.removeEventListener('mousedown', click); document.removeEventListener('keydown', key); };
+    const key = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', key);
+    return () => document.removeEventListener('keydown', key);
   }, [onClose]);
+
+  // On desktop close on outside click; on mobile the backdrop button handles it
+  useEffect(() => {
+    if (isMobile) return;
+    const click = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+    };
+    document.addEventListener('mousedown', click);
+    return () => document.removeEventListener('mousedown', click);
+  }, [onClose, isMobile]);
 
   const update = useCallback((patch: Partial<A11ySettings>) => {
     setSettings(prev => { const next = { ...prev, ...patch }; applyA11y(next); return next; });
@@ -66,8 +99,23 @@ const AccessibilityPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
   const reset = () => { const d = { ...A11Y_DEFAULTS }; setSettings(d); applyA11y(d); };
 
-  return (
-    <div className="a11y-panel" ref={ref} role="dialog" aria-label="Accessibility settings" aria-modal="true">
+  const toggleRows = [
+    { key: 'highContrast',  icon: <SunDim />,           label: 'High contrast',          sub: 'Sharper colour differences'        },
+    { key: 'reducedMotion', icon: <Hand />,              label: 'Reduce motion',          sub: 'Fewer animations & transitions'   },
+    { key: 'dyslexiaFont',  icon: <Ligature />,          label: 'Dyslexia-friendly font', sub: 'OpenDyslexic typeface'            },
+    { key: 'lineSpacing',   icon: <ArrowDownFromLine />, label: 'Increased line spacing', sub: 'More breathing room'              },
+    { key: 'cursorLarge',   icon: <MousePointer2 />,     label: 'Large cursor',           sub: 'Easier to spot on screen'         },
+  ];
+
+  const panel = (
+    <div
+      className={`a11y-panel ${isMobile ? 'a11y-panel--mobile' : ''}`}
+      ref={ref}
+      role="dialog"
+      aria-label="Accessibility settings"
+      aria-modal="true">
+
+      {/* Header */}
       <div className="a11y-panel-header">
         <div className="a11y-panel-title">
           <span className="a11y-panel-badge" aria-hidden="true"><Hand /></span>
@@ -83,13 +131,16 @@ const AccessibilityPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         </button>
       </div>
 
+      {/* Text size */}
       <div className="a11y-section">
         <p className="a11y-section-label">Text size</p>
         <div className="a11y-font-row" role="group" aria-label="Text size">
-          {(['normal', 'large', 'xl'] as const).map((size) => (
-            <button key={size}
+          {(['normal', 'large', 'xl'] as const).map(size => (
+            <button
+              key={size}
               className={`a11y-font-btn ${settings.fontSize === size ? 'a11y-font-btn--active' : ''}`}
-              onClick={() => update({ fontSize: size })} aria-pressed={settings.fontSize === size}>
+              onClick={() => update({ fontSize: size })}
+              aria-pressed={settings.fontSize === size}>
               <span className={`a11y-font-preview a11y-font-preview--${size}`}>Aa</span>
               <span>{size === 'normal' ? 'Default' : size === 'large' ? 'Large' : 'Extra large'}</span>
             </button>
@@ -99,15 +150,10 @@ const AccessibilityPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
       <div className="a11y-divider" />
 
+      {/* Visual toggles */}
       <div className="a11y-section">
         <p className="a11y-section-label">Visual preferences</p>
-        {[
-          { key: 'highContrast',  icon: <SunDim />, label: 'High contrast',          sub: 'Sharper colour differences'         },
-          { key: 'reducedMotion', icon: <Hand />, label: 'Reduce motion',           sub: 'Fewer animations & transitions'    },
-          { key: 'dyslexiaFont',  icon: <Ligature />, label: 'Dyslexia-friendly font', sub: 'OpenDyslexic typeface'             },
-          { key: 'lineSpacing',   icon: <ArrowDownFromLine />, label: 'Increased line spacing', sub: 'More breathing room between lines' },
-          { key: 'cursorLarge',   icon: <MousePointer2 />, label: 'Large cursor',           sub: 'Easier to spot on screen'          },
-        ].map(({ key, icon, label, sub }) => {
+        {toggleRows.map(({ key, icon, label, sub }) => {
           const checked = settings[key as keyof A11ySettings] as boolean;
           return (
             <div key={key} className={`a11y-toggle-row ${checked ? 'a11y-toggle-row--on' : ''}`}>
@@ -132,27 +178,46 @@ const AccessibilityPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       </div>
     </div>
   );
+
+  // Mobile: wrap in a dimmed full-screen backdrop
+  if (isMobile) {
+    return (
+      <div className="a11y-backdrop" aria-hidden="false">
+        {/* Clicking the backdrop closes the panel */}
+        <button className="a11y-backdrop__dismiss" onClick={onClose} aria-label="Close accessibility panel" tabIndex={-1} />
+        {panel}
+      </div>
+    );
+  }
+
+  return panel;
 };
 
-// Accessibility Button
+// ─── Accessibility Button (desktop) ──────────────────────────────────────────
+
 const AccessibilityButton: React.FC = () => {
   const [open, setOpen] = useState(false);
   useEffect(() => { applyA11y(loadA11y()); }, []);
+
   return (
     <div className="navigation__a11y-wrap">
       <button
         className={`navigation__a11y-btn ${open ? 'navigation__a11y-btn--open' : ''}`}
         onClick={() => setOpen(o => !o)}
-        aria-label="Accessibility settings" aria-expanded={open} title="Accessibility">
+        aria-label="Accessibility settings"
+        aria-expanded={open}
+        title="Accessibility">
         <Hand />
         <span className="a11y-btn-label">Accessibility</span>
       </button>
-      {open && <AccessibilityPanel onClose={() => setOpen(false)} />}
+      {/* Desktop: dropdown positioned below button */}
+      {open && <AccessibilityPanel onClose={() => setOpen(false)} isMobile={false} />}
     </div>
   );
 };
 
-// User Menu
+// ─── User Menu (desktop) ──────────────────────────────────────────────────────
+
 const UserMenu: React.FC = () => {
   const { user: authUser, token, logout } = useAuth();
   const navigate = useNavigate();
@@ -184,9 +249,7 @@ const UserMenu: React.FC = () => {
         className={`navigation__user-trigger ${open ? 'navigation__user-trigger--open' : ''}`}
         onClick={() => setOpen(!open)}
         aria-haspopup="true" aria-expanded={open} aria-label="User menu">
-        <div className="navigation__avatar navigation__avatar--trigger">
-          {avatarUrl ? <img src={avatarUrl} alt={name || 'User avatar'} /> : <span className="navigation__avatar-initials">{initials}</span>}
-        </div>
+        <NavAvatar src={avatarUrl} initials={initials} alt={name || 'User'} size="trigger" />
         <span className="navigation__user-trigger-name">{name.split(' ')[0] || 'Account'}</span>
         <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"
           className={`dropdown-arrow ${open ? 'dropdown-arrow--open' : ''}`} aria-hidden="true">
@@ -196,20 +259,14 @@ const UserMenu: React.FC = () => {
 
       {open && (
         <div className="navigation__user-dropdown">
-          {/* User info header */}
           <div className="navigation__user-info">
-            <div className="navigation__avatar navigation__avatar--lg">
-              {avatarUrl ? <img src={avatarUrl} alt={name || 'User'} /> : <span className="navigation__avatar-initials">{initials}</span>}
-            </div>
+            <NavAvatar src={avatarUrl} initials={initials} alt={name || 'User'} size="lg" />
             <div className="navigation__user-info-text">
               <p className="navigation__user-name">{name || 'Dog Lover'}</p>
               <p className="navigation__user-email">{email}</p>
             </div>
           </div>
-
           <div className="navigation__user-divider" />
-
-          {/* Dashboard — home tab */}
           <Link to="/dashboard" className="navigation__user-item" onClick={() => setOpen(false)}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18" aria-hidden="true">
               <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
@@ -217,8 +274,6 @@ const UserMenu: React.FC = () => {
             </svg>
             Dashboard
           </Link>
-
-          {/* Settings — opens dashboard on the settings tab */}
           <Link to="/dashboard" state={{ tab: 'settings' }} className="navigation__user-item" onClick={() => setOpen(false)}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18" aria-hidden="true">
               <circle cx="12" cy="12" r="3"/>
@@ -226,17 +281,13 @@ const UserMenu: React.FC = () => {
             </svg>
             Settings
           </Link>
-
-          
           <Link to="/forum-page" className="navigation__user-item" onClick={() => setOpen(false)}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18" aria-hidden="true">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
             </svg>
             Forum
           </Link>
-
           <div className="navigation__user-divider" />
-
           <button className="navigation__user-item navigation__user-item--logout" onClick={handleLogout}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18" aria-hidden="true">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
@@ -250,7 +301,7 @@ const UserMenu: React.FC = () => {
   );
 };
 
-// Mobile User Menu
+// ─── Mobile User Menu ─────────────────────────────────────────────────────────
 
 const MobileUserMenu: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const { user: authUser, token, logout } = useAuth();
@@ -272,15 +323,12 @@ const MobileUserMenu: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   return (
     <li className="navigation__mobile-user">
       <div className="navigation__mobile-user-info">
-        <div className="navigation__avatar navigation__avatar--md">
-          {avatarUrl ? <img src={avatarUrl} alt={name || 'User'} /> : <span className="navigation__avatar-initials">{initials}</span>}
-        </div>
-        <div>
+        <NavAvatar src={avatarUrl} initials={initials} alt={name || 'User'} size="mobile" />
+        <div className="navigation__mobile-user-text">
           <p className="navigation__user-name">{name || 'Dog Lover'}</p>
           <p className="navigation__user-email">{email}</p>
         </div>
       </div>
-
       <Link to="/dashboard" className="navigation__mobile-user-link" onClick={onClose}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16" aria-hidden="true">
           <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
@@ -288,8 +336,6 @@ const MobileUserMenu: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         </svg>
         Dashboard
       </Link>
-
-      {/* Settings tab */}
       <Link to="/dashboard" state={{ tab: 'settings' }} className="navigation__mobile-user-link" onClick={onClose}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16" aria-hidden="true">
           <circle cx="12" cy="12" r="3"/>
@@ -297,7 +343,6 @@ const MobileUserMenu: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         </svg>
         Settings
       </Link>
-
       <button className="navigation__mobile-user-link navigation__mobile-user-link--logout" onClick={handleLogout}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16" aria-hidden="true">
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
@@ -309,14 +354,17 @@ const MobileUserMenu: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   );
 };
 
-// Main Navigation
+// ─── Main Navigation ──────────────────────────────────────────────────────────
+
 const Navigation: React.FC = () => {
   const { token, isLoading } = useAuth();
   const isAuthenticated = !!token;
-  const [isMenuOpen,     setIsMenuOpen]     = useState(false);
-  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-  const [closeTimer,     setCloseTimer]     = useState<ReturnType<typeof setTimeout> | null>(null);
-  const [scrolled,       setScrolled]       = useState(false);
+  const [isMenuOpen,      setIsMenuOpen]      = useState(false);
+  const [activeDropdown,  setActiveDropdown]  = useState<string | null>(null);
+  const [closeTimer,      setCloseTimer]      = useState<ReturnType<typeof setTimeout> | null>(null);
+  const [scrolled,        setScrolled]        = useState(false);
+  // Mobile a11y panel lives at nav root so it never gets clipped by the menu list
+  const [mobileA11yOpen,  setMobileA11yOpen]  = useState(false);
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 10);
@@ -324,12 +372,12 @@ const Navigation: React.FC = () => {
     return () => window.removeEventListener('scroll', handler);
   }, []);
 
-  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+  const toggleMenu          = () => setIsMenuOpen(v => !v);
   const handleDropdownClick = (menu: string) => setActiveDropdown(activeDropdown === menu ? null : menu);
-  const handleMouseEnter = (menu: string) => { if (closeTimer) { clearTimeout(closeTimer); setCloseTimer(null); } setActiveDropdown(menu); };
-  const handleMouseLeave = () => { const timer = setTimeout(() => setActiveDropdown(null), 400); setCloseTimer(timer); };
+  const handleMouseEnter    = (menu: string) => { if (closeTimer) { clearTimeout(closeTimer); setCloseTimer(null); } setActiveDropdown(menu); };
+  const handleMouseLeave    = () => { const t = setTimeout(() => setActiveDropdown(null), 400); setCloseTimer(t); };
   const handleDropdownEnter = () => { if (closeTimer) { clearTimeout(closeTimer); setCloseTimer(null); } };
-  const handleDropdownLeave = () => { const timer = setTimeout(() => setActiveDropdown(null), 200); setCloseTimer(timer); };
+  const handleDropdownLeave = () => { const t = setTimeout(() => setActiveDropdown(null), 200); setCloseTimer(t); };
   useEffect(() => { return () => { if (closeTimer) clearTimeout(closeTimer); }; }, [closeTimer]);
 
   const careMenuItems = [
@@ -344,12 +392,14 @@ const Navigation: React.FC = () => {
       <a href="#main-content" className="navigation__skip-link">Skip to main content</a>
 
       <div className="navigation__container">
+        {/* Logo */}
         <div className="navigation__logo">
           <Link to="/" aria-label="BarkBuddy — go to homepage">
             <img src="../images/logo.png" alt="BarkBuddy" className="navigation__logo-img" />
           </Link>
         </div>
 
+        {/* Desktop menu */}
         <ul className="navigation__menu" role="menubar">
           <li className="navigation__menu-item" role="none"
             onMouseEnter={() => handleMouseEnter('care')} onMouseLeave={handleMouseLeave}>
@@ -361,7 +411,7 @@ const Navigation: React.FC = () => {
             {activeDropdown === 'care' && (
               <div className="navigation__mega-dropdown" role="menu" onMouseEnter={handleDropdownEnter} onMouseLeave={handleDropdownLeave}>
                 <div className="navigation__mega-grid">
-                  {careMenuItems.map((item) => (
+                  {careMenuItems.map(item => (
                     <Link key={item.to} to={item.to} className="navigation__mega-item" role="menuitem">
                       <div className="navigation__mega-icon">{item.icon}</div>
                       <span className="navigation__mega-label">{item.label}</span>
@@ -403,6 +453,7 @@ const Navigation: React.FC = () => {
           </li>
         </ul>
 
+        {/* Desktop CTA */}
         <div className="navigation__cta">
           <AccessibilityButton />
           <span className="navigation__cta-divider" aria-hidden="true" />
@@ -413,32 +464,39 @@ const Navigation: React.FC = () => {
           ) : (
             <>
               <Link to="/login"    className="btn--nav btn-login"><LogIn /> Log In</Link>
-              <Link to="/register" className="btn--nav btn-register"><UserRoundPlus/> Register</Link>
+              <Link to="/register" className="btn--nav btn-register"><UserRoundPlus /> Register</Link>
             </>
           )}
         </div>
 
+        {/* Hamburger */}
         <button
           className={`navigation__hamburger ${isMenuOpen ? 'navigation__hamburger--open' : ''}`}
           onClick={toggleMenu}
           aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
           aria-expanded={isMenuOpen} aria-controls="mobile-menu">
-          <img src={isMenuOpen ? "../../images/icons/close.svg" : "../../images/icons/hamburger-menu.svg"} alt="" aria-hidden="true" />
+          <img src={isMenuOpen ? '../../images/icons/close.svg' : '../../images/icons/hamburger-menu.svg'} alt="" aria-hidden="true" />
         </button>
       </div>
 
-      <div id="mobile-menu" className={`navigation__mobile ${isMenuOpen ? 'navigation__mobile--open' : ''}`} aria-hidden={!isMenuOpen}>
+      {/* Mobile menu */}
+      <div id="mobile-menu"
+        className={`navigation__mobile ${isMenuOpen ? 'navigation__mobile--open' : ''}`}
+        aria-hidden={!isMenuOpen}>
         <ul role="menu">
+          {/* Dog Care */}
           <li role="none">
-            <button className="navigation__mobile-toggle" onClick={() => handleDropdownClick('care-mobile')}
+            <button className="navigation__mobile-toggle"
+              onClick={() => handleDropdownClick('care-mobile')}
               aria-haspopup="true" aria-expanded={activeDropdown === 'care-mobile'}>
               <i className="bi bi-suit-heart" aria-hidden="true" /> Dog Care
               <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"
-                className={`dropdown-arrow ${activeDropdown === 'care-mobile' ? 'dropdown-arrow--open' : ''}`} aria-hidden="true"><path d="M6 8L2 4h8L6 8z"/></svg>
+                className={`dropdown-arrow ${activeDropdown === 'care-mobile' ? 'dropdown-arrow--open' : ''}`}
+                aria-hidden="true"><path d="M6 8L2 4h8L6 8z"/></svg>
             </button>
             {activeDropdown === 'care-mobile' && (
               <div className="navigation__mobile-submenu" role="menu">
-                {careMenuItems.map((item) => (
+                {careMenuItems.map(item => (
                   <Link key={item.to} to={item.to} onClick={toggleMenu} className="navigation__mobile-icon-item" role="menuitem">
                     <div className="navigation__mobile-icon-wrapper">{item.icon}</div>
                     <span>{item.label}</span>
@@ -449,14 +507,17 @@ const Navigation: React.FC = () => {
           </li>
 
           <li role="none"><Link to="/service-finder" onClick={toggleMenu} role="menuitem"><i className="bi bi-shop" aria-hidden="true" /> BarkBuddy Discover</Link></li>
-          <li role="none"><Link to="/travel-page" onClick={toggleMenu} role="menuitem"><i className="bi bi-airplane" aria-hidden="true" /> Travel</Link></li>
+          <li role="none"><Link to="/travel-page"    onClick={toggleMenu} role="menuitem"><i className="bi bi-airplane" aria-hidden="true" /> Travel</Link></li>
 
+          {/* More */}
           <li role="none">
-            <button className="navigation__mobile-toggle" onClick={() => handleDropdownClick('more-mobile')}
+            <button className="navigation__mobile-toggle"
+              onClick={() => handleDropdownClick('more-mobile')}
               aria-haspopup="true" aria-expanded={activeDropdown === 'more-mobile'}>
               <i className="bi bi-grid" aria-hidden="true" /> More
               <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"
-                className={`dropdown-arrow ${activeDropdown === 'more-mobile' ? 'dropdown-arrow--open' : ''}`} aria-hidden="true"><path d="M6 8L2 4h8L6 8z"/></svg>
+                className={`dropdown-arrow ${activeDropdown === 'more-mobile' ? 'dropdown-arrow--open' : ''}`}
+                aria-hidden="true"><path d="M6 8L2 4h8L6 8z"/></svg>
             </button>
             {activeDropdown === 'more-mobile' && (
               <div className="navigation__mobile-submenu" role="menu">
@@ -470,24 +531,45 @@ const Navigation: React.FC = () => {
           </li>
 
           <li className="navigation__mobile-divider" role="none" />
+
+          {/* Mobile a11y row — button only, panel is rendered at nav root */}
           <li className="navigation__mobile-a11y-row" role="none">
-            <AccessibilityButton />
-            <span>Accessibility settings</span>
+            <button
+              className={`navigation__mobile-a11y-btn ${mobileA11yOpen ? 'navigation__mobile-a11y-btn--open' : ''}`}
+              onClick={() => setMobileA11yOpen(o => !o)}
+              aria-label="Accessibility settings"
+              aria-expanded={mobileA11yOpen}>
+              <span className="navigation__mobile-a11y-icon" aria-hidden="true"><Hand /></span>
+              <span>Accessibility settings</span>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"
+                className={`dropdown-arrow ${mobileA11yOpen ? 'dropdown-arrow--open' : ''}`}
+                aria-hidden="true"><path d="M6 8L2 4h8L6 8z"/></svg>
+            </button>
           </li>
+
           <li className="navigation__mobile-divider" role="none" />
 
+          {/* Auth */}
           {!isLoading && (
             isAuthenticated ? (
               <MobileUserMenu onClose={toggleMenu} />
             ) : (
               <li className="navigation__mobile-buttons" role="none">
-                <Link to="/login"    className="btn--nav btn-login"    onClick={toggleMenu}><LogIn/> Login</Link>
-                <Link to="/register" className="btn--nav btn-register" onClick={toggleMenu}><UserRoundPlus/> Register</Link>
+                <Link to="/login"    className="btn--nav btn-login"    onClick={toggleMenu}><LogIn /> Login</Link>
+                <Link to="/register" className="btn--nav btn-register" onClick={toggleMenu}><UserRoundPlus /> Register</Link>
               </li>
             )
           )}
         </ul>
       </div>
+
+      {/* Mobile a11y panel — rendered here at nav root, above everything */}
+      {mobileA11yOpen && (
+        <AccessibilityPanel
+          onClose={() => setMobileA11yOpen(false)}
+          isMobile={true}
+        />
+      )}
     </nav>
   );
 };

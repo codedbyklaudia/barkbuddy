@@ -5,27 +5,15 @@ import crypto from "crypto";
 import fs from "fs";
 import path from "path";
 import multer from "multer";
-import nodemailer from "nodemailer";
 import pool from "../db";
+import { Resend } from "resend";
 import { geocodeUKAddress } from "../utils/geocode";
 
 const router = Router();
 
-const CLIENT_URL = process.env.CLIENT_URL  || "http://localhost:5173";
-
-
-// Gmail transporter 
-const transporter = nodemailer.createTransport({
-  host:   process.env.SMTP_HOST,
-  port:   Number(process.env.SMTP_PORT) || 465,
-  secure: true,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-  tls: { rejectUnauthorized: false },
-});
-
+const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
+const resend = new Resend(process.env.RESEND_API_KEY);
+const FROM_ADDRESS = process.env.RESEND_FROM || "BarkBuddy <noreply@barkbuddy.org.uk>";
 
 // Helpers
 const generateToken = () => crypto.randomBytes(32).toString("hex");
@@ -44,7 +32,7 @@ async function savePhotoLocally(
   return { fileName, filePath: `/uploads/business_photos/${fileName}` };
 }
 
-// ─── Multer (memory storage — we write to disk manually) ─────────────────────
+// Multer
 const upload = multer({
   storage: multer.memoryStorage(),
   limits:  { fileSize: 10 * 1024 * 1024 },
@@ -54,7 +42,7 @@ const upload = multer({
   },
 });
 
-// ─── Validators ───────────────────────────────────────────────────────────────
+// Validators
 const accountValidators = [
   body("email").trim().isEmail().withMessage("Enter a valid email"),
   body("personalName").trim().notEmpty().withMessage("Name is required"),
@@ -86,14 +74,18 @@ async function sendVerificationEmail(
   verifyUrl: string,
   isActivity: boolean
 ): Promise<void> {
-  await transporter.sendMail({
-    from: process.env.SMTP_FROM,
+  const { error } = await resend.emails.send({
+    from: FROM_ADDRESS,
     to,
     subject: isActivity
       ? `Verify your email - BarkBuddy application for ${businessName}`
       : `Welcome to BarkBuddy Business - please verify your email`,
     html: generateVerificationEmailHtml(personalName, businessName, verifyUrl, isActivity),
   });
+
+  if (error) {
+    throw new Error(`Resend error: ${error.message}`);
+  }
 }
 
 const generateVerificationEmailHtml = (

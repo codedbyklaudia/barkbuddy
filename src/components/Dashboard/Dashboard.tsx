@@ -1372,7 +1372,15 @@ const ExtraDogPanel: React.FC<{
                 const sel = cat.options.find(o => dog.personality.includes(o.key));
                 if (!sel) return null;
                 return (
-                  <div key={cat.id} className="dog-personality-cat-card">
+                  <div
+                    key={cat.id}
+                    className="dog-personality-cat-card"
+                    onClick={() => setEditOpen(true)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === "Enter" && setEditOpen(true)}
+                    title="Edit personality"
+                  >
                     <div className="dog-personality-cat-img-wrap">
                       <img src={sel.img} alt={sel.label}
                         onError={(e) => {
@@ -1489,7 +1497,15 @@ const DogView: React.FC<{
                 const sel = cat.options.find(o => dog.personality.includes(o.key));
                 if (!sel) return null;
                 return (
-                  <div key={cat.id} className="dog-personality-cat-card">
+                  <div
+                    key={cat.id}
+                    className="dog-personality-cat-card"
+                    onClick={() => setEditOpen(true)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === "Enter" && setEditOpen(true)}
+                    title="Edit personality"
+                  >
                     <div className="dog-personality-cat-img-wrap">
                       <img src={sel.img} alt={sel.label}
                         onError={(e) => {

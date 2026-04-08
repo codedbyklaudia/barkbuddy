@@ -1157,13 +1157,22 @@
 .adw-btn-next { @include center; gap: $space-xs; padding: $space-sm $space-lg; background: $twilight-purple !important; color: $soft-pearl; @include none; border-radius: $radius-lg; font-family: $font-secondary; font-size: $t-link-des; font-weight: $fw-medium; @include cursor; letter-spacing: 0.03em; transition: all 0.2s; box-shadow: $shadow-purple-glow; &:hover { background: $serene-purple !important; transform: translateY(-1px); box-shadow: $shadow-2xl; } @media (min-width: $bp-mobile) { padding: $space-sm $space-xl; } }
 .adw-btn-save { @extend .adw-btn-next; background: linear-gradient(135deg, $twilight-purple 0%, $serene-purple 100%); font-weight: $fw-bold; &:hover { background: linear-gradient(135deg, $serene-purple 0%, $twilight-purple 100%); } }
 
-// ─── Dog Personality Cats ─────────────────────────────────────────────────────
+// Dog Personality Cats
 .dog-personality-cats { display: flex; flex-wrap: wrap; gap: $space-md; justify-content: center; width: 100%; }
 
 .dog-personality-cat-card {
-  @include flex-column; gap: $space-xs; padding: $space-sm $space-sm $space-xs;
+  @include flex-column; gap: $space-xs; padding: $space-sm $space-sm $space-xs; @include relative; @include cursor;
   background: rgb(214, 200, 240); border: 2px solid rgba($twilight-purple, 0.18); border-radius: $radius-lg;
   min-width: 125px; flex: 1; max-width: 150px; transition: all 0.18s; box-shadow: 0 2px 8px rgba($twilight-purple, 0.06);
+  &::after {
+    content: '✎';
+    @include absolute;
+    top: 6px;
+    right: 8px;
+    font-size: 0.65rem;
+    color: rgba($twilight-purple, 0);
+    transition: color 0.18s ease;
+  }
   &:hover { border-color: rgba($twilight-purple, 0.35); transform: translateY(-2px); box-shadow: 0 6px 16px rgba($twilight-purple, 0.12); }
 }
 

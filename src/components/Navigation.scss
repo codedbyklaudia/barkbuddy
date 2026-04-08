@@ -1,63 +1,61 @@
 @import '../styles/variables';
 @import '../styles/mixins';
 
-// Global accessibility overrides applied to <html> by applyA11y()
-:root { --a11y-font-size: 16px; }
-html { font-size: var(--a11y-font-size); }
+// ─── A11Y GLOBAL OVERRIDES ────────────────────────────────────────────────────
 
-// High contrast
+:root { --a11y-font-size: 16px; }
+html  { font-size: var(--a11y-font-size); }
+
 html.a11y-high-contrast {
-  filter: contrast(1.4);
+  filter: contrast(1.45);
   .navigation { border-bottom-color: currentColor; }
   .navigation__menu-link,
   .navigation__user-item,
   .navigation__user-trigger-name { color: #000 !important; }
 }
 
-// Reduced motion
 html.a11y-reduced-motion *,
 html.a11y-reduced-motion *::before,
 html.a11y-reduced-motion *::after {
-  animation-duration: 0.01ms !important;
-  animation-iteration-count: 1 !important;
-  transition-duration: 0.01ms !important;
-  scroll-behavior: auto !important;
+  animation-duration:        0.01ms !important;
+  animation-iteration-count: 1     !important;
+  transition-duration:       0.01ms !important;
+  scroll-behavior:           auto  !important;
 }
 
-// Dyslexia font
 html.a11y-dyslexia-font {
   font-family: 'OpenDyslexic', 'Comic Sans MS', cursive !important;
   * { font-family: inherit !important; }
 }
 
-// Line spacing
 html.a11y-line-spacing {
   p, li, label, span, a, button, input, textarea { line-height: 1.9 !important; }
 }
 
-// Large cursor
 html.a11y-large-cursor,
 html.a11y-large-cursor * {
   cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M8 4l16 12-7 1-4 8z' fill='%23333' stroke='%23fff' stroke-width='1.5'/%3E%3C/svg%3E") 4 4, auto !important;
 }
 
-// Skip link
+// ─── SKIP LINK ────────────────────────────────────────────────────────────────
+
 .navigation__skip-link {
   position: absolute;
-  top: -100px;
+  top: -120px;
   left: $space-md;
+  z-index: 9999;
+  padding: 8px 16px;
   background: $twilight-purple;
   color: $soft-pearl;
-  padding: 8px 16px;
   border-radius: 0 0 8px 8px;
   @include type-ui(0.85rem, $fw-bold);
-  z-index: 9999;
   @include text-none;
   transition: top 0.2s ease;
   &:focus { top: 0; }
 }
 
-// Navigation shell
+// ─── NAV SHELL ────────────────────────────────────────────────────────────────
+
 .navigation {
   background-color: rgba($soft-pearl, 0.97);
   border-bottom: 1px solid rgba($misty-lavender, 0.45);
@@ -86,7 +84,8 @@ html.a11y-large-cursor * {
   &--scrolled &__container { height: 60px; }
 }
 
-// Logo
+// ─── LOGO ─────────────────────────────────────────────────────────────────────
+
 .navigation__logo {
   flex-shrink: 0;
   @include center;
@@ -103,7 +102,8 @@ html.a11y-large-cursor * {
   &:hover { opacity: 0.85; transform: scale(1.02); }
 }
 
-// Desktop menu
+// ─── DESKTOP MENU ─────────────────────────────────────────────────────────────
+
 .navigation__menu {
   @include flex-center;
   list-style: none;
@@ -139,7 +139,6 @@ html.a11y-large-cursor * {
     margin-left: 1px;
   }
 
-  // Underline on hover
   &::after {
     content: '';
     @include absolute;
@@ -174,7 +173,8 @@ html.a11y-large-cursor * {
   }
 }
 
-// Mega dropdown
+// ─── MEGA DROPDOWN ────────────────────────────────────────────────────────────
+
 .navigation__mega-dropdown {
   @include absolute;
   top: calc(100% + 10px);
@@ -234,7 +234,8 @@ html.a11y-large-cursor * {
   letter-spacing: 0.01em;
 }
 
-// Standard dropdown
+// ─── STANDARD DROPDOWN ────────────────────────────────────────────────────────
+
 .navigation__dropdown {
   @include absolute;
   top: calc(100% + 10px);
@@ -272,7 +273,8 @@ html.a11y-large-cursor * {
   &:hover { background: rgba($misty-lavender, 0.5) !important; }
 }
 
-// CTA area
+// ─── CTA AREA ─────────────────────────────────────────────────────────────────
+
 .navigation__cta {
   @include center;
   gap: $space-sm;
@@ -288,7 +290,8 @@ html.a11y-large-cursor * {
   flex-shrink: 0;
 }
 
-// Auth buttons
+// ─── AUTH BUTTONS ─────────────────────────────────────────────────────────────
+
 .btn--nav {
   @include type-ui($t-but-des, $fw-regular);
   padding: 7px 18px;
@@ -301,13 +304,9 @@ html.a11y-large-cursor * {
   white-space: nowrap;
   letter-spacing: 0.01em;
   @include text-none;
-  
-  svg {
-    width: 15px;
-    height: 15px;
-    flex-shrink: 0;
-  }
-  
+
+  svg { width: 15px; height: 15px; flex-shrink: 0; }
+
   &.btn-login {
     background: transparent;
     color: rgba($twilight-purple, 0.85);
@@ -329,35 +328,72 @@ html.a11y-large-cursor * {
 
 .navigation__auth-placeholder { width: 120px; height: 34px; }
 
-// Avatar
-.navigation__avatar {
+// ─── AVATAR ───────────────────────────────────────────────────────────────────
+//
+//  Single implementation. The outer .nav-avatar is the circle:
+//  border-radius:50% + overflow:hidden live ONLY here.
+//  The img fills via position:absolute + inset:0. Nothing else clips.
+
+.nav-avatar {
+  --size: 40px;
+
+  display: block;
+  @include relative;
+  width:  var(--size);
+  height: var(--size);
+  min-width:  var(--size);
+  min-height: var(--size);
   border-radius: 50%;
-  background: linear-gradient(135deg, $twilight-purple, $serene-purple);
-  @include flex-center;
   overflow: hidden;
   flex-shrink: 0;
+  background: linear-gradient(135deg, $twilight-purple, $serene-purple);
 
-  img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+    border-radius: 0;
+  }
+
+  span {
+    position: absolute;
+    inset: 0;
+    @include flex-center;
+    font-size: calc(var(--size) * 0.3);
+    font-weight: $fw-bold;
+    color: $soft-pearl;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  &--sm      { --size: 32px; }
+  &--md      { --size: 40px; }
+  &--lg      { --size: 48px; }
+  &--xl      { --size: 56px; }
 
   &--trigger {
-    width: 44px;
-    height: 44px;
+    --size: 38px;
     box-shadow: 0 0 0 2.5px rgba($twilight-purple, 0.18);
     transition: box-shadow 0.2s ease, transform 0.2s ease;
   }
 
-  &--lg { width: 48px; height: 48px; }
-  &--md { width: 38px; height: 38px; }
+  &--mobile {
+    --size: 48px;
+    box-shadow:
+      0 0 0 2.5px $soft-pearl,
+      0 0 0 5px rgba($twilight-purple, 0.28),
+      0 6px 18px rgba($twilight-purple, 0.2);
+  }
 }
 
-.navigation__avatar-initials {
-  @include type-ui(0.72rem, $fw-bold);
-  color: $soft-pearl;
-  letter-spacing: 0.03em;
-  line-height: 1;
-}
+// ─── USER MENU (desktop) ──────────────────────────────────────────────────────
 
-// User menu
 .navigation__user-menu {
   @include relative;
   flex-shrink: 0;
@@ -375,7 +411,7 @@ html.a11y-large-cursor * {
 
   &:hover,
   &--open {
-    .navigation__avatar--trigger { box-shadow: 0 0 0 3px rgba($twilight-purple, 0.35); transform: scale(1.04); }
+    .nav-avatar--trigger { box-shadow: 0 0 0 3px rgba($twilight-purple, 0.35); transform: scale(1.04); }
     .navigation__user-trigger-name { color: $twilight-purple; }
     .dropdown-arrow { opacity: 1; color: $twilight-purple; }
   }
@@ -476,7 +512,8 @@ html.a11y-large-cursor * {
   }
 }
 
-// Accessibility button
+// ─── ACCESSIBILITY BUTTON ─────────────────────────────────────────────────────
+
 .navigation__a11y-wrap {
   @include relative;
   flex-shrink: 0;
@@ -524,7 +561,9 @@ html.a11y-large-cursor * {
   }
 }
 
-// Accessibility panel
+// ─── ACCESSIBILITY PANEL ──────────────────────────────────────────────────────
+
+// Desktop: absolute dropdown below button
 .a11y-panel {
   @include absolute;
   top: calc(100% + 10px);
@@ -535,105 +574,144 @@ html.a11y-large-cursor * {
   border-radius: 16px;
   box-shadow: 0 16px 48px rgba($twilight-purple, 0.14), 0 4px 12px rgba(0,0,0,0.07);
   z-index: 1002;
-  animation: nav-fade 0.2s ease both;
+  animation: panel-pop 0.2s ease both;
   overflow: hidden;
+}
 
-  @media (max-width: $bp-laptop) {
-    right: auto;
-    left: 0;
-    width: 290px;
+// Mobile variant: reset positioning — backdrop handles centring
+.a11y-panel--mobile {
+  position: relative;
+  top: auto;
+  right: auto;
+  width: min(360px, 92vw);
+  max-height: 85vh;
+  overflow-y: auto;
+  border-radius: 24px;
+  animation: panel-pop-centre 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+
+  scrollbar-width: thin;
+  scrollbar-color: rgba($misty-lavender, 0.7) transparent;
+  &::-webkit-scrollbar { width: 3px; }
+  &::-webkit-scrollbar-thumb { background: rgba($misty-lavender, 0.7); border-radius: 2px; }
+}
+
+// Full-screen dimmed backdrop — wraps the mobile panel
+.a11y-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  background: rgba(darken($twilight-purple, 30%), 0.45);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  animation: backdrop-in 0.2s ease both;
+  @include flex-center;
+
+  // Invisible dismiss button fills the entire backdrop
+  &__dismiss {
+    position: absolute;
+    inset: 0;
+    background: transparent;
+    border: none;
+    @include cursor;
+    z-index: 0;
   }
+
+  // Panel sits above the dismiss layer
+  .a11y-panel--mobile { @include relative; z-index: 1; }
 }
 
 .a11y-panel-header {
   @include flex-between;
-  padding: 14px 16px 12px;
+  padding: 16px 18px 14px;
+  background: linear-gradient(135deg, rgba($twilight-purple, 0.1), rgba($serene-purple, 0.06));
   border-bottom: 1px solid rgba($misty-lavender, 0.5);
-  background: linear-gradient(135deg, rgba($misty-lavender, 0.25), rgba($soft-pearl, 0));
 }
 
 .a11y-panel-title {
   @include center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .a11y-panel-badge {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: rgba($twilight-purple, 0.1);
-  color: $twilight-purple;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, $twilight-purple, $serene-purple);
+  color: $soft-pearl;
   @include flex-center;
   flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba($twilight-purple, 0.3);
+  svg { width: 18px; height: 18px; }
 }
 
 .a11y-panel-heading {
-  @include type-ui(0.9rem, $fw-bold);
+  @include type-ui(0.95rem, $fw-bold);
   color: $text-color-dark;
   margin: 0;
+  line-height: 1.2;
 }
 
 .a11y-panel-sub {
-  @include type-ui(0.68rem);
+  @include type-ui(0.7rem);
   color: $gentle-amethyst;
-  margin: 1px 0 0;
+  margin: 2px 0 0;
 }
 
 .a11y-panel-close {
   @include flex-center;
   @include cursor;
-  width: 28px;
-  height: 28px;
-  border: none;
-  background: transparent;
-  color: rgba($text-color-dark, 0.4);
-  border-radius: 6px;
+  width: 30px;
+  height: 30px;
+  border: 1px solid rgba($misty-lavender, 0.6);
+  background: rgba($misty-lavender, 0.2);
+  color: rgba($text-color-dark, 0.5);
+  border-radius: 8px;
   transition: all 0.15s ease;
   flex-shrink: 0;
 
-  &:hover { background: rgba($misty-lavender, 0.5); color: $text-color-dark; }
+  &:hover { background: rgba($misty-lavender, 0.55); color: $text-color-dark; border-color: rgba($twilight-purple, 0.3); }
   &:focus-visible { outline: 2px solid $twilight-purple; }
 }
 
-.a11y-section { padding: 12px 16px 8px; }
+.a11y-section { padding: 14px 18px 10px; }
 
 .a11y-section-label {
-  @include type-ui(0.65rem, $fw-bold);
-  @include label-caps(0.08em);
+  @include type-ui(0.62rem, $fw-bold);
+  @include label-caps(0.1em);
   color: $gentle-amethyst;
-  margin: 0 0 10px;
+  margin: 0 0 12px;
 }
 
 .a11y-divider {
   height: 1px;
   background: rgba($misty-lavender, 0.5);
-  margin: 0 16px;
+  margin: 0 18px;
 }
 
 // Font size buttons
 .a11y-font-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
+  gap: 8px;
 }
 
 .a11y-font-btn {
   @include flex-column;
-  gap: 4px;
-  padding: 8px 4px;
-  border-radius: 10px;
-  border: 1.5px solid rgba($misty-lavender, 0.7);
-  background: transparent;
+  gap: 5px;
+  padding: 10px 6px;
+  border-radius: 12px;
+  border: 1.5px solid rgba($misty-lavender, 0.65);
+  background: rgba($misty-lavender, 0.1);
   @include cursor;
-  transition: all 0.15s ease;
   @include type-ui(0.65rem);
-  color: rgba($text-color-dark, 0.6);
+  color: rgba($text-color-dark, 0.55);
+  transition: all 0.15s ease;
 
-  &:hover { border-color: rgba($twilight-purple, 0.3); background: rgba($misty-lavender, 0.35); color: $twilight-purple; }
+  &:hover { border-color: rgba($twilight-purple, 0.35); background: rgba($misty-lavender, 0.3); color: $twilight-purple; }
 
   &--active {
     border-color: $twilight-purple;
-    background: rgba($twilight-purple, 0.07);
+    background: rgba($twilight-purple, 0.08);
     color: $twilight-purple;
     font-weight: $fw-bold;
   }
@@ -646,7 +724,6 @@ html.a11y-large-cursor * {
   font-family: $font-secondary;
   line-height: 1;
   color: inherit;
-
   &--normal { font-size: 1rem; }
   &--large  { font-size: 1.3rem; }
   &--xl     { font-size: 1.6rem; }
@@ -656,20 +733,28 @@ html.a11y-large-cursor * {
 .a11y-toggle-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 0;
-  border-radius: 8px;
-  transition: background 0.15s ease;
-
+  gap: 12px;
+  padding: 10px 0;
   &:not(:last-child) { border-bottom: 1px solid rgba($misty-lavender, 0.3); }
 }
 
-.a11y-toggle-icon { font-size: 1rem; width: 22px; text-align: center; flex-shrink: 0; }
+.a11y-toggle-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba($misty-lavender, 0.35);
+  color: rgba($twilight-purple, 0.75);
+  @include flex-center;
+  flex-shrink: 0;
+  svg { width: 15px; height: 15px; }
+  .a11y-toggle-row--on & { background: rgba($twilight-purple, 0.12); color: $twilight-purple; }
+}
+
 .a11y-toggle-text { flex: 1; min-width: 0; }
 
 .a11y-toggle-label {
   display: block;
-  @include type-ui(0.8rem, $fw-medium);
+  @include type-ui(0.82rem, $fw-medium);
   color: $text-color-dark;
 }
 
@@ -683,36 +768,34 @@ html.a11y-large-cursor * {
 // Toggle switch
 .a11y-switch {
   @include cursor;
-  width: 38px;
-  height: 22px;
-  border-radius: 11px;
-  border: none;
-  background: rgba($misty-lavender, 0.8);
   @include relative;
   flex-shrink: 0;
-  transition: background 0.2s ease;
-
+  width: 42px;
+  height: 24px;
+  border-radius: 12px;
+  border: none;
+  background: rgba($misty-lavender, 0.8);
+  transition: background 0.22s ease;
   &--on { background: $twilight-purple; }
   &:focus-visible { outline: 2px solid $twilight-purple; outline-offset: 2px; }
 }
 
 .a11y-switch-thumb {
   @include absolute;
-  top: 3px;
-  left: 3px;
+  top: 4px;
+  left: 4px;
   width: 16px;
   height: 16px;
   border-radius: 50%;
   background: $soft-pearl;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
-  transition: transform 0.2s ease;
-
-  .a11y-switch--on & { transform: translateX(16px); }
+  box-shadow: 0 1px 5px rgba(0,0,0,0.18);
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  .a11y-switch--on & { transform: translateX(18px); }
 }
 
 .a11y-panel-footer {
-  padding: 10px 16px 14px;
-  border-top: 1px solid rgba($misty-lavender, 0.5);
+  padding: 10px 18px 16px;
+  border-top: 1px solid rgba($misty-lavender, 0.45);
   @include flex-center;
 }
 
@@ -720,44 +803,17 @@ html.a11y-large-cursor * {
   @include type-ui(0.72rem);
   color: $gentle-amethyst;
   background: transparent;
-  border: none;
+  border: 1px solid rgba($misty-lavender, 0.5);
   @include cursor;
-  transition: color 0.15s ease;
-  padding: 4px 8px;
-  border-radius: 6px;
-
-  &:hover { color: $twilight-purple; background: rgba($misty-lavender, 0.4); }
+  padding: 5px 16px;
+  border-radius: 20px;
+  transition: all 0.15s ease;
+  &:hover { color: $twilight-purple; background: rgba($misty-lavender, 0.35); border-color: rgba($twilight-purple, 0.3); }
   &:focus-visible { outline: 2px solid $twilight-purple; }
 }
 
-// Mobile accessibility row — icon button + label text
-.navigation__mobile-a11y-row {
-  @include center;
-  gap: $space-sm;
-  padding: 8px $space-md;
-  @include type-ui(0.88rem, $fw-medium);
-  color: rgba($text-color-dark, 0.7);
+// ─── HAMBURGER ────────────────────────────────────────────────────────────────
 
-  // Force icon-only style for the a11y button here
-  .navigation__a11y-btn {
-    width: 36px;
-    height: 36px;
-    padding: 0;
-    border-radius: 10px;
-    @include flex-center;
-    .a11y-btn-label { display: none; }
-  }
-
-  // Panel opens leftward so it stays in viewport
-  .a11y-panel {
-    left: 0;
-    right: auto;
-    top: calc(100% + 6px);
-    width: min(290px, 85vw);
-  }
-}
-
-// Hamburger
 .navigation__hamburger {
   display: none !important;
   @include center;
@@ -780,18 +836,19 @@ html.a11y-large-cursor * {
   &:focus { outline: none; }
 }
 
-// Mobile menu
+// ─── MOBILE MENU ─────────────────────────────────────────────────────────────
+
 .navigation__mobile {
   @include absolute;
   top: 100%;
   left: 0;
   right: 0;
   background: $soft-pearl;
-  border-top: 1px solid rgba($misty-lavender, 0.5);
-  box-shadow: 0 16px 40px rgba($twilight-purple, 0.09);
+  border-top: 1px solid rgba($misty-lavender, 0.4);
+  box-shadow: 0 24px 48px rgba($twilight-purple, 0.12), 0 8px 16px rgba(0,0,0,0.04);
   overflow: hidden;
   max-height: 0;
-  transition: max-height 0.3s ease;
+  transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 999;
 
   @media (min-width: calc($bp-laptop + 1px)) { display: none; }
@@ -799,77 +856,115 @@ html.a11y-large-cursor * {
   &--open {
     max-height: calc(100vh - 64px);
     overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba($misty-lavender, 0.8) transparent;
+    &::-webkit-scrollbar { width: 3px; }
+    &::-webkit-scrollbar-track { background: transparent; }
+    &::-webkit-scrollbar-thumb { background: rgba($misty-lavender, 0.8); border-radius: 2px; }
+  }
+
+  &--open li {
+    animation: mobile-item-in 0.25s ease both;
+    @for $i from 1 through 12 {
+      &:nth-child(#{$i}) { animation-delay: #{($i - 1) * 0.04}s; }
+    }
   }
 
   ul {
     list-style: none;
-    padding: $space-sm clamp($space-md, 4vw, $space-xl) $space-lg;
+    padding: $space-md clamp($space-md, 5vw, $space-xl) $space-xl;
     margin: 0;
     @include column;
-    gap: 1px;
-
-    li > a {
-      @include type-ui(0.95rem, $fw-medium);
-      color: rgba($text-color-dark, 0.8);
-      @include text-none;
-      @include center;
-      gap: $space-sm;
-      padding: 11px $space-md;
-      border-radius: 8px;
-      transition: all 0.15s ease;
-
-      i { font-size: 0.9rem; opacity: 0.5; width: 18px; text-align: center; }
-
-      &:hover { color: $twilight-purple; background: rgba($misty-lavender, 0.45); }
-      &:focus-visible { outline: 2px solid $twilight-purple; }
-    }
+    gap: 4px;
   }
+}
+
+// Nav group card
+.navigation__mobile-group {
+  background: rgba($misty-lavender, 0.18);
+  border: 1px solid rgba($misty-lavender, 0.5);
+  border-radius: 14px;
+  overflow: hidden;
+  margin: 2px 0;
+
+  & > li > a,
+  & > li > button {
+    border-radius: 0 !important;
+    border-bottom: 1px solid rgba($misty-lavender, 0.35);
+    &:last-child { border-bottom: none; }
+  }
+}
+
+// Mobile nav link base
+.navigation__mobile li > a,
+.navigation__mobile-toggle {
+  @include type-ui(0.95rem, $fw-medium);
+  color: rgba($text-color-dark, 0.82);
+  @include text-none;
+  @include center;
+  gap: $space-sm;
+  padding: 13px $space-md;
+  border-radius: 10px;
+  transition: all 0.15s ease;
+
+  i {
+    font-size: 1rem;
+    opacity: 0.45;
+    width: 20px;
+    text-align: center;
+    flex-shrink: 0;
+    transition: opacity 0.15s ease;
+  }
+
+  &:hover {
+    color: $twilight-purple;
+    background: rgba($misty-lavender, 0.45);
+    i { opacity: 0.85; }
+  }
+
+  &:focus-visible { outline: 2px solid $twilight-purple; outline-offset: 2px; }
 }
 
 .navigation__mobile-divider {
   height: 1px;
-  background: rgba($misty-lavender, 0.6);
+  background: rgba($misty-lavender, 0.5);
   margin: $space-xs 0 !important;
+  border-radius: 1px;
 }
 
 .navigation__mobile-toggle {
   width: 100%;
   background: transparent;
   border: none;
-  @include type-ui(0.95rem, $fw-medium);
-  color: rgba($text-color-dark, 0.8);
   text-align: left;
-  padding: 11px $space-md;
   @include cursor;
-  @include center;
-  gap: $space-sm;
-  transition: all 0.15s ease;
-  border-radius: 8px;
 
-  i { font-size: 0.9rem; opacity: 0.5; width: 18px; text-align: center; flex-shrink: 0; }
+  .dropdown-arrow {
+    transition: transform 0.22s ease;
+    opacity: 0.3;
+    flex-shrink: 0;
+    margin-left: auto;
+  }
 
-  .dropdown-arrow { transition: transform 0.2s ease; opacity: 0.35; flex-shrink: 0; margin-left: auto; }
-
-  &:hover { color: $twilight-purple; background: rgba($misty-lavender, 0.45); i { opacity: 0.85; } }
-  &:focus-visible { outline: 2px solid $twilight-purple; }
+  &:hover .dropdown-arrow { opacity: 0.7; }
 }
 
 .navigation__mobile-submenu {
-  padding: 2px 0 2px $space-xl;
-  @include column;
-  gap: 1px;
+  padding: $space-sm $space-sm $space-sm;
+  background: rgba($soft-pearl, 0.7);
+  border-top: 1px solid rgba($misty-lavender, 0.3);
   animation: nav-fade 0.18s ease both;
 
-  a {
+  a:not(.navigation__mobile-icon-item) {
     @include center;
     gap: $space-sm;
-    padding: 9px $space-md;
+    padding: 10px $space-md;
     @include type-ui(0.88rem, $fw-medium);
-    color: rgba($twilight-purple, 0.95);
-    border-radius: 7px;
+    color: rgba($twilight-purple, 0.85);
+    border-radius: 8px;
     @include text-none;
     transition: all 0.15s ease;
-    &:hover { color: $twilight-purple; background: rgba($misty-lavender, 0.45); }
+    &:hover { color: $twilight-purple; background: rgba($misty-lavender, 0.5); }
     &:focus-visible { outline: 2px solid $twilight-purple; }
   }
 }
@@ -877,52 +972,152 @@ html.a11y-large-cursor * {
 .navigation__mobile-highlight {
   color: $twilight-purple !important;
   font-weight: $fw-medium !important;
-  @include center;
-  gap: $space-sm;
 }
 
 .navigation__mobile-icon-item {
-  @include center;
-  gap: $space-md;
-  padding: 9px $space-md;
+  @include column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: $space-md $space-sm;
   @include text-none;
   color: rgba($text-color-dark, 0.75);
-  @include type-ui(0.88rem, $fw-medium);
-  transition: all 0.15s ease;
-  border-radius: 7px;
+  @include type-ui(0.8rem, $fw-medium);
+  transition: all 0.18s ease;
+  border-radius: 12px;
+  background: rgba($misty-lavender, 0.18);
+  border: 1px solid rgba($misty-lavender, 0.45);
+  text-align: center;
 
-  &:hover { color: $twilight-purple; background: rgba($misty-lavender, 0.45); .navigation__mobile-icon-wrapper { transform: scale(1.05); } }
-  &:focus-visible { outline: 2px solid $twilight-purple; }
+  &:hover {
+    color: $twilight-purple;
+    background: rgba($misty-lavender, 0.45);
+    border-color: rgba($twilight-purple, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba($twilight-purple, 0.08);
+    .navigation__mobile-icon-wrapper { transform: scale(1.08); background: rgba($twilight-purple, 0.1); }
+  }
+
+  &:focus-visible { outline: 2px solid $twilight-purple; outline-offset: 2px; }
+  span { letter-spacing: 0.01em; }
 }
 
 .navigation__mobile-icon-wrapper {
-  width: 38px;
-  height: 38px;
+  width: 48px;
+  height: 48px;
   @include flex-center;
-  border-radius: 8px;
-  background: rgba($misty-lavender, 0.35);
+  border-radius: 12px;
+  background: rgba($misty-lavender, 0.5);
   color: $twilight-purple;
-  transition: all 0.15s ease;
+  transition: all 0.18s ease;
   flex-shrink: 0;
-  .menu-icon { width: 20px; height: 20px; }
+  .menu-icon { width: 26px; height: 26px; }
 }
 
-// Mobile user section
-.navigation__mobile-user { list-style: none; padding: $space-xs 0; }
+// Mobile auth buttons
+.navigation__mobile-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $space-sm;
+  padding: $space-sm 0 $space-xs;
+
+  .btn--nav {
+    justify-content: center;
+    padding: 11px $space-md;
+    border-radius: 10px;
+    font-size: 0.88rem;
+  }
+}
+
+// ─── MOBILE A11Y ROW ──────────────────────────────────────────────────────────
+// Button only — the panel is rendered at nav root as a fixed overlay
+
+.navigation__mobile-a11y-row { list-style: none; padding: 0; }
+
+.navigation__mobile-a11y-btn {
+  @include center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px $space-md;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba($twilight-purple, 0.06), rgba($misty-lavender, 0.2));
+  border: 1px solid rgba($twilight-purple, 0.12);
+  @include type-ui(0.88rem, $fw-medium);
+  color: rgba($text-color-dark, 0.72);
+  @include cursor;
+  text-align: left;
+  transition: all 0.18s ease;
+
+  .dropdown-arrow { margin-left: auto; opacity: 0.35; transition: transform 0.2s ease, opacity 0.2s ease; }
+
+  &:hover,
+  &--open {
+    background: rgba($misty-lavender, 0.35);
+    color: $twilight-purple;
+    border-color: rgba($twilight-purple, 0.25);
+    .dropdown-arrow { opacity: 0.7; }
+  }
+
+  &--open .dropdown-arrow { transform: rotate(180deg); }
+  &:focus-visible { outline: 2px solid $twilight-purple; outline-offset: 2px; }
+}
+
+.navigation__mobile-a11y-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: rgba($twilight-purple, 0.1);
+  color: $twilight-purple;
+  @include flex-center;
+  flex-shrink: 0;
+  svg { width: 15px; height: 15px; }
+}
+
+// ─── MOBILE USER SECTION ──────────────────────────────────────────────────────
+
+.navigation__mobile-user {
+  list-style: none;
+  padding: 0;
+  margin: 4px 0;
+}
 
 .navigation__mobile-user-info {
-  @include center;
-  gap: $space-sm;
-  padding: $space-sm $space-md $space-md;
-  border-bottom: 1px solid rgba($misty-lavender, 0.5);
+  background: linear-gradient(135deg, rgba($twilight-purple, 0.08) 0%, rgba($serene-purple, 0.05) 100%);
+  border: 1px solid rgba($twilight-purple, 0.12);
+  border-radius: 16px;
+  padding: $space-md $space-md $space-sm;
   margin-bottom: $space-xs;
+  @include center;
+  gap: $space-md;
+}
+
+.navigation__mobile-user-text {
+  min-width: 0;
+  flex: 1;
+
+  .navigation__user-name {
+    @include type-ui(0.95rem, $fw-bold);
+    color: $text-color-dark;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .navigation__user-email {
+    @include type-ui(0.72rem);
+    color: $gentle-amethyst;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 2px;
+  }
 }
 
 .navigation__mobile-user-link {
   @include center;
   gap: $space-sm;
-  padding: 10px $space-md;
-  @include type-ui(0.9rem, $fw-medium);
+  padding: 12px $space-md;
+  @include type-ui(0.92rem, $fw-medium);
   color: rgba($text-color-dark, 0.75);
   @include text-none;
   background: transparent;
@@ -930,38 +1125,65 @@ html.a11y-large-cursor * {
   width: 100%;
   text-align: left;
   @include cursor;
-  border-radius: 7px;
+  border-radius: 10px;
   transition: all 0.15s ease;
 
-  svg { color: rgba($twilight-purple, 0.45); flex-shrink: 0; }
+  svg {
+    color: rgba($twilight-purple, 0.4);
+    flex-shrink: 0;
+    width: 17px;
+    height: 17px;
+    transition: color 0.15s ease, transform 0.15s ease;
+  }
 
-  &:hover { color: $twilight-purple; background: rgba($misty-lavender, 0.45); svg { color: $twilight-purple; } }
-  &:focus-visible { outline: 2px solid $twilight-purple; }
+  &:hover {
+    color: $twilight-purple;
+    background: rgba($misty-lavender, 0.45);
+    svg { color: $twilight-purple; transform: translateX(2px); }
+  }
+
+  &:focus-visible { outline: 2px solid $twilight-purple; outline-offset: 2px; }
 
   &--logout {
-    color: rgba(#e05252, 0.7);
-    svg { color: rgba(#e05252, 0.5); }
-    &:hover { background: rgba(#e05252, 0.07); color: #e05252; svg { color: #e05252; } }
+    color: rgba(#e05252, 0.75);
+    margin-top: 2px;
+    border-top: 1px solid rgba($misty-lavender, 0.45);
+    padding-top: 13px;
+    svg { color: rgba(#e05252, 0.45); }
+    &:hover { background: rgba(#e05252, 0.06); color: #e05252; svg { color: #e05252; transform: none; } }
   }
 }
 
-.navigation__mobile-buttons {
-  @include column;
-  gap: $space-md;
-  width: 60%;
-  padding: $space-md 0 0;
-  margin: 0 auto;
-  align-items: center;
-}
+// ─── SHARED ───────────────────────────────────────────────────────────────────
 
-// Dropdown arrow
 .dropdown-arrow {
   transition: transform 0.2s ease;
   &--open { transform: rotate(180deg); }
 }
 
-// Animations
+// ─── ANIMATIONS ───────────────────────────────────────────────────────────────
+
 @keyframes nav-fade {
   from { opacity: 0; transform: translateY(-6px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes panel-pop {
+  from { opacity: 0; transform: translateY(-8px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+
+@keyframes panel-pop-centre {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes backdrop-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes mobile-item-in {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
 }
