@@ -1455,10 +1455,8 @@
   to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
-// ─── Email Verification Step (Step 1.5) ──────────────────────────────────────
-// Append these styles to the bottom of Register.scss
-
-// ── Card variant ──
+// Email Verification Step (Step 1.5) 
+// Card variant
 .verify-card {
   text-align: center;
   max-width: 480px;
@@ -1473,7 +1471,7 @@
   }
 }
 
-// ── Icon ──
+// Icon
 .verify-icon-wrap {
   display: flex;
   align-items: center;
@@ -1699,4 +1697,26 @@
   transition: color 0.2s;
 
   &:hover { color: $twilight-purple; }
+}
+
+.email-input-wrap {
+  @include relative;
+
+  .email-checking-spinner {
+    @include absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    width: 16px; height: 16px; border: 2px solid $misty-lavender;
+    border-top-color: $twilight-purple; border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+
+  .email-check-ok {
+    @include absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    color: #5cb85c; display: flex;
+  }
+}
+
+.email-exists-login-link {
+  color: $twilight-purple;
+  font-weight: 600;
+  text-decoration: underline;
 }

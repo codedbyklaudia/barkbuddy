@@ -33,40 +33,42 @@
   }
 }
 
-// ─── Scrollable content area ──────────────────────────────────────────────────
+// Scrollable content area 
 .db-content {
   flex: 1;
-  overflow-y: auto;        // scroll lives here only
+  overflow-y: auto;
   overflow-x: hidden;
-  height: calc(100vh - 70px - 2 * #{$space-md});
-  padding-right: 0;
-
+  height: calc(100vh - 58px - 2 * #{$space-md});   
+ 
   @media (min-width: $bp-laptop) {
-    height: calc(100vh - 100px - 2 * #{$space-lg});
+    height: calc(100vh - 68px - 2 * #{$space-lg});  
     padding-right: $space-xs;
   }
-
+ 
   &::-webkit-scrollbar       { width: 5px; }
   &::-webkit-scrollbar-track { background: transparent; }
   &::-webkit-scrollbar-thumb { background: rgba($gentle-amethyst, 0.25); border-radius: 3px; }
 }
 
-// ─── Top Bar ──────────────────────────────────────────────────────────────────
+// Top Bar 
 .db-topbar {
   @include flex-between;
   padding: 0 $space-md;
-  height: 70px;
-  background: rgba($misty-lavender, 0.12);
-  border-bottom: 1px solid rgba(0,0,0,0.07);
+  height: 58px;           
+  background: rgba($soft-pearl, 0.97);
+  border-bottom: 1px solid rgba($misty-lavender, 0.4);
   flex-shrink: 0;
   gap: $space-sm;
   position: sticky;
   top: 0;
   z-index: 50;
-
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 1px 8px rgba($twilight-purple, 0.06);
+ 
   @media (min-width: $bp-tablet) {
     padding: 0 $space-xl;
-    height: 100px;
+    height: 68px;        
     gap: $space-md;
   }
 }
@@ -88,44 +90,52 @@
   flex-shrink: 0;
 }
 
-// ─── Logo ─────────────────────────────────────────────────────────────────────
+// Logo 
 .bb-logo-img {
   display: block;
   object-fit: contain;
-  &.bb-logo-sm { height: 50px; }
+  &.bb-logo-sm { height: 32px; }
   &.bb-logo-md {
-    height: 60px;
-    @media (min-width: $bp-tablet) { height: 90px; }
+    height: 36px;          
+    @media (min-width: $bp-tablet) { height: 42px; }
   }
-  &.bb-logo-lg { height: 100px; }
+ 
+  &.bb-logo-lg {
+    height: 36px;
+    @media (min-width: $bp-tablet) { height: 44px; }
+  }
 }
 
 .bb-logo-text { @include center; gap: 0.4rem; }
-.bb-logo-paw  { font-size: 1.3em; line-height: 1; }
+.bb-logo-paw  { font-size: 1.1em; line-height: 1; }
 .bb-logo-name {
   font-family: $font-primary;
   font-weight: $fw-medium;
   color: $twilight-purple;
   letter-spacing: 0.01em;
-  &.bb-logo-sm { font-size: 0.9rem; }
-  &.bb-logo-md { font-size: 1.1rem; }
-  &.bb-logo-lg { font-size: 1.4rem; }
+  &.bb-logo-sm { font-size: 0.85rem; }
+  &.bb-logo-md { font-size: 0.95rem; }
+  &.bb-logo-lg { font-size: 1.05rem; }
 }
 
 .db-topbar-title {
   flex: 1;
   text-align: center;
   font-family: $font-primary;
-  font-size: 1.1rem;
+  font-size: 0.92rem;      
   font-weight: $fw-regular;
   color: $text-color-dark;
-  letter-spacing: 0.02em;
-  @media (min-width: $bp-tablet) { font-size: $t-sub-des; }
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+ 
+  @media (min-width: $bp-tablet) { font-size: 1.05rem; }
 }
 
 .db-topbar-right {
   @include center;
-  gap: $space-xs;
+  gap: 4px;
   flex-shrink: 0;
   @media (min-width: $bp-tablet) { gap: $space-sm; }
 }
@@ -135,11 +145,12 @@
   @include cursor;
   color: $text-color-dark;
   @include center;
-  padding: $space-sm;
+  width: 36px;
+  height: 36px;
   border-radius: $radius-md;
   transition: all 0.2s;
+ 
   &:hover { color: $twilight-purple; background: rgba($twilight-purple, 0.06); }
-  @media (min-width: $bp-tablet) { padding: $space-lg; }
 }
 
 .db-notif-bell-wrap {
@@ -173,18 +184,20 @@
 }
 
 .db-topbar-avatar {
-  width: 40px; height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: $radius-round;
   background: $twilight-purple;
   overflow: hidden;
   @include flex-center;
-  font-size: $t-but-des;
+  font-size: 0.78rem;
   color: $misty-lavender;
   font-weight: $fw-medium;
   border: 2px solid rgba($twilight-purple, 0.25);
   flex-shrink: 0;
   img { width: 100%; height: 100%; object-fit: cover; }
-  @media (min-width: $bp-tablet) { width: 45px; height: 45px; }
+ 
+  @media (min-width: $bp-tablet) { width: 38px; height: 38px; font-size: $t-but-des; }
 }
 
 .db-topbar-name {
@@ -194,7 +207,7 @@
   color: $text-color-dark;
 }
 
-// ─── Visibility helpers ───────────────────────────────────────────────────────
+// Visibility helpers
 .db-desktop-only {
   display: none !important;
   @media (min-width: $bp-laptop) { display: flex !important; }
@@ -205,13 +218,13 @@
   @media (min-width: $bp-laptop) { display: none !important; }
 }
 
-// ─── Hamburger ────────────────────────────────────────────────────────────────
+// Hamburger 
 .db-topbar-hamburger {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
   background: rgba($misty-lavender, 0.15);
   border: 1.5px solid rgba($gentle-amethyst, 0.3);
   border-radius: $radius-md;
@@ -219,15 +232,14 @@
   flex-shrink: 0;
   color: $twilight-purple;
   transition: all 0.2s;
-
-  // Hide old bar spans
+ 
   .db-hamburger-bar { display: none; }
-
+ 
   &:hover {
     border-color: $twilight-purple;
     background: rgba($twilight-purple, 0.06);
   }
-
+ 
   @media (min-width: $bp-laptop) { display: none !important; }
 }
 
@@ -237,7 +249,7 @@
 
 .db-main { flex: 1; @include column; overflow: hidden; }
 
-// ─── Views ────────────────────────────────────────────────────────────────────
+// Views 
 .db-view {
   @include column;
   gap: $space-md;
@@ -1015,17 +1027,17 @@
   &:hover { color: $twilight-purple !important; }
 }
 
-// ─── Notification Panel ───────────────────────────────────────────────────────
+// Notification Panel 
 .notif-panel-overlay { position: fixed; inset: 0; z-index: 90; }
 
 .notif-panel {
-  position: fixed; top: 70px; right: $space-md;
+  position: fixed; top: 62px; right: $space-md;
   width: 340px; max-width: calc(100vw - #{$space-md} * 2); max-height: 480px;
   background: $soft-pearl; border-radius: $radius-lg;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1), 0 16px 48px rgba(0, 0, 0, 0.14);
   border: 1px solid rgba($gentle-amethyst, 0.15);
   z-index: 100; @include column; overflow: hidden; animation: slideUp 0.2s ease;
-  @media (min-width: $bp-tablet) { top: 100px; right: $space-xl; }
+  @media (min-width: $bp-tablet) { top: 72px; right: $space-xl; }
 }
 
 .notif-panel-header {

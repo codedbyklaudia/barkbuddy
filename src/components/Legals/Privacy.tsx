@@ -127,47 +127,47 @@ const PrivacyPolicy: React.FC = () => {
               <div className="policy-subsection">
                 <p className="policy-subsection__title">Account & Profile Data</p>
                 <ul className="policy-list">
-                  <li className="policy-list__item">Your name, email address, and password (stored securely, hashed)</li>
-                  <li className="policy-list__item">Profile photo, bio, and location (city or postcode area)</li>
-                  <li className="policy-list__item">Dog profiles: name, breed, age, weight, and health notes you choose to add</li>
-                  <li className="policy-list__item">Preferences and notification settings</li>
+                  <li className="policy-list__item"><span>Your name, email address, and password (stored securely, hashed)</span></li>
+                  <li className="policy-list__item"><span>Profile photo, bio, and location (city or postcode area)</span></li>
+                  <li className="policy-list__item"><span>Dog profiles: name, breed, age, weight, and health notes you choose to add</span></li>
+                  <li className="policy-list__item"><span>Preferences and notification settings</span></li>
                 </ul>
               </div>
 
               <div className="policy-subsection">
                 <p className="policy-subsection__title">Usage & Activity Data</p>
                 <ul className="policy-list">
-                  <li className="policy-list__item">Pages visited, searches performed, and listings viewed</li>
-                  <li className="policy-list__item">Forum posts, comments, and reactions</li>
-                  <li className="policy-list__item">Check-ins, buddy connections, and dashboard activity</li>
-                  <li className="policy-list__item">Travel documents generated through the Platform</li>
+                  <li className="policy-list__item"><span>Pages visited, searches performed, and listings viewed</span></li>
+                  <li className="policy-list__item"><span>Forum posts, comments, and reactions</span></li>
+                  <li className="policy-list__item"><span>Check-ins, buddy connections, and dashboard activity</span></li>
+                  <li className="policy-list__item"><span>Travel documents generated through the Platform</span></li>
                 </ul>
               </div>
 
               <div className="policy-subsection">
                 <p className="policy-subsection__title">Location Data</p>
                 <ul className="policy-list">
-                  <li className="policy-list__item">Postcode or city you enter manually when searching for services</li>
-                  <li className="policy-list__item">GPS location, only if you explicitly grant permission via your browser or device</li>
-                  <li className="policy-list__item">We do not track your location in the background at any time</li>
+                  <li className="policy-list__item"><span>Postcode or city you enter manually when searching for services</span></li>
+                  <li className="policy-list__item"><span>GPS location, only if you explicitly grant permission via your browser or device</span></li>
+                  <li className="policy-list__item"><span>We do not track your location in the background at any time</span></li>
                 </ul>
               </div>
 
               <div className="policy-subsection">
                 <p className="policy-subsection__title">Business Owner Data</p>
                 <ul className="policy-list">
-                  <li className="policy-list__item">Business name, address, contact details, and registration documents</li>
-                  <li className="policy-list__item">Photos, service descriptions, and pricing information submitted for listings</li>
-                  <li className="policy-list__item">Correspondence with BarkBuddy relating to your listing</li>
+                  <li className="policy-list__item"><span>Business name, address, contact details, and registration documents</span></li>
+                  <li className="policy-list__item"><span>Photos, service descriptions, and pricing information submitted for listings</span></li>
+                  <li className="policy-list__item"><span>Correspondence with BarkBuddy relating to your listing</span></li>
                 </ul>
               </div>
 
               <div className="policy-subsection">
                 <p className="policy-subsection__title">Technical Data</p>
                 <ul className="policy-list">
-                  <li className="policy-list__item">IP address, browser type, device type, and operating system</li>
-                  <li className="policy-list__item">Cookies and similar tracking technologies (see Section 08)</li>
-                  <li className="policy-list__item">Log data including timestamps and error reports</li>
+                  <li className="policy-list__item"><span>IP address, browser type, device type, and operating system</span></li>
+                  <li className="policy-list__item"><span>Cookies and similar tracking technologies (see Section 08)</span></li>
+                  <li className="policy-list__item"><span>Log data including timestamps and error reports</span></li>
                 </ul>
               </div>
             </div>
@@ -180,10 +180,10 @@ const PrivacyPolicy: React.FC = () => {
             <div className="policy-section__body">
               <p>We collect your personal data through the following means:</p>
               <ul className="policy-list">
-                <li className="policy-list__item"><strong>Directly from you</strong> - when you register an account, complete your profile, submit a listing, post in the forum, or contact us</li>
-                <li className="policy-list__item"><strong>Automatically</strong> - through cookies, log files, and analytics tools as you browse and use the Platform</li>
-                <li className="policy-list__item"><strong>From your device</strong> - location data, only when you explicitly grant permission</li>
-                <li className="policy-list__item"><strong>From third parties</strong> - such as Google Maps (for location search) or authentication providers if you use social login in future</li>
+                <li className="policy-list__item"><span><strong>Directly from you</strong> - when you register an account, complete your profile, submit a listing, post in the forum, or contact us</span></li>
+                <li className="policy-list__item"><span><strong>Automatically</strong> - through cookies, log files, and analytics tools as you browse and use the Platform</span></li>
+                <li className="policy-list__item"><span><strong>From your device</strong> - location data, only when you explicitly grant permission</span></li>
+                <li className="policy-list__item"><span><strong>From third parties</strong> - such as Google Maps (for location search) or authentication providers if you use social login in future</span></li>
               </ul>
               <p>We will always be transparent with you about the data we collect and why.</p>
             </div>
@@ -199,38 +199,38 @@ const PrivacyPolicy: React.FC = () => {
               <div className="policy-subsection">
                 <p className="policy-subsection__title">To Operate the Platform</p>
                 <ul className="policy-list">
-                  <li className="policy-list__item">Create and manage your account and dog profiles</li>
-                  <li className="policy-list__item">Display relevant service and activity listings based on your location</li>
-                  <li className="policy-list__item">Enable community forum participation and buddy connections</li>
-                  <li className="policy-list__item">Generate and store travel documents on your behalf</li>
+                  <li className="policy-list__item"><span>Create and manage your account and dog profiles</span></li>
+                  <li className="policy-list__item"><span>Display relevant service and activity listings based on your location</span></li>
+                  <li className="policy-list__item"><span>Enable community forum participation and buddy connections</span></li>
+                  <li className="policy-list__item"><span>Generate and store travel documents on your behalf</span></li>
                 </ul>
               </div>
 
               <div className="policy-subsection">
                 <p className="policy-subsection__title">To Improve BarkBuddy</p>
                 <ul className="policy-list">
-                  <li className="policy-list__item">Analyse usage patterns to improve features and fix issues</li>
-                  <li className="policy-list__item">Conduct internal research and development</li>
-                  <li className="policy-list__item">Monitor Platform performance and security</li>
+                  <li className="policy-list__item"><span>Analyse usage patterns to improve features and fix issues</span></li>
+                  <li className="policy-list__item"><span>Conduct internal research and development</span></li>
+                  <li className="policy-list__item"><span>Monitor Platform performance and security</span></li>
                 </ul>
               </div>
 
               <div className="policy-subsection">
                 <p className="policy-subsection__title">To Communicate With You</p>
                 <ul className="policy-list">
-                  <li className="policy-list__item">Send account-related notifications (e.g. registration confirmation, password resets)</li>
-                  <li className="policy-list__item">Notify you of updates to our policies or Terms</li>
-                  <li className="policy-list__item">Send marketing emails, only where you have opted in - you can unsubscribe at any time</li>
-                  <li className="policy-list__item">Respond to enquiries or support requests</li>
+                  <li className="policy-list__item"><span>Send account-related notifications (e.g. registration confirmation, password resets)</span></li>
+                  <li className="policy-list__item"><span>Notify you of updates to our policies or Terms</span></li>
+                  <li className="policy-list__item"><span>Send marketing emails, only where you have opted in - you can unsubscribe at any time</span></li>
+                  <li className="policy-list__item"><span>Respond to enquiries or support requests</span></li>
                 </ul>
               </div>
 
               <div className="policy-subsection">
                 <p className="policy-subsection__title">To Comply With Legal Obligations</p>
                 <ul className="policy-list">
-                  <li className="policy-list__item">Retain records as required by UK law</li>
-                  <li className="policy-list__item">Respond to lawful requests from law enforcement or regulatory authorities</li>
-                  <li className="policy-list__item">Enforce our Terms of Service and policies</li>
+                  <li className="policy-list__item"><span>Retain records as required by UK law</span></li>
+                  <li className="policy-list__item"><span>Respond to lawful requests from law enforcement or regulatory authorities</span></li>
+                  <li className="policy-list__item"><span>Enforce our Terms of Service and policies</span></li>
                 </ul>
               </div>
             </div>
@@ -243,10 +243,10 @@ const PrivacyPolicy: React.FC = () => {
             <div className="policy-section__body">
               <p>Under UK GDPR, we must have a lawful basis for processing your personal data. We rely on the following bases:</p>
               <ul className="policy-list">
-                <li className="policy-list__item"><strong>Contract</strong> - processing necessary to provide the services you have signed up for, including account management and platform functionality</li>
-                <li className="policy-list__item"><strong>Legitimate Interests</strong> - to improve the Platform, prevent fraud, ensure security, and conduct analytics, where our interests do not override your rights</li>
-                <li className="policy-list__item"><strong>Consent</strong> - for marketing communications and non-essential cookies; you may withdraw consent at any time</li>
-                <li className="policy-list__item"><strong>Legal Obligation</strong> - where processing is necessary to comply with UK law</li>
+                <li className="policy-list__item"><span><strong>Contract</strong> - processing necessary to provide the services you have signed up for, including account management and platform functionality</span></li>
+                <li className="policy-list__item"><span><strong>Legitimate Interests</strong> - to improve the Platform, prevent fraud, ensure security, and conduct analytics, where our interests do not override your rights</span></li>
+                <li className="policy-list__item"><span><strong>Consent</strong> - for marketing communications and non-essential cookies; you may withdraw consent at any time</span></li>
+                <li className="policy-list__item"><span><strong>Legal Obligation</strong> - where processing is necessary to comply with UK law</span></li>
               </ul>
               <div className="policy-section__callout">
                 <p>Where we rely on consent, you have the right to withdraw it at any time without affecting the lawfulness of processing carried out before withdrawal.</p>
@@ -261,10 +261,10 @@ const PrivacyPolicy: React.FC = () => {
             <div className="policy-section__body">
               <p>We do not sell, rent, or trade your personal data. We may share it in the following limited circumstances:</p>
               <ul className="policy-list">
-                <li className="policy-list__item"><strong>Service Providers</strong> - trusted third-party providers who assist us in operating the Platform (e.g. cloud hosting, email delivery, analytics). These providers are bound by data processing agreements and may only use your data as instructed by us</li>
-                <li className="policy-list__item"><strong>Google Maps</strong> - we use the Google Maps API to enable location-based search. Your location data may be shared with Google when you use this feature, subject to Google's own Privacy Policy</li>
-                <li className="policy-list__item"><strong>Legal Authorities</strong> - where required by law, court order, or to protect the rights, safety, or property of BarkBuddy, our users, or others</li>
-                <li className="policy-list__item"><strong>Business Transfers</strong> - in the event of a merger, acquisition, or sale of assets, your data may be transferred to the successor entity, subject to equivalent privacy protections</li>
+                <li className="policy-list__item"><span><strong>Service Providers</strong> - trusted third-party providers who assist us in operating the Platform (e.g. cloud hosting, email delivery, analytics). These providers are bound by data processing agreements and may only use your data as instructed by us</span></li>
+                <li className="policy-list__item"><span><strong>Google Maps</strong> - we use the Google Maps API to enable location-based search. Your location data may be shared with Google when you use this feature, subject to Google's own Privacy Policy</span></li>
+                <li className="policy-list__item"><span><strong>Legal Authorities</strong> - where required by law, court order, or to protect the rights, safety, or property of BarkBuddy, our users, or others</span></li>
+                <li className="policy-list__item"><span><strong>Business Transfers</strong> - in the event of a merger, acquisition, or sale of assets, your data may be transferred to the successor entity, subject to equivalent privacy protections</span></li>
               </ul>
               <p>Any business listings you submit, and reviews you post, will be publicly visible to other users. Please only share information you are comfortable with being public.</p>
             </div>
@@ -277,11 +277,11 @@ const PrivacyPolicy: React.FC = () => {
             <div className="policy-section__body">
               <p>We retain your personal data only for as long as necessary for the purposes it was collected, or as required by law. Our general retention periods are:</p>
               <ul className="policy-list">
-                <li className="policy-list__item"><strong>Account data</strong> - retained for the duration of your account, plus up to 2 years after closure for legal and operational purposes</li>
-                <li className="policy-list__item"><strong>Forum posts and user content</strong> - retained while your account is active; you may request deletion at any time</li>
-                <li className="policy-list__item"><strong>Business listing data</strong> - retained while the listing is active, plus 12 months after removal</li>
-                <li className="policy-list__item"><strong>Technical and log data</strong> - typically retained for up to 12 months</li>
-                <li className="policy-list__item"><strong>Marketing consent records</strong> - retained for 3 years from the date of consent or last interaction</li>
+                <li className="policy-list__item"><span><strong>Account data</strong> - retained for the duration of your account, plus up to 2 years after closure for legal and operational purposes</span></li>
+                <li className="policy-list__item"><span><strong>Forum posts and user content</strong> - retained while your account is active; you may request deletion at any time</span></li>
+                <li className="policy-list__item"><span><strong>Business listing data</strong> - retained while the listing is active, plus 12 months after removal</span></li>
+                <li className="policy-list__item"><span><strong>Technical and log data</strong> - typically retained for up to 12 months</span></li>
+                <li className="policy-list__item"><span><strong>Marketing consent records</strong> - retained for 3 years from the date of consent or last interaction</span></li>
               </ul>
               <p>When data is no longer required, it is securely deleted or anonymised.</p>
             </div>
@@ -292,30 +292,30 @@ const PrivacyPolicy: React.FC = () => {
             <p className="policy-section__number">08</p>
             <h2 className="policy-section__title">Cookies &amp; Tracking</h2>
             <div className="policy-section__body">
-              <p>BarkBuddy uses cookies and similar technologies to make the Platform work effectively and to understand how it is used. We use the following types of cookies:</p>
+              <p>BarkBuddy uses cookies and similar technologies to make the Platform work effectively and to understand how it is used.</p>
 
               <div className="policy-subsection">
                 <p className="policy-subsection__title">Essential Cookies</p>
                 <ul className="policy-list">
-                  <li className="policy-list__item">Required for the Platform to function - including keeping you logged in and remembering your session</li>
-                  <li className="policy-list__item">These cannot be disabled without affecting Platform functionality</li>
+                  <li className="policy-list__item"><span>Required for the Platform to function - including keeping you logged in and remembering your session</span></li>
+                  <li className="policy-list__item"><span>These cannot be disabled without affecting Platform functionality</span></li>
                 </ul>
               </div>
 
               <div className="policy-subsection">
                 <p className="policy-subsection__title">Analytics Cookies</p>
                 <ul className="policy-list">
-                  <li className="policy-list__item">Help us understand how users interact with the Platform so we can improve it</li>
-                  <li className="policy-list__item">We may use tools such as Google Analytics; data collected is aggregated and anonymised where possible</li>
-                  <li className="policy-list__item">Only set with your consent</li>
+                  <li className="policy-list__item"><span>Help us understand how users interact with the Platform so we can improve it</span></li>
+                  <li className="policy-list__item"><span>We may use tools such as Google Analytics; data collected is aggregated and anonymised where possible</span></li>
+                  <li className="policy-list__item"><span>Only set with your consent</span></li>
                 </ul>
               </div>
 
               <div className="policy-subsection">
                 <p className="policy-subsection__title">Preference Cookies</p>
                 <ul className="policy-list">
-                  <li className="policy-list__item">Remember your settings and preferences across sessions (e.g. location, display preferences)</li>
-                  <li className="policy-list__item">Only set with your consent</li>
+                  <li className="policy-list__item"><span>Remember your settings and preferences across sessions (e.g. location, display preferences)</span></li>
+                  <li className="policy-list__item"><span>Only set with your consent</span></li>
                 </ul>
               </div>
 
@@ -330,13 +330,13 @@ const PrivacyPolicy: React.FC = () => {
             <div className="policy-section__body">
               <p>Under UK GDPR, you have the following rights in relation to your personal data. You may exercise any of these rights by contacting us at <strong>paws@barkbuddy.org.uk</strong>:</p>
               <ul className="policy-list">
-                <li className="policy-list__item"><strong>Right of Access</strong> - request a copy of the personal data we hold about you (a Subject Access Request)</li>
-                <li className="policy-list__item"><strong>Right to Rectification</strong> - ask us to correct inaccurate or incomplete data</li>
-                <li className="policy-list__item"><strong>Right to Erasure</strong> - request deletion of your data where it is no longer necessary, or where you withdraw consent</li>
-                <li className="policy-list__item"><strong>Right to Restrict Processing</strong> - ask us to pause processing of your data in certain circumstances</li>
-                <li className="policy-list__item"><strong>Right to Data Portability</strong> - receive your data in a structured, commonly used format and transfer it to another controller</li>
-                <li className="policy-list__item"><strong>Right to Object</strong> - object to processing based on legitimate interests or for direct marketing purposes</li>
-                <li className="policy-list__item"><strong>Right to Withdraw Consent</strong> - where processing is based on consent, withdraw it at any time without affecting prior processing</li>
+                <li className="policy-list__item"><span><strong>Right of Access</strong> - request a copy of the personal data we hold about you (a Subject Access Request)</span></li>
+                <li className="policy-list__item"><span><strong>Right to Rectification</strong> - ask us to correct inaccurate or incomplete data</span></li>
+                <li className="policy-list__item"><span><strong>Right to Erasure</strong> - request deletion of your data where it is no longer necessary, or where you withdraw consent</span></li>
+                <li className="policy-list__item"><span><strong>Right to Restrict Processing</strong> - ask us to pause processing of your data in certain circumstances</span></li>
+                <li className="policy-list__item"><span><strong>Right to Data Portability</strong> - receive your data in a structured, commonly used format and transfer it to another controller</span></li>
+                <li className="policy-list__item"><span><strong>Right to Object</strong> - object to processing based on legitimate interests or for direct marketing purposes</span></li>
+                <li className="policy-list__item"><span><strong>Right to Withdraw Consent</strong> - where processing is based on consent, withdraw it at any time without affecting prior processing</span></li>
               </ul>
               <div className="policy-section__callout">
                 <p>We will respond to all valid requests within <strong>one calendar month</strong>. We may need to verify your identity before processing your request. There is no charge for exercising your rights in most circumstances.</p>
@@ -360,11 +360,11 @@ const PrivacyPolicy: React.FC = () => {
             <h2 className="policy-section__title">International Transfers</h2>
             <div className="policy-section__body">
               <p>BarkBuddy is based in the United Kingdom and we aim to store and process your data within the UK and European Economic Area (EEA) wherever possible.</p>
-              <p>Some of our third-party service providers (such as cloud hosting or analytics providers) may process data outside the UK or EEA. Where this occurs, we ensure appropriate safeguards are in place, including:</p>
+              <p>Some of our third-party service providers may process data outside the UK or EEA. Where this occurs, we ensure appropriate safeguards are in place, including:</p>
               <ul className="policy-list">
-                <li className="policy-list__item">UK adequacy regulations recognising the destination country's data protection standards</li>
-                <li className="policy-list__item">Standard Contractual Clauses (SCCs) approved by the UK Information Commissioner's Office (ICO)</li>
-                <li className="policy-list__item">Other lawful transfer mechanisms as permitted under UK GDPR</li>
+                <li className="policy-list__item"><span>UK adequacy regulations recognising the destination country's data protection standards</span></li>
+                <li className="policy-list__item"><span>Standard Contractual Clauses (SCCs) approved by the UK Information Commissioner's Office (ICO)</span></li>
+                <li className="policy-list__item"><span>Other lawful transfer mechanisms as permitted under UK GDPR</span></li>
               </ul>
             </div>
           </section>
@@ -374,12 +374,12 @@ const PrivacyPolicy: React.FC = () => {
             <p className="policy-section__number">12</p>
             <h2 className="policy-section__title">Security</h2>
             <div className="policy-section__body">
-              <p>We take the security of your personal data seriously and implement appropriate technical and organisational measures to protect it from unauthorised access, loss, alteration, or disclosure. These include:</p>
+              <p>We take the security of your personal data seriously and implement appropriate technical and organisational measures to protect it. These include:</p>
               <ul className="policy-list">
-                <li className="policy-list__item">Encryption of data in transit using HTTPS/TLS</li>
-                <li className="policy-list__item">Secure, hashed storage of passwords - we never store your password in plain text</li>
-                <li className="policy-list__item">Access controls limiting who within BarkBuddy can access personal data</li>
-                <li className="policy-list__item">Regular security reviews and updates to our infrastructure</li>
+                <li className="policy-list__item"><span>Encryption of data in transit using HTTPS/TLS</span></li>
+                <li className="policy-list__item"><span>Secure, hashed storage of passwords - we never store your password in plain text</span></li>
+                <li className="policy-list__item"><span>Access controls limiting who within BarkBuddy can access personal data</span></li>
+                <li className="policy-list__item"><span>Regular security reviews and updates to our infrastructure</span></li>
               </ul>
               <div className="policy-section__callout--warning policy-section__callout">
                 <p>No method of transmission over the internet is completely secure. While we take every reasonable precaution, we cannot guarantee absolute security. If you suspect unauthorised access to your account, please contact us immediately.</p>
@@ -417,7 +417,7 @@ const PrivacyPolicy: React.FC = () => {
                   <span><a href="mailto:paws@barkbuddy.org.uk">paws@barkbuddy.org.uk</a></span>
                 </div>
               </div>
-              <p>If you are unhappy with how we have handled your personal data and we have been unable to resolve your concern, you have the right to lodge a complaint with the <strong>Information Commissioner's Office (ICO)</strong>, the UK's data protection supervisory authority:</p>
+              <p>If you are unhappy with how we have handled your personal data, you have the right to lodge a complaint with the <strong>Information Commissioner's Office (ICO)</strong>:</p>
               <div className="policy-contact">
                 <div className="policy-contact__row">
                   <i className="bi bi-shield-check" />

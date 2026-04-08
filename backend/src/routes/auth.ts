@@ -144,7 +144,20 @@ router.post("/verify-code", (req: Request, res: Response): void => {
   res.status(200).json({ valid });
 });
 
-// ─── POST /api/auth/register ──────────────────────────────────────────────────
+//Check if email exist
+router.post("/check-email", async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ exists: false });
+
+  const result = await pool.query(
+    "SELECT 1 FROM users WHERE email = $1 LIMIT 1",
+    [email.toLowerCase().trim()]
+  );
+
+  res.json({ exists: result.rowCount > 0 });
+});
+
+// POST /api/auth/register
 router.post("/register", registerValidation, async (req: Request, res: Response): Promise<void> => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -238,7 +251,7 @@ router.post("/register", registerValidation, async (req: Request, res: Response)
   }
 });
 
-// ─── POST /api/auth/login ─────────────────────────────────────────────────────
+// POST /api/auth/login 
 router.post("/login", loginValidation, async (req: Request, res: Response): Promise<void> => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -315,7 +328,7 @@ router.post("/login", loginValidation, async (req: Request, res: Response): Prom
   }
 });
 
-// ─── GET /api/auth/me ─────────────────────────────────────────────────────────
+// GET /api/auth/me
 router.get("/me", authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userResult = await pool.query(

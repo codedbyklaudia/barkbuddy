@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import ReactDOM from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import './Navigation.scss';
 import { Hand, SunDim, Ligature, LogIn, ArrowDownFromLine, MousePointer2, UserRoundPlus } from 'lucide-react';
@@ -179,14 +180,16 @@ const AccessibilityPanel: React.FC<A11yPanelProps> = ({ onClose, isMobile = fals
     </div>
   );
 
-  // Mobile: wrap in a dimmed full-screen backdrop
+  // Mobile: portal the backdrop to document.body so it escapes the nav's
+  // stacking context (backdrop-filter on <nav> traps position:fixed children)
   if (isMobile) {
-    return (
+    return ReactDOM.createPortal(
       <div className="a11y-backdrop" aria-hidden="false">
         {/* Clicking the backdrop closes the panel */}
         <button className="a11y-backdrop__dismiss" onClick={onClose} aria-label="Close accessibility panel" tabIndex={-1} />
         {panel}
-      </div>
+      </div>,
+      document.body
     );
   }
 

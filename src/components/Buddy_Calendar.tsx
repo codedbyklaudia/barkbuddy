@@ -14,27 +14,29 @@ import vetIcon      from "../../images/icons/care.svg";
 import groomingIcon from "../../images/icons/grooming1.svg";
 import eventIcon    from "../../images/icons/calendar-add.svg";
 
-//  Dog prop 
+// ─── Types ────────────────────────────────────────────────────────────────────
+
 interface DogOption {
-  id:       string;
-  name:     string;
-  isMain?:  boolean;
+  id:        string;
+  name:      string;
+  isMain?:   boolean;
   avatarUrl?: string;
 }
+
 const DOG_COLORS = [
-  { color: "#7c3aed", bg: "#ede9fe" }, 
-  { color: "#0891b2", bg: "#e0f2fe" }, 
-  { color: "#be185d", bg: "#fce7f3" }, 
-  { color: "#059669", bg: "#d1fae5" }, 
-  { color: "#b45309", bg: "#fef3c7" }, 
-  { color: "#6366f1", bg: "#eef2ff" }, 
+  { color: "#7c3aed", bg: "#ede9fe" },
+  { color: "#0891b2", bg: "#e0f2fe" },
+  { color: "#be185d", bg: "#fce7f3" },
+  { color: "#059669", bg: "#d1fae5" },
+  { color: "#b45309", bg: "#fef3c7" },
+  { color: "#6366f1", bg: "#eef2ff" },
 ];
+
 const getDogColor = (dogs: DogOption[], dogId: string) => {
   const idx = dogs.findIndex((d) => d.id === dogId);
   return DOG_COLORS[Math.max(0, idx) % DOG_COLORS.length];
 };
 
-// Config 
 const TYPE_CONFIG: Record<EventType, { label: string; icon: string; color: string; bg: string }> = {
   vaccine:   { label: "Vaccine",         icon: vaccineIcon,  color: "#7c3aed", bg: "#ede9fe" },
   flea_tick: { label: "Flea & Tick",     icon: fleaIcon,     color: "#0891b2", bg: "#e0f2fe" },
@@ -48,19 +50,21 @@ const MONTHS       = ["January","February","March","April","May","June","July","
 const MONTHS_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const DAYS_SHORT   = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 
-// Date helpers 
+// ─── Date helpers ─────────────────────────────────────────────────────────────
+
 const toDateKey      = (raw: string): string => raw?.slice(0, 10) ?? "";
 const parseLocalDate = (s: string): Date => {
   const [y, m, d] = toDateKey(s).split("-").map(Number);
   return new Date(y, m - 1, d, 12, 0, 0);
 };
-const eventDateKey = (event: HealthEvent): string => toDateKey(event.due_date);
+const eventDateKey  = (event: HealthEvent): string => toDateKey(event.due_date);
 const localTodayStr = (): string => {
   const t = new Date();
   return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
 };
 
-// Status 
+// ─── Status ───────────────────────────────────────────────────────────────────
+
 type Status = "overdue" | "soon" | "upcoming" | "done";
 
 const getStatus = (event: HealthEvent): Status => {
@@ -80,7 +84,20 @@ const STATUS_LABEL: Record<Status, string> = {
   overdue: "Overdue", soon: "Due Soon", upcoming: "Upcoming", done: "Done",
 };
 
-// Dog Avatar (initials fallback) 
+// ─── Hook: detect mobile ──────────────────────────────────────────────────────
+
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 640);
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 640);
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, []);
+  return isMobile;
+};
+
+// ─── Dog Avatar ───────────────────────────────────────────────────────────────
+
 const DogAvatar: React.FC<{ dog: DogOption; size?: number; color: string; bg: string }> = ({ dog, size = 22, color, bg }) => (
   <div style={{
     width: size, height: size, borderRadius: "50%",
@@ -97,16 +114,17 @@ const DogAvatar: React.FC<{ dog: DogOption; size?: number; color: string; bg: st
   </div>
 );
 
-// Dog Selector 
+// ─── Dog Selector ─────────────────────────────────────────────────────────────
+
 const DogSelector: React.FC<{
   dogs:     DogOption[];
   selected: string;
   onChange: (id: string) => void;
 }> = ({ dogs, selected, onChange }) => {
-  if (dogs.length <= 1) return null; 
+  if (dogs.length <= 1) return null;
   return (
     <div className="cal-dog-selector">
-      {dogs.map((dog, i) => {
+      {dogs.map((dog) => {
         const { color, bg } = getDogColor(dogs, dog.id);
         const isSelected    = selected === dog.id;
         return (
@@ -125,10 +143,12 @@ const DogSelector: React.FC<{
   );
 };
 
-// Drag state 
+// ─── Drag state ───────────────────────────────────────────────────────────────
+
 let dragPayload: { event: HealthEvent } | null = null;
 
-// DnD Move/Copy Dialog
+// ─── DnD Dialog ───────────────────────────────────────────────────────────────
+
 const DndDialog: React.FC<{
   event: HealthEvent; newDate: string;
   onMove: () => void; onCopy: () => void; onCancel: () => void;
@@ -183,7 +203,8 @@ const DndDialog: React.FC<{
   );
 };
 
-// EventForm Modal
+// ─── Event Form Modal ─────────────────────────────────────────────────────────
+
 const EventForm: React.FC<{
   initial:  { dog_id: string; type: EventType; title: string; due_date: string; notes: string };
   dogs:     DogOption[];
@@ -231,9 +252,7 @@ const EventForm: React.FC<{
     } finally { setLoading(false); }
   };
 
-  const selectedCfg   = TYPE_CONFIG[form.type];
-  const selectedDog   = dogs.find((d) => d.id === form.dog_id);
-  const dogColorInfo  = selectedDog ? getDogColor(dogs, selectedDog.id) : null;
+  const selectedCfg = TYPE_CONFIG[form.type];
 
   return (
     <div className="cal-modal-overlay" ref={overlayRef}
@@ -258,7 +277,6 @@ const EventForm: React.FC<{
         <div className="cal-modal-body">
           {errors.general && <div className="cal-modal-error">{errors.general}</div>}
 
-          {/* Dog selector — only shown when user has multiple dogs */}
           {dogs.length > 1 && (
             <div className="cal-form-section">
               <label className="cal-label">Which dog?</label>
@@ -323,7 +341,8 @@ const EventForm: React.FC<{
   );
 };
 
-// Event Pill 
+// ─── Event Pill ───────────────────────────────────────────────────────────────
+
 const EventPill: React.FC<{
   event:       HealthEvent;
   dogs:        DogOption[];
@@ -340,33 +359,22 @@ const EventPill: React.FC<{
     <button
       className={`cal-pill cal-pill--${status}`}
       style={{
-        "--pill-color":    typeColor,
-        "--pill-bg":       config.bg,
+        "--pill-color":     typeColor,
+        "--pill-bg":        config.bg,
         "--pill-dog-color": dogColor.color,
-        "--pill-dog-bg":   dogColor.bg,
+        "--pill-dog-bg":    dogColor.bg,
       } as React.CSSProperties}
       onClick={onClick}
       draggable
       onDragStart={onDragStart}
       title={`${event.title}${dog ? ` · ${dog.name}` : ""}`}
     >
-      {/* Coloured left accent strip */}
       <span className="cal-pill__strip" />
-
-      {/* Event type icon */}
       <span className="cal-pill__icon">
         <img src={config.icon} alt="" />
       </span>
-
-      {/* Title */}
       <span className="cal-pill__title">{event.title}</span>
-
-      {/* Done checkmark */}
-      {event.completed && (
-        <span className="cal-pill__check">✓</span>
-      )}
-
-      {/* Dog avatar — only when multiple dogs */}
+      {event.completed && <span className="cal-pill__check">✓</span>}
       {dogs.length > 1 && dog && (
         <span className="cal-pill__dog">
           {dog.avatarUrl
@@ -378,7 +386,35 @@ const EventPill: React.FC<{
   );
 };
 
-// Event Popover
+// ─── Mobile Event Dot ─────────────────────────────────────────────────────────
+// Tiny coloured dot used inside month cells on mobile
+
+const EventDot: React.FC<{
+  event:   HealthEvent;
+  onClick: (e: React.MouseEvent) => void;
+}> = ({ event, onClick }) => {
+  const color = event.completed ? STATUS_COLOR.done : TYPE_CONFIG[event.type].color;
+  return (
+    <button
+      className="cal-dot"
+      style={{ "--dot-color": color } as React.CSSProperties}
+      onClick={onClick}
+      title={event.title}
+      aria-label={event.title}
+    >
+      <svg viewBox="0 0 24 24" fill="currentColor" width="8" height="8">
+        <ellipse cx="6"  cy="7"  rx="2"   ry="2.5"/>
+        <ellipse cx="18" cy="7"  rx="2"   ry="2.5"/>
+        <ellipse cx="10" cy="4"  rx="2"   ry="2.5"/>
+        <ellipse cx="14" cy="4"  rx="2"   ry="2.5"/>
+        <path d="M12 10c-3.5 0-6 2.5-6 5.5 0 1.5.5 2.5 1.5 3.5H16.5c1-.5 1.5-2 1.5-3.5C18 12.5 15.5 10 12 10z"/>
+      </svg>
+    </button>
+  );
+};
+
+// ─── Event Popover ────────────────────────────────────────────────────────────
+
 const EventPopover: React.FC<{
   event:      HealthEvent;
   dogs:       DogOption[];
@@ -388,6 +424,7 @@ const EventPopover: React.FC<{
   onDelete:   (id: string) => void;
   onEdit:     (event: HealthEvent) => void;
 }> = ({ event, dogs, anchor, onClose, onComplete, onDelete, onEdit }) => {
+  const isMobile = useIsMobile();
   const status   = getStatus(event);
   const config   = TYPE_CONFIG[event.type];
   const dog      = dogs.find((d) => d.id === event.dog_id);
@@ -406,8 +443,13 @@ const EventPopover: React.FC<{
     weekday: "long", day: "numeric", month: "long", year: "numeric",
   });
 
-  return (
-    <div ref={ref} className="cal-popover" style={{ top: anchor.top, left: anchor.left }}>
+  const popover = (
+    <div
+      ref={ref}
+      className="cal-popover"
+      // On mobile CSS overrides position to fixed+centred; on desktop use anchor coords
+      style={isMobile ? undefined : { top: anchor.top, left: anchor.left }}
+    >
       <div className="cal-popover-header" style={{ borderTop: `4px solid ${config.color}` }}>
         <div className="cal-popover-title-row">
           <span className="cal-popover-type-chip" style={{ background: config.bg, color: config.color }}>
@@ -421,7 +463,6 @@ const EventPopover: React.FC<{
           </button>
         </div>
         <h4 className="cal-popover-title">{event.title}</h4>
-        {/* Dog tag in popover */}
         {dog && (
           <div className="cal-popover-dog-row">
             <DogAvatar dog={dog} size={18} color={dogColor.color} bg={dogColor.bg} />
@@ -440,14 +481,35 @@ const EventPopover: React.FC<{
           onClick={() => { onComplete(event.id, !event.completed); onClose(); }}>
           {event.completed ? "✓ Mark Pending" : "✓ Mark Done"}
         </button>
-        <button className="cal-popover-btn edit"   onClick={() => { onEdit(event);       onClose(); }}>✎ Edit</button>
-        <button className="cal-popover-btn delete" onClick={() => { onDelete(event.id);  onClose(); }}>✕ Delete</button>
+        <button className="cal-popover-btn edit"   onClick={() => { onEdit(event);      onClose(); }}>✎ Edit</button>
+        <button className="cal-popover-btn delete" onClick={() => { onDelete(event.id); onClose(); }}>✕ Delete</button>
       </div>
     </div>
   );
+
+  // On mobile: wrap in a full-screen backdrop so tapping outside closes it
+  if (isMobile) {
+    return (
+      <div
+        style={{
+          position: "fixed", inset: 0,
+          background: "rgba(30,27,75,0.4)",
+          backdropFilter: "blur(2px)",
+          zIndex: 1200,
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}
+        onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      >
+        {popover}
+      </div>
+    );
+  }
+
+  return popover;
 };
 
-// Month Grid 
+// ─── Month Grid ───────────────────────────────────────────────────────────────
+
 const MonthGrid: React.FC<{
   events:        HealthEvent[];
   dogs:          DogOption[];
@@ -457,11 +519,12 @@ const MonthGrid: React.FC<{
   onDayClick:    (dateStr: string) => void;
   onDropEvent:   (event: HealthEvent, newDateStr: string) => void;
 }> = ({ events, dogs, viewMonth, onChangeMonth, onPillClick, onDayClick, onDropEvent }) => {
-  const year  = viewMonth.getFullYear();
-  const month = viewMonth.getMonth();
-  const firstDay    = new Date(year, month, 1);
-  const lastDay     = new Date(year, month + 1, 0);
-  const startOffset = (firstDay.getDay() + 6) % 7;
+  const isMobile = useIsMobile();
+  const year     = viewMonth.getFullYear();
+  const month    = viewMonth.getMonth();
+  const firstDay     = new Date(year, month, 1);
+  const lastDay      = new Date(year, month + 1, 0);
+  const startOffset  = (firstDay.getDay() + 6) % 7;
 
   const eventMap: Record<string, HealthEvent[]> = {};
   events.forEach((e) => {
@@ -496,6 +559,10 @@ const MonthGrid: React.FC<{
     requestAnimationFrame(() => ghost.remove());
   };
 
+  // Max dots on mobile, max pills on desktop
+  const MAX_DOTS  = 3;
+  const MAX_PILLS = 2;
+
   return (
     <div className="month-grid-wrapper">
       <div className="month-grid-header">
@@ -515,7 +582,6 @@ const MonthGrid: React.FC<{
         </button>
       </div>
 
-      {/* Dog colour legend — only shown if multiple dogs */}
       {dogs.length > 1 && (
         <div className="cal-dog-legend">
           {dogs.map((dog) => {
@@ -531,14 +597,16 @@ const MonthGrid: React.FC<{
       )}
 
       <div className="month-grid">
-        {DAYS_SHORT.map((d) => <div key={d} className="month-day-label">{d}</div>)}
+        {DAYS_SHORT.map((d) => (
+          <div key={d} className="month-day-label">{isMobile ? d.charAt(0) : d}</div>
+        ))}
+
         {cells.map((day, i) => {
           if (!day) return <div key={`empty-${i}`} className="month-cell empty" />;
           const dateStr    = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
           const dayEvents  = eventMap[dateStr] || [];
           const isToday    = dateStr === todayStr;
           const isDragOver = dragOverDate === dateStr;
-          const MAX_PILLS  = 2;
 
           return (
             <div key={dateStr}
@@ -546,18 +614,169 @@ const MonthGrid: React.FC<{
               onClick={() => onDayClick(dateStr)}
               onDragOver={(e) => { if (!dragPayload) return; e.preventDefault(); e.dataTransfer.dropEffect = "move"; setDragOverDate(dateStr); }}
               onDragLeave={() => setDragOverDate(null)}
-              onDrop={(e) => { e.preventDefault(); setDragOverDate(null); if (!dragPayload) return; const { event } = dragPayload; dragPayload = null; if (eventDateKey(event) === dateStr) return; onDropEvent(event, dateStr); }}
+              onDrop={(e) => {
+                e.preventDefault(); setDragOverDate(null);
+                if (!dragPayload) return;
+                const { event } = dragPayload; dragPayload = null;
+                if (eventDateKey(event) === dateStr) return;
+                onDropEvent(event, dateStr);
+              }}
               title={`Add event on ${day} ${MONTHS_SHORT[month]}`}>
+
               <span className={`month-cell-day ${isToday ? "today-badge" : ""}`}>{day}</span>
-              <div className="month-cell-events">
-                {dayEvents.slice(0, MAX_PILLS).map((ev) => (
-                  <EventPill key={ev.id} event={ev} dogs={dogs}
-                    onClick={(e) => handlePillClick(e, ev)}
-                    onDragStart={(e) => handlePillDragStart(e, ev)} />
-                ))}
-                {dayEvents.length > MAX_PILLS && (
-                  <span className="month-cell-more">+{dayEvents.length - MAX_PILLS} more</span>
+
+              {/* ── Mobile: dots only ── */}
+              {isMobile ? (
+                <div className="month-cell-dots">
+                  {dayEvents.slice(0, MAX_DOTS).map((ev) => (
+                    <EventDot key={ev.id} event={ev}
+                      onClick={(e) => { e.stopPropagation(); handlePillClick(e, ev); }} />
+                  ))}
+                  {dayEvents.length > MAX_DOTS && (
+                    <span className="month-cell-dots-more">+{dayEvents.length - MAX_DOTS}</span>
+                  )}
+                </div>
+              ) : (
+                /* ── Desktop: full pills ── */
+                <div className="month-cell-events">
+                  {dayEvents.slice(0, MAX_PILLS).map((ev) => (
+                    <EventPill key={ev.id} event={ev} dogs={dogs}
+                      onClick={(e) => handlePillClick(e, ev)}
+                      onDragStart={(e) => handlePillDragStart(e, ev)} />
+                  ))}
+                  {dayEvents.length > MAX_PILLS && (
+                    <span className="month-cell-more">+{dayEvents.length - MAX_PILLS} more</span>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+// ─── Year View ────────────────────────────────────────────────────────────────
+// Shows all 12 months as a compact mini-grid. Clicking a month navigates to it.
+
+const YearView: React.FC<{
+  events:        HealthEvent[];
+  viewYear:      number;
+  onChangeYear:  (y: number) => void;
+  onMonthClick:  (month: Date) => void;  // navigate to month view on that month
+}> = ({ events, viewYear, onChangeYear, onMonthClick }) => {
+  const todayStr = localTodayStr();
+
+  // Build a set of date keys with events for quick lookup
+  const eventDates = new Set(events.map(eventDateKey));
+  const overdueSet = new Set(
+    events.filter((e) => getStatus(e) === "overdue").map(eventDateKey)
+  );
+  const soonSet = new Set(
+    events.filter((e) => getStatus(e) === "soon").map(eventDateKey)
+  );
+
+  return (
+    <div className="year-view">
+      {/* Year navigation */}
+      <div className="year-nav">
+        <button className="month-nav-btn" onClick={() => onChangeYear(viewYear - 1)}>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+        <span className="year-nav-label">{viewYear}</span>
+        <button className="month-nav-btn" onClick={() => onChangeYear(viewYear + 1)}>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+      </div>
+
+      {/* 12 mini month grids */}
+      <div className="year-grid">
+        {Array.from({ length: 12 }, (_, monthIdx) => {
+          const firstDay    = new Date(viewYear, monthIdx, 1);
+          const lastDay     = new Date(viewYear, monthIdx + 1, 0);
+          const startOffset = (firstDay.getDay() + 6) % 7;
+          const cells: (number | null)[] = [
+            ...Array(startOffset).fill(null),
+            ...Array.from({ length: lastDay.getDate() }, (_, i) => i + 1),
+          ];
+          while (cells.length % 7 !== 0) cells.push(null);
+
+          // Count events this month
+          const monthEvents = events.filter((e) => {
+            const key = eventDateKey(e);
+            return key.startsWith(`${viewYear}-${String(monthIdx + 1).padStart(2, "0")}`);
+          });
+
+          return (
+            <div
+              key={monthIdx}
+              className="mini-month"
+              onClick={() => onMonthClick(new Date(viewYear, monthIdx, 1))}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === "Enter" && onMonthClick(new Date(viewYear, monthIdx, 1))}
+              aria-label={`View ${MONTHS[monthIdx]} ${viewYear}`}
+            >
+              {/* Month title + event count badge */}
+              <div className="mini-month-header">
+                <span className="mini-month-name">{MONTHS_SHORT[monthIdx]}</span>
+                {monthEvents.length > 0 && (
+                  <span className="mini-month-count"
+                    style={{
+                      background: monthEvents.some((e) => getStatus(e) === "overdue")
+                        ? `${STATUS_COLOR.overdue}18`
+                        : monthEvents.some((e) => getStatus(e) === "soon")
+                          ? `${STATUS_COLOR.soon}18`
+                          : `${STATUS_COLOR.upcoming}18`,
+                      color: monthEvents.some((e) => getStatus(e) === "overdue")
+                        ? STATUS_COLOR.overdue
+                        : monthEvents.some((e) => getStatus(e) === "soon")
+                          ? STATUS_COLOR.soon
+                          : STATUS_COLOR.upcoming,
+                    }}>
+                    {monthEvents.length}
+                  </span>
                 )}
+              </div>
+
+              {/* Mini day-of-week labels */}
+              <div className="mini-month-grid">
+                {"MTWTFSS".split("").map((d, di) => (
+                  <div key={di} className="mini-day-label">{d}</div>
+                ))}
+
+                {cells.map((day, ci) => {
+                  if (!day) return <div key={`e-${ci}`} className="mini-cell empty" />;
+                  const dateStr = `${viewYear}-${String(monthIdx + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+                  const isToday   = dateStr === todayStr;
+                  const hasEvent  = eventDates.has(dateStr);
+                  const isOverdue = overdueSet.has(dateStr);
+                  const isSoon    = soonSet.has(dateStr);
+
+                  return (
+                    <div key={dateStr}
+                      className={`mini-cell ${isToday ? "today" : ""} ${hasEvent ? "has-event" : ""}`}
+                      style={
+                        hasEvent
+                          ? {
+                              "--mini-dot-color": isOverdue
+                                ? STATUS_COLOR.overdue
+                                : isSoon
+                                  ? STATUS_COLOR.soon
+                                  : STATUS_COLOR.upcoming,
+                            } as React.CSSProperties
+                          : undefined
+                      }
+                      title={hasEvent ? `Events on ${day} ${MONTHS_SHORT[monthIdx]}` : undefined}>
+                      {day}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           );
@@ -567,7 +786,165 @@ const MonthGrid: React.FC<{
   );
 };
 
-// Agenda List 
+// ─── Day View ─────────────────────────────────────────────────────────────────
+// Full-screen daily breakdown — shown when user taps a date in month grid
+
+const DayView: React.FC<{
+  date:       string;           // "YYYY-MM-DD"
+  events:     HealthEvent[];    // ALL events (unfiltered) so we show everything for this day
+  dogs:       DogOption[];
+  onBack:     () => void;
+  onAdd:      (date: string) => void;
+  onComplete: (id: string, done: boolean) => void;
+  onDelete:   (id: string) => void;
+  onEdit:     (event: HealthEvent) => void;
+}> = ({ date, events, dogs, onBack, onAdd, onComplete, onDelete, onEdit }) => {
+  const dayEvents = events.filter((e) => eventDateKey(e) === date);
+
+  const parsed = parseLocalDate(date);
+  const isMobile = useIsMobile();
+  const formattedDate = parsed.toLocaleDateString("en-GB", isMobile
+    ? { weekday: "short", day: "numeric", month: "short", year: "numeric" }
+    : { weekday: "long",  day: "numeric", month: "long",  year: "numeric" }
+  );
+  const isToday = date === localTodayStr();
+
+  // Group by status
+  const groups: Record<Status, HealthEvent[]> = {
+    overdue:  dayEvents.filter((e) => getStatus(e) === "overdue"),
+    soon:     dayEvents.filter((e) => getStatus(e) === "soon"),
+    upcoming: dayEvents.filter((e) => getStatus(e) === "upcoming"),
+    done:     dayEvents.filter((e) => getStatus(e) === "done"),
+  };
+
+  return (
+    <div className="day-view">
+      {/* Header */}
+      <div className="day-view-header">
+        <button className="day-view-back" onClick={onBack} aria-label="Back to calendar">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          Back
+        </button>
+
+        <div className="day-view-title-wrap">
+          <h2 className="day-view-title">
+            {isToday && <span className="day-view-today-chip">Today</span>}
+            {formattedDate}
+          </h2>
+          <span className="day-view-count">
+            {dayEvents.length === 0
+              ? "No events"
+              : `${dayEvents.length} event${dayEvents.length !== 1 ? "s" : ""}`}
+          </span>
+        </div>
+
+        <button className="day-view-add-btn" onClick={() => onAdd(date)}>
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+            <path d="M8 2v12M2 8h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+          </svg>
+          Add Event
+        </button>
+      </div>
+
+      {/* Empty state */}
+      {dayEvents.length === 0 && (
+        <div className="day-view-empty">
+          <span className="day-view-empty-icon">🐾</span>
+          <p>No events on this day</p>
+          <button className="day-view-empty-add" onClick={() => onAdd(date)}>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+              <path d="M8 2v12M2 8h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+            Add your first event
+          </button>
+        </div>
+      )}
+
+      {/* Events grouped by status */}
+      {dayEvents.length > 0 && (
+        <div className="day-view-groups">
+          {(["overdue", "soon", "upcoming", "done"] as Status[]).map((status) => {
+            const group = groups[status];
+            if (!group.length) return null;
+            return (
+              <div key={status} className="day-view-group">
+                <div className="day-view-group-header">
+                  <span className="day-view-status-dot" style={{ background: STATUS_COLOR[status] }} />
+                  <span className="day-view-status-label" style={{ color: STATUS_COLOR[status] }}>
+                    {STATUS_LABEL[status]}
+                  </span>
+                  <span className="day-view-group-count">{group.length}</span>
+                </div>
+
+                {group.map((event) => {
+                  const config   = TYPE_CONFIG[event.type];
+                  const dog      = dogs.find((d) => d.id === event.dog_id);
+                  const dogColor = getDogColor(dogs, event.dog_id);
+
+                  return (
+                    <div
+                      key={event.id}
+                      className={`day-view-card ${event.completed ? "done" : ""}`}
+                      style={{ borderLeft: `4px solid ${event.completed ? STATUS_COLOR.done : config.color}` }}
+                    >
+                      {/* Icon */}
+                      <div className="day-view-card-icon" style={{ background: config.bg }}>
+                        <img src={config.icon} alt="" style={{ width: 22, height: 22 }} />
+                      </div>
+
+                      {/* Info */}
+                      <div className="day-view-card-info">
+                        <span className="day-view-card-title">{event.title}</span>
+                        <div className="day-view-card-meta">
+                          <span className="day-view-card-type"
+                            style={{ background: config.bg, color: config.color }}>
+                            {config.label}
+                          </span>
+                          {dog && dogs.length > 1 && (
+                            <span className="day-view-card-dog"
+                              style={{ background: dogColor.bg, color: dogColor.color, border: `1px solid ${dogColor.color}30` }}>
+                              <DogAvatar dog={dog} size={12} color={dogColor.color} bg={dogColor.bg} />
+                              {dog.name}
+                            </span>
+                          )}
+                        </div>
+                        {event.notes && (
+                          <span className="day-view-card-notes">{event.notes}</span>
+                        )}
+                      </div>
+
+                      {/* Actions */}
+                      <div className="day-view-card-actions">
+                        <button
+                          className={`day-view-complete-btn ${event.completed ? "is-done" : ""}`}
+                          style={{
+                            color:       event.completed ? STATUS_COLOR.done : config.color,
+                            borderColor: event.completed ? STATUS_COLOR.done : config.color,
+                            background:  event.completed ? `${STATUS_COLOR.done}12` : `${config.color}0d`,
+                          }}
+                          onClick={() => onComplete(event.id, !event.completed)}
+                        >
+                          {event.completed ? "✓ Done" : "Mark Done"}
+                        </button>
+                        <button className="day-view-icon-btn edit"   onClick={() => onEdit(event)}      title="Edit">✎</button>
+                        <button className="day-view-icon-btn delete" onClick={() => onDelete(event.id)} title="Delete">✕</button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─── Agenda List ──────────────────────────────────────────────────────────────
+
 const AgendaList: React.FC<{
   events:     HealthEvent[];
   dogs:       DogOption[];
@@ -604,9 +981,9 @@ const AgendaList: React.FC<{
               <span className="agenda-group-count">{group.length}</span>
             </div>
             {group.map((event) => {
-              const config      = TYPE_CONFIG[event.type];
-              const dog         = dogs.find((d) => d.id === event.dog_id);
-              const dogColor    = getDogColor(dogs, event.dog_id);
+              const config        = TYPE_CONFIG[event.type];
+              const dog           = dogs.find((d) => d.id === event.dog_id);
+              const dogColor      = getDogColor(dogs, event.dog_id);
               const formattedDate = parseLocalDate(event.due_date).toLocaleDateString("en-GB", {
                 day: "numeric", month: "short", year: "numeric",
               });
@@ -621,7 +998,6 @@ const AgendaList: React.FC<{
                     <span className="agenda-card-title">{event.title}</span>
                     <div className="agenda-card-meta">
                       <span className="agenda-card-date">{formattedDate}</span>
-                      {/* Dog name tag */}
                       {dog && dogs.length > 1 && (
                         <span className="agenda-card-dog-tag"
                           style={{ background: dogColor.bg, color: dogColor.color, border: `1px solid ${dogColor.color}40` }}>
@@ -651,7 +1027,8 @@ const AgendaList: React.FC<{
   );
 };
 
-// Stats Bar
+// ─── Stats Bar ────────────────────────────────────────────────────────────────
+
 const StatsBar: React.FC<{ events: HealthEvent[] }> = ({ events }) => {
   const counts = { overdue: 0, soon: 0, upcoming: 0, done: 0 };
   events.forEach((e) => { counts[getStatus(e)]++; });
@@ -668,7 +1045,8 @@ const StatsBar: React.FC<{ events: HealthEvent[] }> = ({ events }) => {
   );
 };
 
-// Main Component 
+// ─── Main Component ───────────────────────────────────────────────────────────
+
 const BuddyCalendar: React.FC<{
   dogName?: string;
   allDogs?: DogOption[];
@@ -681,7 +1059,9 @@ const BuddyCalendar: React.FC<{
   const [modalMode,    setModalMode]    = useState<"add" | "edit" | null>(null);
   const [editingEvent, setEditingEvent] = useState<HealthEvent | null>(null);
   const [viewMonth,    setViewMonth]    = useState(new Date());
-  const [view,         setView]         = useState<"month" | "agenda">("month");
+  const [viewYear,     setViewYear]     = useState(new Date().getFullYear());
+  const [view,         setView]         = useState<"month" | "year" | "agenda">("month");
+  const [dayView,      setDayView]      = useState<string | null>(null); // "YYYY-MM-DD" or null
   const [filterType,   setFilterType]   = useState<EventType | "all">("all");
   const [filterStatus, setFilterStatus] = useState<Status | "all">("all");
   const [filterDog,    setFilterDog]    = useState<string | "all">("all");
@@ -690,7 +1070,6 @@ const BuddyCalendar: React.FC<{
   const [addDate,      setAddDate]      = useState("");
   const [dndPending,   setDndPending]   = useState<{ event: HealthEvent; newDate: string } | null>(null);
 
-  // Default dog = primary dog or first in list
   const defaultDogId = allDogs.find((d) => d.isMain)?.id ?? allDogs[0]?.id ?? "";
 
   useEffect(() => {
@@ -761,13 +1140,19 @@ const BuddyCalendar: React.FC<{
     } catch {}
   };
 
-  const openAdd = (date?: string) => { setAddDate(date || ""); setEditingEvent(null); setModalMode("add"); };
+  const openAdd  = (date?: string) => { setAddDate(date || ""); setEditingEvent(null); setModalMode("add"); };
   const openEdit = (event: HealthEvent) => { setEditingEvent(event); setModalMode("edit"); };
 
+  // When clicking a month in year view, switch to month view on that month
+  const handleYearMonthClick = (month: Date) => {
+    setViewMonth(month);
+    setView("month");
+  };
+
   const filtered = events.filter((e) => {
-    if (filterType   !== "all" && e.type       !== filterType)    return false;
-    if (filterStatus !== "all" && getStatus(e) !== filterStatus)  return false;
-    if (filterDog    !== "all" && e.dog_id     !== filterDog)     return false;
+    if (filterType   !== "all" && e.type       !== filterType)   return false;
+    if (filterStatus !== "all" && getStatus(e) !== filterStatus) return false;
+    if (filterDog    !== "all" && e.dog_id     !== filterDog)    return false;
     return true;
   });
 
@@ -803,7 +1188,8 @@ const BuddyCalendar: React.FC<{
       {/* Toolbar */}
       <div className="cal-toolbar">
         <div className="cal-view-toggle">
-          <button className={`view-btn ${view === "month" ? "active" : ""}`} onClick={() => setView("month")}>
+          {/* Month */}
+          <button className={`view-btn ${view === "month" ? "active" : ""}`} onClick={() => { setView("month"); setDayView(null); }}>
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
               <rect x="1" y="1" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.5"/>
               <rect x="9" y="1" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.5"/>
@@ -812,13 +1198,30 @@ const BuddyCalendar: React.FC<{
             </svg>
             Month
           </button>
-          <button className={`view-btn ${view === "agenda" ? "active" : ""}`} onClick={() => setView("agenda")}>
+          {/* Year */}
+          <button className={`view-btn ${view === "year" ? "active" : ""}`} onClick={() => { setView("year"); setDayView(null); }}>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+              <rect x="1" y="1" width="3" height="3" rx="0.5" stroke="currentColor" strokeWidth="1.4"/>
+              <rect x="6" y="1" width="3" height="3" rx="0.5" stroke="currentColor" strokeWidth="1.4"/>
+              <rect x="11" y="1" width="3" height="3" rx="0.5" stroke="currentColor" strokeWidth="1.4"/>
+              <rect x="1" y="6" width="3" height="3" rx="0.5" stroke="currentColor" strokeWidth="1.4"/>
+              <rect x="6" y="6" width="3" height="3" rx="0.5" stroke="currentColor" strokeWidth="1.4"/>
+              <rect x="11" y="6" width="3" height="3" rx="0.5" stroke="currentColor" strokeWidth="1.4"/>
+              <rect x="1" y="11" width="3" height="3" rx="0.5" stroke="currentColor" strokeWidth="1.4"/>
+              <rect x="6" y="11" width="3" height="3" rx="0.5" stroke="currentColor" strokeWidth="1.4"/>
+              <rect x="11" y="11" width="3" height="3" rx="0.5" stroke="currentColor" strokeWidth="1.4"/>
+            </svg>
+            Year
+          </button>
+          {/* Agenda */}
+          <button className={`view-btn ${view === "agenda" ? "active" : ""}`} onClick={() => { setView("agenda"); setDayView(null); }}>
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
               <path d="M2 4h12M2 8h12M2 12h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
             Agenda
           </button>
         </div>
+
         <div className="cal-toolbar-right">
           <button className={`cal-filter-toggle ${showFilters ? "active" : ""} ${hasFilter ? "has-filter" : ""}`}
             onClick={() => setShowFilters(!showFilters)}>
@@ -833,7 +1236,6 @@ const BuddyCalendar: React.FC<{
       {/* Filters */}
       {showFilters && (
         <div className="cal-filters-panel">
-          {/* Dog filter — only shown if multiple dogs */}
           {allDogs.length > 1 && (
             <div className="cal-filter-group">
               <span className="cal-filter-title">Dog</span>
@@ -893,11 +1295,25 @@ const BuddyCalendar: React.FC<{
 
       {/* Main view */}
       <div className="cal-body">
-        {view === "month" ? (
+        {/* Daily view — shown when user taps a date */}
+        {dayView ? (
+          <DayView
+            date={dayView}
+            events={events}
+            dogs={allDogs}
+            onBack={() => setDayView(null)}
+            onAdd={(date) => { openAdd(date); }}
+            onComplete={handleComplete}
+            onDelete={handleDelete}
+            onEdit={openEdit}
+          />
+        ) : view === "month" ? (
           <MonthGrid events={filtered} dogs={allDogs} viewMonth={viewMonth} onChangeMonth={setViewMonth}
             onPillClick={(event, anchor) => setPopover({ event, anchor })}
-            onDayClick={(dateStr) => openAdd(dateStr)}
+            onDayClick={(dateStr) => setDayView(dateStr)}
             onDropEvent={handleDropEvent} />
+        ) : view === "year" ? (
+          <YearView events={filtered} viewYear={viewYear} onChangeYear={setViewYear} onMonthClick={handleYearMonthClick} />
         ) : (
           <AgendaList events={filtered} dogs={allDogs} onComplete={handleComplete} onDelete={handleDelete} onEdit={openEdit} />
         )}

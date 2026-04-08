@@ -109,10 +109,10 @@ const ForumPolicy: React.FC = () => {
             <div className="policy-section__body">
               <p>The Forum exists to provide a safe and supportive space for dog owners and guardians in the United Kingdom. We want BarkBuddy to be a place where the community genuinely helps each other.</p>
               <ul className="policy-list">
-                <li className="policy-list__item">Share experiences and advice with fellow dog owners</li>
-                <li className="policy-list__item">Discuss training, behaviour, nutrition, and wellbeing</li>
-                <li className="policy-list__item">Promote responsible and compassionate dog ownership</li>
-                <li className="policy-list__item">Build a respectful, inclusive community across the UK</li>
+                <li className="policy-list__item"><span>Share experiences and advice with fellow dog owners</span></li>
+                <li className="policy-list__item"><span>Discuss training, behaviour, nutrition, and wellbeing</span></li>
+                <li className="policy-list__item"><span>Promote responsible and compassionate dog ownership</span></li>
+                <li className="policy-list__item"><span>Build a respectful, inclusive community across the UK</span></li>
               </ul>
             </div>
           </section>
@@ -124,10 +124,10 @@ const ForumPolicy: React.FC = () => {
             <div className="policy-section__body">
               <p>All users must comply with applicable UK law. Content that encourages or depicts illegal behaviour will be removed immediately. This includes, but is not limited to:</p>
               <ul className="policy-list">
-                <li className="policy-list__item">Content promoting animal cruelty or neglect contrary to the <strong>Animal Welfare Act 2006</strong></li>
-                <li className="policy-list__item">Harassment or threatening communications contrary to the <strong>Communications Act 2003</strong> or <strong>Malicious Communications Act 1988</strong></li>
-                <li className="policy-list__item">Defamatory statements contrary to the <strong>Defamation Act 2013</strong></li>
-                <li className="policy-list__item">Misuse of personal data contrary to the <strong>Data Protection Act 2018</strong> and <strong>UK GDPR</strong></li>
+                <li className="policy-list__item"><span>Content promoting animal cruelty or neglect contrary to the <strong>Animal Welfare Act 2006</strong></span></li>
+                <li className="policy-list__item"><span>Harassment or threatening communications contrary to the <strong>Communications Act 2003</strong> or <strong>Malicious Communications Act 1988</strong></span></li>
+                <li className="policy-list__item"><span>Defamatory statements contrary to the <strong>Defamation Act 2013</strong></span></li>
+                <li className="policy-list__item"><span>Misuse of personal data contrary to the <strong>Data Protection Act 2018</strong> and <strong>UK GDPR</strong></span></li>
               </ul>
               <div className="policy-section__callout--warning policy-section__callout">
                 <p>We reserve the right to report unlawful content to relevant authorities where appropriate.</p>
@@ -145,26 +145,26 @@ const ForumPolicy: React.FC = () => {
               <div className="policy-subsection">
                 <p className="policy-subsection__title">3.1 - Be Respectful</p>
                 <ul className="policy-list">
-                  <li className="policy-list__item">No bullying, harassment, hate speech, or discrimination</li>
-                  <li className="policy-list__item">No abusive, threatening, or inflammatory language</li>
-                  <li className="policy-list__item">No personal attacks or targeted hostility toward any member</li>
+                  <li className="policy-list__item"><span>No bullying, harassment, hate speech, or discrimination</span></li>
+                  <li className="policy-list__item"><span>No abusive, threatening, or inflammatory language</span></li>
+                  <li className="policy-list__item"><span>No personal attacks or targeted hostility toward any member</span></li>
                 </ul>
               </div>
 
               <div className="policy-subsection">
                 <p className="policy-subsection__title">3.2 - Protect Animal Welfare</p>
                 <ul className="policy-list">
-                  <li className="policy-list__item">Do not promote harmful, abusive, or unsafe training practices</li>
-                  <li className="policy-list__item">Do not encourage neglect or mistreatment of any animal</li>
-                  <li className="policy-list__item">Do not post graphic or disturbing material</li>
+                  <li className="policy-list__item"><span>Do not promote harmful, abusive, or unsafe training practices</span></li>
+                  <li className="policy-list__item"><span>Do not encourage neglect or mistreatment of any animal</span></li>
+                  <li className="policy-list__item"><span>Do not post graphic or disturbing material</span></li>
                 </ul>
               </div>
 
               <div className="policy-subsection">
                 <p className="policy-subsection__title">3.3 - No Misinformation or False Claims</p>
                 <ul className="policy-list">
-                  <li className="policy-list__item">Do not knowingly share false, misleading, or deceptive information</li>
-                  <li className="policy-list__item">Do not impersonate veterinary professionals or qualified experts</li>
+                  <li className="policy-list__item"><span>Do not knowingly share false, misleading, or deceptive information</span></li>
+                  <li className="policy-list__item"><span>Do not impersonate veterinary professionals or qualified experts</span></li>
                 </ul>
               </div>
             </div>
@@ -190,13 +190,13 @@ const ForumPolicy: React.FC = () => {
             <div className="policy-section__body">
               <p>The following content is strictly prohibited on the BarkBuddy Forum:</p>
               <ul className="policy-list">
-                <li className="policy-list__item">Illegal content of any kind</li>
-                <li className="policy-list__item">Defamatory statements about individuals, businesses, or organisations</li>
-                <li className="policy-list__item">Spam, unsolicited advertising, or commercial promotions</li>
-                <li className="policy-list__item">Copyrighted material posted without permission</li>
-                <li className="policy-list__item">Personal data of others without lawful basis or consent</li>
-                <li className="policy-list__item">Explicit, obscene, or violent content</li>
-                <li className="policy-list__item">Fraudulent, misleading, or scam-related content</li>
+                <li className="policy-list__item"><span>Illegal content of any kind</span></li>
+                <li className="policy-list__item"><span>Defamatory statements about individuals, businesses, or organisations</span></li>
+                <li className="policy-list__item"><span>Spam, unsolicited advertising, or commercial promotions</span></li>
+                <li className="policy-list__item"><span>Copyrighted material posted without permission</span></li>
+                <li className="policy-list__item"><span>Personal data of others without lawful basis or consent</span></li>
+                <li className="policy-list__item"><span>Explicit, obscene, or violent content</span></li>
+                <li className="policy-list__item"><span>Fraudulent, misleading, or scam-related content</span></li>
               </ul>
             </div>
           </section>
@@ -218,10 +218,10 @@ const ForumPolicy: React.FC = () => {
             <div className="policy-section__body">
               <p>We reserve the right, at our sole discretion, to take any of the following actions:</p>
               <ul className="policy-list">
-                <li className="policy-list__item">Remove or edit any content that breaches this Policy</li>
-                <li className="policy-list__item">Suspend or permanently terminate user accounts</li>
-                <li className="policy-list__item">Restrict access to any part of the Forum</li>
-                <li className="policy-list__item">Report unlawful conduct to the relevant authorities</li>
+                <li className="policy-list__item"><span>Remove or edit any content that breaches this Policy</span></li>
+                <li className="policy-list__item"><span>Suspend or permanently terminate user accounts</span></li>
+                <li className="policy-list__item"><span>Restrict access to any part of the Forum</span></li>
+                <li className="policy-list__item"><span>Report unlawful conduct to the relevant authorities</span></li>
               </ul>
               <div className="policy-section__callout">
                 <p>We are not obliged to monitor all content but may do so. <strong>Moderation decisions are final.</strong></p>
@@ -266,9 +266,9 @@ const ForumPolicy: React.FC = () => {
             <div className="policy-section__body">
               <p>To the fullest extent permitted under UK law:</p>
               <ul className="policy-list">
-                <li className="policy-list__item">We are not responsible for user-generated content posted on the Forum</li>
-                <li className="policy-list__item">We are not liable for any loss, damage, or injury resulting from reliance on Forum content</li>
-                <li className="policy-list__item">Participation in the Forum is at your own risk</li>
+                <li className="policy-list__item"><span>We are not responsible for user-generated content posted on the Forum</span></li>
+                <li className="policy-list__item"><span>We are not liable for any loss, damage, or injury resulting from reliance on Forum content</span></li>
+                <li className="policy-list__item"><span>Participation in the Forum is at your own risk</span></li>
               </ul>
               <p>Nothing in this Policy excludes or limits liability where it would be unlawful to do so.</p>
             </div>
@@ -300,11 +300,12 @@ const ForumPolicy: React.FC = () => {
                 </div>
                 <div className="policy-contact__row">
                   <i className="bi bi-envelope" />
-                  <span><a href="mailto:hello@barkbuddy.org.uk">paws@barkbuddy.org.uk</a></span>
+                  <span><a href="mailto:paws@barkbuddy.org.uk">paws@barkbuddy.org.uk</a></span>
                 </div>
               </div>
             </div>
           </section>
+
         </main>
       </div>
       <Footer />

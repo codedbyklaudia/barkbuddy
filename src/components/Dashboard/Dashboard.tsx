@@ -6,7 +6,7 @@ import { useSaved } from "../../context/SavedContext";
 import BuddyCalendar from "../Buddy_Calendar";
 import CommunityForum from "../CommunityForum";
 import DashboardView from './DashboardView';
-import Sidebar from './Sidebar';
+import Sidebar, { MobileTopNav } from './Sidebar';
 import SettingsView from './SettingsView';
 import SavedView from './SavedView';
 import logoSrc from "../../../images/logo.png";
@@ -594,7 +594,7 @@ const PreferencesModal: React.FC<{
 };
 
 // Logo
-const BarkBuddyLogo: React.FC<{ size?: "sm" | "md" | "lg" }> = ({ size = "md" }) => {
+const BarkBuddyLogo: React.FC<{ size?: "sm" | "md" | "lg" }> = ({ size = "sm" }) => {
   const [imgFailed, setImgFailed] = useState(false);
   if (imgFailed) {
     return (
@@ -1776,10 +1776,16 @@ const Dashboard: React.FC = () => {
         </main>
       </div>
 
-      <MobileDrawer
-        open={drawerOpen} active={activeNav} onNav={setActiveNav}
-        onClose={() => setDrawerOpen(false)} onLogout={handleLogout}
-        user={user} savedCount={savedCount}
+      <MobileTopNav
+        open={drawerOpen}
+        active={activeNav}
+        onNav={setActiveNav}
+        onClose={() => setDrawerOpen(false)}
+        onLogout={handleLogout}
+        userAvatar={user?.avatarUrl}
+        userName={user?.name}
+        userEmail={user?.email}
+        savedCount={savedCount}
       />
     </div>
   );
