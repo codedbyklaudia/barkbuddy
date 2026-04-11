@@ -519,9 +519,8 @@ const Step1: React.FC<{
         </button>
 
         <div className="step1-footer-note">
-          Already have an account? <Link to={"/login"}>Login here</Link>
-          <span className="footer-divider"></span>
-          Business Owner? <a href="/register/business" className="biz-link">Register here</a>
+          <p>Already have an account? <Link to="/login">Login here</Link></p>
+          <p>Business Owner? <Link to="/business/register" className="biz-link">Register here</Link></p>
         </div>
       </div>
     </div>

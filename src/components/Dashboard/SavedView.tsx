@@ -4,8 +4,7 @@ import { useSaved } from "../../context/SavedContext";
 import type { SavedItem, SavedTip, SavedService } from "../../context/SavedContext";
 import "./SavedView.scss";
 
-// ─── Icons ────────────────────────────────────────────────────────────────────
-
+// Icons 
 const Ico = {
   bookmark: (f = true) => (
     <svg width="16" height="16" viewBox="0 0 24 24" fill={f ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -65,7 +64,7 @@ const Ico = {
   ),
 };
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// Helpers
 
 const CAT_CONFIG: Record<string, { bg: string; accent: string; text: string; label: string }> = {
   grooming:  { bg: "#F0EEFF", accent: "#7F77DD", text: "#3C3489", label: "Grooming"  },
@@ -233,9 +232,8 @@ const HeroBanner: React.FC<{ tipCount: number; serviceCount: number }> = ({
   <div className="sv-hero">
     <div className="sv-hero__left">
       <div className="sv-hero__icon-wrap">{Ico.bookmark()}</div>
-      <div>
-        <h2 className="sv-hero__title">Your saved collection</h2>
-        <p className="sv-hero__sub">Tips and services, all in one place</p>
+      <div className="sv-hero__text">
+        <h2 className="sv-hero__title">Favourites</h2>
       </div>
     </div>
     <div className="sv-hero__stats">

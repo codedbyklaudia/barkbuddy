@@ -11,7 +11,7 @@ import { formatServiceType } from '../utils/formatservicetype';
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:4000/api";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// Types
 interface Business {
   id: number; email: string; personal_name: string; business_name: string;
   category: string; type: string; address: string; postcode: string;
@@ -37,12 +37,21 @@ interface ReviewStats {
 type Section = "overview" | "profile" | "photos" | "reviews" | "listing" | "settings";
 
 // ─── Auth helpers ─────────────────────────────────────────────────────────────
-const getToken   = () => localStorage.getItem("business_token") ?? "";
-const getBiz     = (): Business | null => {
+const getToken = () => {
+  const token = localStorage.getItem("business_token") ?? "";
+  if (!token) console.warn("[BarkBuddy] No business_token found in localStorage");
+  return token;
+};
+
+const getBiz = (): Business | null => {
   try { return JSON.parse(localStorage.getItem("business_user") ?? "null"); }
   catch { return null; }
 };
-const authHeader = () => ({ Authorization: `Bearer ${getToken()}`, "Content-Type": "application/json" });
+
+const authHeader = () => ({
+  Authorization: `Bearer ${getToken()}`,
+  "Content-Type": "application/json",
+});
 
 // ─── Toast ────────────────────────────────────────────────────────────────────
 const Toast: React.FC<{ msg: string; type: "success" | "error" }> = ({ msg, type }) => (
@@ -220,7 +229,9 @@ const PhotosSection: React.FC<{
   const fileRef = useRef<HTMLInputElement>(null);
 
   const load = async () => {
-    const res  = await fetch(`${API_BASE}/business/dashboard/me`, { headers: { Authorization: `Bearer ${getToken()}` } });
+    const res  = await fetch(`${API_BASE}/business/dashboard/me`, {
+      headers: { Authorization: `Bearer ${getToken()}` },
+    });
     const data = await res.json();
     setPhotos(data.photos ?? []);
     setLoading(false);
@@ -330,8 +341,6 @@ const ReviewsSection: React.FC<{ bizId: number }> = ({ bizId }) => {
 
   return (
     <div className="biz-reviews" style={{ animation: "fadeUp 0.3s ease both" }}>
-
-      {/* Stats banner */}
       <div className="biz-reviews__stats">
         <div className="biz-reviews__stats-score">
           <span className="biz-reviews__stats-number">{avg.toFixed(1)}</span>
@@ -340,8 +349,6 @@ const ReviewsSection: React.FC<{ bizId: number }> = ({ bizId }) => {
             <p>{stats.total_reviews} review{stats.total_reviews !== 1 ? "s" : ""}</p>
           </div>
         </div>
-
-        {/* Rating distribution bars */}
         <div className="biz-reviews__stats-bars">
           {[5,4,3,2,1].map(star => {
             const count = reviews.filter(r => r.rating === star).length;
@@ -359,7 +366,6 @@ const ReviewsSection: React.FC<{ bizId: number }> = ({ bizId }) => {
         </div>
       </div>
 
-      {/* Review list */}
       {reviews.length === 0 ? (
         <div className="biz-reviews__empty">
           <MessageSquare size={32} />
@@ -396,7 +402,6 @@ const ReviewsSection: React.FC<{ bizId: number }> = ({ bizId }) => {
 };
 
 // ─── Listing preview section ──────────────────────────────────────────────────
-// Shows the business exactly as a dog parent sees it on ServiceDetailPage
 const ListingPreviewSection: React.FC<{ biz: Business; bizId: number }> = ({ biz, bizId }) => {
   const [photos,  setPhotos]  = useState<Photo[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -431,8 +436,6 @@ const ListingPreviewSection: React.FC<{ biz: Business; bizId: number }> = ({ biz
 
   return (
     <div className="biz-listing-preview" style={{ animation: "fadeUp 0.3s ease both" }}>
-
-      {/* Preview notice banner */}
       <div className="biz-listing-preview__notice">
         <Eye size={15} />
         <span>This is exactly how your listing appears to dog owners on BarkBuddy.</span>
@@ -446,10 +449,7 @@ const ListingPreviewSection: React.FC<{ biz: Business; bizId: number }> = ({ biz
         </Link>
       </div>
 
-      {/* ── Simulated listing card ── */}
       <div className="biz-listing-card">
-
-        {/* Type badge + name */}
         <div className="biz-listing-card__header">
           <span className="biz-listing-card__badge">
             {formatServiceType(biz.type)}
@@ -467,13 +467,10 @@ const ListingPreviewSection: React.FC<{ biz: Business; bizId: number }> = ({ biz
           )}
         </div>
 
-        {/* Photo gallery — same layout as ServiceDetailPage */}
         {photos.length > 0 && (
           <div className="biz-listing-card__gallery">
             <div className="biz-listing-card__photo-main">
-              {mainPhoto && (
-                <img src={mainPhoto.cloudinary_url} alt={biz.business_name} />
-              )}
+              {mainPhoto && <img src={mainPhoto.cloudinary_url} alt={biz.business_name} />}
             </div>
             {photos.length > 1 && (
               <div className="biz-listing-card__photo-grid">
@@ -493,18 +490,15 @@ const ListingPreviewSection: React.FC<{ biz: Business; bizId: number }> = ({ biz
           </div>
         )}
 
-        {/* Contact details */}
         <div className="biz-listing-card__details">
           {biz.contact_phone && (
             <div className="biz-listing-card__detail-row">
-              <Phone size={14} />
-              <span>{biz.contact_phone}</span>
+              <Phone size={14} /><span>{biz.contact_phone}</span>
             </div>
           )}
           {biz.contact_email && (
             <div className="biz-listing-card__detail-row">
-              <Mail size={14} />
-              <span>{biz.contact_email}</span>
+              <Mail size={14} /><span>{biz.contact_email}</span>
             </div>
           )}
           {biz.website && (
@@ -515,15 +509,12 @@ const ListingPreviewSection: React.FC<{ biz: Business; bizId: number }> = ({ biz
           )}
         </div>
 
-        {/* Description */}
         {biz.description && (
           <div className="biz-listing-card__description">
             <h3><Info size={15} /> About</h3>
             <p>{biz.description}</p>
           </div>
         )}
-
-        {/* Price list / additional info */}
         {biz.price_list && (
           <div className="biz-listing-card__description">
             <h3>Price list</h3>
@@ -537,7 +528,6 @@ const ListingPreviewSection: React.FC<{ biz: Business; bizId: number }> = ({ biz
           </div>
         )}
 
-        {/* Reviews preview */}
         <div className="biz-listing-card__reviews">
           <h3>Reviews ({stats.total_reviews})</h3>
           {reviews.length === 0 ? (
@@ -561,7 +551,6 @@ const ListingPreviewSection: React.FC<{ biz: Business; bizId: number }> = ({ biz
           )}
         </div>
 
-        {/* Missing info nudges */}
         {(!biz.description || !biz.contact_phone || photos.length === 0) && (
           <div className="biz-listing-card__nudges">
             <p className="biz-listing-card__nudge-title">💡 Complete your listing to attract more clients:</p>
@@ -587,7 +576,6 @@ const SettingsSection: React.FC<{
   const [usernameErr, setUsernameErr] = useState("");
   const [savingUser,  setSavingUser]  = useState(false);
 
-  // Compute cooldown state from username_updated_at
   const usernameNextAllowed = biz.username_updated_at
     ? new Date(new Date(biz.username_updated_at).getTime() + 30 * 24 * 60 * 60 * 1000)
     : null;
@@ -595,6 +583,7 @@ const SettingsSection: React.FC<{
   const usernameNextDate = usernameNextAllowed
     ? usernameNextAllowed.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })
     : null;
+
   const [pwForm,   setPwForm]   = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
   const [pwErrors, setPwErrors] = useState<Record<string, string>>({});
   const [savingPw, setSavingPw] = useState(false);
@@ -627,14 +616,13 @@ const SettingsSection: React.FC<{
     }
   };
 
-  const isVerified = biz.email_verified !== false; // treat undefined as verified (legacy)
+  const isVerified = biz.email_verified !== false;
 
   return (
     <div className="biz-settings">
       <div className="biz-settings-card">
         <h3>Username</h3>
         <p>Letters, numbers, and hyphens only. Can be changed once every 30 days.</p>
-
         {usernameLocked ? (
           <div className="biz-username-locked">
             <Lock size={14} />
@@ -675,7 +663,6 @@ const SettingsSection: React.FC<{
         </form>
       </div>
 
-      {/* Account info — now includes email verification status */}
       <div className="biz-settings-card biz-settings-card--info">
         <h3>Account info</h3>
         <div className="biz-info-rows">
@@ -684,13 +671,9 @@ const SettingsSection: React.FC<{
             <strong className="biz-info-email-row">
               {biz.email}
               {isVerified ? (
-                <span className="biz-email-verified">
-                  <CheckCircle size={13} /> Verified
-                </span>
+                <span className="biz-email-verified"><CheckCircle size={13} /> Verified</span>
               ) : (
-                <span className="biz-email-unverified">
-                  <XCircle size={13} /> Not verified - check your inbox
-                </span>
+                <span className="biz-email-unverified"><XCircle size={13} /> Not verified - check your inbox</span>
               )}
             </strong>
           </div>
@@ -719,6 +702,7 @@ const BusinessDashboard: React.FC = () => {
   const [section, setSection] = useState<Section>("overview");
   const [toast,   setToast]   = useState<{ msg: string; type: "success" | "error" } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
 
   const showToast = (msg: string, type: "success" | "error") => {
     setToast({ msg, type });
@@ -732,14 +716,61 @@ const BusinessDashboard: React.FC = () => {
   };
 
   const loadMe = async () => {
-    const res = await fetch(`${API_BASE}/business/dashboard/me`, {
-      headers: { Authorization: `Bearer ${getToken()}` },
-    });
-    if (res.status === 401) { logout(); return; }
-    const data = await res.json();
-    setBiz(data.business);
-    localStorage.setItem("business_user", JSON.stringify(data.business));
-    setLoading(false);
+    const token = getToken();
+
+    // ── Debug logs — remove once confirmed working ──
+    console.log("[BarkBuddy] API_BASE:", API_BASE);
+    console.log("[BarkBuddy] Token present:", !!token);
+    console.log("[BarkBuddy] Token value:", token ? token.substring(0, 20) + "…" : "MISSING");
+
+    if (!token) {
+      console.warn("[BarkBuddy] No token — redirecting to login");
+      navigate("/business/login");
+      return;
+    }
+
+    try {
+      setLoadError("");
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000);
+
+      const res = await fetch(`${API_BASE}/business/dashboard/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeout);
+
+      console.log("[BarkBuddy] /dashboard/me status:", res.status);
+
+      if (res.status === 401) {
+        console.warn("[BarkBuddy] 401 — token invalid or expired, logging out");
+        logout();
+        return;
+      }
+
+      if (!res.ok) {
+        const errText = await res.text();
+        console.error("[BarkBuddy] Dashboard error:", res.status, errText);
+        setLoadError(`Server error (${res.status}). Please try refreshing.`);
+        return;
+      }
+
+      const data = await res.json();
+      console.log("[BarkBuddy] Dashboard data received:", !!data.business);
+      setBiz(data.business);
+      localStorage.setItem("business_user", JSON.stringify(data.business));
+    } catch (err: any) {
+      if (err.name === "AbortError") {
+        console.error("[BarkBuddy] Request timed out");
+        setLoadError("Request timed out. The server may be waking up — please refresh in a moment.");
+      } else {
+        console.error("[BarkBuddy] Dashboard load failed:", err);
+        setLoadError("Failed to connect. Please check your connection and refresh.");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -747,11 +778,38 @@ const BusinessDashboard: React.FC = () => {
     loadMe();
   }, []);
 
-  if (!biz || loading) {
+  // ── Loading state ──
+  if (loading) {
     return (
       <div className="biz-dash-loading">
         <div className="biz-dash-loading__spinner" />
         <p>Loading your dashboard…</p>
+      </div>
+    );
+  }
+
+  // ── Error state — shown instead of blank screen ──
+  if (loadError) {
+    return (
+      <div className="biz-dash-loading">
+        <p style={{ color: "#dc2626", marginBottom: "1rem" }}>{loadError}</p>
+        <button
+          onClick={() => { setLoading(true); setLoadError(""); loadMe(); }}
+          style={{
+            padding: "10px 24px", borderRadius: "8px", border: "none",
+            background: "#6d5acd", color: "#fff", cursor: "pointer", fontSize: "0.9rem",
+          }}
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  if (!biz) {
+    return (
+      <div className="biz-dash-loading">
+        <p>Something went wrong. <button onClick={logout}>Log in again</button></p>
       </div>
     );
   }
@@ -764,7 +822,6 @@ const BusinessDashboard: React.FC = () => {
     );
   }
 
-  // Desktop sidebar — all 6 sections
   const navItems: { key: Section; label: string; icon: React.ReactNode }[] = [
     { key: "overview", label: "Overview",     icon: <LayoutDashboard /> },
     { key: "listing",  label: "My listing",   icon: <Eye /> },
@@ -774,7 +831,6 @@ const BusinessDashboard: React.FC = () => {
     { key: "settings", label: "Settings",     icon: <Settings /> },
   ];
 
-  // Mobile bottom nav — exactly 5 items (no Overview — it's the default home)
   const mobileNavItems: { key: Section; label: string; icon: React.ReactNode }[] = [
     { key: "listing",  label: "My Listing",  icon: <Eye /> },
     { key: "reviews",  label: "Reviews",     icon: <MessageSquare /> },
@@ -783,7 +839,7 @@ const BusinessDashboard: React.FC = () => {
     { key: "settings", label: "Settings",    icon: <Settings /> },
   ];
 
-  const firstName = biz.personal_name.split(" ")[0];
+  const firstName  = biz.personal_name.split(" ")[0];
   const isVerified = biz.email_verified !== false;
 
   return (
@@ -853,10 +909,8 @@ const BusinessDashboard: React.FC = () => {
       <main className="biz-dash__main">
         <div className="biz-dash__main-inner">
 
-          {/* Overview */}
           {section === "overview" && (
             <div className="biz-overview">
-              {/* Email not verified warning */}
               {!isVerified && (
                 <div className="biz-overview__verify-warning">
                   <XCircle size={16} />
@@ -864,7 +918,6 @@ const BusinessDashboard: React.FC = () => {
                 </div>
               )}
 
-              {/* Welcome banner */}
               <div className="biz-overview__welcome">
                 <div className="biz-overview__welcome-content">
                   <div className="biz-overview__welcome-text">
@@ -872,20 +925,18 @@ const BusinessDashboard: React.FC = () => {
                     <p>Your listing is live and visible to dog owners across the UK.</p>
                   </div>
                   <div className="biz-overview__welcome-status">
-                    <span />
-                    <span>Live</span>
+                    <span /><span>Live</span>
                   </div>
                 </div>
               </div>
 
-              {/* Quick action cards */}
               <div className="biz-overview__cards">
                 {[
-                  { key: "profile"  as Section, icon: <PencilLine />,    title: "Edit listing",    desc: "Update your description, contact details, prices, and address.", cta: "Edit" },
-                  { key: "photos"   as Section, icon: <Camera />,        title: "Manage photos",   desc: "Add photos to make your listing stand out. Up to 8 photos allowed.", cta: "Photos" },
-                  { key: "listing"  as Section, icon: <Eye />,           title: "My listing",      desc: "See exactly how your listing looks to dog owners.", cta: "Preview" },
-                  { key: "reviews"  as Section, icon: <MessageSquare />, title: "My reviews",      desc: "Read reviews left by dog owners on your listing.", cta: "Reviews" },
-                  { key: "settings" as Section, icon: <Settings />,      title: "Account settings",desc: "Change your username or password.", cta: "Settings" },
+                  { key: "profile"  as Section, icon: <PencilLine />,    title: "Edit listing",     desc: "Update your description, contact details, prices, and address.", cta: "Edit" },
+                  { key: "photos"   as Section, icon: <Camera />,        title: "Manage photos",    desc: "Add photos to make your listing stand out. Up to 8 photos allowed.", cta: "Photos" },
+                  { key: "listing"  as Section, icon: <Eye />,           title: "My listing",       desc: "See exactly how your listing looks to dog owners.", cta: "Preview" },
+                  { key: "reviews"  as Section, icon: <MessageSquare />, title: "My reviews",       desc: "Read reviews left by dog owners on your listing.", cta: "Reviews" },
+                  { key: "settings" as Section, icon: <Settings />,      title: "Account settings", desc: "Change your username or password.", cta: "Settings" },
                 ].map(card => (
                   <div key={card.key} className="biz-overview-card" onClick={() => setSection(card.key)}>
                     <span className="biz-overview-card__icon">{card.icon}</span>
@@ -900,7 +951,6 @@ const BusinessDashboard: React.FC = () => {
                 ))}
               </div>
 
-              {/* Listing details */}
               <div className="biz-overview__listing-preview">
                 <h2>Your listing details</h2>
                 <div className="biz-info-rows">
@@ -908,7 +958,11 @@ const BusinessDashboard: React.FC = () => {
                   <div><span>Category</span><strong>{biz.category} — {biz.type}</strong></div>
                   <div><span>Address</span><strong>{biz.address}, {biz.postcode}</strong></div>
                   {biz.contact_phone && <div><span>Phone</span><strong>{biz.contact_phone}</strong></div>}
-                  {biz.website && <div><span>Website</span><strong><a href={biz.website} target="_blank" rel="noopener noreferrer">{biz.website}</a></strong></div>}
+                  {biz.website && (
+                    <div><span>Website</span><strong>
+                      <a href={biz.website} target="_blank" rel="noopener noreferrer">{biz.website}</a>
+                    </strong></div>
+                  )}
                   {biz.description && <div><span>Description</span><strong>{biz.description}</strong></div>}
                 </div>
                 {!biz.description && (
@@ -921,7 +975,6 @@ const BusinessDashboard: React.FC = () => {
             </div>
           )}
 
-          {/* Profile */}
           {section === "profile" && (
             <>
               <h1 className="biz-dash__page-title">Edit listing</h1>
@@ -930,7 +983,6 @@ const BusinessDashboard: React.FC = () => {
             </>
           )}
 
-          {/* Photos */}
           {section === "photos" && (
             <>
               <h1 className="biz-dash__page-title">Photos</h1>
@@ -939,7 +991,6 @@ const BusinessDashboard: React.FC = () => {
             </>
           )}
 
-          {/* My Listing preview */}
           {section === "listing" && (
             <>
               <h1 className="biz-dash__page-title">My listing</h1>
@@ -948,7 +999,6 @@ const BusinessDashboard: React.FC = () => {
             </>
           )}
 
-          {/* My Reviews */}
           {section === "reviews" && (
             <>
               <h1 className="biz-dash__page-title">My reviews</h1>
@@ -957,7 +1007,6 @@ const BusinessDashboard: React.FC = () => {
             </>
           )}
 
-          {/* Settings */}
           {section === "settings" && (
             <>
               <h1 className="biz-dash__page-title">Account settings</h1>
@@ -973,7 +1022,7 @@ const BusinessDashboard: React.FC = () => {
         </div>
       </main>
 
-      {/* ── Mobile bottom nav — exactly 5 items ── */}
+      {/* ── Mobile bottom nav ── */}
       <nav className="biz-dash__mobile-nav">
         {mobileNavItems.map(n => (
           <button

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import "./BusinessLogin.scss"; // reuse same styles
+import "./BusinessLogin.scss"; 
+import { ChevronsLeft } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:4000/api";
 
@@ -30,11 +31,11 @@ const BusinessForgotPassword: React.FC = () => {
     <div className="biz-login">
       <aside className="biz-login__panel">
         <div className="biz-login__panel-inner">
+          <img src="/images/logo.png" alt="BarkBuddy for business" className="biz-login__brand-icon" />
           <div className="biz-login__brand">
             <h1>BarkBuddy<br /><em>for Business</em></h1>
-            <p>We'll send a reset link to your registered email address.</p>
           </div>
-          <Link to="/business/login" className="biz-login__home-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg> Back to login</Link>
+          <Link to="/business/login" className="biz-login__home-link"><ChevronsLeft  size={"18"} /> Back</Link>
         </div>
       </aside>
 
@@ -72,9 +73,6 @@ const BusinessForgotPassword: React.FC = () => {
                   {loading ? <><span className="biz-login__spinner" />Sending…</> : "Send reset link"}
                 </button>
               </form>
-              <p className="biz-login__contact">
-                <Link to="/business/login"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg> Back to login</Link>
-              </p>
             </>
           )}
         </div>

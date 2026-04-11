@@ -120,9 +120,13 @@ const Contact: React.FC = () => {
             </p>
 
             <div className="contact-hero__ctas">
-              <a href="#contact-form" className="contact-hero__cta contact-hero__cta--primary">
+              <button
+                type="button"
+                className="contact-hero__cta contact-hero__cta--primary"
+                onClick={() => document.getElementById("contact-form")?.scrollIntoView({ behavior: "smooth" })}
+              >
                 Send a message <ChevronsRight />
-              </a>
+              </button>
               <a href="mailto:paws@barkbuddy.org.uk" className="contact-hero__cta contact-hero__cta--ghost">
                 paws@barkbuddy.org.uk
               </a>

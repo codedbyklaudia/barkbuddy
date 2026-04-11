@@ -10,7 +10,7 @@ interface LoginFormData {
   password: string;
 }
 
-// Decorations
+// decorative background elements
 const LoginDecorations: React.FC = () => (
   <>
     <div className="s0-rings" aria-hidden="true">
@@ -29,7 +29,7 @@ const LoginDecorations: React.FC = () => (
   </>
 );
 
-// Eye Toggle 
+// eye toggle icon
 const LoginEyeIcon: React.FC<{ visible: boolean }> = ({ visible }) =>
   visible ? (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -43,7 +43,6 @@ const LoginEyeIcon: React.FC<{ visible: boolean }> = ({ visible }) =>
     </svg>
   );
 
-// Login Form 
 const LoginForm: React.FC<{
   data:       LoginFormData;
   errors:     Record<string, string>;
@@ -57,9 +56,20 @@ const LoginForm: React.FC<{
 
   return (
     <div className="step-content login-layout">
+
+      {/* mobile mascot: above card, peeks into card top edge */}
+      <div className="login-mascot-mobile" aria-hidden="true">
+        <img src="../../images/dog-register.svg" alt="" />
+      </div>
+
       <div className="login-card">
         <div className="login-header">
-          <img className="login-mascot" src="../../images/dog-register.svg" alt="dog mascot" />
+          {/* desktop mascot: absolute top-right */}
+          <img
+            className="login-mascot"
+            src="../../images/dog-register.svg"
+            alt="dog mascot"
+          />
           <h1 className="login-title">Log In</h1>
           <p className="login-sub">
             Ohh, good to see you again.<br />
@@ -90,7 +100,12 @@ const LoginForm: React.FC<{
                 onChange={(e) => onChange("password", e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && onSubmit()}
               />
-              <button type="button" className="eye-btn" onClick={() => setShowPw(!showPw)}>
+              <button
+                type="button"
+                className="eye-btn"
+                onClick={() => setShowPw(!showPw)}
+                aria-label={showPw ? "Hide password" : "Show password"}
+              >
                 <LoginEyeIcon visible={showPw} />
               </button>
             </div>
@@ -109,6 +124,7 @@ const LoginForm: React.FC<{
             className={`btn-next login-btn ${!canProceed || loading ? "disabled" : ""}`}
             disabled={!canProceed || loading}
             onClick={onSubmit}
+            style={{ background: '#3b2067', color: '#ede8f5' }}
           >
             {loading
               ? <><span className="btn-spinner" /> Logging in…</>
@@ -123,19 +139,16 @@ const LoginForm: React.FC<{
           </button>
         </div>
 
+        {/* 2 lines, each a plain paragraph - immune to flex cascade issues */}
         <div className="login-footer-note">
-          Don't have an account?{" "}
-          <Link to={"/register"}>Register here</Link>
-          <span className="footer-divider"></span>
-          Business Owner?{" "}
-          <Link to={"/business/login"} className="biz-link">Login here</Link>
+          <p>Don't have an account? <Link to={"/register"}>Register here</Link></p>
+          <p>Business Owner? <Link to={"/business/login"} className="biz-link">Login here</Link></p>
         </div>
       </div>
     </div>
   );
 };
 
-// Login Page
 const LoginPage: React.FC = () => {
   const navigate  = useNavigate();
   const { login } = useAuth();

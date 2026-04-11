@@ -96,13 +96,12 @@
   object-fit: contain;
   &.bb-logo-sm { height: 32px; }
   &.bb-logo-md {
-    height: 36px;          
+    height: 40px;          
     @media (min-width: $bp-tablet) { height: 42px; }
   }
- 
   &.bb-logo-lg {
-    height: 36px;
-    @media (min-width: $bp-tablet) { height: 44px; }
+    height: 45px;
+    @media (min-width: $bp-tablet) { height: 47px; }
   }
 }
 
@@ -145,8 +144,8 @@
   @include cursor;
   color: $text-color-dark;
   @include center;
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   border-radius: $radius-md;
   transition: all 0.2s;
  
@@ -154,7 +153,7 @@
 }
 
 .db-notif-bell-wrap {
-  position: relative;
+  @include relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;

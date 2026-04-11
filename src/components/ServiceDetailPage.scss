@@ -115,15 +115,17 @@
 
   // Photo hero
   &__photo-hero {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: $space-sm;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $space-sm;
 
+  &:has(.photo-hero__grid) {
     @media (min-width: $bp-tablet) {
       grid-template-columns: 1.6fr 1fr;
       align-items: stretch;
     }
   }
+}
 
   // Venue details
   &__details {
@@ -916,4 +918,53 @@
   40%  { transform: scale(1.18); }
   70%  { transform: scale(0.93); }
   100% { transform: scale(1); }
+}
+.activity-details__back {
+  padding: $space-md $space-lg;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.activity-details__back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  color: $twilight-purple;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 6px 0;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+
+  &:hover { opacity: 1; }
+}
+
+.sdp-save-wrapper {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.sdp-save-login-msg {
+  font-size: 0.78rem;
+  color: $twilight-purple;
+  background: rgba($twilight-purple, 0.06);
+  border: 1px solid rgba($twilight-purple, 0.15);
+  border-radius: $radius-sm;
+  padding: 5px 10px;
+  margin: 0;
+  white-space: nowrap;
+  animation: fade-in 0.2s ease;
+
+  i { margin-right: 4px; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
 }

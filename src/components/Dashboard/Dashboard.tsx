@@ -594,7 +594,7 @@ const PreferencesModal: React.FC<{
 };
 
 // Logo
-const BarkBuddyLogo: React.FC<{ size?: "sm" | "md" | "lg" }> = ({ size = "sm" }) => {
+const BarkBuddyLogo: React.FC<{ size?: "sm" | "md" | "lg" }> = ({ size = "md" }) => {
   const [imgFailed, setImgFailed] = useState(false);
   if (imgFailed) {
     return (
@@ -716,7 +716,7 @@ function humanYears(dob?: string): string {
   return `≈ ${Math.round(h)} human years`;
 }
 
-// ─── Care Tips (12 per stage) ─────────────────────────────────────────────────
+// Care Tips (12 per stage)
 const CARE_TIPS: Record<string, { icon: string; title: string; tip: string }[]> = {
   puppy: [
     { icon: "vaccine",  title: "Vaccination Windows",       tip: "The primary course runs at 8, 12, and 16 weeks. Maternal antibodies actively interfere with vaccine response before 8 weeks — vaccinating earlier is largely ineffective. Full immunity isn't established until 2 weeks after the final dose, so avoid high-risk environments until then." },
@@ -972,7 +972,7 @@ const DogDetailsSection: React.FC<{ dogName: string; dogId: string; token: strin
       <div className="dog-details-grid">
         {([
           { key: "details", title: "Details",       has: hasDetails, items: [
-              details.weight        && `Weight: ${details.weight}`,
+              details.weight        && `Weight: ${details.weight} kg`,
               details.bodyCondition && `Condition: ${details.bodyCondition}`,
               details.activityLevel && `Activity: ${details.activityLevel}`,
               details.neutered      && `Neutered: ${details.neutered}`,
