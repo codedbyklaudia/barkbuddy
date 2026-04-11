@@ -59,7 +59,6 @@ const distExpr = (latP: string, lngP: string) => `
 `;
 
 // ─── GET /api/listings/services ──────────────────────────────────────────────
-// IMPORTANT: Specific routes MUST come BEFORE generic /:id route!
 router.get("/services", async (req: Request, res: Response) => {
   const {
     search   = "",
@@ -113,7 +112,7 @@ router.get("/services", async (req: Request, res: Response) => {
         ba.lat, ba.lng, ba.contact_phone, ba.contact_email, ba.website,
         ba.description, ba.approved_at,
         bsd.price_list,
-        (SELECT file_path FROM business_photos
+        (SELECT cloudinary_url FROM business_photos
          WHERE business_id = ba.id AND is_primary = true LIMIT 1) AS primary_photo,
         (SELECT COUNT(*) FROM business_photos WHERE business_id = ba.id)::int AS photo_count,
         (ba.approved_at > NOW() - INTERVAL '30 days') AS is_new,
@@ -205,7 +204,7 @@ router.get("/activities", async (req: Request, res: Response) => {
         ba.id, ba.business_name, ba.type, ba.address, ba.postcode,
         ba.lat, ba.lng, ba.contact_phone, ba.contact_email, ba.website,
         ba.description, ba.approved_at,
-        (SELECT file_path FROM business_photos
+        (SELECT cloudinary_url FROM business_photos
          WHERE business_id = ba.id AND is_primary = true LIMIT 1) AS primary_photo,
         (SELECT COUNT(*) FROM business_photos WHERE business_id = ba.id)::int AS photo_count,
         (ba.approved_at > NOW() - INTERVAL '30 days') AS is_new,
@@ -230,7 +229,13 @@ router.get("/activities", async (req: Request, res: Response) => {
 
     res.json({
       activities: rows,
-      meta: { total: rows.length, searchLat, searchLng, radiusKm: hasLocation ? radiusKm : null, locationFound: hasLocation },
+      meta: {
+        total:         rows.length,
+        searchLat,
+        searchLng,
+        radiusKm:      hasLocation ? radiusKm : null,
+        locationFound: hasLocation,
+      },
     });
   } catch (err) {
     console.error("Activities listing error:", err);
@@ -253,12 +258,20 @@ router.get("/services/:id", async (req: Request, res: Response) => {
       [req.params.id]
     );
     if (rows.length === 0) { res.status(404).json({ message: "Not found" }); return; }
+
     const { rows: photos } = await pool.query(
-      "SELECT file_path, caption, is_primary FROM business_photos WHERE business_id = $1 ORDER BY is_primary DESC, created_at ASC",
+      `SELECT cloudinary_url, caption, is_primary
+       FROM business_photos
+       WHERE business_id = $1
+       ORDER BY is_primary DESC, created_at ASC`,
       [req.params.id]
     );
+
     res.json({ service: rows[0], photos });
-  } catch { res.status(500).json({ message: "Failed to load service." }); }
+  } catch (err) {
+    console.error("Service detail error:", err);
+    res.status(500).json({ message: "Failed to load service." });
+  }
 });
 
 // ─── GET /api/listings/activities/:id ────────────────────────────────────────
@@ -274,12 +287,20 @@ router.get("/activities/:id", async (req: Request, res: Response) => {
       [req.params.id]
     );
     if (rows.length === 0) { res.status(404).json({ message: "Not found" }); return; }
+
     const { rows: photos } = await pool.query(
-      "SELECT file_path, caption, is_primary FROM business_photos WHERE business_id = $1 ORDER BY is_primary DESC, created_at ASC",
+      `SELECT cloudinary_url, caption, is_primary
+       FROM business_photos
+       WHERE business_id = $1
+       ORDER BY is_primary DESC, created_at ASC`,
       [req.params.id]
     );
+
     res.json({ activity: rows[0], photos });
-  } catch { res.status(500).json({ message: "Failed to load activity." }); }
+  } catch (err) {
+    console.error("Activity detail error:", err);
+    res.status(500).json({ message: "Failed to load activity." });
+  }
 });
 
 // ─── GET /api/listings/:id (UNIFIED) ─────────────────────────────────────────
@@ -289,45 +310,44 @@ router.get("/:id", async (req: Request, res: Response) => {
     const { id } = req.params;
 
     const businessResult = await pool.query(
-      `SELECT 
+      `SELECT
         id, business_name, type, category, address, postcode,
         lat, lng, contact_phone, contact_email, website,
         description, approved_at, status,
         (approved_at > NOW() - INTERVAL '30 days') AS is_new
-       FROM business_accounts 
+       FROM business_accounts
        WHERE id = $1 AND status = 'approved' AND deleted_at IS NULL`,
       [id]
     );
 
     if (businessResult.rows.length === 0) {
-      res.status(404).json({ error: 'Business not found' });
+      res.status(404).json({ error: "Business not found" });
       return;
     }
 
     const business = businessResult.rows[0];
 
     const photosResult = await pool.query(
-      `SELECT id, file_path, caption, is_primary 
-       FROM business_photos 
-       WHERE business_id = $1 
+      `SELECT id, cloudinary_url, caption, is_primary
+       FROM business_photos
+       WHERE business_id = $1
        ORDER BY is_primary DESC, created_at ASC`,
       [id]
     );
 
     const reviewsResult = await pool.query(
-      `SELECT 
-        id, user_name, user_email, rating, comment, created_at
-       FROM reviews 
-       WHERE business_id = $1 AND deleted_at IS NULL 
+      `SELECT id, user_name, user_email, rating, comment, created_at
+       FROM reviews
+       WHERE business_id = $1 AND deleted_at IS NULL
        ORDER BY created_at DESC`,
       [id]
     );
 
     const statsResult = await pool.query(
-      `SELECT 
-        AVG(rating)::NUMERIC(3,2) as average_rating, 
-        COUNT(*) as total_reviews
-       FROM reviews 
+      `SELECT
+        AVG(rating)::NUMERIC(3,2) AS average_rating,
+        COUNT(*) AS total_reviews
+       FROM reviews
        WHERE business_id = $1 AND deleted_at IS NULL`,
       [id]
     );
@@ -342,7 +362,7 @@ router.get("/:id", async (req: Request, res: Response) => {
     });
   } catch (err) {
     console.error("Error fetching listing details:", err);
-    res.status(500).json({ error: 'Failed to fetch listing details' });
+    res.status(500).json({ error: "Failed to fetch listing details" });
   }
 });
 
