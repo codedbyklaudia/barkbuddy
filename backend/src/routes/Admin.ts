@@ -21,6 +21,8 @@ const photoUpload = multer({
     allowed.includes(file.mimetype) ? cb(null, true) : cb(new Error("Only JPG, PNG or WEBP allowed"));
   },
 });
+
+// Extract Cloudinary public_id from a cloudinary_url
 function extractPublicId(url: string): string | null {
   try {
     const match = url.match(/\/upload\/(?:v\d+\/)?(.+?)(\.[^.]+)?$/);
@@ -224,7 +226,7 @@ router.post("/businesses/:id/reject", requireAdmin, async (req: Request, res: Re
 router.get("/businesses/:id/photos", requireAdmin, async (req: Request, res: Response) => {
   try {
     const { rows } = await pool.query(
-      `SELECT id, file_name, file_path, caption, is_primary, created_at
+      `SELECT id, cloudinary_url, caption, is_primary, created_at
        FROM business_photos
        WHERE business_id = $1
        ORDER BY is_primary DESC, created_at ASC`,
@@ -258,10 +260,16 @@ router.post("/businesses/:id/photos", requireAdmin, photoUpload.single("photo"),
     }
 
     const { rows } = await pool.query(
-      `INSERT INTO business_photos (business_id, file_name, file_path, caption, is_primary, created_at)
-       VALUES ($1,$2,$3,$4,$5,NOW())
+      `INSERT INTO business_photos (business_id, cloudinary_url, cloudinary_id, caption, is_primary, created_at)
+       VALUES ($1, $2, $3, $4, $5, NOW())
        RETURNING *`,
-      [businessId, req.file.originalname, photoUrl, caption, isPrimary]
+      [
+        businessId,
+        photoUrl,
+        extractPublicId(photoUrl) ?? `biz_${businessId}_${Date.now()}`,
+        caption,
+        isPrimary,
+      ]
     );
 
     res.status(201).json({ message: "Photo uploaded.", photo: rows[0] });
@@ -300,13 +308,13 @@ router.delete("/businesses/:id/photos/:photoId", requireAdmin, async (req: Reque
     const photoId    = parseInt(req.params.photoId);
 
     const { rows } = await pool.query(
-      "SELECT file_path FROM business_photos WHERE id = $1 AND business_id = $2",
+      "SELECT cloudinary_url, cloudinary_id FROM business_photos WHERE id = $1 AND business_id = $2",
       [photoId, businessId]
     );
     if (rows.length === 0) { res.status(404).json({ message: "Photo not found." }); return; }
 
-    // Delete from Cloudinary — non-fatal if it fails
-    const publicId = extractPublicId(rows[0].file_path);
+    // Delete from Cloudinary using cloudinary_id first, fall back to extracting from URL
+    const publicId = rows[0].cloudinary_id || extractPublicId(rows[0].cloudinary_url);
     if (publicId) {
       await cloudinary.uploader.destroy(publicId).catch((err) =>
         console.error("Cloudinary delete error:", err)
@@ -335,13 +343,13 @@ router.delete("/businesses/:id", requireAdmin, async (req: Request, res: Respons
     if (rows.length === 0) { res.status(404).json({ message: "Business not found." }); return; }
 
     const { rows: photos } = await pool.query(
-      "SELECT file_path FROM business_photos WHERE business_id = $1",
+      "SELECT cloudinary_url, cloudinary_id FROM business_photos WHERE business_id = $1",
       [req.params.id]
     );
 
     // Delete all photos from Cloudinary — non-fatal
     for (const photo of photos) {
-      const publicId = extractPublicId(photo.file_path);
+      const publicId = photo.cloudinary_id || extractPublicId(photo.cloudinary_url);
       if (publicId) {
         await cloudinary.uploader.destroy(publicId).catch((err) =>
           console.error("Cloudinary delete error:", err)

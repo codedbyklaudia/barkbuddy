@@ -2,11 +2,9 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import "./AdminPanel.scss";
 import { LogOut } from 'lucide-react';
 
-
 const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:4000/api";
-const UPLOADS_BASE: string = (import.meta.env.VITE_API_URL ?? "http://localhost:4000/api").replace("/api", "");
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// Types
 interface Business {
   id:               number;
   email:            string;
@@ -28,11 +26,10 @@ interface Business {
 }
 
 interface BusinessPhoto {
-  id:         number;
-  file_name:  string;
-  file_path:  string;
-  caption?:   string;
-  is_primary: boolean;
+  id:            number;
+  cloudinary_url: string; // ← was file_path
+  caption?:      string;
+  is_primary:    boolean;
 }
 
 type Tab = "pending" | "approved" | "rejected" | "all";
@@ -87,14 +84,14 @@ const AdminLogin: React.FC<{ onAuth: (secret: string) => void }> = ({ onAuth }) 
 const PhotoManager: React.FC<{ businessId: number; secret: string; businessName: string }> = ({
   businessId, secret, businessName,
 }) => {
-  const [photos,     setPhotos]     = useState<BusinessPhoto[]>([]);
-  const [loading,    setLoading]    = useState(true);
-  const [uploading,  setUploading]  = useState(false);
-  const [caption,    setCaption]    = useState("");
-  const [isPrimary,  setIsPrimary]  = useState(false);
-  const [preview,    setPreview]    = useState<string | null>(null);
-  const [file,       setFile]       = useState<File | null>(null);
-  const [toast,      setToast]      = useState("");
+  const [photos,    setPhotos]    = useState<BusinessPhoto[]>([]);
+  const [loading,   setLoading]   = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [caption,   setCaption]   = useState("");
+  const [isPrimary, setIsPrimary] = useState(false);
+  const [preview,   setPreview]   = useState<string | null>(null);
+  const [file,      setFile]      = useState<File | null>(null);
+  const [toast,     setToast]     = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const showToast = (msg: string) => {
@@ -187,7 +184,6 @@ const PhotoManager: React.FC<{ businessId: number; secret: string; businessName:
 
       <p className="photo-manager__label">Photos for {businessName}</p>
 
-      {/* Existing photos */}
       {loading ? (
         <p className="photo-manager__empty">Loading photos…</p>
       ) : photos.length === 0 ? (
@@ -196,7 +192,8 @@ const PhotoManager: React.FC<{ businessId: number; secret: string; businessName:
         <div className="photo-manager__grid">
           {photos.map(photo => (
             <div key={photo.id} className={`photo-manager__item ${photo.is_primary ? "photo-manager__item--primary" : ""}`}>
-              <img src={`${UPLOADS_BASE}${photo.file_path}`} alt={photo.caption || businessName} />
+              {/* ← directly use cloudinary_url — no UPLOADS_BASE prefix needed */}
+              <img src={photo.cloudinary_url} alt={photo.caption || businessName} />
               {photo.is_primary && <span className="photo-manager__primary-badge">★ Primary</span>}
               <div className="photo-manager__item-actions">
                 {!photo.is_primary && (
@@ -265,7 +262,12 @@ const PhotoManager: React.FC<{ businessId: number; secret: string; businessName:
         {preview && (
           <button
             className="admin-btn admin-btn--ghost photo-manager__cancel-btn"
-            onClick={() => { setFile(null); setPreview(null); setCaption(""); if (fileInputRef.current) fileInputRef.current.value = ""; }}
+            onClick={() => {
+              setFile(null);
+              setPreview(null);
+              setCaption("");
+              if (fileInputRef.current) fileInputRef.current.value = "";
+            }}
           >
             Cancel
           </button>
@@ -375,7 +377,6 @@ const BusinessDrawer: React.FC<{
           <div className="admin-drawer__loading">Not found</div>
         ) : (
           <>
-            {/* Status bar */}
             <div
               className="admin-drawer__status-bar"
               style={{ background: STATUS_COLOURS[biz.status] }}
@@ -420,7 +421,6 @@ const BusinessDrawer: React.FC<{
                 )}
               </div>
 
-              {/* Service details */}
               {biz.price_list && (
                 <div className="admin-detail-box">
                   <p className="admin-detail-box__label">Price list</p>
@@ -434,7 +434,6 @@ const BusinessDrawer: React.FC<{
                 </div>
               )}
 
-              {/* Activity document */}
               {biz.document_url && (
                 <div className="admin-detail-box">
                   <p className="admin-detail-box__label">Dog-friendly document</p>
@@ -449,7 +448,6 @@ const BusinessDrawer: React.FC<{
                 </div>
               )}
 
-              {/* ── Photo Manager toggle ── */}
               <div className="admin-photos-section">
                 <button
                   className="admin-photos-toggle"
@@ -467,7 +465,6 @@ const BusinessDrawer: React.FC<{
                 )}
               </div>
 
-              {/* Actions */}
               {biz.status === "pending" && (
                 <div className="admin-actions">
                   {!showReject ? (
@@ -528,7 +525,6 @@ const BusinessDrawer: React.FC<{
                 </div>
               )}
 
-              {/* ── Danger zone ── */}
               <div className="admin-danger-zone">
                 <p className="admin-danger-zone__label">Danger zone</p>
                 {!showDelete ? (
@@ -560,7 +556,6 @@ const BusinessDrawer: React.FC<{
                   </div>
                 )}
               </div>
-
             </div>
           </>
         )}
