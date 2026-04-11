@@ -78,7 +78,7 @@ const tips: Tip[] = [
   {
     id: "joint-health",
     icon: ICON,
-    image: "../images/tips/joints.jpg",
+    image: "../images/tips/joints.webp",
     title: "Joint health and arthritis",
     summary: "Arthritis affects 1 in 5 adult dogs and is even more common in seniors. It's manageable - but only caught early.",
     points: [

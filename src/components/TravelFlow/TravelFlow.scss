@@ -117,7 +117,7 @@ $accent-tips:          #d4a84b;
   }
 }
 
-//Left panel
+// Left panel
 .travel-flow__main {
   @include column;
   background-color: $twilight-purple;
@@ -144,7 +144,7 @@ $accent-tips:          #d4a84b;
   }
 }
 
-// Back button
+// Back button — "Back" only, goes to browser history
 .travel-flow__back {
   @include none;
   @include center;
@@ -182,6 +182,36 @@ $accent-tips:          #d4a84b;
   }
 }
 
+// Home logo link — top right, mobile/tablet only
+.travel-flow__home {
+  @include absolute;
+  top: $space-md;
+  right: $space-md;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  overflow: hidden;
+  opacity: 0.55;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 5;
+  display: none; // hidden on desktop — sidebar logo handles it
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  &:hover {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+
+  @media (max-width: $bp-tablet) {
+    display: block; // show on tablet + mobile
+  }
+}
+
 .travel-flow__content {
   flex: 1;
   width: 100%;
@@ -190,14 +220,15 @@ $accent-tips:          #d4a84b;
   display: flex;
   align-items: stretch;
   justify-content: center;
-  padding: $space-xl 0 $space-lg;
+  // push everything down on desktop/laptop/tablet
+  padding: 5rem 0 $space-lg;
 
-  @media (max-width: $bp-laptop) { padding: $space-xl 0 $space-lg; }
-  @media (max-width: $bp-tablet) { padding: $space-md 0; }
-  @media (max-width: $bp-mobile) { padding: $space-sm 0; }
+  @media (max-width: $bp-laptop) { padding: $space-xxl 0 $space-lg; }
+  @media (max-width: $bp-tablet) { padding: $space-xl 0 $space-md; }
+  @media (max-width: $bp-mobile) { padding: $space-sm 0; } // mobile unchanged
 }
 
-// Right sidebar 
+// Right sidebar
 .travel-sidebar {
   @include col-start;
   background-color: $soft-pearl;
@@ -207,11 +238,17 @@ $accent-tips:          #d4a84b;
 
   @media (max-width: $bp-tablet) { display: none; }
 
+  // Logo as home link
   &__logo {
-    @include flex-center;
+    display: flex;
     justify-content: flex-start;
+    align-items: center;
     width: 100%;
     margin-bottom: $space-sm;
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+
+    &:hover { opacity: 0.75; }
   }
 
   &__logo-img {
@@ -224,7 +261,7 @@ $accent-tips:          #d4a84b;
 
   &__tagline {
     @include type-ui($t-sub-des, $fw-regular);
-    color: $text-color-dark;    
+    color: $text-color-dark;
     line-height: $lh-normal;
     margin-bottom: $space-lg;
   }
@@ -237,7 +274,7 @@ $accent-tips:          #d4a84b;
   }
 }
 
-//  Step list (sidebar) 
+// Step list (sidebar)
 .step-list {
   list-style: none;
   padding: 0;
@@ -252,9 +289,9 @@ $accent-tips:          #d4a84b;
     gap: $space-md;
     @include relative;
     padding-bottom: $space-md;
-    &:last-child {
-      padding-bottom: 0; 
-    }
+
+    &:last-child { padding-bottom: 0; }
+
     &:not(:last-child) .step-list__connector {
       @include absolute;
       left: 20px;
@@ -316,12 +353,13 @@ $accent-tips:          #d4a84b;
   }
 }
 
-// Mobile bottom nav bar 
+// Mobile bottom nav bar — sticky, lifted above browser chrome
 .mobile-nav-bar {
   display: none;
   align-items: center;
   justify-content: space-between;
   padding: $space-md $space-lg;
+  padding-bottom: max($space-md, env(safe-area-inset-bottom, 16px));
   background-color: $soft-pearl;
   border-top: 1px solid $misty-lavender;
   gap: $space-sm;
@@ -330,8 +368,18 @@ $accent-tips:          #d4a84b;
   .btn { flex: 1; justify-content: center; }
   span { flex: 1; }
 
-  @media (max-width: $bp-tablet) { display: flex; }
-  @media (max-width: $bp-mobile) { padding: $space-sm $space-md; }
+  @media (max-width: $bp-tablet) {
+    display: flex;
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
+    box-shadow: 0 -4px 16px rgba($twilight-purple, 0.08);
+  }
+
+  @media (max-width: $bp-mobile) {
+    padding: $space-sm $space-md;
+    padding-bottom: max($space-sm, env(safe-area-inset-bottom, 12px));
+  }
 }
 
 // Flow step (continent / country grids)
@@ -592,7 +640,7 @@ $accent-tips:          #d4a84b;
   }
 }
 
-// Content step 
+// Content step
 .content-step {
   width: 100%;
   max-width: 700px;
@@ -625,9 +673,7 @@ $accent-tips:          #d4a84b;
     gap: $space-md;
     flex-shrink: 0;
 
-    @media (max-width: $bp-mobile) {
-      gap: $space-sm;
-    }
+    @media (max-width: $bp-mobile) { gap: $space-sm; }
   }
 
   &__counter {
@@ -635,9 +681,8 @@ $accent-tips:          #d4a84b;
     letter-spacing: 0.12em;
     color: rgba($soft-pearl, 0.35);
     white-space: nowrap;
-    @media screen and (max-width: $bp-mobile) {
-      display: none;
-    }
+
+    @media screen and (max-width: $bp-mobile) { display: none; }
   }
 
   &__badge {
@@ -652,9 +697,7 @@ $accent-tips:          #d4a84b;
     .content-step--tips          & { background: rgba($accent-tips, 0.1);          border-color: rgba($accent-tips, 0.25); }
     &--download                     { background: rgba($serene-purple, 0.1);        border-color: rgba($serene-purple, 0.25); }
 
-    @media screen and (max-width: $bp-mobile) {
-      display: none;
-    }
+    @media screen and (max-width: $bp-mobile) { display: none; }
   }
 
   &__badge-icon {
@@ -676,17 +719,52 @@ $accent-tips:          #d4a84b;
     .content-step--download      & { color: $serene-purple; }
   }
 
+  // Flag — always visible, pushed well clear of the panel's rounded corner
   &__flag {
-    @include icon-box(56px);
-    @include glass(0.06, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
     overflow: hidden;
+    background: rgba($soft-pearl, 0.06);
+    border: 1px solid rgba($soft-pearl, 0.1);
+    flex-shrink: 0;
+    // Pull it left so it never gets clipped by the panel border-radius
+    margin-right: 3rem;
 
-    @media (max-width: $bp-laptop) { width: 48px; height: 48px; }
-    @media (max-width: $bp-mobile) { display: none; }
+    @media (max-width: $bp-laptop) {
+      width: 46px;
+      height: 46px;
+      margin-right: clamp(#{$space-xl}, 5vw, 60px);
+    }
+
+    @media (max-width: $bp-tablet) {
+      width: 42px;
+      height: 42px;
+      margin-right: $space-xl;
+    }
+
+    @media (max-width: $bp-mobile) {
+      width: 36px;
+      height: 36px;
+      margin-right: $space-lg;
+    }
   }
 
-  &__flag-img      { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
-  &__flag-fallback { @include type-display; font-size: 1.5rem; color: $gentle-amethyst; }
+  &__flag-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 4px;
+  }
+
+  &__flag-fallback {
+    @include type-display;
+    font-size: 1.5rem;
+    color: $gentle-amethyst;
+  }
 
   &__titles {
     @include col-start;
@@ -729,9 +807,7 @@ $accent-tips:          #d4a84b;
     border-radius: $radius-lg;
     overflow: hidden;
 
-    @media (max-width: $bp-mobile) {
-      display: none;
-    }
+    @media (max-width: $bp-mobile) { display: none; }
   }
 
   &__track-fill {
@@ -931,9 +1007,7 @@ $accent-tips:          #d4a84b;
 
     .content-step__header { margin-bottom: $space-xs; }
 
-    @media (max-width: $bp-mobile) {
-      gap: $space-xs;
-    }
+    @media (max-width: $bp-mobile) { gap: $space-xs; }
 
     .content-step__heading {
       @media (max-width: $bp-mobile) {
@@ -965,9 +1039,7 @@ $accent-tips:          #d4a84b;
 
     svg { width: 10px; height: 10px; color: rgba($soft-pearl, 0.22); flex-shrink: 0; }
 
-    @media (max-width: $bp-mobile) {
-      @include type-ui($t-but-mob);
-    }
+    @media (max-width: $bp-mobile) { @include type-ui($t-but-mob); }
   }
 
   &__destination-segment { color: rgba($soft-pearl, 0.4); }
@@ -982,10 +1054,7 @@ $accent-tips:          #d4a84b;
     background: rgba($soft-pearl, 0.04);
     border: 1px solid rgba($serene-purple, 0.18);
 
-    @media (max-width: $bp-mobile) {
-      border-radius: 10px;
-      text-align: center;
-    }
+    @media (max-width: $bp-mobile) { border-radius: 10px; text-align: center; }
   }
 
   &__download-card-glow {
@@ -1003,10 +1072,7 @@ $accent-tips:          #d4a84b;
     padding: $space-xl $space-xxl;
 
     @media (max-width: $bp-laptop) { padding: $space-xl; }
-    @media (max-width: $bp-mobile) {
-      padding: $space-xxl $space-sm $space-md;
-      gap: $space-sm;
-    }
+    @media (max-width: $bp-mobile) { padding: $space-xxl $space-sm $space-md; gap: $space-sm; }
   }
 
   &__checklist-preview {
@@ -1016,9 +1082,8 @@ $accent-tips:          #d4a84b;
     margin: 0;
     @include col-start;
     width: 100%;
-    @media (max-width: $bp-mobile) {
-      text-align: center;
-    }
+
+    @media (max-width: $bp-mobile) { text-align: center; }
   }
 
   &__checklist-item {
@@ -1044,10 +1109,7 @@ $accent-tips:          #d4a84b;
     border: 1px solid rgba($serene-purple, 0.28);
     color: $serene-purple;
 
-    @media (max-width: $bp-mobile) {
-      width: 18px;
-      height: 18px;
-    }
+    @media (max-width: $bp-mobile) { width: 18px; height: 18px; }
   }
 
   &__login-gate {
@@ -1056,17 +1118,9 @@ $accent-tips:          #d4a84b;
     @include glass(0.06, 0.15);
     padding: $space-lg;
     width: 100%;
-  
 
-    @media (max-width: $bp-tablet) {
-      flex-direction: column;
-      gap: $space-sm;
-    }
-
-    @media (max-width: $bp-mobile) {
-      padding: $space-sm $space-xs $space-md;
-    }
-    
+    @media (max-width: $bp-tablet) { flex-direction: column; gap: $space-sm; }
+    @media (max-width: $bp-mobile) { padding: $space-sm $space-xs $space-md; }
   }
 
   &__login-gate-icon {
@@ -1074,10 +1128,7 @@ $accent-tips:          #d4a84b;
     background: rgba($misty-lavender, 0.1);
     color: rgba($soft-pearl, 0.45);
 
-    @media (max-width: $bp-mobile) {
-      width: 32px;
-      height: 32px;
-    }
+    @media (max-width: $bp-mobile) { width: 32px; height: 32px; }
   }
 
   &__login-gate-text {
@@ -1087,11 +1138,9 @@ $accent-tips:          #d4a84b;
     min-width: 0;
 
     strong { @include type-ui($t-body-des, $fw-regular); color: $soft-pearl; }
-    span   { @include type-ui($t-forgot-des);          color: rgba($soft-pearl, 0.45); }
+    span   { @include type-ui($t-forgot-des);            color: rgba($soft-pearl, 0.45); }
 
-    @media (max-width: $bp-tablet) {
-      width: 100%;
-    }
+    @media (max-width: $bp-tablet) { width: 100%; }
   }
 
   &__login-actions {
@@ -1104,11 +1153,7 @@ $accent-tips:          #d4a84b;
 
     @media (max-width: $bp-tablet) {
       width: 100%;
-      
-      .btn {
-        flex: 1;
-        justify-content: center;
-      }
+      .btn { flex: 1; justify-content: center; }
     }
 
     @media (max-width: $bp-mobile) {
@@ -1136,9 +1181,7 @@ $accent-tips:          #d4a84b;
     box-shadow: 0 8px 28px rgba($serene-purple, 0.42);
   }
 
-  @media (max-width: $bp-mobile) {
-    justify-content: center;
-  }
+  @media (max-width: $bp-mobile) { justify-content: center; }
 }
 
 // Mobile step bar
@@ -1266,6 +1309,7 @@ $accent-tips:          #d4a84b;
     font-style: italic;
   }
 }
+
 @media (max-width: 400px) {
   html, body {
     max-width: 100%;
@@ -1282,13 +1326,10 @@ $accent-tips:          #d4a84b;
   .travel-flow__main {
     padding: $space-xs $space-xs $space-md;
   }
-  .content-step--download {
-    gap: $space-xs;
-  }
 
-  .content-step--download .content-step__heading {
-    font-size: $t-body-des;
-  }
+  .content-step--download { gap: $space-xs; }
+
+  .content-step--download .content-step__heading { font-size: $t-body-des; }
 
   .content-step--download .content-step__intro {
     font-size: $t-forgot-des;
@@ -1300,9 +1341,8 @@ $accent-tips:          #d4a84b;
     gap: $space-xs;
   }
 
-  .content-step__checklist-item {
-    padding: $space-xs 0;
-  }
+  .content-step__checklist-item { padding: $space-xs 0; }
+
   .content-step,
   .content-step__download-card,
   .content-step__login-gate,
@@ -1323,11 +1363,9 @@ $accent-tips:          #d4a84b;
     flex-direction: column;
     gap: $space-xs;
 
-    .btn {
-      width: 100%;
-      justify-content: center;
-    }
+    .btn { width: 100%; justify-content: center; }
   }
+
   .content-step__download-card,
   .content-step__login-gate,
   .content-step__card,

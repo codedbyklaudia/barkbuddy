@@ -201,7 +201,7 @@ const ListingRow: React.FC<{ listing: Listing; activeTab: TabType }> = ({ listin
     <article className="listing-card listing-card--row">
       <div className="listing-card__image listing-card__image--small">
         {listing.primary_photo
-          ? <img src={`${UPLOADS_BASE}${listing.primary_photo}`} alt={listing.business_name} />
+          ? <img src={listing.primary_photo} alt={listing.business_name} />
           : <div className="listing-card__no-photo">🐾</div>}
         {listing.is_new && <span className="listing-card__badge"><i className="bi bi-patch-check" /> New</span>}
       </div>
@@ -236,7 +236,7 @@ const GridCard: React.FC<{ listing: Listing; activeTab: TabType }> = ({ listing,
     <article className="listing-card listing-card--grid">
       <div className="listing-card__image">
         {listing.primary_photo
-          ? <img src={`${UPLOADS_BASE}${listing.primary_photo}`} alt={listing.business_name} />
+          ? <img src={listing.primary_photo} alt={listing.business_name} />
           : <div className="listing-card__no-photo">🐾</div>}
         {listing.is_new && <span className="listing-card__badge"><i className="bi bi-patch-check" /> New</span>}
       </div>
