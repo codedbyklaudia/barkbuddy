@@ -121,9 +121,9 @@ const TravelPage: React.FC<TravelPageProps> = ({ onFlowChange }) => {
         <div className="travel-section__inner">
           <h2 className="travel-section__heading">You may need this when you travel!</h2>
           <div className="articles-grid">
-            <ArticleCard image="../images/dog_inplane.jpg"    title="The best in-cabin dog travel bags 2026"    onClick={() => setView('article-bags')} />
+            <ArticleCard image="../images/dog_inplane.webp"    title="The best in-cabin dog travel bags 2026"    onClick={() => setView('article-bags')} />
             <ArticleCard image="../images/feeding_pets.webp"  title="Feeding pets when flying | Food and water" onClick={() => setView('article-feeding')} />
-            <ArticleCard image="../images/dog_anxiety.avif"   title="Anxiety in dogs while travel"              onClick={() => setView('article-anxiety')} />
+            <ArticleCard image="../images/dog_anxiety.webp"   title="Anxiety in dogs while travel"              onClick={() => setView('article-anxiety')} />
           </div>
         </div>
       </section>

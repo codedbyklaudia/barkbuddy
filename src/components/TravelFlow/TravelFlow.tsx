@@ -196,9 +196,9 @@ const IconTips: React.FC = () => (
 
 // ─── Step metadata ────────────────────────────────────────────────────────────
 const STEP_META: Record<string, { icon: React.ReactNode; accent: string }> = {
-  Requirements: { icon: <IconRequirements />, accent: 'requirements' },
+  Requirements:  { icon: <IconRequirements />,  accent: 'requirements'  },
   Documentation: { icon: <IconDocumentation />, accent: 'documentation' },
-  Tips: { icon: <IconTips />, accent: 'tips' },
+  Tips:          { icon: <IconTips />,          accent: 'tips'          },
 };
 
 // ─── ContentCardCarousel ──────────────────────────────────────────────────────
@@ -209,13 +209,10 @@ interface ContentCardCarouselProps {
   intro: string;
 }
 const ContentCardCarousel: React.FC<ContentCardCarouselProps> = ({
-  cards,
-  stepLabel,
-  country,
-  intro,
+  cards, stepLabel, country, intro,
 }) => {
-  const [idx, setIdx] = useState(0);
-  const [dir, setDir] = useState<'left' | 'right'>('right');
+  const [idx, setIdx]       = useState(0);
+  const [dir, setDir]       = useState<'left' | 'right'>('right');
   const [animKey, setAnimKey] = useState(0);
   const [imgError, setImgError] = useState(false);
   const touchStartX = React.useRef<number | null>(null);
@@ -284,6 +281,7 @@ const ContentCardCarousel: React.FC<ContentCardCarouselProps> = ({
           <span className="content-step__counter" aria-live="polite">
             {idx + 1} / {total}
           </span>
+          {/* Flag — shown on tablet, hidden on desktop via CSS */}
           <div className="content-step__flag">
             {!imgError ? (
               <img
@@ -466,9 +464,11 @@ const StepSidebar: React.FC<StepSidebarProps> = ({
 
   return (
     <aside className="travel-sidebar">
-      <div className="travel-sidebar__logo" aria-label="BarkBuddy">
+      {/* Logo links home */}
+      <Link to="/" className="travel-sidebar__logo" aria-label="Go to BarkBuddy home">
         <img src="/images/logo.png" alt="BarkBuddy" className="travel-sidebar__logo-img" />
-      </div>
+      </Link>
+
       <p className="travel-sidebar__tagline">
         Choose, read and download<br />so you do not miss a thing!
       </p>
@@ -662,22 +662,17 @@ const TravelFlow: React.FC<TravelFlowProps> = ({
     [selectedCountry],
   );
 
-  // ── Browser history — push a state entry per step so the browser back
-  //    button navigates between steps instead of leaving the page entirely ──
-
   React.useEffect(() => {
-    // Push the initial entry for the flow on mount
-    window.history.pushState({ travelStep: firstStep }, '');
+    // Push one entry so the browser back button has somewhere to go
+    try { window.history.pushState({ travelStep: firstStep }, ''); } catch (_) {}
 
     const handlePopState = (e: PopStateEvent) => {
       const state = e.state as { travelStep?: number } | null;
+      // Only handle events that belong to this flow — HashRouter fires popstate too
       if (state?.travelStep !== undefined) {
-        // Went back to a previous step inside the flow
         setStepIdx(state.travelStep);
-      } else {
-        // Went back past the start of the flow — close it
-        onClose();
       }
+      // Do NOT call onClose here — it causes crashes on Safari with HashRouter
     };
 
     window.addEventListener('popstate', handlePopState);
@@ -685,12 +680,10 @@ const TravelFlow: React.FC<TravelFlowProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Keep the current history entry's state in sync with stepIdx
+  // Keep history state in sync with stepIdx — safe on all browsers
   React.useEffect(() => {
-    window.history.replaceState({ travelStep: stepIdx }, '');
+    try { window.history.replaceState({ travelStep: stepIdx }, ''); } catch (_) {}
   }, [stepIdx]);
-
-  // ─────────────────────────────────────────────────────────────────────────
 
   const canProceed = () => {
     if (currentStep.id === 'continent') return !!selectedContinent;
@@ -700,16 +693,18 @@ const TravelFlow: React.FC<TravelFlowProps> = ({
 
   const goNext = () => {
     if (isLastStep) { onClose(); return; }
-    const next = stepIdx + 1;
-    window.history.pushState({ travelStep: next }, '');
-    setStepIdx(next);
+    // Just update state — the stepIdx useEffect handles replaceState safely
+    setStepIdx(prev => prev + 1);
   };
 
   const goBack = () => {
     if (stepIdx > firstStep) {
-      // Let the browser pop the history stack — popstate handler updates stepIdx
-      window.history.back();
+      // go directly to previous step — no history.back() to avoid loops
+      const prev = stepIdx - 1;
+      window.history.replaceState({ travelStep: prev }, '');
+      setStepIdx(prev);
     } else {
+      // on first step — exit the flow back to travel page
       onClose();
     }
   };
@@ -717,21 +712,15 @@ const TravelFlow: React.FC<TravelFlowProps> = ({
   const handleContinentSelect = (c: Continent) => {
     setSelectedContinent(c);
     setSelectedCountry(null);
-    setTimeout(() => {
-      window.history.pushState({ travelStep: 1 }, '');
-      setStepIdx(1);
-    }, 280);
+    // No pushState inside setTimeout — crashes Safari on older iOS
+    // replaceState in the stepIdx useEffect handles history sync
+    setTimeout(() => { setStepIdx(1); }, 280);
   };
 
-// auto-advance to requirements after country pick
-const handleCountrySelect = (c: Country) => {
-  setSelectedCountry(c);
-  setTimeout(() => {
-    const next = 2; // requirements step index
-    window.history.pushState({ travelStep: next }, '');
-    setStepIdx(next);
-  }, 280);
-};
+  const handleCountrySelect = (c: Country) => {
+    setSelectedCountry(c);
+    setTimeout(() => { setStepIdx(prev => prev + 1); }, 280);
+  };
 
   const handleDownload = async () => {
     if (!isLoggedIn || !selectedCountry || !countryContent) return;
@@ -746,9 +735,7 @@ const handleCountrySelect = (c: Country) => {
   const renderStep = () => {
     switch (currentStep.id) {
       case 'continent':
-        return (
-          <ContinentStep selected={selectedContinent} onSelect={handleContinentSelect} />
-        );
+        return <ContinentStep selected={selectedContinent} onSelect={handleContinentSelect} />;
 
       case 'country':
         return selectedContinent ? (
@@ -813,10 +800,18 @@ const handleCountrySelect = (c: Country) => {
         selectedCountry={selectedCountry?.name}
         hideContinent={isToUK}
       />
+
       <main className="travel-flow__main" aria-label="Travel flow content">
-        <button className="travel-flow__back" onClick={onClose} type="button">
-          <ChevronLeft /> Back to travel
+        {/* Back button — previous step, or exits to travel page on first step */}
+        <button className="travel-flow__back" onClick={goBack} type="button">
+          <ChevronLeft /> Back
         </button>
+
+        {/* Home link — logo top right, mobile only */}
+        <Link to="/" className="travel-flow__home" aria-label="BarkBuddy home">
+          <img src="/images/logo.png" alt="BarkBuddy" />
+        </Link>
+
         <div className="travel-flow__content">{renderStep()}</div>
       </main>
 

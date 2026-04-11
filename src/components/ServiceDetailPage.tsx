@@ -8,7 +8,6 @@ import { useAuth } from '../context/AuthContext';
 import { useSaved } from '../context/SavedContext';
 
 const API_BASE: string = import.meta.env.VITE_API_URL ?? 'http://localhost:4000/api';
-const UPLOADS_BASE: string = (import.meta.env.VITE_API_URL ?? 'http://localhost:4000/api').replace('/api', '');
 
 // Types
 interface Business {
@@ -33,7 +32,7 @@ interface Business {
 
 interface Photo {
   id: number;
-  file_path: string;
+  cloudinary_url: string;
   caption?: string;
   is_primary: boolean;
 }
@@ -389,7 +388,7 @@ const ServiceDetailPage: React.FC = () => {
     >
       {primaryPhoto && (
         <img
-          src={`${UPLOADS_BASE}${primaryPhoto.file_path}`}
+          src={primaryPhoto.cloudinary_url}
           alt={business.business_name}
         />
       )}
@@ -409,7 +408,7 @@ const ServiceDetailPage: React.FC = () => {
             aria-label={`Open photo ${idx + 2}`}
           >
             <img
-              src={`${UPLOADS_BASE}${photo.file_path}`}
+              src={photo.cloudinary_url}
               alt={`${business.business_name} photo ${idx + 2}`}
             />
             {idx === 3 && photos.length > 5 && (
@@ -561,7 +560,7 @@ const ServiceDetailPage: React.FC = () => {
                 {otherPhotos.slice(4).map((photo, idx) => (
                   <div key={photo.id} className="gallery-item" onClick={() => openLightbox(photos.indexOf(photo))}>
                     <img
-                      src={`${UPLOADS_BASE}${photo.file_path}`}
+                      src={photo.cloudinary_url}
                       alt={`${business.business_name} photo ${idx + 6}`}
                     />
                   </div>
@@ -631,7 +630,7 @@ const ServiceDetailPage: React.FC = () => {
             )}
             <img
               key={lightboxIndex}
-              src={`${UPLOADS_BASE}${currentPhoto.file_path}`}
+              src={currentPhoto.cloudinary_url}
               alt={business.business_name}
               className="lightbox__img"
             />
