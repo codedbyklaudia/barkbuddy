@@ -14,7 +14,7 @@ import vetIcon      from "../../images/icons/care.svg";
 import groomingIcon from "../../images/icons/grooming1.svg";
 import eventIcon    from "../../images/icons/calendar-add.svg";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// Types
 
 interface DogOption {
   id:        string;
@@ -24,11 +24,11 @@ interface DogOption {
 }
 
 const DOG_COLORS = [
-  { color: "#7c3aed", bg: "#ede9fe" },
-  { color: "#0891b2", bg: "#e0f2fe" },
-  { color: "#be185d", bg: "#fce7f3" },
-  { color: "#059669", bg: "#d1fae5" },
-  { color: "#b45309", bg: "#fef3c7" },
+  { color: "#8253d2", bg: "#ede9fe" },
+  { color: "rgb(110, 91, 142)", bg: "#e0f2fe" },
+  { color: "rgb(97, 9, 144)", bg: "#fce7f3" },
+  { color: "#7f84ca", bg: "#d1fae5" },
+  { color: "#69548e", bg: "#fef3c7" },
   { color: "#6366f1", bg: "#eef2ff" },
 ];
 
@@ -38,20 +38,19 @@ const getDogColor = (dogs: DogOption[], dogId: string) => {
 };
 
 const TYPE_CONFIG: Record<EventType, { label: string; icon: string; color: string; bg: string }> = {
-  vaccine:   { label: "Vaccine",         icon: vaccineIcon,  color: "#7c3aed", bg: "#ede9fe" },
-  flea_tick: { label: "Flea & Tick",     icon: fleaIcon,     color: "#0891b2", bg: "#e0f2fe" },
-  worming:   { label: "Worming",         icon: wormIcon,     color: "#b45309", bg: "#fef3c7" },
-  vet:       { label: "Vet Appointment", icon: vetIcon,      color: "#be185d", bg: "#fce7f3" },
-  grooming:  { label: "Grooming",        icon: groomingIcon, color: "#059669", bg: "#d1fae5" },
-  custom:    { label: "Custom Event",    icon: eventIcon,    color: "#6366f1", bg: "#eef2ff" },
+  vaccine:   { label: "Vaccine",         icon: vaccineIcon,  color: "#8253d2", bg: "#ede9fe" },
+  flea_tick: { label: "Flea & Tick",     icon: fleaIcon,     color: "#8253d2", bg: "#ede9fe" },
+  worming:   { label: "Worming",         icon: wormIcon,     color: "#8253d2", bg: "#ede9fe" },
+  vet:       { label: "Vet Appointment", icon: vetIcon,      color: "#8253d2", bg: "#ede9fe" },
+  grooming:  { label: "Grooming",        icon: groomingIcon, color: "#8253d2", bg: "#ede9fe" },
+  custom:    { label: "Custom Event",    icon: eventIcon,    color: "#8253d2", bg: "#ede9fe" },
 };
 
 const MONTHS       = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const MONTHS_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const DAYS_SHORT   = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 
-// ─── Date helpers ─────────────────────────────────────────────────────────────
-
+// Date helpers 
 const toDateKey      = (raw: string): string => raw?.slice(0, 10) ?? "";
 const parseLocalDate = (s: string): Date => {
   const [y, m, d] = toDateKey(s).split("-").map(Number);
@@ -63,10 +62,8 @@ const localTodayStr = (): string => {
   return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
 };
 
-// ─── Status ───────────────────────────────────────────────────────────────────
-
+// Status
 type Status = "overdue" | "soon" | "upcoming" | "done";
-
 const getStatus = (event: HealthEvent): Status => {
   if (event.completed) return "done";
   const today    = new Date(); today.setHours(0, 0, 0, 0);
@@ -76,7 +73,6 @@ const getStatus = (event: HealthEvent): Status => {
   if (diffDays <= 14) return "soon";
   return "upcoming";
 };
-
 const STATUS_COLOR: Record<Status, string> = {
   overdue: "#ef4444", soon: "#f59e0b", upcoming: "#6366f1", done: "#10b981",
 };
@@ -84,8 +80,7 @@ const STATUS_LABEL: Record<Status, string> = {
   overdue: "Overdue", soon: "Due Soon", upcoming: "Upcoming", done: "Done",
 };
 
-// ─── Hook: detect mobile ──────────────────────────────────────────────────────
-
+// Hook: detect mobile
 const useIsMobile = () => {
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 640);
   useEffect(() => {
@@ -96,8 +91,7 @@ const useIsMobile = () => {
   return isMobile;
 };
 
-// ─── Dog Avatar ───────────────────────────────────────────────────────────────
-
+// Dog Avatar
 const DogAvatar: React.FC<{ dog: DogOption; size?: number; color: string; bg: string }> = ({ dog, size = 22, color, bg }) => (
   <div style={{
     width: size, height: size, borderRadius: "50%",
@@ -114,8 +108,7 @@ const DogAvatar: React.FC<{ dog: DogOption; size?: number; color: string; bg: st
   </div>
 );
 
-// ─── Dog Selector ─────────────────────────────────────────────────────────────
-
+// Dog Selector
 const DogSelector: React.FC<{
   dogs:     DogOption[];
   selected: string;
@@ -143,12 +136,10 @@ const DogSelector: React.FC<{
   );
 };
 
-// ─── Drag state ───────────────────────────────────────────────────────────────
-
+// Drag state
 let dragPayload: { event: HealthEvent } | null = null;
 
-// ─── DnD Dialog ───────────────────────────────────────────────────────────────
-
+// DnD Dialog
 const DndDialog: React.FC<{
   event: HealthEvent; newDate: string;
   onMove: () => void; onCopy: () => void; onCancel: () => void;
@@ -203,8 +194,7 @@ const DndDialog: React.FC<{
   );
 };
 
-// ─── Event Form Modal ─────────────────────────────────────────────────────────
-
+// Event Form Modal
 const EventForm: React.FC<{
   initial:  { dog_id: string; type: EventType; title: string; due_date: string; notes: string };
   dogs:     DogOption[];
@@ -341,8 +331,7 @@ const EventForm: React.FC<{
   );
 };
 
-// ─── Event Pill ───────────────────────────────────────────────────────────────
-
+// Event Pill
 const EventPill: React.FC<{
   event:       HealthEvent;
   dogs:        DogOption[];
@@ -350,7 +339,7 @@ const EventPill: React.FC<{
   onDragStart: (e: React.DragEvent) => void;
 }> = ({ event, dogs, onClick, onDragStart }) => {
   const config    = TYPE_CONFIG[event.type];
-  const typeColor = event.completed ? STATUS_COLOR.done : config.color;
+  const typeColor = event.completed ? STATUS_COLOR.done : "#8253d2";
   const dogColor  = getDogColor(dogs, event.dog_id);
   const dog       = dogs.find((d) => d.id === event.dog_id);
   const status    = getStatus(event);
@@ -386,9 +375,7 @@ const EventPill: React.FC<{
   );
 };
 
-// ─── Mobile Event Dot ─────────────────────────────────────────────────────────
-// Tiny coloured dot used inside month cells on mobile
-
+// Mobile Event Dot
 const EventDot: React.FC<{
   event:   HealthEvent;
   onClick: (e: React.MouseEvent) => void;
@@ -402,7 +389,7 @@ const EventDot: React.FC<{
       title={event.title}
       aria-label={event.title}
     >
-      <svg viewBox="0 0 24 24" fill="currentColor" width="8" height="8">
+      <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12">
         <ellipse cx="6"  cy="7"  rx="2"   ry="2.5"/>
         <ellipse cx="18" cy="7"  rx="2"   ry="2.5"/>
         <ellipse cx="10" cy="4"  rx="2"   ry="2.5"/>
@@ -413,8 +400,7 @@ const EventDot: React.FC<{
   );
 };
 
-// ─── Event Popover ────────────────────────────────────────────────────────────
-
+// Event Popover
 const EventPopover: React.FC<{
   event:      HealthEvent;
   dogs:       DogOption[];
@@ -447,7 +433,6 @@ const EventPopover: React.FC<{
     <div
       ref={ref}
       className="cal-popover"
-      // On mobile CSS overrides position to fixed+centred; on desktop use anchor coords
       style={isMobile ? undefined : { top: anchor.top, left: anchor.left }}
     >
       <div className="cal-popover-header" style={{ borderTop: `4px solid ${config.color}` }}>
@@ -508,8 +493,7 @@ const EventPopover: React.FC<{
   return popover;
 };
 
-// ─── Month Grid ───────────────────────────────────────────────────────────────
-
+// Month Grid
 const MonthGrid: React.FC<{
   events:        HealthEvent[];
   dogs:          DogOption[];
@@ -559,7 +543,6 @@ const MonthGrid: React.FC<{
     requestAnimationFrame(() => ghost.remove());
   };
 
-  // Max dots on mobile, max pills on desktop
   const MAX_DOTS  = 3;
   const MAX_PILLS = 2;
 
@@ -625,7 +608,7 @@ const MonthGrid: React.FC<{
 
               <span className={`month-cell-day ${isToday ? "today-badge" : ""}`}>{day}</span>
 
-              {/* ── Mobile: dots only ── */}
+              {/* Mobile: dots only */}
               {isMobile ? (
                 <div className="month-cell-dots">
                   {dayEvents.slice(0, MAX_DOTS).map((ev) => (
@@ -637,7 +620,7 @@ const MonthGrid: React.FC<{
                   )}
                 </div>
               ) : (
-                /* ── Desktop: full pills ── */
+                /* Desktop: full pills */
                 <div className="month-cell-events">
                   {dayEvents.slice(0, MAX_PILLS).map((ev) => (
                     <EventPill key={ev.id} event={ev} dogs={dogs}
@@ -657,9 +640,7 @@ const MonthGrid: React.FC<{
   );
 };
 
-// ─── Year View ────────────────────────────────────────────────────────────────
-// Shows all 12 months as a compact mini-grid. Clicking a month navigates to it.
-
+// Year View 
 const YearView: React.FC<{
   events:        HealthEvent[];
   viewYear:      number;
@@ -786,12 +767,10 @@ const YearView: React.FC<{
   );
 };
 
-// ─── Day View ─────────────────────────────────────────────────────────────────
-// Full-screen daily breakdown — shown when user taps a date in month grid
-
+// Day View
 const DayView: React.FC<{
-  date:       string;           // "YYYY-MM-DD"
-  events:     HealthEvent[];    // ALL events (unfiltered) so we show everything for this day
+  date:       string;           
+  events:     HealthEvent[];  
   dogs:       DogOption[];
   onBack:     () => void;
   onAdd:      (date: string) => void;
@@ -943,8 +922,7 @@ const DayView: React.FC<{
   );
 };
 
-// ─── Agenda List ──────────────────────────────────────────────────────────────
-
+// Agenda List
 const AgendaList: React.FC<{
   events:     HealthEvent[];
   dogs:       DogOption[];
@@ -1027,8 +1005,7 @@ const AgendaList: React.FC<{
   );
 };
 
-// ─── Stats Bar ────────────────────────────────────────────────────────────────
-
+// Stats Bar 
 const StatsBar: React.FC<{ events: HealthEvent[] }> = ({ events }) => {
   const counts = { overdue: 0, soon: 0, upcoming: 0, done: 0 };
   events.forEach((e) => { counts[getStatus(e)]++; });
@@ -1045,8 +1022,7 @@ const StatsBar: React.FC<{ events: HealthEvent[] }> = ({ events }) => {
   );
 };
 
-// ─── Main Component ───────────────────────────────────────────────────────────
-
+// Main Component
 const BuddyCalendar: React.FC<{
   dogName?: string;
   allDogs?: DogOption[];

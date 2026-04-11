@@ -1,8 +1,7 @@
 @import '../styles/variables';
 @import '../styles/mixins';
 
-// ─── A11Y GLOBAL OVERRIDES ────────────────────────────────────────────────────
-
+// A11Y GLOBAL OVERRIDES
 :root { --a11y-font-size: 16px; }
 html  { font-size: var(--a11y-font-size); }
 
@@ -37,8 +36,7 @@ html.a11y-large-cursor * {
   cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M8 4l16 12-7 1-4 8z' fill='%23333' stroke='%23fff' stroke-width='1.5'/%3E%3C/svg%3E") 4 4, auto !important;
 }
 
-// ─── SKIP LINK ────────────────────────────────────────────────────────────────
-
+// SKIP LINK 
 .navigation__skip-link {
   position: absolute;
   top: -120px;
@@ -54,8 +52,7 @@ html.a11y-large-cursor * {
   &:focus { top: 0; }
 }
 
-// ─── NAV SHELL ────────────────────────────────────────────────────────────────
-
+// NAV SHELL 
 .navigation {
   background-color: rgba($soft-pearl, 0.97);
   border-bottom: 1px solid rgba($misty-lavender, 0.45);
@@ -84,8 +81,7 @@ html.a11y-large-cursor * {
   &--scrolled &__container { height: 60px; }
 }
 
-// ─── LOGO ─────────────────────────────────────────────────────────────────────
-
+// LOGO 
 .navigation__logo {
   flex-shrink: 0;
   @include center;
@@ -102,8 +98,7 @@ html.a11y-large-cursor * {
   &:hover { opacity: 0.85; transform: scale(1.02); }
 }
 
-// ─── DESKTOP MENU ─────────────────────────────────────────────────────────────
-
+// DESKTOP MENU
 .navigation__menu {
   @include flex-center;
   list-style: none;
@@ -173,8 +168,7 @@ html.a11y-large-cursor * {
   }
 }
 
-// ─── MEGA DROPDOWN ────────────────────────────────────────────────────────────
-
+// MEGA DROPDOWN
 .navigation__mega-dropdown {
   @include absolute;
   top: calc(100% + 10px);
@@ -234,8 +228,7 @@ html.a11y-large-cursor * {
   letter-spacing: 0.01em;
 }
 
-// ─── STANDARD DROPDOWN ────────────────────────────────────────────────────────
-
+// STANDARD DROPDOWN 
 .navigation__dropdown {
   @include absolute;
   top: calc(100% + 10px);
@@ -273,8 +266,7 @@ html.a11y-large-cursor * {
   &:hover { background: rgba($misty-lavender, 0.5) !important; }
 }
 
-// ─── CTA AREA ─────────────────────────────────────────────────────────────────
-
+// CTA AREA
 .navigation__cta {
   @include center;
   gap: $space-sm;
@@ -290,8 +282,7 @@ html.a11y-large-cursor * {
   flex-shrink: 0;
 }
 
-// ─── AUTH BUTTONS ─────────────────────────────────────────────────────────────
-
+// AUTH BUTTONS
 .btn--nav {
   @include type-ui($t-but-des, $fw-regular);
   padding: 7px 18px;
@@ -328,15 +319,9 @@ html.a11y-large-cursor * {
 
 .navigation__auth-placeholder { width: 120px; height: 34px; }
 
-// ─── AVATAR ───────────────────────────────────────────────────────────────────
-//
-//  Single implementation. The outer .nav-avatar is the circle:
-//  border-radius:50% + overflow:hidden live ONLY here.
-//  The img fills via position:absolute + inset:0. Nothing else clips.
-
+// AVATAR 
 .nav-avatar {
   --size: 40px;
-
   display: block;
   @include relative;
   width:  var(--size);
@@ -371,18 +356,15 @@ html.a11y-large-cursor * {
     pointer-events: none;
     user-select: none;
   }
-
   &--sm      { --size: 32px; }
   &--md      { --size: 40px; }
   &--lg      { --size: 48px; }
   &--xl      { --size: 56px; }
-
   &--trigger {
     --size: 38px;
     box-shadow: 0 0 0 2.5px rgba($twilight-purple, 0.18);
     transition: box-shadow 0.2s ease, transform 0.2s ease;
   }
-
   &--mobile {
     --size: 48px;
     box-shadow:
@@ -392,8 +374,7 @@ html.a11y-large-cursor * {
   }
 }
 
-// ─── USER MENU (desktop) ──────────────────────────────────────────────────────
-
+// USER MENU (desktop)
 .navigation__user-menu {
   @include relative;
   flex-shrink: 0;
@@ -512,8 +493,7 @@ html.a11y-large-cursor * {
   }
 }
 
-// ─── ACCESSIBILITY BUTTON ─────────────────────────────────────────────────────
-
+// ACCESSIBILITY BUTTON
 .navigation__a11y-wrap {
   @include relative;
   flex-shrink: 0;
@@ -561,9 +541,7 @@ html.a11y-large-cursor * {
   }
 }
 
-// ─── ACCESSIBILITY PANEL ──────────────────────────────────────────────────────
-
-// Desktop: absolute dropdown below button
+// ACCESSIBILITY PANEL 
 .a11y-panel {
   @include absolute;
   top: calc(100% + 10px);
@@ -578,7 +556,7 @@ html.a11y-large-cursor * {
   overflow: hidden;
 }
 
-// Mobile variant: reset positioning — backdrop handles centring
+// Mobile variant
 .a11y-panel--mobile {
   position: relative;
   top: auto;
@@ -595,23 +573,18 @@ html.a11y-large-cursor * {
   &::-webkit-scrollbar-thumb { background: rgba($misty-lavender, 0.7); border-radius: 2px; }
 }
 
-// Full-screen dimmed backdrop — portaled to document.body
-// so it escapes the nav's backdrop-filter stacking context
 .a11y-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 9999;   // above everything including nav z-index:1000
+  z-index: 9999;  
   background: rgba(darken($twilight-purple, 30%), 0.45);
   backdrop-filter: blur(3px);
   -webkit-backdrop-filter: blur(3px);
   animation: backdrop-in 0.2s ease both;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
 
-  // Invisible dismiss button fills the entire backdrop
   &__dismiss {
-    position: absolute;
+    @include absolute;
     inset: 0;
     background: transparent;
     border: none;
@@ -619,11 +592,10 @@ html.a11y-large-cursor * {
     z-index: 0;
   }
 
-  // Panel sits above the dismiss layer and is centred by flex
+  
   .a11y-panel--mobile {
-    position: relative;
+    @include relative;
     z-index: 1;
-    // Reset any absolute/fixed positioning — flex on the backdrop centres it
     top: auto;
     left: auto;
     right: auto;
@@ -962,11 +934,19 @@ html.a11y-large-cursor * {
 }
 
 .navigation__mobile-submenu {
-  padding: $space-sm $space-sm $space-sm;
+  padding: $space-xs $space-sm $space-sm;
   background: rgba($soft-pearl, 0.7);
   border-top: 1px solid rgba($misty-lavender, 0.3);
   animation: nav-fade 0.18s ease both;
-
+ 
+  // icon grid (care menu) — 2 columns
+  &--grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: $space-xs;
+    padding: $space-sm $space-sm $space-xs;
+  }
+ 
   a:not(.navigation__mobile-icon-item) {
     @include center;
     gap: $space-sm;
@@ -987,43 +967,48 @@ html.a11y-large-cursor * {
 }
 
 .navigation__mobile-icon-item {
-  @include column;
+  display: flex;
+  flex-direction: row;     
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: $space-md $space-sm;
+  justify-content: flex-start;
+  gap: $space-sm;
+  padding: $space-sm $space-md;
   @include text-none;
   color: rgba($text-color-dark, 0.75);
-  @include type-ui(0.8rem, $fw-medium);
+  @include type-ui(0.85rem, $fw-medium);
   transition: all 0.18s ease;
   border-radius: 12px;
   background: rgba($misty-lavender, 0.18);
   border: 1px solid rgba($misty-lavender, 0.45);
-  text-align: center;
-
+  text-align: left;
+ 
   &:hover {
     color: $twilight-purple;
     background: rgba($misty-lavender, 0.45);
     border-color: rgba($twilight-purple, 0.2);
-    transform: translateY(-2px);
+    transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba($twilight-purple, 0.08);
-    .navigation__mobile-icon-wrapper { transform: scale(1.08); background: rgba($twilight-purple, 0.1); }
+    .navigation__mobile-icon-wrapper {
+      transform: scale(1.08);
+      background: rgba($twilight-purple, 0.1);
+    }
   }
-
+ 
   &:focus-visible { outline: 2px solid $twilight-purple; outline-offset: 2px; }
   span { letter-spacing: 0.01em; }
 }
 
 .navigation__mobile-icon-wrapper {
-  width: 48px;
-  height: 48px;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
   @include flex-center;
-  border-radius: 12px;
+  border-radius: 10px;
   background: rgba($misty-lavender, 0.5);
   color: $twilight-purple;
   transition: all 0.18s ease;
   flex-shrink: 0;
-  .menu-icon { width: 26px; height: 26px; }
+  .menu-icon { width: 22px; height: 22px; }
 }
 
 // Mobile auth buttons

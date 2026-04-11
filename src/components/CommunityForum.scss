@@ -4,7 +4,7 @@
 $border-color: rgba($serene-purple, 0.14);
 $surface:      #ffffff;
 
-// ─── Root ─────────────────────────────────────────────────────────────────────
+// Root 
 .cf-root {
   @include column;
   align-items: stretch;
@@ -13,7 +13,7 @@ $surface:      #ffffff;
   padding-bottom: $space-xl;
 }
 
-// ─── Header ───────────────────────────────────────────────────────────────────
+// Header
 .cf-header {
   display: flex;
   align-items: flex-start;
@@ -23,13 +23,13 @@ $surface:      #ffffff;
   padding: $space-xl $space-xl $space-lg;
   background: linear-gradient(135deg, $twilight-purple 0%, darken($twilight-purple, 8%) 100%);
   border-radius: $radius-lg;
-  position: relative;
+  @include relative;
   overflow: hidden;
 
   // Subtle noise texture
   &::before {
     content: '';
-    position: absolute;
+    @include absolute;
     inset: 0;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
     pointer-events: none;
@@ -50,7 +50,7 @@ $surface:      #ffffff;
   color: $misty-lavender;
   margin: 0;
   letter-spacing: 0.02em;
-  @media (max-width: $bp-mobile) { font-size: $t-sub-mob; }
+  @media (max-width: $bp-mobile) { font-size: $t-sub-des; }
 }
 
 .cf-subtitle {
@@ -60,10 +60,9 @@ $surface:      #ffffff;
   margin: 0;
 }
 
-// ─── Search ───────────────────────────────────────────────────────────────────
+// Search 
 .cf-search {
-  display: flex;
-  align-items: center;
+  @include center;
   gap: $space-xs;
   background: rgba($misty-lavender, 0.1);
   border: 1.5px solid rgba($misty-lavender, 0.2);
@@ -82,7 +81,7 @@ $surface:      #ffffff;
 
 .cf-search-input {
   flex: 1; min-width: 0;
-  background: none; border: none; outline: none;
+  @include none;
   font-family: $font-secondary;
   font-size: $t-body-mob;
   color: $misty-lavender;
@@ -90,9 +89,9 @@ $surface:      #ffffff;
 }
 
 .cf-search-clear {
-  background: none; border: none;
+  @include none;
   color: rgba($misty-lavender, 0.5);
-  font-size: 0.7rem; cursor: pointer;
+  font-size: 0.7rem; @include cursor;
   padding: 2px 4px; border-radius: 3px;
   transition: color 0.15s;
   &:hover { color: $misty-lavender; }

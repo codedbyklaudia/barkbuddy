@@ -9,22 +9,36 @@ import pool from "../db";
 const router     = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "changeme";
 
-// ─── Auth middleware ───────────────────────────────────────────────────────────
+// ─── Cloudinary config (safe to call multiple times) ─────────────────────────
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key:    process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// ─── Auth middleware ──────────────────────────────────────────────────────────
 function requireBizAuth(req: Request, res: Response, next: NextFunction): void {
   const header = req.headers.authorization;
-  if (!header?.startsWith("Bearer ")) { res.status(401).json({ message: "Unauthorised" }); return; }
+  if (!header?.startsWith("Bearer ")) {
+    res.status(401).json({ message: "Unauthorised" });
+    return;
+  }
   try {
     const payload: any = jwt.verify(header.slice(7), JWT_SECRET);
-    if (payload.type !== "business") { res.status(403).json({ message: "Forbidden" }); return; }
+    if (payload.type !== "business") {
+      res.status(403).json({ message: "Forbidden" });
+      return;
+    }
     (req as any).bizId       = payload.sub;
     (req as any).bizUsername = payload.username;
     next();
-  } catch {
+  } catch (err) {
+    console.error("[Auth] Token verification failed:", err);
     res.status(401).json({ message: "Invalid or expired token." });
   }
 }
 
-// ─── Multer for photo uploads ──────────────────────────────────────────────────
+// ─── Multer for photo uploads ─────────────────────────────────────────────────
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 8 * 1024 * 1024 },
@@ -38,6 +52,9 @@ const upload = multer({
 // ─── GET /api/business/dashboard/me ──────────────────────────────────────────
 router.get("/me", requireBizAuth, async (req: Request, res: Response): Promise<void> => {
   const bizId = (req as any).bizId;
+
+  console.log("[Dashboard] /me called for bizId:", bizId);
+
   try {
     const { rows } = await pool.query(
       `SELECT ba.id, ba.email, ba.personal_name, ba.business_name,
@@ -52,22 +69,30 @@ router.get("/me", requireBizAuth, async (req: Request, res: Response): Promise<v
        WHERE ba.id = $1 AND ba.deleted_at IS NULL`,
       [bizId]
     );
-    if (rows.length === 0) { res.status(404).json({ message: "Account not found" }); return; }
 
-    // Fetch photos
+    if (rows.length === 0) {
+      console.warn("[Dashboard] No account found for bizId:", bizId);
+      res.status(404).json({ message: "Account not found" });
+      return;
+    }
+
     const { rows: photos } = await pool.query(
-      "SELECT id, cloudinary_url, caption, is_primary FROM business_photos WHERE business_id = $1 ORDER BY is_primary DESC, created_at ASC",
+      `SELECT id, cloudinary_url, caption, is_primary
+       FROM business_photos
+       WHERE business_id = $1
+       ORDER BY is_primary DESC, created_at ASC`,
       [bizId]
     );
 
+    console.log("[Dashboard] /me success — photos:", photos.length);
     res.json({ business: rows[0], photos });
   } catch (err) {
-    console.error("Dashboard me error:", err);
+    console.error("[Dashboard] /me error:", err);
     res.status(500).json({ message: "Failed to load profile." });
   }
 });
 
-// ─── PATCH /api/business/dashboard/profile ────────────────────────────────────
+// ─── PATCH /api/business/dashboard/profile ───────────────────────────────────
 router.patch("/profile", requireBizAuth, [
   body("businessName").trim().notEmpty().withMessage("Business name cannot be empty"),
   body("address").trim().notEmpty().withMessage("Address is required"),
@@ -83,7 +108,10 @@ router.patch("/profile", requireBizAuth, [
   if (!errors.isEmpty()) {
     res.status(400).json({
       message: "Validation failed",
-      errors: errors.array().reduce((acc: any, e: any) => { acc[e.path] = e.msg; return acc; }, {}),
+      errors: errors.array().reduce((acc: any, e: any) => {
+        acc[e.path] = e.msg;
+        return acc;
+      }, {}),
     });
     return;
   }
@@ -95,8 +123,9 @@ router.patch("/profile", requireBizAuth, [
     priceList, additionalInfo,
   } = req.body;
 
+  console.log("[Dashboard] /profile PATCH for bizId:", bizId);
+
   try {
-    // FIX: use direct assignment instead of COALESCE so edits are never silently dropped
     await pool.query(
       `UPDATE business_accounts SET
         business_name  = $1,
@@ -110,31 +139,30 @@ router.patch("/profile", requireBizAuth, [
        WHERE id = $8`,
       [
         businessName,
-        description    || null,
+        description  || null,
         address,
         postcode,
-        contactPhone   || null,
-        contactEmail   || null,
-        website        || null,
+        contactPhone || null,
+        contactEmail || null,
+        website      || null,
         bizId,
       ]
     );
 
-    // Update service details if provided
     if (priceList !== undefined || additionalInfo !== undefined) {
       await pool.query(
         `INSERT INTO business_service_details (business_id, price_list, additional_info)
          VALUES ($1, $2, $3)
          ON CONFLICT (business_id) DO UPDATE
-           SET price_list      = $2,
-               additional_info = $3`,
+           SET price_list      = EXCLUDED.price_list,
+               additional_info = EXCLUDED.additional_info`,
         [bizId, priceList || null, additionalInfo || null]
       );
     }
 
     res.json({ message: "Profile updated successfully." });
   } catch (err) {
-    console.error("Profile update error:", err);
+    console.error("[Dashboard] /profile error:", err);
     res.status(500).json({ message: "Failed to update profile." });
   }
 });
@@ -144,23 +172,29 @@ router.patch("/username", requireBizAuth, async (req: Request, res: Response): P
   const bizId        = (req as any).bizId;
   const { username } = req.body;
 
-  if (!username?.trim()) { res.status(400).json({ message: "Username is required." }); return; }
+  if (!username?.trim()) {
+    res.status(400).json({ message: "Username is required." });
+    return;
+  }
 
   const clean = username.trim().toLowerCase();
   if (!/^[a-z0-9-]{3,30}$/.test(clean)) {
-    res.status(400).json({ message: "Username must be 3–30 characters, letters, numbers, or hyphens only." });
+    res.status(400).json({
+      message: "Username must be 3–30 characters, letters, numbers, or hyphens only.",
+    });
     return;
   }
 
   try {
-    // Fetch current username + last update timestamp
     const { rows: current } = await pool.query(
       "SELECT username, username_updated_at FROM business_accounts WHERE id = $1",
       [bizId]
     );
-    if (current.length === 0) { res.status(404).json({ message: "Account not found." }); return; }
+    if (current.length === 0) {
+      res.status(404).json({ message: "Account not found." });
+      return;
+    }
 
-    // No-op if unchanged
     if (current[0].username === clean) {
       res.status(400).json({ message: "That is already your current username." });
       return;
@@ -187,15 +221,21 @@ router.patch("/username", requireBizAuth, async (req: Request, res: Response): P
       "SELECT id FROM business_accounts WHERE username = $1 AND id != $2",
       [clean, bizId]
     );
-    if (taken.length > 0) { res.status(409).json({ message: "That username is already taken." }); return; }
+    if (taken.length > 0) {
+      res.status(409).json({ message: "That username is already taken." });
+      return;
+    }
 
     await pool.query(
-      "UPDATE business_accounts SET username = $1, username_updated_at = NOW(), updated_at = NOW() WHERE id = $2",
+      `UPDATE business_accounts
+       SET username = $1, username_updated_at = NOW(), updated_at = NOW()
+       WHERE id = $2`,
       [clean, bizId]
     );
+
     res.json({ message: "Username updated successfully.", username: clean });
   } catch (err) {
-    console.error("Username update error:", err);
+    console.error("[Dashboard] /username error:", err);
     res.status(500).json({ message: "Failed to update username." });
   }
 });
@@ -216,7 +256,10 @@ router.patch("/password", requireBizAuth, [
   if (!errors.isEmpty()) {
     res.status(400).json({
       message: "Validation failed",
-      errors: errors.array().reduce((acc: any, e: any) => { acc[e.path] = e.msg; return acc; }, {}),
+      errors: errors.array().reduce((acc: any, e: any) => {
+        acc[e.path] = e.msg;
+        return acc;
+      }, {}),
     });
     return;
   }
@@ -229,119 +272,186 @@ router.patch("/password", requireBizAuth, [
       "SELECT password_hash FROM business_accounts WHERE id = $1",
       [bizId]
     );
-    if (rows.length === 0) { res.status(404).json({ message: "Account not found." }); return; }
+    if (rows.length === 0) {
+      res.status(404).json({ message: "Account not found." });
+      return;
+    }
 
     const valid = await bcrypt.compare(currentPassword, rows[0].password_hash);
-    if (!valid) { res.status(401).json({ message: "Current password is incorrect." }); return; }
+    if (!valid) {
+      res.status(401).json({ message: "Current password is incorrect." });
+      return;
+    }
 
     const passwordHash = await bcrypt.hash(newPassword, 12);
     await pool.query(
-      "UPDATE business_accounts SET password_hash = $1, must_change_password = false, updated_at = NOW() WHERE id = $2",
+      `UPDATE business_accounts
+       SET password_hash = $1, must_change_password = false, updated_at = NOW()
+       WHERE id = $2`,
       [passwordHash, bizId]
     );
 
     res.json({ message: "Password changed successfully." });
   } catch (err) {
-    console.error("Password change error:", err);
+    console.error("[Dashboard] /password error:", err);
     res.status(500).json({ message: "Failed to change password." });
   }
 });
 
 // ─── POST /api/business/dashboard/photos ──────────────────────────────────────
-router.post("/photos", requireBizAuth, upload.single("photo"), async (req: Request, res: Response): Promise<void> => {
-  if (!req.file) { res.status(400).json({ message: "No photo uploaded." }); return; }
-  const bizId   = (req as any).bizId;
-  const caption = req.body.caption?.trim() || null;
-
-  try {
-    // Check limit — max 8 photos
-    const { rows: existing } = await pool.query(
-      "SELECT COUNT(*) FROM business_photos WHERE business_id = $1",
-      [bizId]
-    );
-    if (parseInt(existing[0].count) >= 8) {
-      res.status(400).json({ message: "Maximum 8 photos allowed. Please delete one first." });
+router.post(
+  "/photos",
+  requireBizAuth,
+  upload.single("photo"),
+  async (req: Request, res: Response): Promise<void> => {
+    if (!req.file) {
+      res.status(400).json({ message: "No photo uploaded." });
       return;
     }
 
-    const result: any = await new Promise((resolve, reject) => {
-      const stream = cloudinary.uploader.upload_stream(
-        { folder: "barkbuddy/business-photos", public_id: `biz_${bizId}_${Date.now()}` },
-        (err, r) => err ? reject(err) : resolve(r)
-      );
-      stream.end(req.file!.buffer);
-    });
+    const bizId   = (req as any).bizId;
+    const caption = req.body.caption?.trim() || null;
 
-    // If first photo, make it primary
-    const { rows: count } = await pool.query(
-      "SELECT COUNT(*) FROM business_photos WHERE business_id = $1",
-      [bizId]
-    );
-    const isPrimary = parseInt(count[0].count) === 0;
-
-    const { rows: photo } = await pool.query(
-      `INSERT INTO business_photos (business_id, cloudinary_id, cloudinary_url, caption, is_primary)
-       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [bizId, result.public_id, result.secure_url, caption, isPrimary]
-    );
-
-    res.status(201).json({ message: "Photo uploaded.", photo: photo[0] });
-  } catch (err) {
-    console.error("Photo upload error:", err);
-    res.status(500).json({ message: "Failed to upload photo." });
-  }
-});
-
-// ─── DELETE /api/business/dashboard/photos/:photoId ───────────────────────────
-router.delete("/photos/:photoId", requireBizAuth, async (req: Request, res: Response): Promise<void> => {
-  const bizId   = (req as any).bizId;
-  const photoId = parseInt(req.params.photoId);
-
-  try {
-    const { rows } = await pool.query(
-      "SELECT cloudinary_id, is_primary FROM business_photos WHERE id = $1 AND business_id = $2",
-      [photoId, bizId]
-    );
-    if (rows.length === 0) { res.status(404).json({ message: "Photo not found." }); return; }
-
-    // Delete from Cloudinary
-    await cloudinary.uploader.destroy(rows[0].cloudinary_id);
-    await pool.query("DELETE FROM business_photos WHERE id = $1", [photoId]);
-
-    // If deleted photo was primary, make the next one primary
-    if (rows[0].is_primary) {
-      await pool.query(
-        `UPDATE business_photos SET is_primary = true
-         WHERE id = (SELECT id FROM business_photos WHERE business_id = $1 ORDER BY created_at ASC LIMIT 1)`,
+    try {
+      // Check limit — max 8 photos
+      const { rows: existing } = await pool.query(
+        "SELECT COUNT(*) FROM business_photos WHERE business_id = $1",
         [bizId]
       );
+      if (parseInt(existing[0].count) >= 8) {
+        res.status(400).json({ message: "Maximum 8 photos allowed. Please delete one first." });
+        return;
+      }
+
+      // Upload to Cloudinary
+      const result: any = await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          {
+            folder:    "barkbuddy/business-photos",
+            public_id: `biz_${bizId}_${Date.now()}`,
+          },
+          (err, r) => (err ? reject(err) : resolve(r))
+        );
+        stream.end(req.file!.buffer);
+      });
+
+      // First photo is automatically primary
+      const { rows: countRows } = await pool.query(
+        "SELECT COUNT(*) FROM business_photos WHERE business_id = $1",
+        [bizId]
+      );
+      const isPrimary = parseInt(countRows[0].count) === 0;
+
+      const { rows: photo } = await pool.query(
+        `INSERT INTO business_photos (business_id, cloudinary_id, cloudinary_url, caption, is_primary)
+         VALUES ($1, $2, $3, $4, $5)
+         RETURNING *`,
+        [bizId, result.public_id, result.secure_url, caption, isPrimary]
+      );
+
+      res.status(201).json({ message: "Photo uploaded.", photo: photo[0] });
+    } catch (err) {
+      console.error("[Dashboard] /photos POST error:", err);
+      res.status(500).json({ message: "Failed to upload photo." });
+    }
+  }
+);
+
+// ─── DELETE /api/business/dashboard/photos/:photoId ──────────────────────────
+router.delete(
+  "/photos/:photoId",
+  requireBizAuth,
+  async (req: Request, res: Response): Promise<void> => {
+    const bizId   = (req as any).bizId;
+    const photoId = parseInt(req.params.photoId);
+
+    if (isNaN(photoId)) {
+      res.status(400).json({ message: "Invalid photo ID." });
+      return;
     }
 
-    res.json({ message: "Photo deleted." });
-  } catch (err) {
-    console.error("Photo delete error:", err);
-    res.status(500).json({ message: "Failed to delete photo." });
-  }
-});
+    try {
+      const { rows } = await pool.query(
+        "SELECT cloudinary_id, is_primary FROM business_photos WHERE id = $1 AND business_id = $2",
+        [photoId, bizId]
+      );
+      if (rows.length === 0) {
+        res.status(404).json({ message: "Photo not found." });
+        return;
+      }
 
-// ─── PATCH /api/business/dashboard/photos/:photoId/primary ────────────────────
-router.patch("/photos/:photoId/primary", requireBizAuth, async (req: Request, res: Response): Promise<void> => {
-  const bizId   = (req as any).bizId;
-  const photoId = parseInt(req.params.photoId);
+      // Delete from Cloudinary
+      try {
+        await cloudinary.uploader.destroy(rows[0].cloudinary_id);
+      } catch (cloudErr) {
+        // Log but don't block — still remove from DB
+        console.error("[Dashboard] Cloudinary delete failed (continuing):", cloudErr);
+      }
 
-  try {
-    await pool.query("BEGIN");
-    await pool.query("UPDATE business_photos SET is_primary = false WHERE business_id = $1", [bizId]);
-    await pool.query(
-      "UPDATE business_photos SET is_primary = true WHERE id = $1 AND business_id = $2",
-      [photoId, bizId]
-    );
-    await pool.query("COMMIT");
-    res.json({ message: "Primary photo updated." });
-  } catch (err) {
-    await pool.query("ROLLBACK");
-    res.status(500).json({ message: "Failed to update primary photo." });
+      await pool.query("DELETE FROM business_photos WHERE id = $1", [photoId]);
+
+      // If deleted photo was primary, promote the next oldest
+      if (rows[0].is_primary) {
+        await pool.query(
+          `UPDATE business_photos SET is_primary = true
+           WHERE id = (
+             SELECT id FROM business_photos
+             WHERE business_id = $1
+             ORDER BY created_at ASC
+             LIMIT 1
+           )`,
+          [bizId]
+        );
+      }
+
+      res.json({ message: "Photo deleted." });
+    } catch (err) {
+      console.error("[Dashboard] /photos DELETE error:", err);
+      res.status(500).json({ message: "Failed to delete photo." });
+    }
   }
-});
+);
+
+// ─── PATCH /api/business/dashboard/photos/:photoId/primary ───────────────────
+router.patch(
+  "/photos/:photoId/primary",
+  requireBizAuth,
+  async (req: Request, res: Response): Promise<void> => {
+    const bizId   = (req as any).bizId;
+    const photoId = parseInt(req.params.photoId);
+
+    if (isNaN(photoId)) {
+      res.status(400).json({ message: "Invalid photo ID." });
+      return;
+    }
+
+    try {
+      await pool.query("BEGIN");
+
+      await pool.query(
+        "UPDATE business_photos SET is_primary = false WHERE business_id = $1",
+        [bizId]
+      );
+
+      const { rowCount } = await pool.query(
+        "UPDATE business_photos SET is_primary = true WHERE id = $1 AND business_id = $2",
+        [photoId, bizId]
+      );
+
+      if (!rowCount || rowCount === 0) {
+        await pool.query("ROLLBACK");
+        res.status(404).json({ message: "Photo not found." });
+        return;
+      }
+
+      await pool.query("COMMIT");
+      res.json({ message: "Primary photo updated." });
+    } catch (err) {
+      await pool.query("ROLLBACK");
+      console.error("[Dashboard] /photos/primary PATCH error:", err);
+      res.status(500).json({ message: "Failed to update primary photo." });
+    }
+  }
+);
 
 export default router;

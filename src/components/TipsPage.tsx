@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "./TipsPage.scss";
 import Footer from "./Footer";
 import { useAuth } from "../context/AuthContext";
@@ -70,14 +70,26 @@ const ChevronIcon = ({ open }: { open: boolean }) => (
   </svg>
 );
 
+const LockIcon = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+    strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+  </svg>
+);
+
 // ─── Tip Modal ────────────────────────────────────────────────────────────────
 const TipModal: React.FC<{
-  tip:      Tip;
-  category: TipCategory;
-  saved:    boolean;
-  onSave:   () => void;
-  onClose:  () => void;
-}> = ({ tip, category, saved, onSave, onClose }) => {
+  tip:        Tip;
+  category:   TipCategory;
+  saved:      boolean;
+  isLoggedIn: boolean;
+  onSave:     () => void;
+  onClose:    () => void;
+  onLoginPrompt: () => void;
+}> = ({ tip, category, saved, isLoggedIn, onSave, onClose, onLoginPrompt }) => {
+  const [showLoginMsg, setShowLoginMsg] = useState(false);
+
   useEffect(() => {
     const fn = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", fn);
@@ -87,6 +99,15 @@ const TipModal: React.FC<{
       document.body.style.overflow = "";
     };
   }, [onClose]);
+
+  const handleSave = () => {
+    if (!isLoggedIn) {
+      setShowLoginMsg(true);
+      setTimeout(() => setShowLoginMsg(false), 3000);
+      return;
+    }
+    onSave();
+  };
 
   return (
     <div
@@ -110,7 +131,6 @@ const TipModal: React.FC<{
         )}
 
         <div className="tip-modal__body">
-          {/* points count removed */}
           <div className="tip-modal__meta">
             <span className="tip-modal__tag">{category}</span>
           </div>
@@ -121,12 +141,17 @@ const TipModal: React.FC<{
           <ul className="tip-modal__points">
             {tip.points.map((p, i) => (
               <li key={i} className="tip-modal__point">
-                <span className="tip-modal__bullet" />
-                <div>
+                <span className="tip-modal__bullet" aria-hidden="true" />
+                <div className="tip-modal__point-content">
                   <span className="tip-modal__point-text">{p.text}</span>
                   {p.sub && (
                     <ul className="tip-modal__sub">
-                      {p.sub.map((s, j) => <li key={j}>{s}</li>)}
+                      {p.sub.map((s, j) => (
+                        <li key={j}>
+                          <span className="tip-modal__sub-bullet" aria-hidden="true" />
+                          {s}
+                        </li>
+                      ))}
                     </ul>
                   )}
                 </div>
@@ -141,13 +166,20 @@ const TipModal: React.FC<{
             </aside>
           )}
 
-          <button
-            className={`tip-modal__save${saved ? " tip-modal__save--saved" : ""}`}
-            onClick={onSave}
-          >
-            <BookmarkIcon filled={saved} />
-            {saved ? "Saved" : "Save tip"}
-          </button>
+          <div className="tip-modal__save-wrap">
+            <button
+              className={`tip-modal__save${saved ? " tip-modal__save--saved" : ""}`}
+              onClick={handleSave}
+            >
+              <BookmarkIcon filled={saved} />
+              {saved ? "Saved" : "Save tip"}
+            </button>
+            {showLoginMsg && (
+              <p className="tip-modal__login-msg">
+                <LockIcon /> Please log in to save tips
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -156,46 +188,76 @@ const TipModal: React.FC<{
 
 // ─── Tip Card ─────────────────────────────────────────────────────────────────
 const TipCard: React.FC<{
-  tip:      Tip;
-  category: TipCategory;
-  saved:    boolean;
-  onSave:   () => void;
-  onOpen:   () => void;
-  index:    number;
-}> = ({ tip, category, saved, onSave, onOpen, index }) => (
-  <article className="tip-card" style={{ animationDelay: `${index * 0.06}s` }}>
-    <button className="tip-card__image-wrap" onClick={onOpen} aria-label={`Read tip: ${tip.title}`}>
-      {tip.image ? (
-        <img src={tip.image} alt={tip.title} className="tip-card__image" />
-      ) : (
-        <div className="tip-card__image-placeholder">
-          <img src={tip.icon} alt="" className="tip-card__icon-fallback" />
-        </div>
-      )}
-    </button>
+  tip:        Tip;
+  category:   TipCategory;
+  saved:      boolean;
+  isLoggedIn: boolean;
+  onSave:     () => void;
+  onOpen:     () => void;
+  index:      number;
+}> = ({ tip, category, saved, isLoggedIn, onSave, onOpen, index }) => {
+  const [showLoginMsg, setShowLoginMsg] = useState(false);
 
-    <button
-      className={`tip-card__bookmark${saved ? " tip-card__bookmark--saved" : ""}`}
-      onClick={onSave}
-      aria-label={saved ? "Remove bookmark" : "Save tip"}
-      aria-pressed={saved}
+  const handleSave = (e: React.MouseEvent) => {
+    e.stopPropagation(); // don't open modal when clicking bookmark
+    if (!isLoggedIn) {
+      setShowLoginMsg(true);
+      setTimeout(() => setShowLoginMsg(false), 3000);
+      return;
+    }
+    onSave();
+  };
+
+  return (
+    <article
+      className="tip-card"
+      style={{ animationDelay: `${index * 0.06}s` }}
+      onClick={onOpen}
+      role="button"
+      tabIndex={0}
+      onKeyDown={e => e.key === "Enter" && onOpen()}
+      aria-label={`Read tip: ${tip.title}`}
     >
-      <BookmarkIcon filled={saved} />
-    </button>
-
-    <div className="tip-card__body">
-      {/* points count removed from card too */}
-      <div className="tip-card__meta">
-        <span className="tip-card__tag">{category}</span>
+      <div className="tip-card__image-wrap">
+        {tip.image ? (
+          <img src={tip.image} alt={tip.title} className="tip-card__image" />
+        ) : (
+          <div className="tip-card__image-placeholder">
+            <img src={tip.icon} alt="" className="tip-card__icon-fallback" />
+          </div>
+        )}
       </div>
-      <h3 className="tip-card__title">{tip.title}</h3>
-      <p className="tip-card__summary">{tip.summary}</p>
-      <button className="tip-card__read" onClick={onOpen}>
-        Read tip <ArrowIcon />
-      </button>
-    </div>
-  </article>
-);
+
+      {/* Bookmark — stops propagation so it doesn't open modal */}
+      <div className="tip-card__bookmark-wrap">
+        <button
+          className={`tip-card__bookmark${saved ? " tip-card__bookmark--saved" : ""}`}
+          onClick={handleSave}
+          aria-label={saved ? "Remove bookmark" : "Save tip"}
+          aria-pressed={saved}
+        >
+          <BookmarkIcon filled={saved} />
+        </button>
+        {showLoginMsg && (
+          <p className="tip-card__login-msg">
+            <LockIcon /> Log in to save
+          </p>
+        )}
+      </div>
+
+      <div className="tip-card__body">
+        <div className="tip-card__meta">
+          <span className="tip-card__tag">{category}</span>
+        </div>
+        <h3 className="tip-card__title">{tip.title}</h3>
+        <p className="tip-card__summary">{tip.summary}</p>
+        <span className="tip-card__read">
+          Read tip <ArrowIcon />
+        </span>
+      </div>
+    </article>
+  );
+};
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 const TipsPage: React.FC<TipsPageProps> = ({
@@ -203,6 +265,9 @@ const TipsPage: React.FC<TipsPageProps> = ({
 }) => {
   const { token }                        = useAuth();
   const { isSaved, toggleTip, tipCount } = useSaved();
+  const navigate                         = useNavigate();
+
+  const isLoggedIn = !!token;
 
   const [query,    setQuery]    = useState("");
   const [openTip,  setOpenTip]  = useState<Tip | null>(null);
@@ -244,8 +309,10 @@ const TipsPage: React.FC<TipsPageProps> = ({
           tip={openTip}
           category={category}
           saved={isSaved(openTip.id)}
+          isLoggedIn={isLoggedIn}
           onSave={() => handleSave(openTip)}
           onClose={() => setOpenTip(null)}
+          onLoginPrompt={() => navigate('/login')}
         />
       )}
 
@@ -281,8 +348,7 @@ const TipsPage: React.FC<TipsPageProps> = ({
         <div className="tips-controls__inner">
 
           <nav className="tips-nav" aria-label="Tip categories">
-
-            {/* Mobile dropdown only */}
+            {/* Mobile dropdown */}
             <div className="tips-nav__dropdown" ref={dropdownRef}>
               <button
                 className="tips-nav__dropdown-trigger"
@@ -311,7 +377,7 @@ const TipsPage: React.FC<TipsPageProps> = ({
               )}
             </div>
 
-            {/* Desktop tab links only */}
+            {/* Desktop tabs */}
             <div className="tips-nav__tabs">
               {NAV.map(c => (
                 <Link key={c.path} to={c.path}
@@ -320,7 +386,6 @@ const TipsPage: React.FC<TipsPageProps> = ({
                 </Link>
               ))}
             </div>
-
           </nav>
 
           <div className="tips-search">
@@ -329,7 +394,7 @@ const TipsPage: React.FC<TipsPageProps> = ({
               ref={inputRef}
               type="search"
               className="tips-search__input"
-              placeholder={`Search…`}
+              placeholder="Search…"
               value={query}
               onChange={e => setQuery(e.target.value)}
               autoComplete="off"
@@ -368,6 +433,7 @@ const TipsPage: React.FC<TipsPageProps> = ({
                 index={i}
                 category={category}
                 saved={isSaved(tip.id)}
+                isLoggedIn={isLoggedIn}
                 onSave={() => handleSave(tip)}
                 onOpen={() => setOpenTip(tip)}
               />

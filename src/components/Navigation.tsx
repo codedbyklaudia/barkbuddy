@@ -498,7 +498,7 @@ const Navigation: React.FC = () => {
                 aria-hidden="true"><path d="M6 8L2 4h8L6 8z"/></svg>
             </button>
             {activeDropdown === 'care-mobile' && (
-              <div className="navigation__mobile-submenu" role="menu">
+              <div className="navigation__mobile-submenu navigation__mobile-submenu--grid" role="menu">
                 {careMenuItems.map(item => (
                   <Link key={item.to} to={item.to} onClick={toggleMenu} className="navigation__mobile-icon-item" role="menuitem">
                     <div className="navigation__mobile-icon-wrapper">{item.icon}</div>

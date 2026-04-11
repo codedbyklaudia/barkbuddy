@@ -399,15 +399,15 @@ const BuddiesPanel: React.FC<{ token: string }> = ({ token }) => {
   const [buddies, setBuddies]             = useState<Buddy[]>([]);
   const [pendingIn, setPendingIn]         = useState<Buddy[]>([]);
   const [pendingOut, setPendingOut]       = useState<Buddy[]>([]);
-  const [search, setSearch]               = useState("");
+  const [search, setSearch]               = useState('');
   const [searchResults, setSearchResults] = useState<BuddyUser[]>([]);
   const [searching, setSearching]         = useState(false);
   const [loading, setLoading]             = useState(true);
-  const [activeTab, setActiveTab]         = useState<"list" | "find">("list");
+  const [activeTab, setActiveTab]         = useState<'list' | 'find'>('list');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [drawerBuddy, setDrawerBuddy]     = useState<Buddy | null>(null);
+  const [openBuddyId, setOpenBuddyId]     = useState<string | null>(null);
   const searchRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
+ 
   useEffect(() => {
     setLoading(true);
     getBuddies(token).then(({ buddies: b, pendingIn: pi, pendingOut: po }) => {
@@ -416,7 +416,7 @@ const BuddiesPanel: React.FC<{ token: string }> = ({ token }) => {
       setPendingOut(po);
     }).finally(() => setLoading(false));
   }, [token]);
-
+ 
   const handleSearch = (q: string) => {
     setSearch(q);
     if (searchRef.current) clearTimeout(searchRef.current);
@@ -428,15 +428,15 @@ const BuddiesPanel: React.FC<{ token: string }> = ({ token }) => {
       setSearching(false);
     }, 400);
   };
-
+ 
   const handleSendRequest = async (userId: string) => {
     setActionLoading(userId);
     try {
       await sendBuddyRequest(token, userId);
-      setSearchResults(prev => prev.map(u => u.id === userId ? { ...u, status: "pending_out" as const } : u));
+      setSearchResults(prev => prev.map(u => u.id === userId ? { ...u, status: 'pending_out' as const } : u));
     } finally { setActionLoading(null); }
   };
-
+ 
   const handleAccept = async (buddy: Buddy) => {
     setActionLoading(buddy.id);
     try {
@@ -445,7 +445,7 @@ const BuddiesPanel: React.FC<{ token: string }> = ({ token }) => {
       setBuddies(prev => [...prev, { ...buddy, buddySince: new Date().toISOString() }]);
     } finally { setActionLoading(null); }
   };
-
+ 
   const handleAcceptFromSearch = async (user: BuddyUser) => {
     setActionLoading(user.id);
     try {
@@ -459,45 +459,56 @@ const BuddiesPanel: React.FC<{ token: string }> = ({ token }) => {
           dogs: user.dogName ? [{ name: user.dogName }] : [],
           joinedAt: new Date().toISOString(), buddySince: new Date().toISOString(),
         }]);
-        setSearchResults(prev => prev.map(u => u.id === user.id ? { ...u, status: "buddy" as const } : u));
+        setSearchResults(prev => prev.map(u => u.id === user.id ? { ...u, status: 'buddy' as const } : u));
       }
     } finally { setActionLoading(null); }
   };
-
+ 
   const handleRemove = async (buddyId: string) => {
-    if (!confirm("Remove this buddy?")) return;
+    if (!confirm('Remove this buddy?')) return;
     setActionLoading(buddyId);
     try {
       await removeBuddy(token, buddyId);
       setBuddies(prev => prev.filter(b => b.id !== buddyId));
-      if (drawerBuddy?.id === buddyId) setDrawerBuddy(null);
+      if (openBuddyId === buddyId) setOpenBuddyId(null);
     } finally { setActionLoading(null); }
   };
-
+ 
+  const toggleBuddy = (buddyId: string) => {
+    setOpenBuddyId(prev => prev === buddyId ? null : buddyId);
+  };
+ 
   return (
     <div className="buddies-panel">
       <div className="buddies-tabs">
-        <button className={`buddies-tab ${activeTab === "list" ? "active" : ""}`} onClick={() => setActiveTab("list")}>
+        <button className={`buddies-tab ${activeTab === 'list' ? 'active' : ''}`} onClick={() => setActiveTab('list')}>
           <Users size={15} /> My Pack
           {buddies.length > 0 && <span className="buddies-tab-badge">{buddies.length}</span>}
         </button>
-        <button className={`buddies-tab ${activeTab === "find" ? "active" : ""}`} onClick={() => setActiveTab("find")}>
+        <button className={`buddies-tab ${activeTab === 'find' ? 'active' : ''}`} onClick={() => setActiveTab('find')}>
           <Search size={15} /> Find Buddies
         </button>
-        {pendingIn.length > 0 && <div className="buddies-pending-dot" title={`${pendingIn.length} pending`}>{pendingIn.length}</div>}
+        {pendingIn.length > 0 && (
+          <div className="buddies-pending-dot" title={`${pendingIn.length} pending`}>{pendingIn.length}</div>
+        )}
       </div>
-
-      {activeTab === "list" && (
+ 
+      {activeTab === 'list' && (
         <div className="buddies-list-view">
           {pendingIn.length > 0 && (
             <div className="buddies-section">
-              <h4 className="buddies-section-title"><UserPlus size={15} /> Buddy Requests<span className="section-count">{pendingIn.length}</span></h4>
+              <h4 className="buddies-section-title">
+                <UserPlus size={15} /> Buddy Requests
+                <span className="section-count">{pendingIn.length}</span>
+              </h4>
               <div className="buddies-grid">
                 {pendingIn.map(b => {
                   const dogLabel = buddyDogLabel(b);
                   return (
                     <div key={b.id} className="buddy-card buddy-card--pending">
-                      <div className="buddy-avatar">{b.avatarUrl ? <img src={b.avatarUrl} alt={b.name} /> : <span>{b.name.charAt(0)}</span>}</div>
+                      <div className="buddy-avatar">
+                        {b.avatarUrl ? <img src={b.avatarUrl} alt={b.name} /> : <span>{b.name.charAt(0)}</span>}
+                      </div>
                       <div className="buddy-info">
                         <p className="buddy-name">{b.name}</p>
                         {dogLabel && <p className="buddy-dog"><Bone size={11} /> {dogLabel}</p>}
@@ -506,7 +517,9 @@ const BuddiesPanel: React.FC<{ token: string }> = ({ token }) => {
                         <button className="buddy-btn accept" onClick={() => handleAccept(b)} disabled={actionLoading === b.id}>
                           {actionLoading === b.id ? <Loader2 size={13} className="spin" /> : <><Check size={13} /> Accept</>}
                         </button>
-                        <button className="buddy-btn decline" onClick={() => handleRemove(b.id)} disabled={actionLoading === b.id}><X size={13} /></button>
+                        <button className="buddy-btn decline" onClick={() => handleRemove(b.id)} disabled={actionLoading === b.id}>
+                          <X size={13} />
+                        </button>
                       </div>
                     </div>
                   );
@@ -514,9 +527,11 @@ const BuddiesPanel: React.FC<{ token: string }> = ({ token }) => {
               </div>
             </div>
           )}
-
+ 
           <div className="buddies-section">
-            <h4 className="buddies-section-title">Your Pack <span className="section-count">{buddies.length}</span></h4>
+            <h4 className="buddies-section-title">
+              Your Pack <span className="section-count">{buddies.length}</span>
+            </h4>
             {loading ? (
               <div className="buddies-skeletons">{[1,2,3].map(i => <div key={i} className="buddy-skeleton" />)}</div>
             ) : buddies.length === 0 ? (
@@ -526,34 +541,64 @@ const BuddiesPanel: React.FC<{ token: string }> = ({ token }) => {
                 <p className="empty-sub">Use "Find Buddies" to connect with fellow dog owners.</p>
               </div>
             ) : (
-              <div className="buddies-grid">
+              <div className="buddies-list">
                 {buddies.map(b => {
                   const dogLabel = buddyDogLabel(b);
+                  const isOpen = openBuddyId === b.id;
                   return (
-                    <button key={b.id} className="buddy-card buddy-card--clickable" onClick={() => setDrawerBuddy(b)}>
-                      <div className="buddy-avatar">{b.avatarUrl ? <img src={b.avatarUrl} alt={b.name} /> : <span>{b.name.charAt(0)}</span>}</div>
-                      <div className="buddy-info">
-                        <p className="buddy-name">{b.name}</p>
-                        {dogLabel && <p className="buddy-dog"><Bone size={11} /> {dogLabel}</p>}
-                        {b.buddySince && <p className="buddy-since"><Clock size={10} /> Since {new Date(b.buddySince).toLocaleDateString("en-GB", { month: "short", year: "numeric" })}</p>}
-                      </div>
-                      <ChevronRight size={15} className="buddy-chevron" />
-                    </button>
+                    <div key={b.id} className={`buddy-row-wrap${isOpen ? ' buddy-row-wrap--open' : ''}`}>
+                      <button
+                        className={`buddy-card buddy-card--clickable${isOpen ? ' buddy-card--active' : ''}`}
+                        onClick={() => toggleBuddy(b.id)}
+                      >
+                        <div className="buddy-avatar">
+                          {b.avatarUrl ? <img src={b.avatarUrl} alt={b.name} /> : <span>{b.name.charAt(0)}</span>}
+                        </div>
+                        <div className="buddy-info">
+                          <p className="buddy-name">{b.name}</p>
+                          {dogLabel && <p className="buddy-dog"><Bone size={11} /> {dogLabel}</p>}
+                          {b.buddySince && (
+                            <p className="buddy-since">
+                              <Clock size={10} /> Since {new Date(b.buddySince).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}
+                            </p>
+                          )}
+                        </div>
+                        <ChevronRight
+                          size={15}
+                          className="buddy-chevron"
+                          style={{ transform: isOpen ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }}
+                        />
+                      </button>
+ 
+                      {/* Inline expand panel — full width, below the card */}
+                      {isOpen && (
+                        <BuddyProfilePanel
+                          buddy={b}
+                          token={token}
+                          onClose={() => setOpenBuddyId(null)}
+                          onRemoved={id => setBuddies(prev => prev.filter(x => x.id !== id))}
+                        />
+                      )}
+                    </div>
                   );
                 })}
               </div>
             )}
           </div>
-
+ 
           {pendingOut.length > 0 && (
             <div className="buddies-section">
-              <h4 className="buddies-section-title">Sent Requests <span className="section-count">{pendingOut.length}</span></h4>
+              <h4 className="buddies-section-title">
+                Sent Requests <span className="section-count">{pendingOut.length}</span>
+              </h4>
               <div className="buddies-grid">
                 {pendingOut.map(b => {
                   const dogLabel = buddyDogLabel(b);
                   return (
                     <div key={b.id} className="buddy-card buddy-card--sent">
-                      <div className="buddy-avatar">{b.avatarUrl ? <img src={b.avatarUrl} alt={b.name} /> : <span>{b.name.charAt(0)}</span>}</div>
+                      <div className="buddy-avatar">
+                        {b.avatarUrl ? <img src={b.avatarUrl} alt={b.name} /> : <span>{b.name.charAt(0)}</span>}
+                      </div>
                       <div className="buddy-info">
                         <p className="buddy-name">{b.name}</p>
                         {dogLabel && <p className="buddy-dog"><Bone size={11} /> {dogLabel}</p>}
@@ -567,14 +612,23 @@ const BuddiesPanel: React.FC<{ token: string }> = ({ token }) => {
           )}
         </div>
       )}
-
-      {activeTab === "find" && (
+ 
+      {activeTab === 'find' && (
         <div className="buddies-find-view">
           <div className="buddies-search-wrap">
             <Search size={16} className="search-icon-abs" />
-            <input className="buddies-search-input" placeholder="Search by name or dog name…" value={search}
-              onChange={e => handleSearch(e.target.value)} autoFocus />
-            {search && <button className="search-clear-btn" onClick={() => { setSearch(""); setSearchResults([]); }}><X size={14} /></button>}
+            <input
+              className="buddies-search-input"
+              placeholder="Search by name or dog name…"
+              value={search}
+              onChange={e => handleSearch(e.target.value)}
+              autoFocus
+            />
+            {search && (
+              <button className="search-clear-btn" onClick={() => { setSearch(''); setSearchResults([]); }}>
+                <X size={14} />
+              </button>
+            )}
           </div>
           {searching && <div className="search-status"><Loader2 size={18} className="spin" /> Searching…</div>}
           {!searching && search && searchResults.length === 0 && (
@@ -588,18 +642,20 @@ const BuddiesPanel: React.FC<{ token: string }> = ({ token }) => {
             <div className="buddies-grid">
               {searchResults.map(u => (
                 <div key={u.id} className="buddy-card">
-                  <div className="buddy-avatar">{u.avatarUrl ? <img src={u.avatarUrl} alt={u.name} /> : <span>{u.name.charAt(0)}</span>}</div>
+                  <div className="buddy-avatar">
+                    {u.avatarUrl ? <img src={u.avatarUrl} alt={u.name} /> : <span>{u.name.charAt(0)}</span>}
+                  </div>
                   <div className="buddy-info">
                     <p className="buddy-name">{u.name}</p>
                     {u.dogName && <p className="buddy-dog"><Bone size={11} /> {u.dogName}</p>}
                     {u.bio && <p className="buddy-bio">{u.bio}</p>}
                   </div>
                   <div className="buddy-actions">
-                    {u.status === "buddy" ? (
+                    {u.status === 'buddy' ? (
                       <span className="buddy-status-badge is-buddy"><UserCheck size={13} /> Buddy</span>
-                    ) : u.status === "pending_out" ? (
+                    ) : u.status === 'pending_out' ? (
                       <span className="buddy-status-badge is-pending">Sent ✓</span>
-                    ) : u.status === "pending_in" ? (
+                    ) : u.status === 'pending_in' ? (
                       <button className="buddy-btn accept" onClick={() => handleAcceptFromSearch(u)} disabled={actionLoading === u.id}>
                         {actionLoading === u.id ? <Loader2 size={13} className="spin" /> : <><Check size={13} /> Accept</>}
                       </button>
@@ -622,17 +678,11 @@ const BuddiesPanel: React.FC<{ token: string }> = ({ token }) => {
           )}
         </div>
       )}
-
-      {drawerBuddy && (
-        <BuddyDrawer buddy={drawerBuddy} token={token}
-          onClose={() => setDrawerBuddy(null)}
-          onRemoved={id => setBuddies(prev => prev.filter(b => b.id !== id))} />
-      )}
     </div>
   );
 };
 
-// ── My Posts Panel ────────────────────────────────────────────────────────────
+// My Posts Panel
 const MyPostsPanel: React.FC<{ token: string; onViewInForum: (postId: string) => void }> = ({ token, onViewInForum }) => {
   const [posts, setPosts]                 = useState<Post[]>([]);
   const [loading, setLoading]             = useState(true);
@@ -711,17 +761,13 @@ const MyPostsPanel: React.FC<{ token: string; onViewInForum: (postId: string) =>
   );
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
 // Profile Card
-// ─────────────────────────────────────────────────────────────────────────────
-
 interface ProfileCardProps {
   profile: PublicProfile; isSelf?: boolean; streak?: number;
   profileComplete?: number; buddySince?: string;
   onRemoveBuddy?: () => void; removingBuddy?: boolean;
   onBannerUpload?: (file: File) => Promise<void>; bannerUploading?: boolean;
 }
-
 const ProfileCard: React.FC<ProfileCardProps> = ({
   profile, isSelf = false, streak = 0, profileComplete,
   buddySince, onRemoveBuddy, removingBuddy,
@@ -861,40 +907,76 @@ const ProfileCardSkeleton: React.FC = () => (
   </div>
 );
 
-// ── Buddy Drawer ──────────────────────────────────────────────────────────────
-const BuddyDrawer: React.FC<{
-  buddy: Buddy; token: string; onClose: () => void; onRemoved: (buddyId: string) => void;
+// Buddy Drawer
+const BuddyProfilePanel: React.FC<{
+  buddy: Buddy;
+  token: string;
+  onClose: () => void;
+  onRemoved: (buddyId: string) => void;
 }> = ({ buddy, token, onClose, onRemoved }) => {
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [removing, setRemoving] = useState(false);
-
-  useEffect(() => { getPublicProfile(token, buddy.userId).then(p => { setProfile(p); setLoading(false); }); }, [buddy.userId, token]);
+  const panelRef = useRef<HTMLDivElement>(null);
+ 
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
+    getPublicProfile(token, buddy.userId).then(p => {
+      setProfile(p);
+      setLoading(false);
+    });
+  }, [buddy.userId, token]);
+ 
+  useEffect(() => {
+    // scroll panel into view smoothly
+    setTimeout(() => {
+      panelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 60);
+  }, []);
+ 
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
   }, [onClose]);
-
+ 
   const handleRemove = async () => {
     if (!confirm(`Remove ${buddy.name} as a buddy?`)) return;
     setRemoving(true);
-    try { await removeBuddy(token, buddy.id); onRemoved(buddy.id); onClose(); }
-    finally { setRemoving(false); }
+    try {
+      await removeBuddy(token, buddy.id);
+      onRemoved(buddy.id);
+      onClose();
+    } finally {
+      setRemoving(false);
+    }
   };
-
+ 
   return (
-    <>
-      <div className="bd-backdrop" onClick={onClose} />
-      <div className="bd-drawer" role="dialog" aria-label={`${buddy.name}'s profile`}>
-        <button className="bd-close" onClick={onClose} title="Close"><X size={18} /></button>
-        {loading
-          ? <ProfileCardSkeleton />
-          : profile
-            ? <ProfileCard profile={profile} isSelf={false} buddySince={buddy.buddySince} onRemoveBuddy={handleRemove} removingBuddy={removing} />
-            : <div className="bd-error"><Dog size={32} strokeWidth={1.2} /><p>Couldn't load profile</p></div>}
+    <div ref={panelRef} className="buddy-inline-panel">
+      <div className="buddy-inline-panel__header">
+        <span className="buddy-inline-panel__label">Profile</span>
+        <button className="buddy-inline-panel__close" onClick={onClose} aria-label="Close">
+          <X size={15} />
+        </button>
       </div>
-    </>
+ 
+      {loading ? (
+        <ProfileCardSkeleton />
+      ) : profile ? (
+        <ProfileCard
+          profile={profile}
+          isSelf={false}
+          buddySince={buddy.buddySince}
+          onRemoveBuddy={handleRemove}
+          removingBuddy={removing}
+        />
+      ) : (
+        <div className="buddy-inline-panel__error">
+          <Dog size={28} strokeWidth={1.2} />
+          <p>Couldn't load profile</p>
+        </div>
+      )}
+    </div>
   );
 };
 

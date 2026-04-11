@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import './ServiceDetailPage.scss';
 import Footer from './Footer';
 import { formatServiceType } from '../utils/formatservicetype';
@@ -52,7 +52,7 @@ interface Statistics {
   total_reviews: number;
 }
 
-// Star rating display 
+// Star rating display
 const StarRow = ({ rating, size = 16 }: { rating: number; size?: number }) => (
   <>
     {[...Array(5)].map((_, i) => (
@@ -63,7 +63,7 @@ const StarRow = ({ rating, size = 16 }: { rating: number; size?: number }) => (
   </>
 );
 
-// Interactive star picker 
+// Interactive star picker
 const StarPicker = ({ value, onChange }: { value: number; onChange: (v: number) => void }) => {
   const [hovered, setHovered] = useState(0);
   const display = hovered || value;
@@ -95,17 +95,24 @@ const StarPicker = ({ value, onChange }: { value: number; onChange: (v: number) 
   );
 };
 
-// Save button component 
+// Save button component
 const SaveButton: React.FC<{
   business: Business;
   averageRating: number;
   variant?: 'sidebar' | 'header';
-}> = ({ business, averageRating, variant = 'sidebar' }) => {
+  isLoggedIn: boolean;
+}> = ({ business, averageRating, variant = 'sidebar', isLoggedIn }) => {
   const { isSaved, toggleService } = useSaved();
   const saved = isSaved(String(business.id));
   const [popped, setPopped] = useState(false);
+  const [showLoginMsg, setShowLoginMsg] = useState(false);
 
   const handleSave = () => {
+    if (!isLoggedIn) {
+      setShowLoginMsg(true);
+      setTimeout(() => setShowLoginMsg(false), 3000);
+      return;   // just show message, nothing else
+    }
     toggleService({
       id:       String(business.id),
       itemId:   String(business.id),
@@ -120,25 +127,51 @@ const SaveButton: React.FC<{
 
   if (variant === 'header') {
     return (
-      <button
-        className={`sdp-save-header${saved ? ' sdp-save-header--saved' : ''}${popped ? ' sdp-save-header--pop' : ''}`}
-        onClick={handleSave}
-        aria-label={saved ? 'Remove from saved' : 'Save this listing'}
-        title={saved ? 'Remove from saved' : 'Save this listing'}
-      >
-        <Bookmark size={18} fill={saved ? 'currentColor' : 'none'} />
-        <span>{saved ? 'Saved' : 'Save'}</span>
-      </button>
+      <div className="sdp-save-wrapper">
+        <button
+          className={`sdp-save-header${saved ? ' sdp-save-header--saved' : ''}${popped ? ' sdp-save-header--pop' : ''}`}
+          onClick={handleSave}
+          aria-label={saved ? 'Remove from saved' : 'Save this listing'}
+        >
+          <Bookmark size={18} fill={saved ? 'currentColor' : 'none'} />
+          <span>{saved ? 'Saved' : 'Save'}</span>
+        </button>
+        {showLoginMsg && (
+          <p className="sdp-save-login-msg">
+            <i className="bi bi-lock" /> Please log in to save listings
+          </p>
+        )}
+      </div>
     );
   }
 
-  
+  return (
+    <div className="sdp-save-wrapper">
+      <button
+        className={`__but${saved ? ' __but--saved' : ''}${popped ? ' __but--pop' : ''}`}
+        onClick={handleSave}
+        aria-label={saved ? 'Remove from saved' : 'Save this listing'}
+      >
+        <Bookmark size={16} fill={saved ? 'currentColor' : 'none'} />
+        <span>{saved ? 'Saved' : 'Save'}</span>
+      </button>
+      {showLoginMsg && (
+        <p className="sdp-save-login-msg">
+          <i className="bi bi-lock" /> Please log in to save listings
+        </p>
+      )}
+    </div>
+  );
 };
 
-// Component 
+// Component
 const ServiceDetailPage: React.FC = () => {
-  const { id }     = useParams<{ id: string }>();
-  const navigate   = useNavigate();
+  const { id }       = useParams<{ id: string }>();
+  const navigate     = useNavigate();
+  const location     = useLocation();
+
+  // Restore the tab we came from so back button returns to the right tab
+  const fromTab = (location.state?.from as string) ?? 'services';
 
   // Page data
   const [business, setBusiness]     = useState<Business | null>(null);
@@ -164,7 +197,6 @@ const ServiceDetailPage: React.FC = () => {
   const [reviewSuccess, setReviewSuccess]     = useState(false);
 
   // Fetch
-
   useEffect(() => {
     if (!id) return;
     const load = async () => {
@@ -191,7 +223,6 @@ const ServiceDetailPage: React.FC = () => {
   }, [id]);
 
   // Refresh stats
-
   const refreshStats = useCallback(async () => {
     if (!id) return;
     try {
@@ -204,8 +235,12 @@ const ServiceDetailPage: React.FC = () => {
     }
   }, [id]);
 
-  // Review modal 
+  // Back navigation — returns to correct tab
+  const handleBack = () => {
+    navigate('/service-finder', { state: { tab: fromTab } });
+  };
 
+  // Review modal
   const handleOpenReview = () => {
     if (!isLoggedIn) { navigate('/login'); return; }
     setReviewRating(0);
@@ -256,7 +291,6 @@ const ServiceDetailPage: React.FC = () => {
   };
 
   // Lightbox
-
   const openLightbox  = (index: number) => setLightboxIndex(index);
   const closeLightbox = () => setLightboxIndex(null);
 
@@ -292,24 +326,30 @@ const ServiceDetailPage: React.FC = () => {
     <div className="activity-details">
       <div className="activity-details__error">
         <h2>Oops! {error || 'Business not found'}</h2>
-        <button onClick={() => navigate(-1)}>← Go back</button>
+        <button onClick={handleBack}>← Go back</button>
       </div>
       <Footer />
     </div>
   );
 
   // Derived values
-
   const primaryPhoto  = photos.find(p => p.is_primary) || photos[0];
   const otherPhotos   = photos.filter(p => p !== primaryPhoto);
   const averageRating = Number(statistics.average_rating) || 0;
   const totalReviews  = statistics.total_reviews || 0;
   const currentPhoto  = lightboxIndex !== null ? photos[lightboxIndex] : null;
 
-  // Render
-
   return (
     <div className="activity-details">
+
+      {/* Back button */}
+      <div className="activity-details__back">
+        <button className="activity-details__back-btn" onClick={handleBack}>
+          <i className="bi bi-arrow-left" />
+          Back to {fromTab === 'activities' ? 'Activities' : 'Services'}
+        </button>
+      </div>
+
       <section className="activity-details__content">
 
         {/* Left column */}
@@ -322,10 +362,11 @@ const ServiceDetailPage: React.FC = () => {
                 {formatServiceType(business.type)}
               </span>
               <SaveButton
-                business={business}
-                averageRating={averageRating}
-                variant="header"
-              />
+                  business={business}
+                  averageRating={averageRating}
+                  variant="header"
+                  isLoggedIn={isLoggedIn}
+                />
             </div>
 
             <h1 className="activity-details__title">{business.business_name}</h1>
@@ -338,56 +379,58 @@ const ServiceDetailPage: React.FC = () => {
           </div>
 
           {/* Photo hero */}
-          {photos.length > 0 && (
-            <div className="activity-details__photo-hero">
-              <div
-                className="photo-hero__main"
-                onClick={() => primaryPhoto && openLightbox(photos.indexOf(primaryPhoto))}
-                role="button"
-                aria-label="Open photo"
-              >
-                {primaryPhoto && (
-                  <img
-                    src={`${UPLOADS_BASE}${primaryPhoto.file_path}`}
-                    alt={business.business_name}
-                  />
-                )}
-                <div className="photo-hero__main-overlay">
-                  <span className="photo-hero__zoom-icon"><Search size={46} /></span>
-                </div>
-              </div>
+{photos.length > 0 && (
+  <div className="activity-details__photo-hero">
+    <div
+      className="photo-hero__main"
+      onClick={() => primaryPhoto && openLightbox(photos.indexOf(primaryPhoto))}
+      role="button"
+      aria-label="Open photo"
+    >
+      {primaryPhoto && (
+        <img
+          src={`${UPLOADS_BASE}${primaryPhoto.file_path}`}
+          alt={business.business_name}
+        />
+      )}
+      <div className="photo-hero__main-overlay">
+        <span className="photo-hero__zoom-icon"><Search size={46} /></span>
+      </div>
+    </div>
 
-              <div className="photo-hero__grid">
-                {otherPhotos.slice(0, 4).map((photo, idx) => (
-                  <div
-                    key={photo.id}
-                    className="photo-hero__thumb"
-                    onClick={() => openLightbox(photos.indexOf(photo))}
-                    role="button"
-                    aria-label={`Open photo ${idx + 2}`}
-                  >
-                    <img
-                      src={`${UPLOADS_BASE}${photo.file_path}`}
-                      alt={`${business.business_name} photo ${idx + 2}`}
-                    />
-                    {idx === 3 && photos.length > 5 && (
-                      <div className="photo-hero__more-overlay">+{photos.length - 5} more</div>
-                    )}
-                  </div>
-                ))}
-                {photos.length > 5 && (
-                  <div className="photo-hero__more-pill" onClick={() => openLightbox(5)} role="button">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                      <rect x="3" y="3" width="18" height="18" rx="2" />
-                      <circle cx="8.5" cy="8.5" r="1.5" />
-                      <polyline points="21 15 16 10 5 21" />
-                    </svg>
-                    {photos.length - 5} more photos
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+    {otherPhotos.length > 0 && (
+      <div className="photo-hero__grid">
+        {otherPhotos.slice(0, 4).map((photo, idx) => (
+          <div
+            key={photo.id}
+            className="photo-hero__thumb"
+            onClick={() => openLightbox(photos.indexOf(photo))}
+            role="button"
+            aria-label={`Open photo ${idx + 2}`}
+          >
+            <img
+              src={`${UPLOADS_BASE}${photo.file_path}`}
+              alt={`${business.business_name} photo ${idx + 2}`}
+            />
+            {idx === 3 && photos.length > 5 && (
+              <div className="photo-hero__more-overlay">+{photos.length - 5} more</div>
+            )}
+          </div>
+        ))}
+        {photos.length > 5 && (
+          <div className="photo-hero__more-pill" onClick={() => openLightbox(5)} role="button">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <polyline points="21 15 16 10 5 21" />
+            </svg>
+            {photos.length - 5} more photos
+          </div>
+        )}
+      </div>
+    )}
+  </div>
+)}
 
           {/* Venue details */}
           <div className="activity-details__details">
@@ -507,6 +550,7 @@ const ServiceDetailPage: React.FC = () => {
               business={business}
               averageRating={averageRating}
               variant="sidebar"
+              isLoggedIn={isLoggedIn}
             />
           </div>
 
@@ -601,6 +645,7 @@ const ServiceDetailPage: React.FC = () => {
           </div>
         </div>
       )}
+
       <Footer />
     </div>
   );

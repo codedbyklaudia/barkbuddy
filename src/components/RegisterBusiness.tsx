@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback,useEffect } from "react";
 import { Link } from "react-router-dom";
 import { PawPrint , Star, ChartPie, LogIn, ChevronsLeft, Camera, X} from 'lucide-react';
 import "./RegisterBusiness.scss";
@@ -93,7 +93,7 @@ const EmailStatus: React.FC<{ state: EmailCheckState }> = ({ state }) => {
       <Link to="/business/login" className="rb-email-status__login-link">Sign in instead?</Link>
     </span>
   );
-  return null; // "error" state — silent, will be caught at submit
+  return null;
 };
 
 // Step Indicator
@@ -641,7 +641,16 @@ const RegisterBusinessPage: React.FC = () => {
   const emailCheckController = useRef<AbortController | null>(null);
 
   const mainRef = useRef<HTMLElement>(null);
-
+  const pageRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+  setTimeout(() => {
+    pageRef.current?.scrollTo(0, 0);
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, 50); 
+}, []);
+  
   const [serviceData, setServiceData] = useState<ServiceFormData>({
     email: "", personalName: "", password: "", confirmPassword: "",
     businessName: "", serviceType: "", address: "", postcode: "",
@@ -845,9 +854,15 @@ const RegisterBusinessPage: React.FC = () => {
     }
   };
   const handleReset = () => {
-    setStep(0); setCategory(""); setErrors({}); setApiError("");
-    setEmailCheckState("idle");
-    emailCheckController.current?.abort();
+  setStep(0); setCategory(""); setErrors({}); setApiError("");
+  setEmailCheckState("idle");
+  emailCheckController.current?.abort();
+  setTimeout(() => {
+    pageRef.current?.scrollTo(0, 0);
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, 50);
   };
 
   const stepLabels   = category === "services" ? ["Your Details"] : ["Your Details", "Dog-Friendly Proof"];
@@ -857,13 +872,14 @@ const RegisterBusinessPage: React.FC = () => {
     <div className="rb-page"><SuccessScreen category={category} businessName={businessName} /></div>
   );
 
-  return (
-    <div className="rb-page">
-      {step === 0 && (
-        <div className="rb-hero">
-          <div className="rb-hero__left">
+ return (
+  <div className="rb-page">
+    {step === 0 && (
+      <div className="rb-hero">
+ 
+        <div className="rb-hero__left">
           <div className="rb-hero__panel-inner">
-            <img src="/images/logo.png" alt="BarkBuddy for business" className="rb-hero__brand-icon" />
+            <img src="/images/logo.png" alt="BarkBuddy for business" className="biz-login__brand-icon" />
             <div className="rb-hero__brand">
               <h1 className="rb-hero__title">
                 BarkBuddy<br /><em>for Business</em>
@@ -874,44 +890,57 @@ const RegisterBusinessPage: React.FC = () => {
               <Link to="/" className="biz-login__home-link">
                 <ChevronsLeft size={18} /> Back to BarkBuddy
               </Link>
-            </div>
-          </div>
-        </div>
-          <div className="rb-hero__right">
-            <h2 className="rb-hero__right-heading">
-              What type of business<br />do you want to register?
-            </h2>
-            <div className="rb-cat-grid">
-              {[
-                { cat: "activities" as BusinessCategory, icon: "../images/icons_1/Activities.png", title: "Activities & Venues", desc: "Hotels, cafés, restaurants, parks, beaches - places where dogs are welcome", tags: ["Hotel","Café","Restaurant","Park","+more"] },
-                { cat: "services"   as BusinessCategory, icon: "../images/icons_1/Services.png",     title: "Services",            desc: "Groomers, vets, trainers, behaviourists - professionals who care for dogs",  tags: ["Groomer","Vet","Trainer","Pet Shops"] },
-              ].map(c => (
-                <button key={c.cat} className={`rb-cat-card rb-cat-card--${c.cat}`}
-                  onClick={() => { setCategory(c.cat); setStep(1); }} aria-label={`Register as ${c.title}`}>
-                  <div className="rb-cat-card__icon" aria-hidden="true"><img src={c.icon} alt="" /></div>
-                  <div className="rb-cat-card__body">
-                    <h3 className="rb-cat-card__title">{c.title}</h3>
-                    <p className="rb-cat-card__desc">{c.desc}</p>
-                    <div className="rb-cat-card__tags" aria-hidden="true">{c.tags.map(t => <span key={t}>{t}</span>)}</div>
-                  </div>
-                  <div className="rb-cat-card__arrow" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-                  </div>
-                </button>
-              ))}
-            </div>
-            <div className="rb-hero__login">
-              <p>Already have a business account?</p>
-              <Link to="/business/login" className="rb-hero__login-btn">
-                Sign in here
-                <span className="rb-hero__login-btn__icon">
+
+              <div className="rb-hero__left-login">
+                <p>Already have a business account?</p>
+                <Link to="/business/login" className="rb-hero__login-btn">
                   <LogIn size={15} />
-                </span>
-              </Link>
+                  Sign in here
+                </Link>
+              </div>
+ 
             </div>
           </div>
         </div>
-      )}
+ 
+        <div className="rb-hero__right" ref={pageRef}>
+          <h2 className="rb-hero__right-heading">
+            What type of business<br />do you want to register?
+          </h2>
+          <div className="rb-cat-grid">
+            {[
+              { cat: "activities" as BusinessCategory, icon: "../images/icons_1/Activities.png", title: "Activities & Venues", desc: "Hotels, cafés, restaurants, parks, beaches - places where dogs are welcome", tags: ["Hotel","Café","Restaurant","Park","+more"] },
+              { cat: "services"   as BusinessCategory, icon: "../images/icons_1/Services.png",   title: "Services",           desc: "Groomers, vets, trainers, behaviourists - professionals who care for dogs",  tags: ["Groomer","Vet","Trainer","Pet Shops"] },
+            ].map(c => (
+              <button key={c.cat} className={`rb-cat-card rb-cat-card--${c.cat}`}
+                onClick={() => { setCategory(c.cat); setStep(1); }} aria-label={`Register as ${c.title}`}>
+                <div className="rb-cat-card__icon" aria-hidden="true"><img src={c.icon} alt="" /></div>
+                <div className="rb-cat-card__body">
+                  <h3 className="rb-cat-card__title">{c.title}</h3>
+                  <p className="rb-cat-card__desc">{c.desc}</p>
+                  <div className="rb-cat-card__tags" aria-hidden="true">{c.tags.map(t => <span key={t}>{t}</span>)}</div>
+                </div>
+                <div className="rb-cat-card__arrow" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
+              </button>
+            ))}
+          </div>
+          {/* no login block here anymore */}
+        </div>
+ 
+        {/* mobile bottom bar — fixed, only visible below $bp-laptop */}
+        <div className="rb-hero__mobile-bar">
+          <Link to="/" className="rb-hero__mobile-bar-back">
+            <ChevronsLeft size={16} /> Back to BarkBuddy
+          </Link>
+          <Link to="/business/login" className="rb-hero__mobile-bar-signin">
+            <LogIn size={15} /> Sign in
+          </Link>
+        </div>
+ 
+      </div>
+    )}
 
       {step > 0 && (
         <div className="rb-layout">

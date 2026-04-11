@@ -21,6 +21,7 @@
   font-family: $font-secondary;
   @include relative;
   overflow-x: hidden;
+  scroll-behavior: auto;
 
   &::before {
     content: '';
@@ -37,88 +38,115 @@
 .rb-hero {
   @include relative;
   z-index: 1;
-  min-height: 100dvh;
   display: grid;
   grid-template-columns: 1fr;
-
+  min-height: 100dvh;
+  overflow: visible;
+ 
   @media (min-width: $bp-laptop) {
-    grid-template-columns: 560px 1fr;
+    grid-template-columns: 520px 1fr;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
   }
 }
 
 .rb-hero__left {
   background-color: $twilight-purple;
+  height: 100%;
   overflow: hidden;
   @include relative;
   display: none;
-
+ 
   @media (min-width: $bp-laptop) {
     display: block;
   }
-
+ 
+  // rich gradient backdrop
   &::before {
     content: '';
-    @include absolute; inset: 0;
+    @include absolute;
+    inset: 0;
     background:
-      radial-gradient(ellipse 70% 60% at 0% 0%,    rgba($serene-purple, 0.3) 0%, transparent 65%),
-      radial-gradient(ellipse 50% 50% at 100% 100%, rgba($gentle-amethyst, 0.15) 0%, transparent 60%);
+      radial-gradient(ellipse 80% 70% at -10% -10%, rgba($serene-purple, 0.45) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 110% 110%, rgba($gentle-amethyst, 0.2) 0%, transparent 55%),
+      radial-gradient(ellipse 40% 40% at 50% 50%, rgba($misty-lavender, 0.04) 0%, transparent 70%);
     pointer-events: none;
   }
-
+ 
+  // dot-grid texture overlay
   &::after {
     content: '';
     @include absolute;
-    top: 0; right: -48px;
-    width: 96px; height: 100%;
-    background: $twilight-purple;
-    transform: skewX(-3deg);
-    z-index: 2;
-    display: none;
-
-    @media (min-width: $bp-laptop) { display: block; }
+    inset: 0;
+    background-image: radial-gradient(circle, rgba($soft-pearl, 0.06) 1px, transparent 1px);
+    background-size: 24px 24px;
+    pointer-events: none;
+    z-index: 0;
   }
 }
 
 .rb-hero__panel-inner {
   @include relative;
   z-index: 1;
-  padding: $space-xl clamp(2rem, 5vw, 3rem);
+  padding: $space-xl clamp(2rem, 5vw, 3.5rem);
   height: 100%;
   @include column;
+  justify-content: space-between; 
 }
 
 .rb-hero__brand-icon {
   width: 152px; height: 152px;
   object-fit: contain;
-  margin-bottom: $space-xl;
-  opacity: 0.8;
+  opacity: 0.7;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+  flex-shrink: 0;
 }
 
 .rb-hero__brand {
-  margin: auto 0;
-  padding: $space-xxl 0;
+  flex: 1;
+  @include column;
+  justify-content: center;
+  padding: $space-xl 0;
 }
 
 .rb-hero__title {
   font-family: $font-primary;
-  font-size: clamp(2rem, 4vw, 3rem);
+  font-size: clamp(2.2rem, 3.5vw, 3.2rem);
   font-weight: $fw-regular;
   color: $soft-pearl;
-  line-height: 1.1;
-  letter-spacing: 0.03em;
-  margin-bottom: $space-xl;
-
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  margin-bottom: $space-lg;
+ 
   em {
     font-style: normal;
     color: $serene-purple;
+    display: block; 
+  }
+}
+
+.rb-hero__left-login {
+  padding-top: $space-lg;
+  @include column;
+  gap: $space-sm;
+ 
+  p {
+    font-family: $font-secondary;
+    font-size: $t-body-des;
+    color: rgba($misty-lavender, 0.4);
+    margin-top: $space-xl;
+    margin-bottom: $space-md;
+    letter-spacing: 0.01em;
   }
 }
 
 .rb-hero__sub {
+  font-family: $font-secondary;
   font-size: $t-body-des;
-  color: rgba($misty-lavender, 0.5);
-  line-height: 1.75;
-  max-width: 400px;
+  color: rgba($misty-lavender, 0.55);
+  line-height: 1.8;
+  max-width: 340px;
   margin-bottom: 0;
 }
 
@@ -127,78 +155,100 @@
   display: inline-flex;
   align-items: center;
   gap: $space-xs;
+  font-family: $font-secondary;
   font-size: $t-body-des;
-  color: rgba($misty-lavender, 0.65);
+  font-weight: $fw-medium;
+  color: rgba($misty-lavender, 0.5);
   text-decoration: none;
-  transition: color 0.2s;
-
-  svg { flex-shrink: 0; }
-  &:hover { color: rgba($misty-lavender, 0.75); }
+  padding: 6px 14px 6px 10px;
+  border-radius: 99px;
+  border: 1px solid rgba($misty-lavender, 0.14);
+  background: rgba($misty-lavender, 0.05);
+  transition: all 0.2s ease;
+  align-self: flex-start;
+ 
+  svg { flex-shrink: 0; opacity: 0.7; }
+ 
+  &:hover {
+    color: rgba($misty-lavender, 0.8);
+    background: rgba($misty-lavender, 0.1);
+    border-color: rgba($misty-lavender, 0.25);
+  }
 }
 
 // Right panel
 .rb-hero__right {
   background-color: $soft-pearl;
-  padding: $space-xxl $space-lg;
+  padding: 5rem $space-md 7rem;
   @include column;
-  justify-content: center;
+  justify-content: flex-start;
   @include relative;
   z-index: 0;
-  min-height: 100dvh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 
   @media (min-width: $bp-tablet) {
-    padding: $space-xxl $space-xxl;
+    padding: $space-xxl $space-xl 6rem;
+    justify-content: center;
   }
-
+  @media (max-width: #{$bp-laptop - 1px}) {
+    padding-bottom: 80px;
+  }
   @media (min-width: $bp-laptop) {
-    padding: $space-xxl clamp($space-xl, 5vw, 80px);
-    min-height: auto;
+    padding: $space-xxl clamp($space-xl, 5vw, 72px);
+    overflow-y: auto;
     justify-content: center;
   }
 }
 
 .rb-hero__right-heading {
   font-family: $font-primary;
-  font-size: clamp(1.5rem, 6vw, 2.2rem);
+  font-size: clamp(1.3rem, 5vw, 2rem);
   font-weight: $fw-regular;
   color: $twilight-purple;
   letter-spacing: 0.02em;
-  margin-bottom: $space-xl;
-  line-height: 1.15;
+  margin-bottom: $space-lg;
+  line-height: 1.2;
   animation: rbReveal 0.7s 0.2s ease both;
 
   @media (min-width: $bp-tablet) {
-    font-size: clamp(1.8rem, 4vw, 2.4rem);
-    margin-bottom: $space-xxl;
+    font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+    margin-bottom: $space-xl;
   }
 
   @media (min-width: $bp-laptop) {
-    font-size: $t-tit-des;
+    font-size: clamp(1.8rem, 2.5vw, 2.4rem);
     line-height: 1.1;
+    margin-bottom: $space-xxl;
   }
 }
 
 .rb-cat-grid {
   @include column;
-  gap: $space-lg;
-  margin-bottom: $space-xxl;
+  gap: $space-md;
+  margin-bottom: $space-xl;
   width: 100%;
-  max-width: 700px;
+  max-width: 100%;
   animation: rbReveal 0.7s 0.25s ease both;
 
+  @media (min-width: $bp-tablet) {
+    gap: $space-lg;
+    max-width: 740px;
+    margin-bottom: $space-xxl;
+  }
+
   @media (min-width: $bp-laptop) {
-    max-width: 820px;
+    max-width: 860px;
   }
 }
 
-// Category cards — column on mobile, row on desktop
 .rb-cat-card {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;  
   align-items: center;
-  text-align: center;
+  text-align: left;
   gap: $space-md;
-  padding: $space-xl $space-lg;
+  padding: $space-md $space-lg;
   background: $soft-pearl;
   border: 1.5px solid rgba($twilight-purple, 0.1);
   border-radius: $radius-lg;
@@ -208,11 +258,11 @@
   overflow: hidden;
 
   @media (min-width: $bp-tablet) {
+    gap: $space-xl;
+    padding: $space-xl $space-xxl;
     flex-direction: row;
     align-items: center;
     text-align: left;
-    gap: $space-xl;
-    padding: $space-xl $space-xxl;
   }
 
   &::before {
@@ -239,17 +289,17 @@
 
 .rb-cat-card__icon {
   flex-shrink: 0;
-  width: 100px; height: 100px;
+  width: 72px; height: 72px;
   border-radius: $radius-md;
   @include flex-center;
   padding: $space-xs;
 
   @media (min-width: $bp-tablet) {
-    width: 130px; height: 130px;
+    width: 110px; height: 110px;
   }
 
   @media (min-width: $bp-laptop) {
-    width: 160px; height: 160px;
+    width: 140px; height: 140px;
   }
 
   img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -280,9 +330,9 @@
 }
 
 .rb-cat-card__tags {
-  display: flex;
+   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 5px;
 
   @media (min-width: $bp-tablet) {
@@ -303,11 +353,15 @@
 
 .rb-cat-card__arrow {
   flex-shrink: 0;
-  width: 40px; height: 40px;
+  width: 32px; height: 32px;
   border-radius: 50%;
-  display: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
 
   @media (min-width: $bp-tablet) {
+    width: 40px; height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -349,42 +403,91 @@
 .rb-hero__login-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0;
-  background: $twilight-purple;
-  color: $soft-pearl;
-  text-decoration: none;
+  gap: $space-xs;
   font-family: $font-secondary;
   font-size: $t-body-des;
-  font-weight: $fw-regular;
-  padding: $space-sm $space-sm $space-sm $space-lg;
-  border-radius: $radius-md;
+  font-weight: $fw-medium;
+  color: rgba($misty-lavender, 0.5);
+  text-decoration: none;
+  padding: 6px 14px 6px 10px;
+  border-radius: 99px;
+  border: 1px solid rgba($misty-lavender, 0.14);
+  background: rgba($misty-lavender, 0.05);
   transition: all 0.2s ease;
-  white-space: nowrap;
-  min-height: 44px;
-  letter-spacing: 0.03em;
-  box-shadow: 0 2px 12px rgba($twilight-purple, 0.2);
-
-  &__icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin-left: $space-md;
-    width: 30px;
-    height: 30px;
-    border-radius: 6px;
-    flex-shrink: 0;
-    transition: background 0.2s;
-
-    svg { width: 15px; height: 15px; stroke: $soft-pearl; }
-  }
+  align-self: flex-start;
+  svg { flex-shrink: 0; opacity: 0.7; }
 
   &:hover {
-    background: lighten($twilight-purple, 8%);
-    transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba($twilight-purple, 0.3);
-    color: $gentle-amethyst;
+    color: rgba($misty-lavender, 0.8);
+    background: rgba($misty-lavender, 0.1);
+    border-color: rgba($misty-lavender, 0.25);
+  }
+}
 
-    .rb-hero__login-btn__icon { background: rgba($soft-pearl, 0.2); }
+.rb-hero__mobile-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-md;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: $space-sm $space-lg;
+  background: rgba($soft-pearl, 0.97);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid rgba($twilight-purple, 0.08);
+  box-shadow: 0 -4px 24px rgba($twilight-purple, 0.06);
+ 
+  @media (min-width: $bp-laptop) {
+    display: none; // left panel handles it on desktop
+  }
+}
+ 
+.rb-hero__mobile-bar-back {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-xs;
+  font-family: $font-secondary;
+  font-size: $t-body-des;
+  font-weight: $fw-medium;
+  color: rgba($twilight-purple, 0.5);
+  text-decoration: none;
+  padding: $space-xs $space-sm;
+  border-radius: $radius-md;
+  border: 1px solid rgba($twilight-purple, 0.12);
+  min-height: 40px;
+  transition: all 0.2s;
+ 
+  &:hover {
+    color: $twilight-purple;
+    background: rgba($twilight-purple, 0.05);
+    border-color: rgba($twilight-purple, 0.22);
+  }
+}
+ 
+.rb-hero__mobile-bar-signin {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-xs;
+  font-family: $font-secondary;
+  font-size: $t-body-des;
+  font-weight: $fw-medium;
+  color: $soft-pearl;
+  background: $twilight-purple;
+  text-decoration: none;
+  padding: $space-xs $space-lg;
+  border-radius: $radius-md;
+  min-height: 40px;
+  transition: all 0.2s;
+  box-shadow: 0 2px 12px rgba($twilight-purple, 0.22);
+ 
+  &:hover {
+    background: $serene-purple;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba($twilight-purple, 0.3);
   }
 }
 

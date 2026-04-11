@@ -19,115 +19,142 @@
 .sv-root {
   @include column;
   gap: $space-lg;
+  width: 100%;
   max-width: 780px;
   margin: 0 auto;
+  padding: 0 $space-md;
+  box-sizing: border-box;
+  overflow: hidden;
+
+  @media (min-width: $bp-tablet) {
+    padding: 0 $space-lg;
+  }
 }
 
 // Hero banner
 .sv-hero {
   background: $twilight-purple;
   border-radius: $radius-lg;
-  padding: $space-lg $space-xl;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: $space-lg;
-  position: relative;
+  padding: $space-md $space-lg;
+  @include flex-between;
+  gap: $space-md;
+  @include relative;
   overflow: hidden;
   animation: sv-up 0.4s ease both;
-
-  // Subtle dot texture
+  width: 100%;
+  box-sizing: border-box;
+ 
   background-image: radial-gradient(circle, rgba($soft-pearl, 0.04) 1px, transparent 1px);
   background-size: 20px 20px;
-
-  // Decorative circle
+ 
+  // Decorative circle — pushed far enough it never overlaps text
   &::after {
     content: '';
-    position: absolute;
-    right: -40px; bottom: -40px;
-    width: 160px; height: 160px;
+    @include absolute;
+    right: -60px;
+    bottom: -60px;
+    width: 140px;
+    height: 140px;
     border-radius: 50%;
     border: 1px solid rgba($soft-pearl, 0.06);
     pointer-events: none;
+    flex-shrink: 0;
   }
-
+ 
   &__left {
-    display: flex;
-    align-items: center;
-    gap: $space-md;
+    @include center;
+    gap: $space-sm;
+    min-width: 0;
+    flex: 1;
+    @include relative;
+    z-index: 1;
   }
-
+ 
   &__icon-wrap {
-    width: 44px; height: 44px;
+    width: 36px;
+    height: 36px;
+    min-width: 36px; 
     background: rgba($soft-pearl, 0.1);
     border: 1px solid rgba($soft-pearl, 0.15);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    border-radius: 10px;
+    @include flex-center;
     color: $soft-pearl;
     flex-shrink: 0;
   }
-
+ 
+  &__text {
+    min-width: 0;
+    flex: 1;
+  }
+ 
   &__title {
     font-family: $font-primary;
-    font-size: clamp(1rem, 2vw, 1.2rem);
+    font-size: clamp(0.9rem, 3.5vw, 1.1rem);
     font-weight: $fw-regular;
     color: $soft-pearl;
     letter-spacing: -0.01em;
     margin: 0 0 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-
+ 
   &__sub {
     font-family: $font-secondary;
-    font-size: 0.78rem;
+    font-size: clamp(0.7rem, 2.5vw, 0.75rem);
     color: rgba($soft-pearl, 0.45);
     margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-
+ 
   &__stats {
-    display: flex;
-    align-items: center;
-    gap: $space-lg;
+    @include center;
+    gap: $space-md;
     flex-shrink: 0;
+    @include relative;
+    z-index: 1;
   }
-
+ 
   &__stat {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    @include column;
+    @include center;
     gap: 1px;
   }
-
+ 
   &__stat-val {
     font-family: $font-primary;
-    font-size: 1.5rem;
+    font-size: clamp(1.1rem, 4vw, 1.3rem);
     font-weight: $fw-bold;
     color: $soft-pearl;
     line-height: 1;
     letter-spacing: -0.04em;
   }
-
+ 
   &__stat-lbl {
     font-family: $font-secondary;
-    font-size: 0.65rem;
+    font-size: 0.6rem;
     font-weight: $fw-bold;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: rgba($soft-pearl, 0.38);
   }
-
+ 
   &__divider {
-    width: 1px; height: 32px;
+    width: 1px;
+    height: 24px;
     background: rgba($soft-pearl, 0.15);
     border-radius: 1px;
   }
 }
 
-// ─── Search ───────────────────────────────────────────────────────────────────
+// Search
 .sv-search {
   position: relative;
   animation: sv-up 0.4s 0.06s ease both;
+  width: 100%;
+  box-sizing: border-box;
 
   &__icon {
     position: absolute; left: 14px; top: 50%;
@@ -138,6 +165,7 @@
 
   &__input {
     width: 100%;
+    box-sizing: border-box;
     background: #fff;
     border: 1.5px solid rgba($twilight-purple, 0.1);
     border-radius: $radius-lg;
@@ -171,21 +199,22 @@
   }
 }
 
-// ─── Tab pills ────────────────────────────────────────────────────────────────
+// Tab pills
 .sv-tabs {
   display: flex;
   align-items: center;
   gap: $space-xs;
   flex-wrap: wrap;
   animation: sv-up 0.4s 0.1s ease both;
+  width: 100%;
 }
 
 .sv-tab {
   @include none; @include cursor;
-  padding: 6px 14px;
+  padding: 6px 12px;
   border-radius: 999px;
   font-family: $font-secondary;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: $fw-medium;
   color: rgba($twilight-purple, 0.5);
   background: rgba($twilight-purple, 0.05);
@@ -207,7 +236,7 @@
 .sv-clear {
   @include none; @include cursor;
   margin-left: auto;
-  padding: 6px 14px;
+  padding: 6px 12px;
   border-radius: 999px;
   font-family: $font-secondary;
   font-size: 0.78rem;
@@ -221,7 +250,7 @@
   &--danger { color: #e05252; border-color: rgba(#e05252, 0.3); background: rgba(#e05252, 0.06); font-weight: $fw-bold; }
 }
 
-// ─── Results count ────────────────────────────────────────────────────────────
+// Results count
 .sv-count {
   font-family: $font-secondary;
   font-size: 0.75rem;
@@ -230,14 +259,15 @@
   letter-spacing: 0.01em;
 }
 
-// ─── Card list ────────────────────────────────────────────────────────────────
+// Card list
 .sv-list {
   display: flex;
   flex-direction: column;
   gap: $space-sm;
+  width: 100%;
 }
 
-// ─── Card ─────────────────────────────────────────────────────────────────────
+// Card
 .sv-card {
   background: #fff;
   border-radius: $radius-lg;
@@ -247,6 +277,8 @@
   animation: sv-card-in 0.35s ease forwards;
   transition: box-shadow 0.22s, border-color 0.22s, transform 0.22s;
   position: relative;
+  width: 100%;
+  box-sizing: border-box;
 
   &:hover {
     box-shadow:
@@ -267,37 +299,35 @@
     position: absolute;
     left: 0; top: 0; bottom: 0;
     width: 4px;
-    border-radius: 0;
     transition: width 0.2s;
 
     .sv-card--open &,
     .sv-card:hover & { width: 5px; }
   }
 
-  // Header — button for tips, div for services
+  // Header
   &__header {
     display: flex;
     align-items: center;
-    gap: $space-md;
-    padding: 16px $space-lg 16px calc(#{$space-lg} + 4px); // room for bar
+    gap: $space-sm;
+    padding: 14px $space-md 14px calc(#{$space-md} + 4px);
     width: 100%;
+    box-sizing: border-box;
     background: transparent;
     border: none;
     cursor: pointer;
     text-align: left;
     transition: background 0.15s;
+    min-width: 0;
 
     &:hover { background: rgba($twilight-purple, 0.015); }
     &:focus-visible { outline: 2px solid $twilight-purple; outline-offset: -2px; border-radius: 14px; }
-    &--static { cursor: default; &:hover { background: transparent; } }
-
-    @media (max-width: $bp-tablet) { padding: 14px 16px; gap: $space-sm; }
   }
 
   // Round icon
   &__icon {
-    width: 46px; height: 46px;
-    border-radius: 14px;
+    width: 42px; height: 42px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -306,73 +336,85 @@
 
     .sv-card__header:hover & { transform: scale(1.08) rotate(-4deg); border-radius: 10px; }
 
-    &-img { width: 26px; height: 26px; object-fit: contain; display: block; }
+    &-img { width: 24px; height: 24px; object-fit: contain; display: block; }
   }
 
-  // Text block
+  // Text block — KEY: min-width:0 allows flex child to shrink & truncate
   &__copy {
     flex: 1;
     min-width: 0;
     display: flex;
     flex-direction: column;
     gap: 3px;
+    overflow: hidden;
   }
 
   &__title {
     font-family: $font-primary;
-    font-size: 1.02rem;
+    font-size: 0.98rem;
     font-weight: $fw-regular;
     color: $twilight-purple;
-    letter-spacing: 0;
     line-height: 1.25;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    max-width: 100%;
   }
 
   &__sub {
     font-family: $font-secondary;
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     color: rgba($twilight-purple, 0.44);
     line-height: 1.45;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    max-width: 100%;
   }
 
-  // Right cluster
+  // Right cluster — shrink gracefully on small screens
   &__meta-cluster {
     display: flex;
     align-items: center;
-    gap: $space-sm;
+    gap: $space-xs;
     flex-shrink: 0;
+    max-width: 120px;
+
+    @media (min-width: $bp-tablet) {
+      gap: $space-sm;
+      max-width: none;
+    }
   }
 
   // Category chip
   &__chip {
-    padding: 3px 10px;
+    padding: 3px 8px;
     border-radius: 999px;
     font-family: $font-secondary;
-    font-size: 0.68rem;
+    font-size: 0.65rem;
     font-weight: $fw-bold;
     letter-spacing: 0.04em;
     text-transform: capitalize;
     white-space: nowrap;
     flex-shrink: 0;
+
+    // Hide on very small screens to make room
+    @media (max-width: 380px) { display: none; }
   }
 
-  // Timestamp
+  // Timestamp — hide on mobile
   &__time {
     font-family: $font-secondary;
     font-size: 0.72rem;
     color: rgba($twilight-purple, 0.3);
     white-space: nowrap;
     flex-shrink: 0;
+    display: none;
 
-    @media (max-width: $bp-tablet) { display: none; }
+    @media (min-width: $bp-tablet) { display: block; }
   }
 
-  // Chevron (tip cards)
+  // Chevron
   &__chevron {
     color: rgba($twilight-purple, 0.25);
     transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), color 0.18s;
@@ -383,19 +425,6 @@
     .sv-card__header:hover & { color: rgba($twilight-purple, 0.55); }
   }
 
-  // Trash icon (service cards)
-  &__trash {
-    @include none; @include cursor;
-    width: 28px; height: 28px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    color: rgba($twilight-purple, 0.22);
-    flex-shrink: 0;
-    transition: all 0.18s;
-
-    &:hover { background: rgba(#e05252, 0.08); color: #e05252; transform: scale(1.1); }
-  }
-
   // Expand body
   &__expand {
     max-height: 0;
@@ -404,28 +433,31 @@
   }
 
   &__expand-inner {
-    padding: $space-md $space-lg $space-lg;
-    padding-left: calc(46px + #{$space-md} + #{$space-lg} + 4px);
+    padding: $space-md;
     border-top: 1px solid rgba($twilight-purple, 0.06);
+    box-sizing: border-box;
 
-    @media (max-width: $bp-tablet) { padding-left: $space-md; padding-right: $space-md; }
+    @media (min-width: $bp-tablet) {
+      padding: $space-md $space-lg $space-lg;
+      padding-left: calc(42px + #{$space-sm} + #{$space-md} + 4px);
+    }
   }
 
   // Action row
   &__actions {
     display: flex;
     align-items: center;
-    gap: $space-md;
+    gap: $space-sm;
     flex-wrap: wrap;
   }
 
-  // Go button — uses accent colour via inline style
+  // Go button
   &__go {
     @include none; @include cursor;
     display: inline-flex;
     align-items: center;
     gap: 7px;
-    padding: 8px 18px;
+    padding: 8px 16px;
     border-radius: 8px;
     color: #fff;
     font-family: $font-secondary;
@@ -441,7 +473,7 @@
     }
   }
 
-  // Remove inline
+  // Remove
   &__remove {
     @include none; @include cursor;
     display: inline-flex;
@@ -458,7 +490,7 @@
   }
 }
 
-// ─── Empty state ──────────────────────────────────────────────────────────────
+// Empty state
 .sv-empty {
   display: flex;
   flex-direction: column;
@@ -517,7 +549,7 @@
   }
 }
 
-// ─── Services teaser strip ────────────────────────────────────────────────────
+// Services teaser strip
 .sv-teaser {
   display: flex;
   align-items: flex-start;
@@ -526,6 +558,8 @@
   background: rgba($twilight-purple, 0.03);
   border: 1.5px dashed rgba($twilight-purple, 0.1);
   border-radius: $radius-md;
+  width: 100%;
+  box-sizing: border-box;
 
   &__dot {
     width: 8px; height: 8px;
@@ -545,7 +579,7 @@
   }
 }
 
-// ─── Reduced motion ───────────────────────────────────────────────────────────
+// Reduced motion
 @media (prefers-reduced-motion: reduce) {
   .sv-card, .sv-hero, .sv-search, .sv-tabs, .sv-empty {
     animation: none !important;

@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import './ServiceFinder.scss';
 import Footer from './Footer';
 import { formatServiceType } from '../utils/formatservicetype';
 
 const MAPS_KEY: string = import.meta.env.VITE_GOOGLE_MAPS_KEY ?? '';
 
-// Types 
+// Types
 interface Listing {
   id: number;
   business_name: string;
@@ -52,10 +52,9 @@ const ACTIVITY_TYPES = [
 
 const API_BASE: string = import.meta.env.VITE_API_URL ?? 'http://localhost:4000/api';
 const UPLOADS_BASE: string = (import.meta.env.VITE_API_URL ?? 'http://localhost:4000/api').replace('/api', '');
-
 const RADIUS_OPTIONS = [5, 10, 25, 50];
 
-// Google Maps loader 
+// Google Maps loader
 let mapsLoaded = false;
 let mapsCallbacks: (() => void)[] = [];
 
@@ -197,8 +196,8 @@ const UnifiedMap: React.FC<{
 };
 
 // Listing row card
-const ListingRow: React.FC<{ listing: Listing }> = ({ listing }) => (
-  <Link to={`/activity/${listing.id}`} style={{ textDecoration: 'none' }}>
+const ListingRow: React.FC<{ listing: Listing; activeTab: TabType }> = ({ listing, activeTab }) => (
+  <Link to={`/activity/${listing.id}`} state={{ from: activeTab }} style={{ textDecoration: 'none' }}>
     <article className="listing-card listing-card--row">
       <div className="listing-card__image listing-card__image--small">
         {listing.primary_photo
@@ -215,28 +214,25 @@ const ListingRow: React.FC<{ listing: Listing }> = ({ listing }) => (
         </p>
         {listing.description && <p className="listing-card__description">{listing.description}</p>}
         {listing.contact_phone && <p className="listing-card__meta"><i className="bi bi-telephone" /> {listing.contact_phone}</p>}
-        {listing.website && (
-          <a
-            href={listing.website}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="listing-card__button"
-            onClick={e => { e.stopPropagation(); e.preventDefault(); }}
-          >
-            Visit website
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-              <path d="M5 12h14M12 5l7 7-7 7" />
-            </svg>
-          </a>
-        )}
+        <Link
+          to={`/activity/${listing.id}`}
+          state={{ from: activeTab }}
+          className="listing-card__button"
+          onClick={e => e.stopPropagation()}
+        >
+          Check more
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+        </Link>
       </div>
     </article>
   </Link>
 );
 
 // Grid card
-const GridCard: React.FC<{ listing: Listing }> = ({ listing }) => (
-  <Link to={`/activity/${listing.id}`} style={{ textDecoration: 'none' }}>
+const GridCard: React.FC<{ listing: Listing; activeTab: TabType }> = ({ listing, activeTab }) => (
+  <Link to={`/activity/${listing.id}`} state={{ from: activeTab }} style={{ textDecoration: 'none' }}>
     <article className="listing-card listing-card--grid">
       <div className="listing-card__image">
         {listing.primary_photo
@@ -249,17 +245,14 @@ const GridCard: React.FC<{ listing: Listing }> = ({ listing }) => (
         <h3 className="listing-card__title">{listing.business_name}</h3>
         <p className="listing-card__meta"><i className="bi bi-geo" /> {listing.address}</p>
         {listing.description && <p className="listing-card__description">{listing.description}</p>}
-        {listing.website && (
-          <a
-            href={listing.website}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="listing-card__button"
-            onClick={e => { e.stopPropagation(); e.preventDefault(); }}
-          >
-            Learn more <i className="bi bi-box-arrow-up-right" />
-          </a>
-        )}
+        <Link
+          to={`/activity/${listing.id}`}
+          state={{ from: activeTab }}
+          className="listing-card__button"
+          onClick={e => e.stopPropagation()}
+        >
+          Check more <i className="bi bi-arrow-right" />
+        </Link>
       </div>
     </article>
   </Link>
@@ -284,13 +277,22 @@ const ServiceFinder: React.FC = () => {
   const [filters, setFilters]                   = useState<Filters>({ radius: 10, type: '', newOnly: false });
   const [searchMeta, setSearchMeta]             = useState<{ radiusKm: number | null; locationFound: boolean } | null>(null);
 
-  // ── Ref for scrolling to results ──────────────────────────────────────────
+  // Refs
+  const typesRef  = useRef<HTMLDivElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
+
+  // Restore tab from navigation state (e.g. back from detail page)
+  const location = useLocation();
+  useEffect(() => {
+    if (location.state?.tab) {
+      setActiveTab(location.state.tab as TabType);
+    }
+  }, []);
 
   const scrollToResults = useCallback(() => {
     setTimeout(() => {
-      resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 100); // small delay so results have started rendering
+      typesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
   }, []);
 
   const faqData = [
@@ -309,6 +311,10 @@ const ServiceFinder: React.FC = () => {
   ];
 
   const currentTypes = activeTab === 'services' ? SERVICE_TYPES : ACTIVITY_TYPES;
+  const tabLabel     = activeTab === 'services' ? 'Services' : 'Activities';
+  const searchPlaceholder = activeTab === 'services'
+    ? 'Groomer, vet, pet shop…'
+    : 'Hotel, park, beach…';
 
   // Featured listings
   useEffect(() => {
@@ -324,7 +330,7 @@ const ServiceFinder: React.FC = () => {
       .catch(() => setFeaturedLoading(false));
   }, [activeTab]);
 
-  // Core search 
+  // Core search
   const performSearch = useCallback(async (opts: {
     query?: string; location?: string; lat?: number; lng?: number;
     radius?: number; type?: string; newOnly?: boolean;
@@ -405,7 +411,7 @@ const ServiceFinder: React.FC = () => {
     scrollToResults();
   };
 
-  // Search bar submit → search + scroll
+  // Search bar submit
   const handleSearch = () => {
     if (locationInput === 'My location' && userLocation) {
       performSearch({ query: searchQuery, lat: userLocation.lat, lng: userLocation.lng, ...filters });
@@ -433,12 +439,12 @@ const ServiceFinder: React.FC = () => {
     filters.newOnly,
   ].filter(Boolean).length;
 
-  const tabLabel = activeTab === 'services' ? 'Services' : 'Activities';
+  const hasActiveFilters = !!(searchQuery || locationInput || filters.type || filters.newOnly || filters.radius !== 10);
 
   return (
     <div className="service-finder-page">
 
-      {/* ── HERO ─────────────────────────────────────────────────────────── */}
+      {/* HERO */}
       <section className="fh" key={activeTab}>
 
         {/* LEFT PANEL */}
@@ -464,10 +470,7 @@ const ServiceFinder: React.FC = () => {
             </p>
 
             <div className="fh__ctas">
-              <button
-                className="fh__cta fh__cta--primary"
-                onClick={scrollToResults}
-              >
+              <button className="fh__cta fh__cta--primary" onClick={scrollToResults}>
                 {activeTab === 'services' ? 'Find a service' : 'Explore now'}
                 <i className="bi bi-chevron-double-right" />
               </button>
@@ -491,7 +494,7 @@ const ServiceFinder: React.FC = () => {
                     <input
                       id="fh-query"
                       type="text"
-                      placeholder="Groomer, vet, park…"
+                      placeholder={searchPlaceholder}
                       value={searchQuery}
                       onChange={e => setSearchQuery(e.target.value)}
                       onKeyDown={e => e.key === 'Enter' && handleSearch()}
@@ -560,15 +563,15 @@ const ServiceFinder: React.FC = () => {
                   </div>
                 </div>
               ))
-            : featuredListings.map(l => <GridCard key={l.id} listing={l} />)}
+            : featuredListings.map(l => <GridCard key={l.id} listing={l} activeTab={activeTab} />)}
         </div>
       </section>
 
       {/* SEARCH + RESULTS */}
       <section className="finder-search">
 
-        {/* Type icon buttons */}
-        <div className="finder-search__types">
+        {/* Type icon buttons — scroll target */}
+        <div ref={typesRef} className="finder-search__types">
           {currentTypes.map(cat => (
             <div
               key={cat.label}
@@ -595,7 +598,7 @@ const ServiceFinder: React.FC = () => {
             </svg>
             <input
               type="text"
-              placeholder="Search by name or type…"
+              placeholder={searchPlaceholder}
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleSearch()}
@@ -639,11 +642,18 @@ const ServiceFinder: React.FC = () => {
 
         {locationError && <p className="finder-search__error">{locationError}</p>}
 
+        {/* Clear all — only shown when something is active */}
+        {hasActiveFilters && (
+          <button className="finder-search__clear-all" onClick={clearAll}>
+            <i className="bi bi-x-circle" /> Clear all
+          </button>
+        )}
+
         <p className="finder-search__context">
           {searchMeta?.locationFound
             ? `Showing results within ${searchMeta.radiusKm} km`
             : 'Showing all UK listings'}
-          {filters.type   && ` · ${filters.type}`}
+          {filters.type    && ` · ${filters.type}`}
           {filters.newOnly && ' · New only'}
         </p>
 
@@ -690,7 +700,7 @@ const ServiceFinder: React.FC = () => {
 
         {error && <p className="finder-search__error">{error}</p>}
 
-        {/* ── Results anchor ── */}
+        {/* Results */}
         <div ref={resultsRef} className="search-results-layout">
           <div className="search-results-layout__map-wrapper">
             <UnifiedMap
@@ -726,7 +736,9 @@ const ServiceFinder: React.FC = () => {
               </div>
             )}
 
-            {!loading && listings.map(l => <ListingRow key={l.id} listing={l} />)}
+            {!loading && listings.map(l => (
+              <ListingRow key={l.id} listing={l} activeTab={activeTab} />
+            ))}
           </div>
         </div>
       </section>

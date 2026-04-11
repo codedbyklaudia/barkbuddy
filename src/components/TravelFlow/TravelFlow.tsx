@@ -723,6 +723,16 @@ const TravelFlow: React.FC<TravelFlowProps> = ({
     }, 280);
   };
 
+// auto-advance to requirements after country pick
+const handleCountrySelect = (c: Country) => {
+  setSelectedCountry(c);
+  setTimeout(() => {
+    const next = 2; // requirements step index
+    window.history.pushState({ travelStep: next }, '');
+    setStepIdx(next);
+  }, 280);
+};
+
   const handleDownload = async () => {
     if (!isLoggedIn || !selectedCountry || !countryContent) return;
     const { generateTravelChecklist } = await import('./pdfGenerator');
@@ -745,7 +755,7 @@ const TravelFlow: React.FC<TravelFlowProps> = ({
           <CountryStep
             continent={selectedContinent}
             selected={selectedCountry}
-            onSelect={setSelectedCountry}
+            onSelect={handleCountrySelect}
             hideSearch={isToUK}
           />
         ) : null;

@@ -3,8 +3,7 @@
 
 $border-color: rgba($serene-purple, 0.14);
 
-// ─── ANIMATIONS ───────────────────────────────────────────────────────────────
-
+// ANIMATIONS 
 @keyframes reveal-up {
   from { opacity: 0; transform: translateY(28px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -46,8 +45,7 @@ $border-color: rgba($serene-purple, 0.14);
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-// ─── LOCKED / GUEST ───────────────────────────────────────────────────────────
-
+// LOCKED / GUEST
 .forum-locked {
   @include relative;
   min-height: 100vh;
@@ -86,10 +84,8 @@ $border-color: rgba($serene-purple, 0.14);
 }
 
 // PAGE WRAPPER 
-
 .forum-page {
-  display: flex;
-  flex-direction: column;
+  @include column;
   align-items: stretch;
   min-height: 100vh;
   background: $soft-pearl;
@@ -103,8 +99,7 @@ $border-color: rgba($serene-purple, 0.14);
   box-sizing: border-box;
 }
 
-// ─── HERO ─────────────────────────────────────────────────────────────────────
-
+// HERO
 .forum-page-hero {
   display: flex;
   align-items: stretch;
@@ -357,8 +352,7 @@ $border-color: rgba($serene-purple, 0.14);
   }
 }
 
-// ─── INNER LAYOUT ─────────────────────────────────────────────────────────────
-
+// INNER LAYOUT 
 .forum-cats-mobile,
 .forum-cats,
 .forum-table-wrap,
@@ -372,12 +366,19 @@ $border-color: rgba($serene-purple, 0.14);
   box-sizing:   border-box;
 }
 
-.forum-cats-mobile { margin-top: $space-lg;  @media (min-width: $bp-tablet) { display: none !important; } }
-.forum-cats        { margin-top: $space-xl;  margin-bottom: $space-md; }
+.forum-cats-mobile {
+  margin-top: $space-lg;
+  margin-bottom: $space-lg; 
+  @media (min-width: $bp-tablet) { display: none !important; }
+}
+.forum-cats {
+  margin-top: $space-xl;
+  margin-bottom: $space-xl; 
+}
 .forum-table-wrap  { margin-bottom: $space-lg; }
 .forum-cta         { margin-bottom: $space-xxl; }
 
-// ─── LOADING ─────────────────────────────────────────────────────────────────
+// LOADING 
 
 .forum-loading {
   @include flex-center; flex-direction: column; gap: $space-sm;
@@ -386,8 +387,7 @@ $border-color: rgba($serene-purple, 0.14);
   &--error { color: #ef4444; &::before { display: none; } }
 }
 
-// ─── CATEGORY TABS ───────────────────────────────────────────────────────────
-
+// CATEGORY TABS 
 .forum-cats-mobile {
   display: block; @include relative;
   &::after { content: ''; @include absolute; right: $space-md; top: 50%; transform: translateY(-50%); border: 5px solid transparent; border-top-color: $gentle-amethyst; pointer-events: none; }
@@ -415,8 +415,7 @@ $border-color: rgba($serene-purple, 0.14);
   &.active { background: $twilight-purple; border-color: $twilight-purple; color: rgba($soft-pearl, .85); font-weight: $fw-regular; box-shadow: 0 3px 10px rgba($twilight-purple,.2); transform: translateY(-1px); }
 }
 
-// ─── TABLE ───────────────────────────────────────────────────────────────────
-
+// TABLE 
 .forum-table-wrap {
   background: $soft-pearl;
   border-radius: $radius-lg;
@@ -479,7 +478,7 @@ $border-color: rgba($serene-purple, 0.14);
 .col-title    { width: 40%; font-size: $t-but-des; }
 .col-date     { width: 15%; white-space: nowrap; color: $twilight-purple !important; display: none; @media (min-width: $bp-tablet) { display: table-cell; } }
 .col-cat      { width: 15%; white-space: nowrap; display: none; @media (min-width: $bp-mobile) { display: table-cell; } }
-.col-comments { width: 15%; text-align: center; white-space: nowrap; color: $twilight-purple !important; }
+.col-comments { width: 110px;  min-width: 110px; text-align: center; white-space: nowrap; color: $twilight-purple !important; }
 .col-action   { width: 25%; text-align: right; color: $twilight-purple; @media (min-width: $bp-mobile) { display: table-cell; } }
 
 .forum-cat-label    { @include type-ui($t-link-des, $fw-regular); color: $twilight-purple; padding: 2px 9px; display: inline-block; }
@@ -547,8 +546,7 @@ $border-color: rgba($serene-purple, 0.14);
 .post-detail-divider { width: 100%; height: 1px; background: linear-gradient(to right, rgba($serene-purple,.18) 0%, rgba($serene-purple,.04) 100%); }
 .post-detail-content { @include type-ui($t-body-des,$fw-regular); color: $text-color-dark; line-height: 1.75; margin: 0; white-space: pre-wrap; word-break: break-word; font-size: clamp(.9rem,2vw,1rem); width: 100%; }
 
-// ─── COMMENTS ────────────────────────────────────────────────────────────────
-
+// COMMENTS 
 .comments-section  { @include column; align-items: stretch; gap: $space-lg; }
 .comments-header   { @include flex-between; align-items: center; flex-wrap: wrap; gap: $space-sm; padding-bottom: $space-sm; border-bottom: 1px solid rgba($serene-purple,.1); }
 .comments-title    { @include center; gap: $space-sm; justify-content: flex-start; @include type-ui($t-link-des,$fw-medium); color: $text-color-dark; margin: 0; }
@@ -616,22 +614,19 @@ $border-color: rgba($serene-purple, 0.14);
 .reply-cancel      { padding: 5px 12px; }
 .reply-submit      { padding: 5px 14px; }
 
-// ─── COMPOSE ─────────────────────────────────────────────────────────────────
-
+// COMPOSE 
 .comment-compose { background: white; border-radius: $radius-md; padding: $space-md; box-shadow: 0 1px 6px rgba($twilight-purple,.06), 0 0 0 1px rgba($twilight-purple,.05); @include column; align-items: stretch; gap: $space-sm; @media (min-width: $bp-tablet) { padding: $space-lg; } }
 .comment-compose-footer { @include flex-between; flex-wrap: wrap; gap: $space-sm; }
 .comment-hint { @include type-ui($t-forgot-des,$fw-regular); color: $gentle-amethyst; display: none; @media (min-width: $bp-tablet) { display: block; } }
 .comment-login-prompt { @include type-ui($t-body-des,$fw-regular); color: $gentle-amethyst; text-align: center; padding: $space-lg; background: rgba($misty-lavender,.18); border-radius: $radius-md; border: 1.5px dashed rgba($serene-purple,.16); a { color: $serene-purple; text-decoration: none; font-weight: $fw-medium; &:hover { text-decoration: underline; } } }
 
-// ─── SHARED INPUTS ────────────────────────────────────────────────────────────
-
+// SHARED INPUTS 
 .forum-input    { width: 100%; padding: $space-sm $space-md; border: 1.5px solid rgba($serene-purple,.22); border-radius: $radius-md; @include type-ui($t-body-des,$fw-regular); color: $text-color-dark; background: rgba($soft-pearl,.65); outline: none; transition: border-color .18s, box-shadow .18s, background .18s; box-sizing: border-box; &:focus { border-color: $serene-purple; background: white; } &.error { border-color: #ef4444; background: #fff8f8; } }
 .forum-textarea  { resize: vertical; min-height: 88px; }
 .forum-field-error { @include type-ui($t-forgot-des,$fw-regular); color: #ef4444; margin-top: 2px; }
 .forum-modal-error { background: #fff5f5; border: 1px solid rgba(239,68,68,.28); color: #b91c1c; border-radius: $radius-sm; padding: $space-sm $space-md; @include type-ui($t-forgot-des,$fw-regular); }
 
-// ─── MODALS ───────────────────────────────────────────────────────────────────
-
+// MODALS 
 .forum-modal-overlay { position: fixed; inset: 0; background: rgba($twilight-purple,.5); backdrop-filter: blur(8px); z-index: 1001; @include flex-center; align-items: flex-end; padding: 0; animation: forumFadeIn .14s ease; @media (min-width: $bp-mobile) { align-items: center; padding: $space-md; } }
 .forum-modal { background: white; border-radius: $radius-lg $radius-lg 0 0; width: 100%; max-width: 100%; max-height: 92dvh; @include column; align-items: stretch; box-shadow: 0 24px 60px rgba($twilight-purple,.25); animation: forumSlideUp .24s cubic-bezier(.34,1.15,.64,1); @media (min-width: $bp-mobile) { border-radius: $radius-lg; max-width: 520px; max-height: 90vh; } &--report { @media (min-width: $bp-mobile) { max-width: 480px; } } }
 .forum-modal-header  { @include flex-between; padding: $space-md; border-bottom: 1px solid rgba($serene-purple,.1); &__left { @include center; gap: $space-sm; } &__icon { color: $serene-purple; font-size: 1.05rem; } h3 { @include type-display($weight: $fw-regular); font-size: $t-sub-des; color: $text-color-dark; margin: 0; } @media (min-width: $bp-mobile) { padding: $space-lg $space-xl $space-md; } }
@@ -639,29 +634,24 @@ $border-color: rgba($serene-purple, 0.14);
 .forum-modal-body    { flex: 1; overflow-y: auto; padding: $space-md; @include column; align-items: stretch; gap: $space-sm; &::-webkit-scrollbar { width: 4px; } &::-webkit-scrollbar-thumb { background: rgba($serene-purple,.22); border-radius: 2px; } @media (min-width: $bp-mobile) { padding: $space-lg $space-xl; } }
 .forum-modal-footer  { @include flex-between; gap: $space-md; padding: $space-sm $space-md; border-top: 1px solid rgba($serene-purple,.1); background: rgba($misty-lavender,.12); @media (min-width: $bp-mobile) { padding: $space-md $space-xl; } }
 
-// ─── LABELS & CHIPS ──────────────────────────────────────────────────────────
-
+// LABELS & CHIPS 
 .forum-label       { @include type-display($weight: $fw-regular); font-size: $t-link-des; color: $twilight-purple; margin-top: $space-sm; &--optional { @include type-ui($t-forgot-des,$fw-regular); color: rgba($twilight-purple,.35); font-family: $font-secondary; } }
 .forum-cat-chips   { display: flex; flex-wrap: wrap; gap: $space-xs; margin-bottom: $space-xs; }
 .forum-cat-chip    { padding: 5px $space-sm; border: 1.5px solid rgba($serene-purple,.18); border-radius: 99px; background: rgba($soft-pearl,.5); @include type-ui($t-forgot-des,$fw-regular); color: $gentle-amethyst; cursor: pointer; transition: all .16s; white-space: nowrap; &:hover { border-color: $serene-purple; color: $twilight-purple; background: rgba($serene-purple,.05); transform: translateY(-1px); } &.selected { background: $twilight-purple; border-color: $twilight-purple; color: $misty-lavender; font-weight: $fw-medium; } }
 
-// ─── REPORT ──────────────────────────────────────────────────────────────────
-
+// REPORT
 .report-preview { @include center; gap: $space-sm; align-items: flex-start; background: rgba($twilight-purple,.03); border: 1px solid rgba($twilight-purple,.08); border-radius: $radius-md; padding: $space-sm $space-md; margin-bottom: $space-xs; i { color: $gentle-amethyst; flex-shrink: 0; } p { @include type-ui($t-forgot-des,$fw-regular); color: rgba($twilight-purple,.52); margin: 0; line-height: $lh-normal; font-style: italic; } }
 .report-reasons    { @include column; gap: 5px; }
 .report-reason-btn { @include none; cursor: pointer; @include center; gap: $space-sm; width: 100%; padding: 10px $space-md; text-align: left; @include type-ui($t-but-des,$fw-regular); color: rgba($twilight-purple,.62); border: 1.5px solid rgba($twilight-purple,.08); border-radius: $radius-md; background: rgba($soft-pearl,.45); transition: all .16s; &:hover { border-color: rgba($twilight-purple,.2); color: $twilight-purple; background: rgba($soft-pearl,.9); transform: translateX(2px); } &--active { border-color: $twilight-purple; background: rgba($twilight-purple,.04); color: $twilight-purple; font-weight: $fw-medium; transform: translateX(2px); } &__check { @include icon-box(20px); border: 1.5px solid rgba($twilight-purple,.16); border-radius: 50%; flex-shrink: 0; background: transparent; transition: all .16s; font-size: .7rem; color: $soft-pearl; .report-reason-btn--active & { background: $twilight-purple; border-color: $twilight-purple; } } }
 
-// ─── BUTTONS ─────────────────────────────────────────────────────────────────
-
+// BUTTONS 
 .forum-btn-cancel { @include none; border: 1.5px solid rgba($serene-purple,.26); color: $serene-purple; padding: $space-sm $space-lg; border-radius: $radius-md; @include type-ui($t-but-des,$fw-regular); cursor: pointer; transition: all .18s; background: transparent; &:hover { background: rgba($serene-purple,.06); border-color: $serene-purple; } }
 .forum-btn-post   { background: $twilight-purple; color: $misty-lavender; border: none; padding: $space-sm $space-xl; border-radius: $radius-md; @include type-ui($t-but-des,$fw-medium); cursor: pointer; box-shadow: 0 3px 14px rgba($twilight-purple,.28); transition: all .18s; &:hover:not(:disabled) { background: $serene-purple; transform: translateY(-1px); } &:disabled { opacity: .42; cursor: not-allowed; transform: none; } }
 .forum-btn-report { @include center; gap: $space-xs; background: #f59e0b; color: white; border: none; padding: $space-sm $space-xl; border-radius: $radius-md; @include type-ui($t-but-des,$fw-medium); cursor: pointer; transition: all .18s; box-shadow: 0 3px 10px rgba(245,158,11,.28); &:hover:not(:disabled) { background: #d97706; transform: translateY(-1px); } &:disabled { opacity: .42; cursor: not-allowed; } }
 
-// ─── TOAST ───────────────────────────────────────────────────────────────────
-
+// TOAST
 .forum-toast        { position: fixed; bottom: $space-xl; left: 50%; transform: translateX(-50%); @include center; gap: $space-sm; padding: $space-md $space-xl; border-radius: $radius-lg; @include type-ui($t-but-des,$fw-medium); box-shadow: 0 24px 60px rgba($twilight-purple,.25); z-index: 9999; animation: toast-in .28s cubic-bezier(.34,1.56,.64,1) both; white-space: nowrap; max-width: calc(100vw - #{$space-xxl}); &--success { background: $twilight-purple; color: $soft-pearl; i { color: #4ade80; } } &--error { background: #fef2f2; color: #b91c1c; border: 1px solid rgba(#ef4444,.26); i { color: #ef4444; } } }
 .like-error-toast   { background: #fff8f8; border: 1px solid rgba(239,68,68,.28); color: #b91c1c; border-radius: $radius-sm; padding: $space-xs $space-md; @include type-ui($t-forgot-des,$fw-regular); animation: toast-in .2s ease; margin-bottom: $space-sm; }
 
-// ─── HIGHLIGHTED COMMENT ─────────────────────────────────────────────────────
-
+// HIGHLIGHTED COMMENT 
 .comment-card.comment-highlighted { animation: commentGlow .8s ease; outline: 2px solid $twilight-purple; outline-offset: 2px; border-radius: $radius-sm; }
