@@ -66,11 +66,9 @@ const NavAvatar: React.FC<NavAvatarProps> = ({ src, initials = '?', alt = 'User 
 );
 
 // ─── Accessibility Panel ──────────────────────────────────────────────────────
-// Accepts an `onClose` and renders its own backdrop when `isMobile` is true.
-// On desktop it stays as a positioned dropdown; on mobile it's a fixed overlay.
 
 interface A11yPanelProps {
-  onClose:  () => void;
+  onClose:   () => void;
   isMobile?: boolean;
 }
 
@@ -78,21 +76,40 @@ const AccessibilityPanel: React.FC<A11yPanelProps> = ({ onClose, isMobile = fals
   const [settings, setSettings] = useState<A11ySettings>(loadA11y);
   const ref = useRef<HTMLDivElement>(null);
 
+  // Escape key
   useEffect(() => {
-    const key = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    document.addEventListener('keydown', key);
-    return () => document.removeEventListener('keydown', key);
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
   }, [onClose]);
 
-  // On desktop close on outside click; on mobile the backdrop button handles it
+  // Outside click — desktop only (mobile uses backdrop button)
   useEffect(() => {
     if (isMobile) return;
-    const click = (e: MouseEvent) => {
+    const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) onClose();
     };
-    document.addEventListener('mousedown', click);
-    return () => document.removeEventListener('mousedown', click);
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
   }, [onClose, isMobile]);
+
+  // Scroll lock — mobile only
+  // Locks both document.body AND the mobile menu element so neither scrolls
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const mobileMenu = document.getElementById('mobile-menu');
+    const prevBodyOverflow = document.body.style.overflow;
+    const prevMenuOverflow = mobileMenu?.style.overflow ?? '';
+
+    document.body.style.overflow = 'hidden';
+    if (mobileMenu) mobileMenu.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = prevBodyOverflow;
+      if (mobileMenu) mobileMenu.style.overflow = prevMenuOverflow;
+    };
+  }, [isMobile]);
 
   const update = useCallback((patch: Partial<A11ySettings>) => {
     setSettings(prev => { const next = { ...prev, ...patch }; applyA11y(next); return next; });
@@ -101,11 +118,11 @@ const AccessibilityPanel: React.FC<A11yPanelProps> = ({ onClose, isMobile = fals
   const reset = () => { const d = { ...A11Y_DEFAULTS }; setSettings(d); applyA11y(d); };
 
   const toggleRows = [
-    { key: 'highContrast',  icon: <SunDim />,           label: 'High contrast',          sub: 'Sharper colour differences'        },
-    { key: 'reducedMotion', icon: <Hand />,              label: 'Reduce motion',          sub: 'Fewer animations & transitions'   },
-    { key: 'dyslexiaFont',  icon: <Ligature />,          label: 'Dyslexia-friendly font', sub: 'OpenDyslexic typeface'            },
-    { key: 'lineSpacing',   icon: <ArrowDownFromLine />, label: 'Increased line spacing', sub: 'More breathing room'              },
-    { key: 'cursorLarge',   icon: <MousePointer2 />,     label: 'Large cursor',           sub: 'Easier to spot on screen'         },
+    { key: 'highContrast',  icon: <SunDim />,           label: 'High contrast',          sub: 'Sharper colour differences'      },
+    { key: 'reducedMotion', icon: <Hand />,              label: 'Reduce motion',          sub: 'Fewer animations & transitions'  },
+    { key: 'dyslexiaFont',  icon: <Ligature />,          label: 'Dyslexia-friendly font', sub: 'OpenDyslexic typeface'           },
+    { key: 'lineSpacing',   icon: <ArrowDownFromLine />, label: 'Increased line spacing', sub: 'More breathing room'             },
+    { key: 'cursorLarge',   icon: <MousePointer2 />,     label: 'Large cursor',           sub: 'Easier to spot on screen'        },
   ];
 
   const panel = (
@@ -114,8 +131,8 @@ const AccessibilityPanel: React.FC<A11yPanelProps> = ({ onClose, isMobile = fals
       ref={ref}
       role="dialog"
       aria-label="Accessibility settings"
-      aria-modal="true">
-
+      aria-modal="true"
+    >
       {/* Header */}
       <div className="a11y-panel-header">
         <div className="a11y-panel-title">
@@ -141,7 +158,8 @@ const AccessibilityPanel: React.FC<A11yPanelProps> = ({ onClose, isMobile = fals
               key={size}
               className={`a11y-font-btn ${settings.fontSize === size ? 'a11y-font-btn--active' : ''}`}
               onClick={() => update({ fontSize: size })}
-              aria-pressed={settings.fontSize === size}>
+              aria-pressed={settings.fontSize === size}
+            >
               <span className={`a11y-font-preview a11y-font-preview--${size}`}>Aa</span>
               <span>{size === 'normal' ? 'Default' : size === 'large' ? 'Large' : 'Extra large'}</span>
             </button>
@@ -166,7 +184,8 @@ const AccessibilityPanel: React.FC<A11yPanelProps> = ({ onClose, isMobile = fals
               <button
                 className={`a11y-switch ${checked ? 'a11y-switch--on' : ''}`}
                 onClick={() => update({ [key]: !checked } as Partial<A11ySettings>)}
-                role="switch" aria-checked={checked} aria-label={label}>
+                role="switch" aria-checked={checked} aria-label={label}
+              >
                 <span className="a11y-switch-thumb" />
               </button>
             </div>
@@ -180,13 +199,17 @@ const AccessibilityPanel: React.FC<A11yPanelProps> = ({ onClose, isMobile = fals
     </div>
   );
 
-  // Mobile: portal the backdrop to document.body so it escapes the nav's
-  // stacking context (backdrop-filter on <nav> traps position:fixed children)
+  // Mobile: portal to document.body to escape nav's stacking context
+  // (backdrop-filter on <nav> traps position:fixed children otherwise)
   if (isMobile) {
     return ReactDOM.createPortal(
       <div className="a11y-backdrop" aria-hidden="false">
-        {/* Clicking the backdrop closes the panel */}
-        <button className="a11y-backdrop__dismiss" onClick={onClose} aria-label="Close accessibility panel" tabIndex={-1} />
+        <button
+          className="a11y-backdrop__dismiss"
+          onClick={onClose}
+          aria-label="Close accessibility panel"
+          tabIndex={-1}
+        />
         {panel}
       </div>,
       document.body
@@ -209,11 +232,11 @@ const AccessibilityButton: React.FC = () => {
         onClick={() => setOpen(o => !o)}
         aria-label="Accessibility settings"
         aria-expanded={open}
-        title="Accessibility">
+        title="Accessibility"
+      >
         <Hand />
         <span className="a11y-btn-label">Accessibility</span>
       </button>
-      {/* Desktop: dropdown positioned below button */}
       {open && <AccessibilityPanel onClose={() => setOpen(false)} isMobile={false} />}
     </div>
   );
@@ -238,7 +261,9 @@ const UserMenu: React.FC = () => {
   }, [token]);
 
   useEffect(() => {
-    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
@@ -251,7 +276,8 @@ const UserMenu: React.FC = () => {
       <button
         className={`navigation__user-trigger ${open ? 'navigation__user-trigger--open' : ''}`}
         onClick={() => setOpen(!open)}
-        aria-haspopup="true" aria-expanded={open} aria-label="User menu">
+        aria-haspopup="true" aria-expanded={open} aria-label="User menu"
+      >
         <NavAvatar src={avatarUrl} initials={initials} alt={name || 'User'} size="trigger" />
         <span className="navigation__user-trigger-name">{name.split(' ')[0] || 'Account'}</span>
         <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"
@@ -362,18 +388,21 @@ const MobileUserMenu: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 const Navigation: React.FC = () => {
   const { token, isLoading } = useAuth();
   const isAuthenticated = !!token;
-  const [isMenuOpen,      setIsMenuOpen]      = useState(false);
-  const [activeDropdown,  setActiveDropdown]  = useState<string | null>(null);
-  const [closeTimer,      setCloseTimer]      = useState<ReturnType<typeof setTimeout> | null>(null);
-  const [scrolled,        setScrolled]        = useState(false);
-  // Mobile a11y panel lives at nav root so it never gets clipped by the menu list
-  const [mobileA11yOpen,  setMobileA11yOpen]  = useState(false);
+  const [isMenuOpen,     setIsMenuOpen]     = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [closeTimer,     setCloseTimer]     = useState<ReturnType<typeof setTimeout> | null>(null);
+  const [scrolled,       setScrolled]       = useState(false);
+  const [mobileA11yOpen, setMobileA11yOpen] = useState(false);
 
+  // Scroll listener
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 10);
     window.addEventListener('scroll', handler, { passive: true });
     return () => window.removeEventListener('scroll', handler);
   }, []);
+
+  // Cleanup hover timer on unmount
+  useEffect(() => { return () => { if (closeTimer) clearTimeout(closeTimer); }; }, [closeTimer]);
 
   const toggleMenu          = () => setIsMenuOpen(v => !v);
   const handleDropdownClick = (menu: string) => setActiveDropdown(activeDropdown === menu ? null : menu);
@@ -381,7 +410,6 @@ const Navigation: React.FC = () => {
   const handleMouseLeave    = () => { const t = setTimeout(() => setActiveDropdown(null), 400); setCloseTimer(t); };
   const handleDropdownEnter = () => { if (closeTimer) { clearTimeout(closeTimer); setCloseTimer(null); } };
   const handleDropdownLeave = () => { const t = setTimeout(() => setActiveDropdown(null), 200); setCloseTimer(t); };
-  useEffect(() => { return () => { if (closeTimer) clearTimeout(closeTimer); }; }, [closeTimer]);
 
   const careMenuItems = [
     { icon: <GroomingIcon />,  label: 'Grooming',  to: '/tips/grooming'  },
@@ -477,15 +505,18 @@ const Navigation: React.FC = () => {
           className={`navigation__hamburger ${isMenuOpen ? 'navigation__hamburger--open' : ''}`}
           onClick={toggleMenu}
           aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
-          aria-expanded={isMenuOpen} aria-controls="mobile-menu">
+          aria-expanded={isMenuOpen} aria-controls="mobile-menu"
+        >
           <img src={isMenuOpen ? '../../images/icons/close.svg' : '../../images/icons/hamburger-menu.svg'} alt="" aria-hidden="true" />
         </button>
       </div>
 
       {/* Mobile menu */}
-      <div id="mobile-menu"
+      <div
+        id="mobile-menu"
         className={`navigation__mobile ${isMenuOpen ? 'navigation__mobile--open' : ''}`}
-        aria-hidden={!isMenuOpen}>
+        aria-hidden={!isMenuOpen}
+      >
         <ul role="menu">
           {/* Dog Care */}
           <li role="none">
@@ -535,13 +566,14 @@ const Navigation: React.FC = () => {
 
           <li className="navigation__mobile-divider" role="none" />
 
-          {/* Mobile a11y row — button only, panel is rendered at nav root */}
+          {/* Mobile a11y row */}
           <li className="navigation__mobile-a11y-row" role="none">
             <button
               className={`navigation__mobile-a11y-btn ${mobileA11yOpen ? 'navigation__mobile-a11y-btn--open' : ''}`}
               onClick={() => setMobileA11yOpen(o => !o)}
               aria-label="Accessibility settings"
-              aria-expanded={mobileA11yOpen}>
+              aria-expanded={mobileA11yOpen}
+            >
               <span className="navigation__mobile-a11y-icon" aria-hidden="true"><Hand /></span>
               <span>Accessibility settings</span>
               <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"
@@ -566,7 +598,7 @@ const Navigation: React.FC = () => {
         </ul>
       </div>
 
-      {/* Mobile a11y panel — rendered here at nav root, above everything */}
+      {/* Mobile a11y panel — portalled to body, rendered at nav root level */}
       {mobileA11yOpen && (
         <AccessibilityPanel
           onClose={() => setMobileA11yOpen(false)}

@@ -166,7 +166,7 @@ const HomePage: React.FC = () => {
       {/* FAQ Section */}
       <section className="faq">
         <h2 className="faq__title">Your questions, answered!</h2>
-        <p className="faq__subtitle">Read more of FAQ here.</p>
+        <p className="faq__subtitle">Read more of FAQ <Link to="/faq" className="faq__link">here</Link></p>
         
         <div className="faq__list">
           {faqData.map((faq, index) => (

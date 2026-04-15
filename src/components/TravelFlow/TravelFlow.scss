@@ -50,7 +50,6 @@ $accent-tips:          #d4a84b;
   transform: translateX(-50%);
   @include no-interaction;
   z-index: 0;
-
   @media (max-width: $bp-mobile) { display: none; }
 }
 
@@ -60,7 +59,6 @@ $accent-tips:          #d4a84b;
   border: 1px solid rgba($misty-lavender, 0.12);
   transform: translate(-50%, -50%);
   animation: ringPulse 3s ease-in-out infinite;
-
   &-1 { width: 180px; height: 180px; animation-delay: 0s; }
   &-2 { width: 280px; height: 280px; animation-delay: 0.4s; border-color: rgba($misty-lavender, 0.07); }
   &-3 { width: 400px; height: 400px; animation-delay: 0.8s; border-color: rgba($misty-lavender, 0.04); }
@@ -73,12 +71,9 @@ $accent-tips:          #d4a84b;
   display: grid;
   grid-template-columns: repeat(4, 6px);
   gap: 8px;
-
   span { width: 4px; height: 4px; border-radius: 50%; display: block; }
-
   &.top-left     { top: $space-xxl;    left: $space-xxl;  span { background: rgba($misty-lavender, 0.18); } }
   &.bottom-right { bottom: $space-xxl; right: $space-xxl; span { background: rgba($misty-lavender, 0.12); } }
-
   @media (max-width: $bp-tablet) { display: none; }
 }
 
@@ -91,14 +86,12 @@ $accent-tips:          #d4a84b;
   width: 1px;
   height: 180px;
   background: linear-gradient(to bottom, transparent, rgba($misty-lavender, 0.15), transparent);
-
   &.left  { left: 2.5rem; }
   &.right { right: 2.5rem; }
-
   @media (max-width: $bp-tablet) { display: none; }
 }
 
-// Layout shell
+// ─── Layout shell ─────────────────────────────────────────────────────────────
 .travel-flow {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 480px);
@@ -106,45 +99,54 @@ $accent-tips:          #d4a84b;
   overflow: hidden;
   background-color: $soft-pearl;
 
+  // laptop — narrower sidebar
   @media (max-width: $bp-laptop) {
     grid-template-columns: minmax(0, 1.1fr) minmax(0, 360px);
   }
 
+  // tablet and below — single column, locked to viewport
   @media (max-width: $bp-tablet) {
     grid-template-columns: 1fr;
     grid-template-rows: auto 1fr auto;
-    min-height: 100vh;
+    height: 100svh;
+    max-height: 100svh;
+    overflow: hidden;
   }
 }
 
-// Left panel
+// Left panel 
 .travel-flow__main {
   @include column;
   background-color: $twilight-purple;
   padding: $space-xl $space-xxl $space-xl;
   height: 100%;
-  overflow-y: auto;
+  min-height: 0;     
+  overflow-y: auto;  
   overflow-x: hidden;
   border-radius: 0 $radius-xl 0 0;
   @include relative;
   min-width: 0;
 
-  @media (max-width: $bp-laptop) {
-    padding: $space-lg $space-xl;
-  }
+  @media (max-width: $bp-laptop) { padding: $space-lg $space-xl; }
 
   @media (max-width: $bp-tablet) {
     padding: $space-md;
     border-radius: 0;
     justify-content: flex-start;
+    overflow-y: auto;
+    overflow-x: hidden;
+    height: 100%;
+    min-height: 0; // critical — lets 1fr row constrain this
   }
 
   @media (max-width: $bp-mobile) {
     padding: $space-sm $space-sm $space-md;
+    height: 100%;
+    min-height: 0;
   }
 }
 
-// Back button — "Back" only, goes to browser history
+// ─── Back button ──────────────────────────────────────────────────────────────
 .travel-flow__back {
   @include none;
   @include center;
@@ -161,7 +163,6 @@ $accent-tips:          #d4a84b;
   padding: $space-xs $space-md;
   @include interactive;
   z-index: 5;
-
   svg { flex-shrink: 0; }
 
   &:hover {
@@ -177,41 +178,10 @@ $accent-tips:          #d4a84b;
     max-width: 100%;
   }
 
-  @media (max-width: $bp-mobile) {
-    display: none;
-  }
+  @media (max-width: $bp-mobile) { display: none; }
 }
 
-// Home logo link — top right, mobile/tablet only
-.travel-flow__home {
-  @include absolute;
-  top: $space-md;
-  right: $space-md;
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  overflow: hidden;
-  opacity: 0.55;
-  transition: opacity 0.2s ease, transform 0.2s ease;
-  z-index: 5;
-  display: none; // hidden on desktop — sidebar logo handles it
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-  }
-
-  &:hover {
-    opacity: 1;
-    transform: scale(1.08);
-  }
-
-  @media (max-width: $bp-tablet) {
-    display: block; // show on tablet + mobile
-  }
-}
-
+// ─── Content area ─────────────────────────────────────────────────────────────
 .travel-flow__content {
   flex: 1;
   width: 100%;
@@ -220,25 +190,35 @@ $accent-tips:          #d4a84b;
   display: flex;
   align-items: stretch;
   justify-content: center;
-  // push everything down on desktop/laptop/tablet
   padding: 5rem 0 $space-lg;
 
   @media (max-width: $bp-laptop) { padding: $space-xxl 0 $space-lg; }
-  @media (max-width: $bp-tablet) { padding: $space-xl 0 $space-md; }
-  @media (max-width: $bp-mobile) { padding: $space-sm 0; } // mobile unchanged
+
+  @media (max-width: $bp-tablet) {
+    padding: $space-xl 0 $space-md;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  @media (max-width: $bp-mobile) {
+    padding: $space-sm 0;
+    min-height: 0;
+    overflow: hidden;
+  }
 }
 
-// Right sidebar
+// Right sidebar 
 .travel-sidebar {
   @include col-start;
   background-color: $soft-pearl;
   padding: $space-xs $space-lg $space-lg;
   height: 100%;
-  overflow-y: auto;
+  overflow: hidden;  
+  min-height: 0; 
 
+  // hidden on tablet and below
   @media (max-width: $bp-tablet) { display: none; }
 
-  // Logo as home link
   &__logo {
     display: flex;
     justify-content: flex-start;
@@ -247,7 +227,6 @@ $accent-tips:          #d4a84b;
     margin-bottom: $space-sm;
     text-decoration: none;
     transition: opacity 0.2s ease;
-
     &:hover { opacity: 0.75; }
   }
 
@@ -255,7 +234,6 @@ $accent-tips:          #d4a84b;
     height: 100px;
     width: auto;
     display: block;
-
     @media (max-width: $bp-laptop) { height: 52px; }
   }
 
@@ -266,22 +244,26 @@ $accent-tips:          #d4a84b;
     margin-bottom: $space-lg;
   }
 
+  // always pinned to the bottom of the sidebar
   &__nav {
     @include flex-between;
     width: 100%;
     margin-top: auto;
+    padding-top: $space-xl;
     gap: $space-sm;
+    border-top: 1px solid rgba($misty-lavender, 0.5);
   }
 }
 
-// Step list (sidebar)
+//  Step list (sidebar) 
 .step-list {
   list-style: none;
   padding: 0;
   margin: 0;
   width: 100%;
-  flex: 1;
+  flex: 1;    
   min-height: 0;
+  overflow-y: auto; 
 
   &__item {
     @include center;
@@ -289,7 +271,6 @@ $accent-tips:          #d4a84b;
     gap: $space-md;
     @include relative;
     padding-bottom: $space-md;
-
     &:last-child { padding-bottom: 0; }
 
     &:not(:last-child) .step-list__connector {
@@ -303,7 +284,6 @@ $accent-tips:          #d4a84b;
     }
 
     &--done:not(:last-child) .step-list__connector { background-color: $twilight-purple; }
-
     &--active:not(:last-child) .step-list__connector {
       background: linear-gradient(to bottom, $twilight-purple 0%, $misty-lavender 80%);
     }
@@ -314,31 +294,20 @@ $accent-tips:          #d4a84b;
     @include type-ui($t-link-des, $fw-bold);
     transition: all 0.3s ease;
     @include rel-z;
-
     .step-list__item--upcoming & { background-color: $misty-lavender; color: $twilight-purple; }
     .step-list__item--active  & { background-color: $twilight-purple; color: $soft-pearl; animation: pulse 2s ease infinite; }
     .step-list__item--done    & { background-color: $twilight-purple; color: $soft-pearl; }
   }
 
-  &__dot-num {
-    @include type-ui($t-link-des, $fw-bold);
-    line-height: 1;
-  }
+  &__dot-num { @include type-ui($t-link-des, $fw-bold); line-height: 1; }
 
-  &__text {
-    @include col-start;
-    gap: 4px;
-    flex: 1;
-    min-width: 0;
-    padding-top: 4px;
-  }
+  &__text { @include col-start; gap: 4px; flex: 1; min-width: 0; padding-top: 4px; }
 
   &__label {
     @include type-ui($t-body-des);
     line-height: $lh-tight;
     transition: all 0.25s ease;
     letter-spacing: 0.01em;
-
     .step-list__item--upcoming & { color: $gentle-amethyst; font-weight: $fw-regular; }
     .step-list__item--active  & { color: $text-color-dark;  font-weight: $fw-regular; }
     .step-list__item--done    & { color: $gentle-amethyst;  font-weight: $fw-regular; }
@@ -353,17 +322,16 @@ $accent-tips:          #d4a84b;
   }
 }
 
-// Mobile bottom nav bar — sticky, lifted above browser chrome
+// ─── Mobile bottom nav bar ────────────────────────────────────────────────────
 .mobile-nav-bar {
   display: none;
   align-items: center;
   justify-content: space-between;
   padding: $space-md $space-lg;
-  padding-bottom: max($space-md, env(safe-area-inset-bottom, 16px));
   background-color: $soft-pearl;
   border-top: 1px solid $misty-lavender;
   gap: $space-sm;
-  flex-shrink: 0;
+  flex-shrink: 0; // never compress
 
   .btn { flex: 1; justify-content: center; }
   span { flex: 1; }
@@ -378,20 +346,25 @@ $accent-tips:          #d4a84b;
 
   @media (max-width: $bp-mobile) {
     padding: $space-sm $space-md;
-    padding-bottom: max($space-sm, env(safe-area-inset-bottom, 12px));
+    padding-bottom: max(#{$space-sm}, env(safe-area-inset-bottom, 20px));
   }
 }
 
-// Flow step (continent / country grids)
+// ─── Flow step (continent / country grids) ────────────────────────────────────
 .flow-step {
   animation: scaleIn 0.35s ease both;
   width: 100%;
   max-width: 650px;
   min-width: 0;
   @include margin-center;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: visible;
 
-  @media (max-width: $bp-tablet) { max-width: 100%; }
+  @media (max-width: $bp-tablet) {
+    max-width: 100%;
+    max-height: 100%;
+    overflow-y: visible;
+  }
 
   &__heading {
     @include type-display($t-tit-des, $fw-regular);
@@ -442,7 +415,7 @@ $accent-tips:          #d4a84b;
   }
 }
 
-// Illustration card
+// ─── Illustration card ────────────────────────────────────────────────────────
 .illus-card {
   @include none;
   @include column;
@@ -461,16 +434,12 @@ $accent-tips:          #d4a84b;
     box-shadow: $shadow-lg;
   }
 
-  &:focus-visible {
-    outline: 3px solid $serene-purple;
-    outline-offset: 2px;
-  }
+  &:focus-visible { outline: 3px solid $serene-purple; outline-offset: 2px; }
 
   &--selected {
     border-color: $serene-purple;
     background-color: rgba($serene-purple, 0.12);
     box-shadow: 0 0 0 3px rgba($serene-purple, 0.2);
-
     .illus-card__label { color: $soft-pearl; font-weight: $fw-regular; }
   }
 
@@ -500,32 +469,21 @@ $accent-tips:          #d4a84b;
     @media (max-width: $bp-mobile) { font-size: 0.75rem; padding: $space-xs $space-xs $space-sm; }
   }
 
-  &__img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    display: block;
-  }
+  &__img { width: 100%; height: 100%; object-fit: contain; display: block; }
 
   &__placeholder {
     @include flex-center;
     width: 100%;
     height: 130px;
     background-color: rgba($misty-lavender, 0.06);
-
     @media (max-width: $bp-laptop) { height: 110px; }
     @media (max-width: $bp-mobile) { height: 90px; }
   }
 
-  &__placeholder-initial {
-    @include type-display;
-    font-size: 3rem;
-    color: $gentle-amethyst;
-    line-height: 1;
-  }
+  &__placeholder-initial { @include type-display; font-size: 3rem; color: $gentle-amethyst; line-height: 1; }
 }
 
-// Country search bar
+// ─── Country search bar ───────────────────────────────────────────────────────
 .country-search {
   @include center;
   @include margin-center;
@@ -552,15 +510,10 @@ $accent-tips:          #d4a84b;
     color: rgba($soft-pearl, 0.45);
     flex-shrink: 0;
     transition: color 0.2s ease;
-
     .country-search:focus-within & { color: $serene-purple; }
   }
 
-  &__input-wrap {
-    @include center;
-    flex: 1;
-    min-width: 0;
-  }
+  &__input-wrap { @include center; flex: 1; min-width: 0; }
 
   &__input {
     @include none;
@@ -572,10 +525,8 @@ $accent-tips:          #d4a84b;
     padding: 0 $space-md 0 0;
     height: 48px;
     caret-color: $serene-purple;
-
     &::placeholder { color: rgba($soft-pearl, 0.35); }
     &:focus::placeholder { color: rgba($soft-pearl, 0.2); }
-
     @media (max-width: $bp-mobile) { font-size: $t-forgot-des; }
   }
 
@@ -589,13 +540,12 @@ $accent-tips:          #d4a84b;
     color: rgba($soft-pearl, 0.45);
     background: rgba($soft-pearl, 0.07);
     border-left: 1.5px solid rgba($soft-pearl, 0.12);
-
     &:hover { background-color: rgba($serene-purple, 0.2); color: $soft-pearl; }
     .country-search:focus-within & { color: $serene-purple; }
   }
 }
 
-// Buttons
+// ─── Buttons ──────────────────────────────────────────────────────────────────
 .btn {
   @include none;
   @include flex-center;
@@ -630,17 +580,13 @@ $accent-tips:          #d4a84b;
     background-color: transparent;
     color: $text-color-dark;
     border: 1.5px solid $misty-lavender;
-
     &:hover { background-color: $misty-lavender; border-color: $misty-lavender; color: $twilight-purple; }
   }
 
-  @media (max-width: $bp-tablet) {
-    font-size: $t-but-tab;
-    padding: $space-xs $space-md;
-  }
+  @media (max-width: $bp-tablet) { font-size: $t-but-tab; padding: $space-xs $space-md; }
 }
 
-// Content step
+// ─── Content step ─────────────────────────────────────────────────────────────
 .content-step {
   width: 100%;
   max-width: 700px;
@@ -653,26 +599,30 @@ $accent-tips:          #d4a84b;
 
   &:focus-visible { outline: none; }
 
-  @media (max-width: $bp-tablet) { max-width: 100%; gap: $space-md; }
-  @media (max-width: $bp-mobile) { gap: $space-sm; }
+  @media (max-width: $bp-tablet) {
+    max-width: 100%;
+    gap: $space-md;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  @media (max-width: $bp-mobile) {
+    gap: $space-sm;
+    min-height: 0;
+    overflow-y: auto;
+  }
 
   &__header {
     @include flex-between;
     width: 100%;
     gap: $space-md;
-
-    @media (max-width: $bp-mobile) {
-      align-items: flex-start;
-      flex-wrap: wrap;
-      row-gap: $space-xs;
-    }
+    @media (max-width: $bp-mobile) { align-items: flex-start; flex-wrap: wrap; row-gap: $space-xs; }
   }
 
   &__header-right {
     @include center;
     gap: $space-md;
     flex-shrink: 0;
-
     @media (max-width: $bp-mobile) { gap: $space-sm; }
   }
 
@@ -681,7 +631,6 @@ $accent-tips:          #d4a84b;
     letter-spacing: 0.12em;
     color: rgba($soft-pearl, 0.35);
     white-space: nowrap;
-
     @media screen and (max-width: $bp-mobile) { display: none; }
   }
 
@@ -691,18 +640,15 @@ $accent-tips:          #d4a84b;
     border-radius: $radius-lg;
     padding: $space-xs $space-md;
     border: 1px solid transparent;
-
     .content-step--requirements  & { background: rgba($accent-requirements, 0.1);  border-color: rgba($accent-requirements, 0.25); }
     .content-step--documentation & { background: rgba($accent-documentation, 0.1); border-color: rgba($accent-documentation, 0.25); }
     .content-step--tips          & { background: rgba($accent-tips, 0.1);          border-color: rgba($accent-tips, 0.25); }
     &--download                     { background: rgba($serene-purple, 0.1);        border-color: rgba($serene-purple, 0.25); }
-
     @media screen and (max-width: $bp-mobile) { display: none; }
   }
 
   &__badge-icon {
     @include flex-center;
-
     .content-step--requirements  & { color: $accent-requirements; }
     .content-step--documentation & { color: $accent-documentation; }
     .content-step--tips          & { color: $accent-tips; }
@@ -712,14 +658,12 @@ $accent-tips:          #d4a84b;
   &__badge-label {
     @include type-ui($t-forgot-des, $fw-regular);
     @include label-caps(0.08em);
-
     .content-step--requirements  & { color: $accent-requirements; }
     .content-step--documentation & { color: $accent-documentation; }
     .content-step--tips          & { color: $accent-tips; }
     .content-step--download      & { color: $serene-purple; }
   }
 
-  // Flag — always visible, pushed well clear of the panel's rounded corner
   &__flag {
     display: flex;
     align-items: center;
@@ -731,47 +675,15 @@ $accent-tips:          #d4a84b;
     background: rgba($soft-pearl, 0.06);
     border: 1px solid rgba($soft-pearl, 0.1);
     flex-shrink: 0;
-    // Pull it left so it never gets clipped by the panel border-radius
     margin-right: 3rem;
-
-    @media (max-width: $bp-laptop) {
-      width: 46px;
-      height: 46px;
-      margin-right: clamp(#{$space-xl}, 5vw, 60px);
-    }
-
-    @media (max-width: $bp-tablet) {
-      width: 42px;
-      height: 42px;
-      margin-right: $space-xl;
-    }
-
-    @media (max-width: $bp-mobile) {
-      width: 36px;
-      height: 36px;
-      margin-right: $space-lg;
-    }
+    @media (max-width: $bp-laptop) { width: 46px; height: 46px; margin-right: clamp(#{$space-xl}, 5vw, 60px); }
+    @media (max-width: $bp-tablet) { width: 42px; height: 42px; margin-right: $space-xl; }
+    @media (max-width: $bp-mobile) { width: 36px; height: 36px; margin-right: $space-lg; }
   }
 
-  &__flag-img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    padding: 4px;
-  }
-
-  &__flag-fallback {
-    @include type-display;
-    font-size: 1.5rem;
-    color: $gentle-amethyst;
-  }
-
-  &__titles {
-    @include col-start;
-    width: 100%;
-    min-width: 0;
-    gap: 6px;
-  }
+  &__flag-img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
+  &__flag-fallback { @include type-display; font-size: 1.5rem; color: $gentle-amethyst; }
+  &__titles { @include col-start; width: 100%; min-width: 0; gap: 6px; }
 
   &__heading {
     @include type-display($t-tit-des, $fw-regular);
@@ -782,7 +694,6 @@ $accent-tips:          #d4a84b;
     word-break: break-word;
     min-width: 0;
     width: 100%;
-
     @media (max-width: $bp-laptop) { font-size: $t-tit-tab; }
     @media (max-width: $bp-mobile) { font-size: $t-sub-des; }
   }
@@ -796,7 +707,6 @@ $accent-tips:          #d4a84b;
     line-height: $lh-loose;
     overflow-wrap: break-word;
     width: 100%;
-
     @media (max-width: $bp-mobile) { font-size: $t-forgot-des; }
   }
 
@@ -806,7 +716,6 @@ $accent-tips:          #d4a84b;
     background: rgba($soft-pearl, 0.07);
     border-radius: $radius-lg;
     overflow: hidden;
-
     @media (max-width: $bp-mobile) { display: none; }
   }
 
@@ -814,17 +723,12 @@ $accent-tips:          #d4a84b;
     height: 100%;
     border-radius: $radius-lg;
     transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-
     .content-step--requirements  & { background: linear-gradient(to right, $accent-requirements,  rgba($accent-requirements,  0.5)); }
     .content-step--documentation & { background: linear-gradient(to right, $accent-documentation, rgba($accent-documentation, 0.5)); }
     .content-step--tips          & { background: linear-gradient(to right, $accent-tips,          rgba($accent-tips,          0.5)); }
   }
 
-  &__row {
-    @include center;
-    gap: $space-sm;
-    width: 100%;
-  }
+  &__row { @include center; gap: $space-sm; width: 100%; }
 
   &__arrow {
     @include none;
@@ -867,7 +771,6 @@ $accent-tips:          #d4a84b;
       transform: scale(1.06);
       box-shadow: 0 4px 18px rgba($serene-purple, 0.28);
       animation: arrowPulse 1.8s ease infinite;
-
       &::before { opacity: 1; }
       .content-step__arrow-hint { opacity: 0.7; }
     }
@@ -908,7 +811,6 @@ $accent-tips:          #d4a84b;
     @include absolute;
     left: 0; top: 0; bottom: 0;
     width: 4px;
-
     .content-step--requirements  & { background: linear-gradient(to bottom, $accent-requirements,  rgba($accent-requirements,  0.2)); }
     .content-step--documentation & { background: linear-gradient(to bottom, $accent-documentation, rgba($accent-documentation, 0.2)); }
     .content-step--tips          & { background: linear-gradient(to bottom, $accent-tips,          rgba($accent-tips,          0.2)); }
@@ -923,7 +825,6 @@ $accent-tips:          #d4a84b;
     line-height: 1;
     color: rgba($soft-pearl, 0.035);
     letter-spacing: -0.04em;
-
     @media (max-width: $bp-mobile) { font-size: 3rem; }
   }
 
@@ -932,7 +833,6 @@ $accent-tips:          #d4a84b;
     color: $soft-pearl;
     line-height: $lh-tight;
     @include rel-z;
-
     @media (max-width: $bp-mobile) { font-size: $t-body-des; }
   }
 
@@ -940,12 +840,10 @@ $accent-tips:          #d4a84b;
     @include col-start;
     gap: $space-sm;
     @include rel-z;
-
     p {
       @include type-ui($t-body-des);
       color: rgba($soft-pearl, 0.7);
       line-height: $lh-loose;
-
       @media (max-width: $bp-mobile) { font-size: $t-forgot-des; }
     }
   }
@@ -961,9 +859,7 @@ $accent-tips:          #d4a84b;
     color: rgba($soft-pearl, 0.3);
     letter-spacing: 0.06em;
     animation: swipeHintFade 3.5s ease 1s forwards;
-
     svg { width: 9px; height: 9px; }
-
     @media (max-width: $bp-mobile) { display: none; }
   }
 
@@ -972,7 +868,6 @@ $accent-tips:          #d4a84b;
     gap: $space-sm;
     width: 100%;
     padding: $space-xs 0;
-
     @media (max-width: $bp-mobile) { gap: $space-xs; }
   }
 
@@ -985,14 +880,10 @@ $accent-tips:          #d4a84b;
     padding: 0;
     width: 6px;
 
-    &:hover:not(.content-step__dot--active) {
-      background: rgba($soft-pearl, 0.38);
-      transform: scale(1.3);
-    }
+    &:hover:not(.content-step__dot--active) { background: rgba($soft-pearl, 0.38); transform: scale(1.3); }
 
     &--active {
       width: 22px;
-
       .content-step--requirements  & { background: $accent-requirements; }
       .content-step--documentation & { background: $accent-documentation; }
       .content-step--tips          & { background: $accent-tips; }
@@ -1001,12 +892,9 @@ $accent-tips:          #d4a84b;
     &--done { background: rgba($soft-pearl, 0.3); }
   }
 
-  // Download step
   &--download {
     gap: $space-md;
-
     .content-step__header { margin-bottom: $space-xs; }
-
     @media (max-width: $bp-mobile) { gap: $space-xs; }
 
     .content-step__heading {
@@ -1036,9 +924,7 @@ $accent-tips:          #d4a84b;
     @include glass(0.05, 0.09);
     margin-top: $space-md;
     padding: $space-xs $space-lg;
-
     svg { width: 10px; height: 10px; color: rgba($soft-pearl, 0.22); flex-shrink: 0; }
-
     @media (max-width: $bp-mobile) { @include type-ui($t-but-mob); }
   }
 
@@ -1053,7 +939,6 @@ $accent-tips:          #d4a84b;
     overflow: hidden;
     background: rgba($soft-pearl, 0.04);
     border: 1px solid rgba($serene-purple, 0.18);
-
     @media (max-width: $bp-mobile) { border-radius: 10px; text-align: center; }
   }
 
@@ -1070,20 +955,16 @@ $accent-tips:          #d4a84b;
     @include col-start;
     gap: $space-lg;
     padding: $space-xl $space-xxl;
-
     @media (max-width: $bp-laptop) { padding: $space-xl; }
     @media (max-width: $bp-mobile) { padding: $space-xxl $space-sm $space-md; gap: $space-sm; }
   }
 
   &__checklist-preview {
     list-style: none;
-    text-align: center;
     padding: 0;
     margin: 0;
     @include col-start;
     width: 100%;
-
-    @media (max-width: $bp-mobile) { text-align: center; }
   }
 
   &__checklist-item {
@@ -1093,14 +974,8 @@ $accent-tips:          #d4a84b;
     color: rgba($soft-pearl, 0.72);
     padding: $space-sm 0;
     border-bottom: 1px solid rgba($soft-pearl, 0.06);
-
     &:last-child { border-bottom: none; }
-
-    @media (max-width: $bp-mobile) {
-      font-size: $t-link-mob;
-      gap: $space-md;
-      padding: $space-xs 0;
-    }
+    @media (max-width: $bp-mobile) { font-size: $t-link-mob; gap: $space-md; padding: $space-xs 0; }
   }
 
   &__checklist-check {
@@ -1108,7 +983,6 @@ $accent-tips:          #d4a84b;
     background: rgba($serene-purple, 0.12);
     border: 1px solid rgba($serene-purple, 0.28);
     color: $serene-purple;
-
     @media (max-width: $bp-mobile) { width: 18px; height: 18px; }
   }
 
@@ -1118,7 +992,6 @@ $accent-tips:          #d4a84b;
     @include glass(0.06, 0.15);
     padding: $space-lg;
     width: 100%;
-
     @media (max-width: $bp-tablet) { flex-direction: column; gap: $space-sm; }
     @media (max-width: $bp-mobile) { padding: $space-sm $space-xs $space-md; }
   }
@@ -1127,7 +1000,6 @@ $accent-tips:          #d4a84b;
     @include icon-box(40px);
     background: rgba($misty-lavender, 0.1);
     color: rgba($soft-pearl, 0.45);
-
     @media (max-width: $bp-mobile) { width: 32px; height: 32px; }
   }
 
@@ -1136,10 +1008,8 @@ $accent-tips:          #d4a84b;
     @include col-start;
     gap: 3px;
     min-width: 0;
-
     strong { @include type-ui($t-body-des, $fw-regular); color: $soft-pearl; }
     span   { @include type-ui($t-forgot-des);            color: rgba($soft-pearl, 0.45); }
-
     @media (max-width: $bp-tablet) { width: 100%; }
   }
 
@@ -1148,22 +1018,13 @@ $accent-tips:          #d4a84b;
     gap: $space-sm;
     flex-shrink: 0;
     flex-wrap: wrap;
-
     a { text-decoration: none; }
-
-    @media (max-width: $bp-tablet) {
-      width: 100%;
-      .btn { flex: 1; justify-content: center; }
-    }
-
-    @media (max-width: $bp-mobile) {
-      flex-direction: column;
-      gap: $space-xs;
-    }
+    @media (max-width: $bp-tablet) { width: 100%; .btn { flex: 1; justify-content: center; } }
+    @media (max-width: $bp-mobile) { flex-direction: column; gap: $space-xs; }
   }
 }
 
-// Download CTA button
+// ─── Download CTA button ──────────────────────────────────────────────────────
 .btn--download-cta {
   @include none;
   @include flex-center;
@@ -1175,24 +1036,26 @@ $accent-tips:          #d4a84b;
   padding: $space-sm $space-xl;
   @include interactive(0.25s);
   box-shadow: 0 4px 20px rgba($serene-purple, 0.28);
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 28px rgba($serene-purple, 0.42);
-  }
-
+  &:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba($serene-purple, 0.42); }
   @media (max-width: $bp-mobile) { justify-content: center; }
 }
 
-// Mobile step bar
+// ─── Mobile step bar ──────────────────────────────────────────────────────────
 .mobile-step-bar {
   display: none;
   flex-direction: column;
   background-color: $twilight-purple;
   border-bottom: 1px solid rgba($misty-lavender, 0.15);
   z-index: 10;
+  flex-shrink: 0; // never compress
 
-  @media (max-width: $bp-tablet) { display: flex; }
+  @media (max-width: $bp-tablet) {
+    display: flex;
+    max-height: 50svh;
+    overflow: hidden;
+  }
+
+  @media (max-width: $bp-mobile) { max-height: 45svh; }
 
   &__trigger {
     @include none;
@@ -1202,18 +1065,12 @@ $accent-tips:          #d4a84b;
     width: 100%;
     gap: $space-md;
     background: transparent;
-
+    flex-shrink: 0;
     &:focus-visible { outline: 2px solid $serene-purple; outline-offset: -2px; }
-
     @media (max-width: $bp-mobile) { padding: $space-sm $space-md; }
   }
 
-  &__info {
-    @include col-start;
-    gap: 2px;
-    flex: 1;
-    min-width: 0;
-  }
+  &__info { @include col-start; gap: 2px; flex: 1; min-width: 0; }
 
   &__count {
     @include type-ui($t-forgot-des, $fw-medium);
@@ -1228,37 +1085,16 @@ $accent-tips:          #d4a84b;
     max-width: 100%;
   }
 
-  &__right {
-    @include center;
-    gap: $space-sm;
-    flex-shrink: 0;
-    color: rgba($soft-pearl, 0.55);
-  }
-
-  &__ring {
-    @include relative;
-    @include flex-center;
-    width: 36px;
-    height: 36px;
-    color: $serene-purple;
-  }
-
-  &__svg {
-    @include inset;
-    width: 100%;
-    height: 100%;
-  }
-
-  &__pct {
-    @include type-ui(0.6rem, $fw-regular);
-    color: $soft-pearl;
-    @include rel-z;
-  }
+  &__right { @include center; gap: $space-sm; flex-shrink: 0; color: rgba($soft-pearl, 0.55); }
+  &__ring  { @include relative; @include flex-center; width: 36px; height: 36px; color: $serene-purple; }
+  &__svg   { @include inset; width: 100%; height: 100%; }
+  &__pct   { @include type-ui(0.6rem, $fw-regular); color: $soft-pearl; @include rel-z; }
 
   &__track {
     height: 3px;
     background-color: rgba($misty-lavender, 0.15);
     width: 100%;
+    flex-shrink: 0;
   }
 
   &__fill {
@@ -1270,25 +1106,22 @@ $accent-tips:          #d4a84b;
 
   &__list {
     list-style: none;
-    padding: $space-sm $space-lg $space-md;
+    padding: $space-sm $space-lg;
     @include col-start;
     gap: $space-xs;
     border-top: 1px solid rgba($misty-lavender, 0.12);
     background-color: rgba($twilight-purple, 0.95);
-
-    @media (max-width: $bp-mobile) { padding: $space-sm $space-md $space-sm; }
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+    @media (max-width: $bp-mobile) { padding: $space-sm $space-md; }
   }
 
-  &__step {
-    @include center;
-    gap: $space-sm;
-    padding: $space-xs 0;
-  }
+  &__step { @include center; gap: $space-sm; padding: $space-xs 0; }
 
   &__dot {
     @include icon-box(24px);
     @include type-ui(0.7rem, $fw-bold);
-
     .mobile-step-bar__step--upcoming & { background-color: rgba($misty-lavender, 0.2); color: $gentle-amethyst; }
     .mobile-step-bar__step--active   & { background-color: $serene-purple;             color: $soft-pearl; }
     .mobile-step-bar__step--done     & { background-color: $twilight-purple;           color: $soft-pearl; border: 1px solid rgba($soft-pearl, 0.2); }
@@ -1297,24 +1130,17 @@ $accent-tips:          #d4a84b;
   &__step-label {
     @include type-ui($t-forgot-des);
     flex: 1;
-
     .mobile-step-bar__step--upcoming & { color: rgba($soft-pearl, 0.4); }
     .mobile-step-bar__step--active   & { color: $soft-pearl; font-weight: $fw-regular; }
     .mobile-step-bar__step--done     & { color: rgba($soft-pearl, 0.5); }
   }
 
-  &__step-sub {
-    @include type-ui($t-forgot-des);
-    color: $gentle-amethyst;
-    font-style: italic;
-  }
+  &__step-sub { @include type-ui($t-forgot-des); color: $gentle-amethyst; font-style: italic; }
 }
 
+// ─── Very small screens ───────────────────────────────────────────────────────
 @media (max-width: 400px) {
-  html, body {
-    max-width: 100%;
-    overflow-x: hidden;
-  }
+  html, body { max-width: 100%; overflow-x: hidden; }
 
   .travel-flow {
     max-width: 100%;
@@ -1323,53 +1149,29 @@ $accent-tips:          #d4a84b;
     width: 100%;
   }
 
-  .travel-flow__main {
-    padding: $space-xs $space-xs $space-md;
-  }
+  .travel-flow__main { padding: $space-xs $space-xs $space-md; }
 
   .content-step--download { gap: $space-xs; }
-
   .content-step--download .content-step__heading { font-size: $t-body-des; }
-
-  .content-step--download .content-step__intro {
-    font-size: $t-forgot-des;
-    line-height: $lh-normal;
-  }
-
-  .content-step__download-card-inner {
-    padding: $space-sm $space-xs;
-    gap: $space-xs;
-  }
-
+  .content-step--download .content-step__intro { font-size: $t-forgot-des; line-height: $lh-normal; }
+  .content-step__download-card-inner { padding: $space-sm $space-xs; gap: $space-xs; }
   .content-step__checklist-item { padding: $space-xs 0; }
 
   .content-step,
   .content-step__download-card,
   .content-step__login-gate,
-  .btn--download-cta {
-    width: 100%;
-    max-width: 100%;
-  }
+  .btn--download-cta { width: 100%; max-width: 100%; }
 
-  .content-step__login-gate {
-    flex-direction: column;
-    align-items: stretch;
-    padding: $space-sm $space-xs;
-    gap: $space-xs;
-  }
-
+  .content-step__login-gate { flex-direction: column; align-items: stretch; padding: $space-sm $space-xs; gap: $space-xs; }
   .content-step__login-actions {
     width: 100%;
     flex-direction: column;
     gap: $space-xs;
-
     .btn { width: 100%; justify-content: center; }
   }
 
   .content-step__download-card,
   .content-step__login-gate,
   .content-step__card,
-  .flow-step__grid {
-    overflow-x: hidden;
-  }
+  .flow-step__grid { overflow-x: hidden; }
 }

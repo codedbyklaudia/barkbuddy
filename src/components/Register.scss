@@ -17,6 +17,7 @@
   background-color: $twilight-purple;
   font-family: $font-primary;
   @include column;
+  flex: 1; 
   @include relative;
   overflow-x: hidden;
 
@@ -332,12 +333,18 @@
   flex: 1;
   @include flex-column;
   align-items: center;
+  justify-content: center;
   padding: 8rem $space-md 6rem;
   @include relative;
   z-index: 1;
 
   @media (max-width: $bp-tablet) { padding: 6rem $space-lg 5rem; }
-  @media (max-width: $bp-mobile) { padding: 5rem $space-sm 5rem; }
+  @media (max-width: $bp-mobile) {
+    justify-content: flex-start;
+    min-height: 0;     
+    background: $twilight-purple;
+    padding: 5rem $space-sm 2rem;
+  }
 }
 
 .step1-card {
@@ -367,7 +374,7 @@
   }
 
   @media (max-width: $bp-tablet) { padding: $space-xl $space-md; }
-  @media (max-width: $bp-mobile) { padding: $space-lg $space-sm $space-md; border-radius: $radius-md; }
+  @media (max-width: $bp-mobile) {  padding: 3rem $space-sm $space-md;  border-radius: $radius-md; }
 }
 
 .step1-header {
@@ -386,7 +393,26 @@
   filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2));
 
   @media (max-width: $bp-tablet) { width: 100px; right: -1.5rem; top: -7rem; }
-  @media (max-width: $bp-mobile) { width: 100px; right: -0.5rem; top: -5rem; }
+  @media (max-width: $bp-mobile) { display: none; } // hidden — mobile mascot takes over
+}
+.step1-mascot-mobile {
+  display: none;
+
+  @media (max-width: $bp-mobile) {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-bottom: -1.5rem;
+    @include relative;
+    z-index: 5;
+
+    img {
+      width: 150px;
+      height: auto;
+      filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.35));
+      animation: float 3.5s ease-in-out infinite;
+    }
+  }
 }
 
 .step1-title {
