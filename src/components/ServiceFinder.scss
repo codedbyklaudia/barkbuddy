@@ -433,11 +433,12 @@
   &--grid {
     @include column;
     height: 100%;
+    align-items: stretch;
   }
 
   &--row {
     @include column;
-    height: auto;
+    height: 100%;
     margin-bottom: $space-sm;
 
     @media (min-width: $bp-tablet) {
@@ -445,7 +446,6 @@
       margin-bottom: $space-md;
     }
 
-    // Compact sizing for sidebar results column
     .listing-card__image--small {
       width: 100%;
       height: 140px;           
@@ -454,11 +454,9 @@
 
       @media (min-width: $bp-tablet) {
         width: 150px;           
-        height: auto;
+        height: 100%;
         border-radius: 20px 0 0 20px;
       }
-
-      @media (min-width: $bp-laptop) { width: 160px; }
     }
 
     .listing-card__description { display: none; }
@@ -1049,11 +1047,11 @@
   gap: 6px;
   margin: 0 auto;
   padding: 6px 16px;
-  background: none;
-  border: 1.5px solid rgba($twilight-purple, 0.3);
-  border-radius: 20px;
-  color: $twilight-purple;
-  font-size: 0.8rem;
+  border: none;
+  border-radius: 999px;
+  background-color: $twilight-purple;
+  color: $soft-pearl;
+  font-size: $t-forgot-des;
   @include cursor;
   transition: all 0.2s ease;
 

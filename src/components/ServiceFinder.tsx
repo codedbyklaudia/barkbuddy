@@ -35,6 +35,15 @@ interface Filters {
 
 type TabType = 'services' | 'activities';
 
+// In-memory cache
+interface CacheEntry {
+  listings: Listing[];
+  meta: { radiusKm: number | null; locationFound: boolean; searchLat?: number; searchLng?: number } | null;
+  ts: number;
+}
+const cache = new Map<string, CacheEntry>();
+const CACHE_TTL = 60_000; // 1 minute
+
 // Type icons
 const SERVICE_TYPES = [
   { icon: '../images/icons_1/grooming_icon.png', label: 'Groomer' },
@@ -51,7 +60,7 @@ const ACTIVITY_TYPES = [
 ];
 
 const API_BASE: string = import.meta.env.VITE_API_URL ?? 'http://localhost:4000/api';
-const UPLOADS_BASE: string = (import.meta.env.VITE_API_URL ?? 'http://localhost:4000/api').replace('/api', '');
+
 const RADIUS_OPTIONS = [5, 10, 25, 50];
 
 // Google Maps loader
@@ -82,7 +91,8 @@ const UnifiedMap: React.FC<{
   userLocation: { lat: number; lng: number } | null;
   searchCoords: { lat: number; lng: number } | null;
   radiusKm: number | null;
-}> = ({ listings, userLocation, searchCoords, radiusKm }) => {
+  activeTab: TabType;
+}> = ({ listings, userLocation, searchCoords, radiusKm, activeTab }) => {
   const mapRef  = useRef<HTMLDivElement>(null);
   const mapInst = useRef<google.maps.Map | null>(null);
   const markers = useRef<google.maps.Marker[]>([]);
@@ -144,6 +154,7 @@ const UnifiedMap: React.FC<{
           position: { lat: l.lat, lng: l.lng },
           map: mapInst.current!,
           title: l.business_name,
+          cursor: 'pointer',
           icon: {
             url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 48" width="36" height="48">
@@ -155,18 +166,36 @@ const UnifiedMap: React.FC<{
             anchor:     new google.maps.Point(18, 48),
           },
         });
+
+        // Pin click: show info window with a link that opens in a new tab 
         marker.addListener('click', () => {
+          const detailUrl = `/#/activity/${l.id}`;
           infoWin.current?.setContent(`
-            <div style="font-family:sans-serif;max-width:220px;padding:8px;color:#2D1B69;">
+            <div style="font-family:sans-serif;max-width:240px;padding:10px 8px 6px;color:#2D1B69;">
               <strong style="color:#5B4B8A;font-size:14px;display:block;margin-bottom:4px;">${l.business_name}</strong>
-              <p style="margin:4px 0;font-size:12px;color:#666;">${formatServiceType(l.type)}</p>
-              <p style="margin:4px 0;font-size:12px;">${l.address}, ${l.postcode}</p>
-              ${l.distance_km != null ? `<p style="margin:4px 0;font-size:12px;color:#5B4B8A;font-weight:600;">${l.distance_km} km away</p>` : ''}
-              ${l.is_new ? `<p style="margin:4px 0;font-size:11px;color:#7c3aed;">New on BarkBuddy</p>` : ''}
-              ${l.contact_phone ? `<p style="margin:4px 0;font-size:12px;">${l.contact_phone}</p>` : ''}
+              <p style="margin:3px 0;font-size:12px;color:#888;">${formatServiceType(l.type)}</p>
+              <p style="margin:3px 0;font-size:12px;">${l.address}, ${l.postcode}</p>
+              ${l.distance_km != null ? `<p style="margin:3px 0;font-size:12px;color:#5B4B8A;font-weight:600;">${l.distance_km} km away</p>` : ''}
+              ${l.is_new ? `<p style="margin:3px 0;font-size:11px;color:#7c3aed;">New on BarkBuddy</p>` : ''}
+              ${l.contact_phone ? `<p style="margin:3px 0;font-size:12px;">${l.contact_phone}</p>` : ''}
+              <a
+                href="${detailUrl}"
+                target="_blank"
+                rel="noopener noreferrer"
+                style="
+                  display:inline-flex;align-items:center;gap:5px;
+                  margin-top:8px;padding:6px 12px;
+                  background:#5B4B8A;color:#fff;
+                  border-radius:20px;font-size:12px;font-weight:600;
+                  text-decoration:none;
+                "
+              >
+                View details ↗
+              </a>
             </div>`);
           infoWin.current?.open(mapInst.current, marker);
         });
+
         markers.current.push(marker);
       });
 
@@ -195,9 +224,29 @@ const UnifiedMap: React.FC<{
   return <div ref={mapRef} className="unified-finder__map" />;
 };
 
-// Listing row card
+// Skeleton row card
+const SkeletonRow: React.FC = () => (
+  <article className="listing-card listing-card--row listing-card--skeleton">
+    <div className="listing-card__image listing-card__image--small skeleton-box" />
+    <div className="listing-card__content">
+      <div className="skeleton-line skeleton-line--short" style={{ width: '50px', marginBottom: '8px' }} />
+      <div className="skeleton-line skeleton-line--title" />
+      <div className="skeleton-line" style={{ width: '75%' }} />
+      <div className="skeleton-line skeleton-line--short" style={{ width: '40%' }} />
+      <div className="skeleton-line" style={{ width: '80px', height: '28px', borderRadius: '20px', marginTop: '8px' }} />
+    </div>
+  </article>
+);
+
+// Listing row card — opens in new tab
 const ListingRow: React.FC<{ listing: Listing; activeTab: TabType }> = ({ listing, activeTab }) => (
-  <Link to={`/activity/${listing.id}`} state={{ from: activeTab }} style={{ textDecoration: 'none' }}>
+  <Link
+    to={`/activity/${listing.id}`}
+    state={{ from: activeTab }}
+    target="_blank"
+    rel="noopener noreferrer"
+    style={{ textDecoration: 'none' }}
+  >
     <article className="listing-card listing-card--row">
       <div className="listing-card__image listing-card__image--small">
         {listing.primary_photo
@@ -214,25 +263,26 @@ const ListingRow: React.FC<{ listing: Listing; activeTab: TabType }> = ({ listin
         </p>
         {listing.description && <p className="listing-card__description">{listing.description}</p>}
         {listing.contact_phone && <p className="listing-card__meta"><i className="bi bi-telephone" /> {listing.contact_phone}</p>}
-        <Link
-          to={`/activity/${listing.id}`}
-          state={{ from: activeTab }}
-          className="listing-card__button"
-          onClick={e => e.stopPropagation()}
-        >
+        <span className="listing-card__button">
           Check more
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
             <path d="M5 12h14M12 5l7 7-7 7" />
           </svg>
-        </Link>
+        </span>
       </div>
     </article>
   </Link>
 );
 
-// Grid card
+// Grid card — opens in new tab
 const GridCard: React.FC<{ listing: Listing; activeTab: TabType }> = ({ listing, activeTab }) => (
-  <Link to={`/activity/${listing.id}`} state={{ from: activeTab }} style={{ textDecoration: 'none' }}>
+  <Link
+    to={`/activity/${listing.id}`}
+    state={{ from: activeTab }}
+    target="_blank"
+    rel="noopener noreferrer"
+    style={{ textDecoration: 'none' }}
+  >
     <article className="listing-card listing-card--grid">
       <div className="listing-card__image">
         {listing.primary_photo
@@ -245,14 +295,9 @@ const GridCard: React.FC<{ listing: Listing; activeTab: TabType }> = ({ listing,
         <h3 className="listing-card__title">{listing.business_name}</h3>
         <p className="listing-card__meta"><i className="bi bi-geo" /> {listing.address}</p>
         {listing.description && <p className="listing-card__description">{listing.description}</p>}
-        <Link
-          to={`/activity/${listing.id}`}
-          state={{ from: activeTab }}
-          className="listing-card__button"
-          onClick={e => e.stopPropagation()}
-        >
+        <span className="listing-card__button">
           Check more <i className="bi bi-arrow-right" />
-        </Link>
+        </span>
       </div>
     </article>
   </Link>
@@ -272,16 +317,20 @@ const ServiceFinder: React.FC = () => {
   const [hasSearched, setHasSearched]           = useState(false);
   const [error, setError]                       = useState('');
   const [locationError, setLocationError]       = useState('');
+  const [locationStatus, setLocationStatus]     = useState<'idle' | 'requesting' | 'granted' | 'denied'>('idle');
   const [filtersOpen, setFiltersOpen]           = useState(false);
   const [openFaq, setOpenFaq]                   = useState<number | null>(null);
   const [filters, setFilters]                   = useState<Filters>({ radius: 10, type: '', newOnly: false });
   const [searchMeta, setSearchMeta]             = useState<{ radiusKm: number | null; locationFound: boolean } | null>(null);
 
+  // Abort controller ref — cancels in-flight requests when a new one starts
+  const abortRef = useRef<AbortController | null>(null);
+
   // Refs
-  const typesRef  = useRef<HTMLDivElement>(null);
+  const typesRef   = useRef<HTMLDivElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
 
-  // Restore tab from navigation state (e.g. back from detail page)
+  // Restore tab from navigation state
   const location = useLocation();
   useEffect(() => {
     if (location.state?.tab) {
@@ -310,34 +359,42 @@ const ServiceFinder: React.FC = () => {
     },
   ];
 
-  const currentTypes = activeTab === 'services' ? SERVICE_TYPES : ACTIVITY_TYPES;
-  const tabLabel     = activeTab === 'services' ? 'Services' : 'Activities';
+  const currentTypes      = activeTab === 'services' ? SERVICE_TYPES : ACTIVITY_TYPES;
+  const tabLabel          = activeTab === 'services' ? 'Services' : 'Activities';
   const searchPlaceholder = activeTab === 'services'
     ? 'Groomer, vet, pet shop…'
     : 'Hotel, park, beach…';
 
-  // Featured listings
+  // Featured listings — with cache
   useEffect(() => {
+    const endpoint  = activeTab === 'services' ? 'services' : 'activities';
+    const cacheKey  = `featured:${endpoint}`;
+    const cached    = cache.get(cacheKey);
+
+    if (cached && Date.now() - cached.ts < CACHE_TTL) {
+      setFeaturedListings(cached.listings.slice(0, 3));
+      setFeaturedLoading(false);
+      return;
+    }
+
     setFeaturedLoading(true);
-    const endpoint = activeTab === 'services' ? 'services' : 'activities';
     fetch(`${API_BASE}/listings/${endpoint}?new_only=true`)
       .then(r => r.json())
       .then(d => {
-        const key = activeTab === 'services' ? 'services' : 'activities';
-        setFeaturedListings((d[key] ?? []).slice(0, 3));
+        const key      = activeTab === 'services' ? 'services' : 'activities';
+        const results  = d[key] ?? [];
+        cache.set(cacheKey, { listings: results, meta: null, ts: Date.now() });
+        setFeaturedListings(results.slice(0, 3));
         setFeaturedLoading(false);
       })
       .catch(() => setFeaturedLoading(false));
   }, [activeTab]);
 
-  // Core search
+  // Core search — with cache + abort
   const performSearch = useCallback(async (opts: {
     query?: string; location?: string; lat?: number; lng?: number;
     radius?: number; type?: string; newOnly?: boolean;
   }) => {
-    setLoading(true);
-    setError('');
-    setHasSearched(true);
     const endpoint = activeTab === 'services' ? 'services' : 'activities';
     const params   = new URLSearchParams();
     if (opts.query?.trim())  params.set('search',   opts.query.trim());
@@ -350,18 +407,50 @@ const ServiceFinder: React.FC = () => {
     } else if (opts.location?.trim() && opts.location !== 'My location') {
       params.set('location', opts.location.trim());
     }
+
+    const cacheKey = `search:${endpoint}:${params.toString()}`;
+    const cached   = cache.get(cacheKey);
+
+    // Serve from cache immediately — no spinner
+    if (cached && Date.now() - cached.ts < CACHE_TTL) {
+      setListings(cached.listings);
+      setSearchMeta(cached.meta);
+      if (cached.meta?.searchLat && cached.meta?.searchLng) {
+        setSearchCoords({ lat: (cached.meta as any).searchLat, lng: (cached.meta as any).searchLng });
+      }
+      setHasSearched(true);
+      setLoading(false);
+      return;
+    }
+
+    // Cancel any previous in-flight request
+    abortRef.current?.abort();
+    abortRef.current = new AbortController();
+
+    setLoading(true);
+    setError('');
+    setHasSearched(true);
+
     try {
-      const res  = await fetch(`${API_BASE}/listings/${endpoint}?${params}`);
+      const res  = await fetch(`${API_BASE}/listings/${endpoint}?${params}`, {
+        signal: abortRef.current.signal,
+      });
       const data = await res.json();
       const key  = activeTab === 'services' ? 'services' : 'activities';
-      setListings(data[key] ?? []);
-      setSearchMeta(data.meta ?? null);
-      if (data.meta?.searchLat && data.meta?.searchLng) {
-        setSearchCoords({ lat: data.meta.searchLat, lng: data.meta.searchLng });
+      const results = data[key] ?? [];
+      const meta    = data.meta ?? null;
+
+      cache.set(cacheKey, { listings: results, meta, ts: Date.now() });
+
+      setListings(results);
+      setSearchMeta(meta);
+      if (meta?.searchLat && meta?.searchLng) {
+        setSearchCoords({ lat: meta.searchLat, lng: meta.searchLng });
       } else if (!opts.lat && !opts.lng) {
         setSearchCoords(null);
       }
-    } catch {
+    } catch (err: any) {
+      if (err.name === 'AbortError') return;
       setError('Failed to load listings. Please try again.');
     } finally {
       setLoading(false);
@@ -370,33 +459,55 @@ const ServiceFinder: React.FC = () => {
 
   useEffect(() => { performSearch({}); }, [activeTab, performSearch]);
 
-  // GPS detect
   const detectLocation = () => {
-    if (!navigator.geolocation) { setLocationError('Geolocation not supported.'); return; }
-    setLocationError('');
-    setLocationInput('Detecting…');
-    navigator.geolocation.getCurrentPosition(
-      pos => {
-        const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        setUserLocation(coords);
-        setSearchCoords(coords);
-        setLocationInput('My location');
-        performSearch({ ...filters, query: searchQuery, lat: coords.lat, lng: coords.lng });
-        scrollToResults();
-      },
-      err => {
-        setLocationInput('');
-        setLocationError(
-          err.code === err.PERMISSION_DENIED
-            ? 'Location access denied. Enter a postcode instead.'
-            : 'Could not get location. Try a postcode.'
-        );
-      },
-      { timeout: 10000, maximumAge: 60000 }
-    );
-  };
+  if (!navigator.geolocation) {
+    setLocationError('Geolocation is not supported by your browser.');
+    return;
+  }
 
-  // Type button click → filter + scroll
+  setLocationError('');
+  setLocationStatus('requesting');
+  setLocationInput('Requesting location…');
+
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      setUserLocation(coords);
+      setSearchCoords(coords);
+      setLocationInput('My location');
+      setLocationStatus('granted');
+      performSearch({ ...filters, query: searchQuery, lat: coords.lat, lng: coords.lng });
+      scrollToResults();
+    },
+    err => {
+      setLocationInput('');
+      setLocationStatus('denied');
+
+      switch (err.code) {
+        case err.PERMISSION_DENIED:
+          setLocationError(
+            'Location access was denied. On mobile, go to your browser Settings → Site permissions → Location and allow access for this site.'
+          );
+          break;
+        case err.POSITION_UNAVAILABLE:
+          setLocationError('Your location could not be determined. Try entering a postcode instead.');
+          break;
+        case err.TIMEOUT:
+          setLocationError('Location request timed out. Please try again or enter a postcode.');
+          break;
+        default:
+          setLocationError('Could not get your location. Try entering a postcode.');
+      }
+    },
+    {
+      enableHighAccuracy: true,  
+      timeout: 15000,           
+      maximumAge: 30000,      
+    }
+  );
+};
+
+  // Type button click
   const handleTypeClick = (label: string) => {
     const newType = filters.type === label ? '' : label;
     const next    = { ...filters, type: newType };
@@ -430,6 +541,7 @@ const ServiceFinder: React.FC = () => {
     setUserLocation(null);
     setSearchCoords(null);
     setSearchMeta(null);
+    setLocationStatus('idle');
     performSearch({});
   };
 
@@ -440,6 +552,17 @@ const ServiceFinder: React.FC = () => {
   ].filter(Boolean).length;
 
   const hasActiveFilters = !!(searchQuery || locationInput || filters.type || filters.newOnly || filters.radius !== 10);
+
+  // Skeleton count — mirrors the last known result count if available
+  const skeletonCount = listings.length > 0 ? Math.min(listings.length, 6) : 4;
+
+  // Location button icon — reflects current permission state
+  const locateBtnIcon = () => {
+    if (locationStatus === 'requesting') return <i className="bi bi-hourglass-split" />;
+    if (locationStatus === 'denied')     return <i className="bi bi-geo-alt-fill" style={{ color: '#ef4444' }} />;
+    if (locationStatus === 'granted')    return <i className="bi bi-geo-alt-fill" style={{ color: '#22c55e' }} />;
+    return <i className="bi bi-crosshair" />;
+  };
 
   return (
     <div className="service-finder-page">
@@ -517,13 +640,25 @@ const ServiceFinder: React.FC = () => {
                       onKeyDown={e => e.key === 'Enter' && handleSearch()}
                     />
                   </div>
-                  <button className="fh__locate" onClick={detectLocation} title="Use my location">
-                    <i className="bi bi-crosshair" />
+                  <button
+                    className={`fh__locate fh__locate--${locationStatus}`}
+                    onClick={detectLocation}
+                    disabled={locationStatus === 'requesting'}
+                    style={{ display: locationStatus === 'granted' ? 'none' : undefined }}
+                  >
+                    {locateBtnIcon()}
                   </button>
                 </div>
                 <button className="fh__search-btn" onClick={handleSearch}>Search</button>
               </div>
-              {locationError && <p className="fh__location-error" role="alert">{locationError}</p>}
+              {locationError && (
+                <p className="fh__location-error" role="alert">
+                  {locationStatus === 'denied' && (
+                    <i className="bi bi-exclamation-triangle-fill" style={{ marginRight: '6px' }} />
+                  )}
+                  {locationError}
+                </p>
+              )}
             </div>
 
           </div>
@@ -570,7 +705,7 @@ const ServiceFinder: React.FC = () => {
       {/* SEARCH + RESULTS */}
       <section className="finder-search">
 
-        {/* Type icon buttons — scroll target */}
+        {/* Type icon buttons */}
         <div ref={typesRef} className="finder-search__types">
           {currentTypes.map(cat => (
             <div
@@ -625,11 +760,28 @@ const ServiceFinder: React.FC = () => {
             {locationInput && (
               <button
                 className="finder-search__clear"
-                onClick={() => { setLocationInput(''); setUserLocation(null); setSearchCoords(null); }}
+                onClick={() => {
+                  setLocationInput('');
+                  setUserLocation(null);
+                  setSearchCoords(null);
+                  setLocationStatus('idle');
+                }}
               >✕</button>
             )}
-            <button className="finder-search__locate-btn" onClick={detectLocation} title="Use my location">
-              <i className="bi bi-compass" />
+          <button
+              className={`finder-search__locate-btn finder-search__locate-btn--${locationStatus}`}
+              onClick={detectLocation}
+              title={
+                locationStatus === 'denied'
+                  ? 'Location access denied — click to try again'
+                  : locationStatus === 'requesting'
+                  ? 'Requesting location…'
+                  : 'Use my location'
+              }
+              disabled={locationStatus === 'requesting'}
+              style={{ display: locationStatus === 'granted' ? 'none' : undefined }}
+            >
+              {locateBtnIcon()}
             </button>
           </div>
 
@@ -640,9 +792,13 @@ const ServiceFinder: React.FC = () => {
           </button>
         </div>
 
-        {locationError && <p className="finder-search__error">{locationError}</p>}
+        {locationError && (
+          <p className="finder-search__error finder-search__error--location" role="alert">
+            {locationStatus === 'denied' && <i className="bi bi-geo-alt-fill" style={{ marginRight: '6px' }} />}
+            {locationError}
+          </p>
+        )}
 
-        {/* Clear all — only shown when something is active */}
         {hasActiveFilters && (
           <button className="finder-search__clear-all" onClick={clearAll}>
             <i className="bi bi-x-circle" /> Clear all
@@ -708,6 +864,7 @@ const ServiceFinder: React.FC = () => {
               userLocation={userLocation}
               searchCoords={searchCoords}
               radiusKm={searchMeta?.radiusKm ?? null}
+              activeTab={activeTab}
             />
           </div>
 
@@ -722,12 +879,10 @@ const ServiceFinder: React.FC = () => {
                 : locationInput === 'My location' ? ' near you' : ''}
             </h2>
 
-            {loading && (
-              <div className="finder-search__loading">
-                <div className="loading-spinner" />
-                <span>Finding {tabLabel.toLowerCase()}…</span>
-              </div>
-            )}
+            {/* Skeleton cards replace the spinner */}
+            {loading && Array.from({ length: skeletonCount }).map((_, i) => (
+              <SkeletonRow key={i} />
+            ))}
 
             {!loading && hasSearched && listings.length === 0 && (
               <div className="finder-search__empty">
@@ -746,7 +901,7 @@ const ServiceFinder: React.FC = () => {
       <section className="faq">
         <h2 className="faq__title">Your questions, answered!</h2>
         <p className="faq__subtitle">
-          Read more of our FAQ <a href="/faq" className="faq__link">here</a>.
+          Read more of our FAQ <Link to="/faq" className="faq__link">here</Link>.
         </p>
         <div className="faq__list">
           {faqData.map((faq, i) => (

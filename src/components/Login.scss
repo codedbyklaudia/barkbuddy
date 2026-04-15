@@ -15,6 +15,7 @@
   background-color: $twilight-purple;
   font-family: $font-primary;
   @include column;
+  flex: 1;
   @include relative;
   overflow-x: hidden;
 
@@ -162,7 +163,7 @@
   }
 }
 
-// layout - centres mascot + card vertically in one screen
+// layout 
 .login-layout {
   flex: 1;
   @include flex-column;
@@ -171,8 +172,6 @@
   padding: 6rem $space-md 4rem;
   @include relative;
   z-index: 1;
-  min-height: 100vh;
-  min-height: 100dvh;
   width: 100%;
   box-sizing: border-box;
 
@@ -180,15 +179,17 @@
     padding: 5rem $space-lg 3rem;
   }
 
-  // shift content upward with more top padding than bottom
   @media (max-width: $bp-mobile) {
     justify-content: flex-start;
     align-items: center;
-    padding: 4rem $space-sm 1rem;
+    min-height: 0;
+    background: $twilight-purple;
+    padding: 4rem $space-sm 2rem;
+    flex: 1;
   }
 
   @media (max-width: 360px) {
-    padding: 3.5rem 0.75rem 0.5rem;
+    padding: 3.5rem 0.75rem 1.5rem;
   }
 }
 
@@ -201,7 +202,7 @@
     justify-content: center;
     align-items: center;
     width: 100%;
-    margin-bottom: -1.5rem; // peeks into card top edge
+    margin-bottom: -1.5rem;
     position: relative;
     z-index: 5;
 

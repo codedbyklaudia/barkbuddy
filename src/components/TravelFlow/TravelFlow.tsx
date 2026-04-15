@@ -663,24 +663,19 @@ const TravelFlow: React.FC<TravelFlowProps> = ({
   );
 
   React.useEffect(() => {
-    // Push one entry so the browser back button has somewhere to go
     try { window.history.pushState({ travelStep: firstStep }, ''); } catch (_) {}
 
     const handlePopState = (e: PopStateEvent) => {
       const state = e.state as { travelStep?: number } | null;
-      // Only handle events that belong to this flow — HashRouter fires popstate too
       if (state?.travelStep !== undefined) {
         setStepIdx(state.travelStep);
       }
-      // Do NOT call onClose here — it causes crashes on Safari with HashRouter
     };
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Keep history state in sync with stepIdx — safe on all browsers
   React.useEffect(() => {
     try { window.history.replaceState({ travelStep: stepIdx }, ''); } catch (_) {}
   }, [stepIdx]);
@@ -693,7 +688,6 @@ const TravelFlow: React.FC<TravelFlowProps> = ({
 
   const goNext = () => {
     if (isLastStep) { onClose(); return; }
-    // Just update state — the stepIdx useEffect handles replaceState safely
     setStepIdx(prev => prev + 1);
   };
 
@@ -712,14 +706,12 @@ const TravelFlow: React.FC<TravelFlowProps> = ({
   const handleContinentSelect = (c: Continent) => {
     setSelectedContinent(c);
     setSelectedCountry(null);
-    // No pushState inside setTimeout — crashes Safari on older iOS
-    // replaceState in the stepIdx useEffect handles history sync
-    setTimeout(() => { setStepIdx(1); }, 280);
+    setStepIdx(1); // no setTimeout — causes state timing issues on iOS 16 Safari
   };
 
   const handleCountrySelect = (c: Country) => {
     setSelectedCountry(c);
-    setTimeout(() => { setStepIdx(prev => prev + 1); }, 280);
+    setStepIdx(prev => prev + 1); // no setTimeout
   };
 
   const handleDownload = async () => {
@@ -745,37 +737,49 @@ const TravelFlow: React.FC<TravelFlowProps> = ({
             onSelect={handleCountrySelect}
             hideSearch={isToUK}
           />
-        ) : null;
+        ) : (
+          // Should never happen but guard against blank screen
+          <div className="flow-step">
+            <p className="flow-step__empty">Something went wrong. Please go back and try again.</p>
+          </div>
+        );
 
       case 'requirements':
-        return countryContent && selectedCountry ? (
-          <ContentCardCarousel
-            cards={countryContent.requirements}
-            stepLabel="Requirements"
-            country={selectedCountry}
-            intro={countryContent.intro}
-          />
-        ) : null;
-
       case 'documentation':
-        return countryContent && selectedCountry ? (
-          <ContentCardCarousel
-            cards={countryContent.documentation}
-            stepLabel="Documentation"
-            country={selectedCountry}
-            intro={countryContent.intro}
-          />
-        ) : null;
+      case 'tips': {
+        if (!countryContent || !selectedCountry) {
+          return (
+            <div className="flow-step">
+              <p className="flow-step__empty">Loading country info… please go back and reselect your country.</p>
+            </div>
+          );
+        }
 
-      case 'tips':
-        return countryContent && selectedCountry ? (
+        const stepLabel =
+          currentStep.id === 'requirements'  ? 'Requirements'  :
+          currentStep.id === 'documentation' ? 'Documentation' : 'Useful tips';
+
+        const cards =
+          currentStep.id === 'requirements'  ? countryContent.requirements  :
+          currentStep.id === 'documentation' ? countryContent.documentation : countryContent.tips;
+
+        if (!cards || cards.length === 0) {
+          return (
+            <div className="flow-step">
+              <p className="flow-step__empty">No {stepLabel.toLowerCase()} info available for {selectedCountry.name} yet.</p>
+            </div>
+          );
+        }
+
+        return (
           <ContentCardCarousel
-            cards={countryContent.tips}
-            stepLabel="Useful tips"
+            cards={cards}
+            stepLabel={stepLabel}
             country={selectedCountry}
             intro={countryContent.intro}
           />
-        ) : null;
+        );
+      }
 
       case 'download':
         return (
@@ -788,7 +792,11 @@ const TravelFlow: React.FC<TravelFlowProps> = ({
         );
 
       default:
-        return null;
+        return (
+          <div className="flow-step">
+            <p className="flow-step__empty">Something went wrong. Please go back.</p>
+          </div>
+        );
     }
   };
 
@@ -807,11 +815,6 @@ const TravelFlow: React.FC<TravelFlowProps> = ({
           <ChevronLeft /> Back
         </button>
 
-        {/* Home link — logo top right, mobile only */}
-        <Link to="/" className="travel-flow__home" aria-label="BarkBuddy home">
-          <img src="/images/logo.png" alt="BarkBuddy" />
-        </Link>
-
         <div className="travel-flow__content">{renderStep()}</div>
       </main>
 
@@ -829,7 +832,7 @@ const TravelFlow: React.FC<TravelFlowProps> = ({
           disabled={!canProceed()}
           type="button"
         >
-          {isLastStep ? 'Done' : 'Next'} <ChevronRight />
+          {isLastStep ? 'Done' : 'Next Step'} <ChevronRight />
         </button>
       </div>
 
@@ -840,7 +843,7 @@ const TravelFlow: React.FC<TravelFlowProps> = ({
         onBack={goBack}
         onNext={goNext}
         nextDisabled={!canProceed()}
-        nextLabel={isLastStep ? 'Done' : 'Next'}
+        nextLabel={isLastStep ? 'Done' : 'Next Step'}
         isFirst={stepIdx === firstStep}
         hideContinent={isToUK}
       />

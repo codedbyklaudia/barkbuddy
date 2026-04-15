@@ -450,6 +450,9 @@ const Step1: React.FC<{
 
   return (
     <div className="step-content step1-layout">
+      <div className="step1-mascot-mobile" aria-hidden="true">
+        <img src="../../images/dog-register.svg" alt="" />
+      </div>
       <div className="step1-card">
         <div className="step1-header">
           <img className="step1-mascot" src="../../images/dog-register.svg" alt="dog mascot" />

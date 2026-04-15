@@ -340,15 +340,6 @@ const ServiceDetailPage: React.FC = () => {
 
   return (
     <div className="activity-details">
-
-      {/* Back button */}
-      <div className="activity-details__back">
-        <button className="activity-details__back-btn" onClick={handleBack}>
-          <i className="bi bi-arrow-left" />
-          Back to {fromTab === 'activities' ? 'Activities' : 'Services'}
-        </button>
-      </div>
-
       <section className="activity-details__content">
 
         {/* Left column */}
