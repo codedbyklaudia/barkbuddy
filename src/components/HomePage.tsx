@@ -15,15 +15,15 @@ const HomePage: React.FC = () => {
   const faqData = [
     {
       question: "Can I use the Forum without an app?",
-      answer: "Yes! The Forum is accessible for registred users, both through our website and mobile app. You can join discussions, ask questions, and connect with other dog parents from any device."
+      answer: "Yes! The Forum is accessible for all registred users, both through our website and in the future in the mobile app. You can join discussions, ask questions, and connect with other dog parents from any device."
     },
     {
-      question: "What does the app have that is not on the website?",
-      answer: "The app offers personalized reminders, offline access to saved content, age-specific care reminders, walk tracker and a more streamlined mobile experience for on-the-go dog parents."
+      question: "What does the app will have that is not on the website?",
+      answer: "The app will offer personalized reminders, offline access to saved content, age-specific care reminders, walk tracker and a more streamlined mobile experience for on-the-go dog parents."
     },
     {
       question: "How can I download the app?",
-      answer: "You can download the BarkBuddy app from the Google Play Store for Android devices. Just search for 'BarkBuddy' and tap install!"
+      answer: "The BarkBuddy app is currently under development and is expected to launch in mid-August 2026. Upon release, it will be available for download on the Google Play Store for Android devices."
     }
   ];
 
@@ -166,7 +166,7 @@ const HomePage: React.FC = () => {
       {/* FAQ Section */}
       <section className="faq">
         <h2 className="faq__title">Your questions, answered!</h2>
-        <p className="faq__subtitle">Read more of FAQ <Link to="/faq" className="faq__link">here</Link></p>
+        <p className="faq__subtitle">Read more of FAQ <Link to="/faq" className="faq__link">here</Link>.</p>
         
         <div className="faq__list">
           {faqData.map((faq, index) => (

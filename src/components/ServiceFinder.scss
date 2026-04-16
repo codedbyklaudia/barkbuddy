@@ -1048,6 +1048,7 @@
   margin: 0 auto;
   padding: 6px 16px;
   border: none;
+  margin-bottom: $space-md;
   border-radius: 999px;
   background-color: $twilight-purple;
   color: $soft-pearl;
@@ -1271,9 +1272,9 @@
   }
 
   &__link {
-    color: $serene-purple;
+    color: $misty-lavender;
     font-weight: $fw-regular;
-    text-decoration: none;
+    text-decoration: underline;
     &:hover { opacity: 0.8; }
   }
 

@@ -718,7 +718,12 @@
       text-align: center;
     }
   }
-
+   &__link {
+    color: $misty-lavender;
+    font-weight: $fw-regular;
+    text-decoration: underline;
+    &:hover { opacity: 0.8; }
+  }
   &__list {
     max-width: 800px;
     align-self: flex-end;

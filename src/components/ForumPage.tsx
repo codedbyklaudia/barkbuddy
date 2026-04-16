@@ -102,16 +102,12 @@ const ForumLocked: React.FC = () => (
       </p>
       <div className="forum-locked__actions">
         <Link to="/login" className="forum-locked__btn forum-locked__btn--primary">
-          <i className="bi bi-box-arrow-in-right" /> Log in
+          Log in
         </Link>
         <Link to="/register" className="forum-locked__btn forum-locked__btn--ghost">
-          Create free account
+          Register
         </Link>
       </div>
-      <p className="forum-locked__hint">
-        Already know what you're looking for? Check our <Link to="/faq">FAQ</Link> or read the{' '}
-        <Link to="/forum-policy">Forum Policy</Link>.
-      </p>
     </div>
   </div>
 );
@@ -124,7 +120,7 @@ const Toast: React.FC<{ message: string; type?: 'success' | 'error' }> = ({ mess
   </div>
 );
 
-// ─── Report Modal ─────────────────────────────────────────────────────────────
+// Report Modal
 const ReportModal: React.FC<{
   target: ReportTarget; token: string; onClose: () => void; onSuccess: () => void;
 }> = ({ target, token, onClose, onSuccess }) => {
@@ -190,7 +186,7 @@ const ReportModal: React.FC<{
   );
 };
 
-// ─── New Post Modal ───────────────────────────────────────────────────────────
+// New Post Modal
 const NewPostModal: React.FC<{
   token: string; onPost: (post: ForumPost) => void; onClose: () => void;
 }> = ({ token, onPost, onClose }) => {
@@ -256,7 +252,7 @@ const NewPostModal: React.FC<{
   );
 };
 
-// ─── Reply Box ────────────────────────────────────────────────────────────────
+// Reply Box
 const ReplyBox: React.FC<{
   replyingTo: string; onSubmit: (content: string) => Promise<void>; onCancel: () => void;
 }> = ({ replyingTo, onSubmit, onCancel }) => {
@@ -292,7 +288,7 @@ const ReplyBox: React.FC<{
   );
 };
 
-// ─── Comment Item ─────────────────────────────────────────────────────────────
+// Comment Item
 const CommentItem: React.FC<{
   comment:       ForumCommentWithLikes;
   token?:        string;
@@ -396,7 +392,7 @@ const CommentItem: React.FC<{
   );
 };
 
-// ─── Post Detail ──────────────────────────────────────────────────────────────
+// Post Detail
 const PostDetail: React.FC<{
   postId: string; token?: string; userId?: string;
   targetCommentId?: string | null; onBack: () => void; onReport: (t: ReportTarget) => void;
@@ -625,7 +621,6 @@ const ForumPage: React.FC<CommunityForumProps> = ({ initialPostId, initialCommen
       setTargetComment(initialCommentId ?? null);
       onDeepLinkConsumed?.();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialPostId]);
 
   const fetchPosts = async (cat: string, q: string) => {
@@ -722,7 +717,7 @@ const ForumPage: React.FC<CommunityForumProps> = ({ initialPostId, initialCommen
           <div className="forum-page-hero__right" aria-hidden="true">
             <img
               src="/images/Forum.webp"
-              alt=""
+              alt="Dogs Community Picture"
               onError={e => (e.currentTarget.style.display = 'none')}
             />
           </div>
@@ -746,7 +741,7 @@ const ForumPage: React.FC<CommunityForumProps> = ({ initialPostId, initialCommen
             ))}
           </div>
 
-          {/* ── Table — NO User column ── */}
+          {/* Table */}
           <div className="forum-table-wrap">
             {loading ? (
               <div className="forum-loading">Loading posts…</div>
@@ -819,7 +814,6 @@ const ForumPage: React.FC<CommunityForumProps> = ({ initialPostId, initialCommen
               </>
             )}
           </div>
-
           {/* CTA */}
           <div className="forum-cta">
             <p className="forum-cta-text">Can't find what you're looking for?</p>
@@ -828,11 +822,9 @@ const ForumPage: React.FC<CommunityForumProps> = ({ initialPostId, initialCommen
             </button>
           </div>
 
-        </div>{/* /forum-content */}
-      </div>{/* /forum-page__inner */}
-
+        </div>
+      </div>
       <Footer />
-
       {showNewPost && token && (
         <NewPostModal token={token} onPost={handleNewPost} onClose={() => setShowNewPost(false)} />
       )}
