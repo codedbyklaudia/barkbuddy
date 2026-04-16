@@ -101,8 +101,8 @@ router.post("/", async (req: Request, res: Response) => {
           </p>
 
           <div style="background: #f7f7f7; border: 1px solid #e8e5f0; border-radius: 8px; padding: 20px 24px; margin-bottom: 28px;">
-            <p style="font-size: 18px; font-weight: bold; letter-spacing: 0.1em; text-transform: uppercase; color: #B79EBE; margin: 0 0 8px;">Your message</p>
-            <p style="font-size: 16px; color: #B79EBE; line-height: 1.7; margin: 0; white-space: pre-wrap;">${message.trim()}</p>
+            <p style="font-size: 18px; font-weight: bold; letter-spacing: 0.1em; text-transform: uppercase; color: #3a2f51; margin: 0 0 8px;">Your message</p>
+            <p style="font-size: 16px; color: #3a2f51; line-height: 1.7; margin: 0; white-space: pre-wrap;">${message.trim()}</p>
           </div>
 
           <p style="font-size: 15px; color: #3a2f51; text-align: center; margin: 0;">
