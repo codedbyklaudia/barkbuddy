@@ -100,7 +100,7 @@ const generateVerificationEmailHtml = (
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin:0;padding:0;background:#f4f1fb;font-family:'Marcellus',serif;">
+<body style="margin:0;padding:0;background:#f7f7f7;font-family:'Marcellus',serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f1fb;padding:40px 20px;">
     <tr>
       <td align="center">
@@ -120,7 +120,7 @@ const generateVerificationEmailHtml = (
           <!-- Body -->
           <tr>
             <td style="padding:40px 40px 32px;">
-              <p style="color:#141414;font-size:15px;margin:0 0 12px;">
+              <p style="color:#141414;font-size:18px;margin:0 0 12px;">
                 Hi <strong>${name}</strong>,
               </p>
 
@@ -182,7 +182,7 @@ const generateVerificationEmailHtml = (
               </div>
               ` : ""}
 
-              <p style="color:#9ca3af;font-size:12px;line-height:1.5;margin:0;border-top:1px solid #f3f4f6;padding-top:20px;">
+              <p style="color:#9ca3af; font-size:14px; line-height:1.5; margin:0; border-top:1px solid #f3f4f6;padding-top:20px;">
                 If you didn't create a BarkBuddy Business account, you can safely ignore this email.
               </p>
             </td>
@@ -191,7 +191,7 @@ const generateVerificationEmailHtml = (
           <!-- Footer -->
           <tr>
             <td style="background:#f7f7f7;padding:20px 40px;text-align:center;border-top:1px solid #f3f4f6;">
-              <p style="color:#3a2f51;font-size:11px;margin:0;">
+              <p style="color:#3a2f51;font-size:14px;margin:0;">
                 © ${new Date().getFullYear()} BarkBuddy · Made with 🐾 for dog lovers
               </p>
             </td>
