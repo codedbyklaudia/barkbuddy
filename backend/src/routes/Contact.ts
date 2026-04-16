@@ -85,27 +85,27 @@ router.post("/", async (req: Request, res: Response) => {
       to:      email,
       subject: "We received your message 🐾",
       html: `
-        <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 32px; background: #f9f8fc; border-radius: 12px;">
-          <div style="background: #3b2d6e; border-radius: 10px; padding: 28px 32px; margin-bottom: 28px;">
+        <div style="font-family: Marcellus, serif; max-width: 600px; margin: 0 auto; padding: 32px; background: #f7f7f7; border-radius: 12px;">
+          <div style="background: #B79EBE; border-radius: 10px; padding: 28px 32px; margin-bottom: 28px;">
             <h1 style="font-size: 22px; color: #f9f8fc; margin: 0; font-weight: normal; letter-spacing: 0.03em;">
               Thanks for reaching out, ${name}! 🐾
             </h1>
           </div>
 
-          <p style="font-size: 15px; color: #2d1f5e; line-height: 1.8; margin: 0 0 16px;">
+          <p style="font-size: 18px; color: #3a2f51; line-height: 1.8; margin: 0 0 16px;">
             We've received your message and will get back to you within <strong>48 hours</strong>.
           </p>
 
-          <p style="font-size: 15px; color: #2d1f5e; line-height: 1.8; margin: 0 0 28px;">
-            In the meantime, feel free to explore BarkBuddy — and give your bark buddy an extra treat from us. 🐶
+          <p style="font-size: 18px; color: #3a2f51; line-height: 1.8; margin: 0 0 28px;">
+            In the meantime, feel free to explore BarkBuddy - and give your bark buddy an extra treat from us. 🐶
           </p>
 
-          <div style="background: #fff; border: 1px solid #e8e5f0; border-radius: 8px; padding: 20px 24px; margin-bottom: 28px;">
-            <p style="font-size: 12px; font-weight: bold; letter-spacing: 0.1em; text-transform: uppercase; color: #8b7fb3; margin: 0 0 8px;">Your message</p>
-            <p style="font-size: 14px; color: #6b6280; line-height: 1.7; margin: 0; white-space: pre-wrap;">${message.trim()}</p>
+          <div style="background: #f7f7f7; border: 1px solid #e8e5f0; border-radius: 8px; padding: 20px 24px; margin-bottom: 28px;">
+            <p style="font-size: 18px; font-weight: bold; letter-spacing: 0.1em; text-transform: uppercase; color: #B79EBE; margin: 0 0 8px;">Your message</p>
+            <p style="font-size: 16px; color: #B79EBE; line-height: 1.7; margin: 0; white-space: pre-wrap;">${message.trim()}</p>
           </div>
 
-          <p style="font-size: 13px; color: #b0a8cc; text-align: center; margin: 0;">
+          <p style="font-size: 15px; color: #3a2f51; text-align: center; margin: 0;">
             — Klaudia &amp; the BarkBuddy team
           </p>
         </div>
