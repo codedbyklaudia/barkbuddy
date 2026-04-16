@@ -110,8 +110,8 @@ const generateVerificationEmailHtml = (
           <tr>
             <td style="background:linear-gradient(135deg,#3a2f51 0%,#b79ebe 100%);padding:36px 40px;text-align:center;">
               <div style="font-size:30px;margin-bottom:8px;">🐾</div>
-              <h1 style="color:#f7f7f7;font-size:26px;font-weight:400;letter-spacing:0.04em;margin:0;">BarkBuddy for Business</h1>
-              <p style="color:rgba(247,247,247,0.75);font-size:14px;margin:6px 0 0;">
+              <h1 style="color:#3a2f51;font-size:35px;font-weight:400;letter-spacing:0.04em;margin:0;">BarkBuddy for Business</h1>
+              <p style="color:#3a2f51; font-size:25px; margin:6px 0 0;">
                 ${isActivity ? "Application Received" : "Welcome aboard!"}
               </p>
             </td>
@@ -120,25 +120,25 @@ const generateVerificationEmailHtml = (
           <!-- Body -->
           <tr>
             <td style="padding:40px 40px 32px;">
-              <p style="color:#1e1b4b;font-size:15px;margin:0 0 12px;">
+              <p style="color:#141414;font-size:15px;margin:0 0 12px;">
                 Hi <strong>${name}</strong>,
               </p>
 
               ${isActivity ? `
-              <p style="color:#4b5563;font-size:14px;line-height:1.7;margin:0 0 16px;">
+              <p style="color:#141414;font-size:18px;line-height:1.7;margin:0 0 16px;">
                 Thank you for applying to list <strong>${businessName}</strong> on BarkBuddy!
                 We've received your application and our team will review your document within <strong>72 hours</strong>.
               </p>
-              <p style="color:#4b5563;font-size:14px;line-height:1.7;margin:0 0 24px;">
+              <p style="color:#141414;font-size:18px;line-height:1.7;margin:0 0 24px;">
                 Before we can process your application, please verify your email address by clicking the button below.
               </p>
               ` : `
-              <p style="color:#4b5563;font-size:14px;line-height:1.7;margin:0 0 16px;">
+              <p style="color:#141414;font-size:18px;line-height:1.7;margin:0 0 16px;">
                 You're almost live on BarkBuddy! We just need to verify your email address before
                 <strong>${businessName}</strong> goes live in our directory.
               </p>
-              <p style="color:#4b5563;font-size:14px;line-height:1.7;margin:0 0 24px;">
-                Click the button below to confirm your email — this link expires in <strong>24 hours</strong>.
+              <p style="color:#141414;font-size:18px;line-height:1.7;margin:0 0 24px;">
+                Click the button below to confirm your email - this link expires in <strong>24 hours</strong>.
               </p>
               `}
 
@@ -147,7 +147,7 @@ const generateVerificationEmailHtml = (
                 <tr>
                   <td align="center" style="padding:8px 0 28px;">
                     <a href="${verifyUrl}"
-                       style="display:inline-block;background:linear-gradient(135deg,#3a2f51,#b79ebe);color:#ffffff;text-decoration:none;font-size:14px;font-weight:600;padding:14px 40px;border-radius:50px;letter-spacing:0.03em;">
+                       style="display:inline-block;background:#3a2f51;color:#f7f7f7;text-decoration:none;font-size:20px;font-weight:600;padding:14px 40px;border-radius:20px;letter-spacing:0.03em;">
                       Verify My Email
                     </a>
                   </td>
@@ -155,10 +155,10 @@ const generateVerificationEmailHtml = (
               </table>
 
               <!-- Fallback URL -->
-              <p style="color:#6b7280;font-size:12px;line-height:1.5;margin:0 0 8px;">
+              <p style="color:#141414;font-size:18px;line-height:1.5;margin:0 0 8px;">
                 Or copy and paste this link into your browser:
               </p>
-              <p style="background:#f4f1fb;border-radius:8px;padding:10px 14px;font-size:11px;color:#3a2f51;word-break:break-all;margin:0 0 24px;">
+              <p style="background:#f4f1fb;border-radius:8px;padding:10px 14px;font-size:20px;color:#3a2f51;word-break:break-all;margin:0 0 24px;">
                 ${verifyUrl}
               </p>
 
@@ -190,8 +190,8 @@ const generateVerificationEmailHtml = (
 
           <!-- Footer -->
           <tr>
-            <td style="background:#f9fafb;padding:20px 40px;text-align:center;border-top:1px solid #f3f4f6;">
-              <p style="color:#9ca3af;font-size:11px;margin:0;">
+            <td style="background:#f7f7f7;padding:20px 40px;text-align:center;border-top:1px solid #f3f4f6;">
+              <p style="color:#3a2f51;font-size:11px;margin:0;">
                 © ${new Date().getFullYear()} BarkBuddy · Made with 🐾 for dog lovers
               </p>
             </td>
@@ -205,7 +205,7 @@ const generateVerificationEmailHtml = (
 </html>
 `;
 
-// ─── POST /api/business/register/service ─────────────────────────────────────
+// POST /api/business/register/service
 router.post(
   "/register/service",
   upload.single("photo"),
@@ -309,7 +309,7 @@ router.post(
   }
 );
 
-// ─── POST /api/business/register/activity ────────────────────────────────────
+// POST /api/business/register/activity
 router.post(
   "/register/activity",
   upload.fields([{ name: "document", maxCount: 1 }, { name: "photo", maxCount: 1 }]),
@@ -351,7 +351,6 @@ router.post(
       const passwordHash = await bcrypt.hash(password, 12);
       const coords = await geocodeUKAddress(address, postcode).catch(() => null);
 
-      // Save document to local disk BEFORE transaction — required data, early failure is correct
       let docFileName: string;
       let docFilePath: string;
       try {
@@ -437,7 +436,7 @@ router.post(
   }
 );
 
-// ─── GET /api/business/verify-email ──────────────────────────────────────────
+// GET /api/business/verify-email
 router.get("/verify-email", async (req: Request, res: Response): Promise<void> => {
   const { token } = req.query as { token: string };
 
@@ -498,9 +497,7 @@ router.get("/verify-email", async (req: Request, res: Response): Promise<void> =
     client.release();
   }
 });
-
-
-// ─── GET /api/business/check-email ────────────────────────────────────────────
+// GET /api/business/check-email
 router.get("/check-email", async (req: Request, res: Response): Promise<void> => {
   const { email } = req.query as { email: string };
   if (!email) { res.json({ available: false }); return; }

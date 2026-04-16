@@ -492,8 +492,8 @@
   gap: $space-md;
   flex-wrap: wrap;
   margin-top: $space-sm;
-  width: 100%; // ← add this
-  justify-content: center; // ← add this explicitly
+  width: 100%;
+  justify-content: center; 
 
   @media (max-width: $bp-mobile) {
     flex-direction: column;
@@ -523,7 +523,7 @@
 
   &--ghost {
     background: transparent;
-    color: rgba($soft-pearl, 0.5);
+    color: $soft-pearl;
     border-bottom: 1px solid rgba($soft-pearl, 0.2);
     border-radius: 0;
     padding: 12px 0;
