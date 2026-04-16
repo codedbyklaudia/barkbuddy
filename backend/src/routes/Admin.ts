@@ -461,7 +461,8 @@ const rejectionEmailHtml = (
       <table width="520" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(91,33,182,0.08);">
         <tr>
           <td style="background:linear-gradient(135deg,#2d1b69 0%,#5b21b6 100%);padding:36px 40px;text-align:center;">
-            <h1 style="color:#ede9fe;font-size:30px;font-weight:400;letter-spacing:0.04em;margin:0;">BarkBuddy for Business</h1>
+            <div style="font-size:30px;margin-bottom:8px;">🐾</div>
+            <h1 style="color:#3a2f51;font-size:30px;font-weight:400;letter-spacing:0.04em;margin:0;">BarkBuddy for Business</h1>
             <p style="color:$3a2f51;font-size:22px;margin:6px 0 0;">Application Update</p>
           </td>
         </tr>
@@ -481,14 +482,14 @@ const rejectionEmailHtml = (
               If you believe this is an error or would like to reapply with additional information,
               please reply to this email or contact us at paws@barkbuddy.org.uk
             </p>
-            <p style="color:#9ca3af;font-size:12px;line-height:1.5;margin:0;border-top:1px solid #f3f4f6;padding-top:20px;">
+            <p style="color:#9ca3af;font-size:15px;line-height:1.5;margin:0;border-top:1px solid #f3f4f6;padding-top:20px;">
               We appreciate your interest in BarkBuddy and wish you all the best.
             </p>
           </td>
         </tr>
         <tr>
           <td style="background:#f9fafb;padding:20px 40px;text-align:center;border-top:1px solid #f3f4f6;">
-            <p style="color:#9ca3af;font-size:14px;margin:0;">© ${new Date().getFullYear()} BarkBuddy · Made with 🐾 for dog lovers</p>
+            <p style="color:#9ca3af;font-size:15px;margin:0;">© ${new Date().getFullYear()} BarkBuddy · Made with 🐾 for dog lovers</p>
           </td>
         </tr>
       </table>
