@@ -173,6 +173,7 @@
   @include relative;
   z-index: 1;
   width: 100%;
+  min-height: 100vh;
   box-sizing: border-box;
 
   @media (max-width: $bp-tablet) {
