@@ -406,32 +406,32 @@ const approvalEmailHtml = (
       <table width="520" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(91,33,182,0.08);">
         <tr>
           <td style="background:linear-gradient(135deg,#2d1b69 0%,#5b21b6 100%);padding:36px 40px;text-align:center;">
-            <div style="font-size:32px;margin-bottom:8px;">🎉</div>
-            <h1 style="color:#ede9fe;font-size:22px;font-weight:400;letter-spacing:0.04em;margin:0;">You're live on BarkBuddy!</h1>
-            <p style="color:rgba(237,233,254,0.65);font-size:13px;margin:6px 0 0;">${businessName} has been approved</p>
+            <div style="font-size:35px;margin-bottom:8px;">🐾</div>
+            <h1 style="color:#3a2f51;font-size:30px;font-weight:400;letter-spacing:0.04em;margin:0;">You're live on BarkBuddy!</h1>
+            <p style="color:#3a2f51;font-size:22px;margin:6px 0 0;">${businessName} has been approved</p>
           </td>
         </tr>
         <tr>
           <td style="padding:40px 40px 32px;">
-            <p style="color:#1e1b4b;font-size:15px;margin:0 0 16px;">Hi <strong>${name}</strong>,</p>
-            <p style="color:#4b5563;font-size:14px;line-height:1.7;margin:0 0 24px;">
-              Great news — <strong>${businessName}</strong> has been ${isActivity ? "verified and approved" : "approved"} and is now listed on BarkBuddy. Dog owners in your area can find you right now! 🐾
+            <p style="color:#141414;font-size:18px;margin:0 0 16px;">Hi <strong>${name}</strong>,</p>
+            <p style="color:#141414;font-size:18px;line-height:1.7;margin:0 0 24px;">
+              Great news - <strong>${businessName}</strong> has been ${isActivity ? "verified and approved" : "approved"} and is now listed on BarkBuddy. Dog owners in your area can find you right now! 🐾
             </p>
             <div style="background:#f4f1fb;border:2px solid #7c3aed;border-radius:12px;padding:24px;margin:0 0 28px;text-align:center;">
-              <p style="font-size:12px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#7c3aed;margin:0 0 10px;">Your login username</p>
+              <p style="font-size:18px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#7c3aed;margin:0 0 10px;">Your login username</p>
               <p style="font-size:26px;font-weight:700;color:#2d1b69;letter-spacing:0.06em;margin:0 0 10px;font-family:monospace;">${username}</p>
-              <p style="font-size:12px;color:#6b7280;margin:0;">Save this — you'll need it to log in to your dashboard</p>
+              <p style="font-size:18px;color:#6b7280;margin:0;">Save this - you'll need it to log in to your dashboard</p>
             </div>
-            <p style="color:#4b5563;font-size:14px;line-height:1.7;margin:0 0 8px;">
+            <p style="color:#4b5563;font-size:18px;line-height:1.7;margin:0 0 8px;">
               Use your username + the password you set during registration to log in at:
             </p>
             <p style="margin:0 0 24px;">
-              <a href="${CLIENT_URL}/#/business/login" style="color:#5b21b6;font-size:14px;">${CLIENT_URL}/#/business/login</a>
+              <a href="${CLIENT_URL}/#/business/login" style="color:#5b21b6;font-size:18px;">${CLIENT_URL}/#/business/login</a>
             </p>
-            <p style="color:#6b7280;font-size:13px;line-height:1.6;margin:0 0 8px;">
+            <p style="color:#6b7280;font-size:18px;line-height:1.6;margin:0 0 8px;">
               From your dashboard you can manage your listing, update your details, and change your username at any time in Settings.
             </p>
-            <p style="color:#9ca3af;font-size:12px;line-height:1.5;margin:24px 0 0;border-top:1px solid #f3f4f6;padding-top:20px;">
+            <p style="color:#9ca3af;font-size:18px;line-height:1.5;margin:24px 0 0;border-top:1px solid #f3f4f6;padding-top:20px;">
               If you have any questions, reply to this email or contact us at paws@barkbuddy.org.uk
             </p>
           </td>
