@@ -420,7 +420,7 @@ const approvalEmailHtml = (
             <div style="background:#f4f1fb;border:2px solid #7c3aed;border-radius:12px;padding:24px;margin:0 0 28px;text-align:center;">
               <p style="font-size:18px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#7c3aed;margin:0 0 10px;">Your login username</p>
               <p style="font-size:26px;font-weight:700;color:#2d1b69;letter-spacing:0.06em;margin:0 0 10px;font-family:monospace;">${username}</p>
-              <p style="font-size:18px;color:#6b7280;margin:0;">Save this - you'll need it to log in to your dashboard</p>
+              <p style="font-size:16px;color:#6b7280;margin:0;">Save this - you'll need it to log in to your dashboard</p>
             </div>
             <p style="color:#4b5563;font-size:18px;line-height:1.7;margin:0 0 8px;">
               Use your username + the password you set during registration to log in at:
