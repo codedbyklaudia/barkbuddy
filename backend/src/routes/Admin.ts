@@ -455,29 +455,29 @@ const rejectionEmailHtml = (
 <!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background:#f4f1fb;font-family:'Segoe UI',sans-serif;">
+<body style="margin:0;padding:0;background:#f7f7f7;font-family:'Marcellus',serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f1fb;padding:40px 20px;">
     <tr><td align="center">
       <table width="520" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(91,33,182,0.08);">
         <tr>
           <td style="background:linear-gradient(135deg,#2d1b69 0%,#5b21b6 100%);padding:36px 40px;text-align:center;">
-            <h1 style="color:#ede9fe;font-size:22px;font-weight:400;letter-spacing:0.04em;margin:0;">BarkBuddy for Business</h1>
-            <p style="color:rgba(237,233,254,0.65);font-size:13px;margin:6px 0 0;">Application Update</p>
+            <h1 style="color:#ede9fe;font-size:30px;font-weight:400;letter-spacing:0.04em;margin:0;">BarkBuddy for Business</h1>
+            <p style="color:$3a2f51;font-size:22px;margin:6px 0 0;">Application Update</p>
           </td>
         </tr>
         <tr>
           <td style="padding:40px 40px 32px;">
-            <p style="color:#1e1b4b;font-size:15px;margin:0 0 16px;">Hi <strong>${name}</strong>,</p>
-            <p style="color:#4b5563;font-size:14px;line-height:1.7;margin:0 0 16px;">
+            <p style="color:#1e1b4b;font-size:18px;margin:0 0 16px;">Hi <strong>${name}</strong>,</p>
+            <p style="color:#141414;font-size:18px;line-height:1.7;margin:0 0 16px;">
               Thank you for applying to list <strong>${businessName}</strong> on BarkBuddy.
               After reviewing your application, we're unable to approve it at this time.
             </p>
             ${reason ? `
             <div style="background:#fef2f2;border-left:3px solid #ef4444;border-radius:0 8px 8px 0;padding:14px 18px;margin:0 0 20px;">
-              <p style="font-size:13px;font-weight:600;color:#991b1b;margin:0 0 6px;">Reason</p>
-              <p style="font-size:14px;color:#7f1d1d;margin:0;line-height:1.6;">${reason}</p>
+              <p style="font-size:18px;font-weight:600;color:#991b1b;margin:0 0 6px;">Reason</p>
+              <p style="font-size:20px;color:#7f1d1d;margin:0;line-height:1.6;">${reason}</p>
             </div>` : ""}
-            <p style="color:#4b5563;font-size:14px;line-height:1.7;margin:0 0 24px;">
+            <p style="color:#141414;font-size:18px;line-height:1.7;margin:0 0 24px;">
               If you believe this is an error or would like to reapply with additional information,
               please reply to this email or contact us at paws@barkbuddy.org.uk
             </p>
@@ -488,7 +488,7 @@ const rejectionEmailHtml = (
         </tr>
         <tr>
           <td style="background:#f9fafb;padding:20px 40px;text-align:center;border-top:1px solid #f3f4f6;">
-            <p style="color:#9ca3af;font-size:11px;margin:0;">© ${new Date().getFullYear()} BarkBuddy · Made with 🐾 for dog lovers</p>
+            <p style="color:#9ca3af;font-size:14px;margin:0;">© ${new Date().getFullYear()} BarkBuddy · Made with 🐾 for dog lovers</p>
           </td>
         </tr>
       </table>
