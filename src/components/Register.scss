@@ -255,6 +255,8 @@
     letter-spacing: 0.03em;
     color-scheme: light;
     padding: 0.7rem $space-md;
+    min-width: 0;    
+    max-width: 100%; 
 
     @media (max-width: $bp-mobile) { font-size: 16px; }
 
@@ -333,6 +335,7 @@
   flex: 1;
   @include flex-column;
   align-items: center;
+  min-height: 100dvh;
   justify-content: center;
   padding: 8rem $space-md 6rem;
   @include relative;
@@ -593,6 +596,10 @@
   @include relative;
   z-index: 1;
   min-height: 100vh;
+  @media (max-width: $bp-tablet) {
+    display: flex;
+    flex-direction: column;
+  }
 }
 
 .split-image {
@@ -660,8 +667,10 @@
     width: 100%;
     flex: 1;
     overflow: visible;
+    background: $soft-pearl; 
+    min-height: calc(100vh - 380px);
   }
-  @media (max-width: $bp-mobile) { padding: $space-lg $space-md 6rem; }
+  @media (max-width: $bp-mobile) { padding: $space-lg $space-md 6rem; min-height: calc(100vh - 280px); }
 }
 
 .step-heading {
@@ -908,7 +917,9 @@
   @media (max-width: $bp-mobile) {
     flex-direction: column;
     gap: $space-xs;
-    .dob-field-wrap { width: 100%; }
+    .dob-field-wrap { width: 100%; min-width: 0;
+    max-width: 100%;  
+    overflow: hidden;   }
     .dob-unknown-btn { width: 100%; text-align: center; }
   }
 }
