@@ -914,13 +914,21 @@
     &.dob-disabled { opacity: 0.4; pointer-events: none; }
   }
 
-  @media (max-width: $bp-mobile) {
+  @media (max-width: 1180px) {
     flex-direction: column;
     gap: $space-xs;
-    .dob-field-wrap { width: 100%; min-width: 0;
-    max-width: 100%;  
-    overflow: hidden;   }
-    .dob-unknown-btn { width: 100%; text-align: center; }
+
+    .dob-field-wrap {
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
+      overflow: hidden;
+    }
+
+    .dob-unknown-btn {
+      width: 100%;
+      text-align: center;
+    }
   }
 }
 
@@ -1552,12 +1560,18 @@
 }
 
 .otp-input-row {
-  display: flex;
   gap: $space-sm;
-  justify-content: center;
+  @include flex-center;
   margin: $space-md 0 $space-xs;
+  width: 100%;
 
-  @media (max-width: $bp-mobile) { gap: $space-xs; }
+  @media (max-width: 1180px) {
+    gap: 8px;
+  }
+
+  @media (max-width: $bp-mobile) {
+    gap: 6px;
+  }
 }
 
 .otp-box {
@@ -1571,9 +1585,13 @@
   font-weight: $fw-medium;
   color: $twilight-purple;
   text-align: center;
+  display: block; 
+  padding: 0 !important;
+  line-height: 1;
   outline: none;
   transition: all 0.18s ease;
   caret-color: $serene-purple;
+  flex-shrink: 0; 
 
   &::placeholder { color: rgba($gentle-amethyst, 0.3); }
 
@@ -1597,7 +1615,26 @@
 
   &:disabled { opacity: 0.5; cursor: not-allowed; }
 
-  @media (max-width: $bp-mobile) { width: 42px; height: 54px; font-size: 1.3rem; }
+  // tablet
+  @media (max-width: 1180px) {
+    width: 48px;
+    height: 58px;
+    font-size: 1.4rem;
+  }
+
+  // mobile
+  @media (max-width: $bp-mobile) {
+    width: 40px;
+    height: 50px;
+    font-size: 1.2rem;
+  }
+
+  // very small phones
+  @media (max-width: 380px) {
+    width: 34px;
+    height: 44px;
+    font-size: 1.1rem;
+  }
 }
 
 @keyframes digitPop {

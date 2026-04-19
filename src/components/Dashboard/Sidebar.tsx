@@ -27,9 +27,12 @@ function IconPlatform({ size = 20 }: { size?: number }) {
 function IconClose({ size = 20 }: { size?: number }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
 }
-
+// Cloudinary optimizer
+const clImg = (url: string, width = 120) =>
+  url?.includes('cloudinary.com')
+    ? url.replace('/upload/', `/upload/f_auto,q_auto,w_${width}/`)
+    : url;
 // Nav config
-
 const NAV_ITEMS = [
   { key: "home",     label: "Dashboard",      icon: IconHome     },
   { key: "dog",      label: "My Dog",         icon: IconDog      },
@@ -86,7 +89,14 @@ export const MobileTopNav: React.FC<{
         <div className="mob-nav-user">
           <div className="mob-nav-avatar">
             {userAvatar
-              ? <img src={userAvatar} alt={userName ?? "User"} />
+              ? <img
+                  src={userAvatar}
+                  alt={userName ?? "User"}
+                  loading="lazy"
+                  decoding="async"
+                  width={1}
+                  height={1}
+                />
               : <span>{(userName ?? "U").charAt(0).toUpperCase()}</span>}
           </div>
           <div className="mob-nav-user-info">
@@ -174,7 +184,10 @@ export const Sidebar: React.FC<{
       <div className="db-sidebar-user">
         <div className="db-sidebar-avatar">
           {userAvatar
-            ? <img src={userAvatar} alt={userName ?? "User"} />
+            ? <img src={userAvatar} alt={userName ?? "User"} loading="lazy"
+                  decoding="async"
+                  width={1}
+                  height={1} />
             : <span>{(userName ?? "U").charAt(0).toUpperCase()}</span>}
         </div>
         <span className="db-sidebar-username">{userName ?? ""}</span>

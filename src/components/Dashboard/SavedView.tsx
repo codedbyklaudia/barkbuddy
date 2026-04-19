@@ -120,7 +120,10 @@ const TipCard: React.FC<{
         {/* Icon */}
         <div className="sv-card__icon" style={{ background: cat.bg, color: cat.accent }}>
           {item.icon
-            ? <img src={item.icon} alt="" className="sv-card__icon-img" />
+            ? <img src={item.icon} alt="" className="sv-card__icon-img" loading="lazy"
+                  decoding="async"
+                  width={1}
+                  height={1} />
             : Ico.tip(20)}
         </div>
 

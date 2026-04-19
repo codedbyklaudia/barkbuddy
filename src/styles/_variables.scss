@@ -21,6 +21,7 @@ $input-color: $misty-lavender;
   font-family: 'Fredoka';
   src: url('../Fonts/Fredoka/Fredoka-font.ttf') format('truetype');
   font-weight: normal;
+  font-display: swap;
   font-style: normal;
 }
 $font-secondary: 'Fredoka', sans-serif;
@@ -29,6 +30,7 @@ $font-secondary: 'Fredoka', sans-serif;
   font-family: 'Marcellus';
   src: url('../Fonts/Marcellus/Marcellus-Regular.ttf') format('truetype');
   font-weight: normal;
+  font-display: swap;
   font-style: normal;
 }
 $font-primary: 'Marcellus', serif;

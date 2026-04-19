@@ -371,6 +371,10 @@ const BreedFactCard: React.FC<{ breed: string; dogName?: string }> = ({ breed })
           <img
             src={imgError ? FALLBACK : data.photo}
             alt={breed}
+            loading="lazy"
+            decoding="async"
+            width={4}
+            height={3}
             onError={() => setImgError(true)}
           />
         </div>
@@ -383,7 +387,14 @@ const BreedFactCard: React.FC<{ breed: string; dogName?: string }> = ({ breed })
           onClick={() => setDismissed(true)}
           aria-label="Dismiss fact"
         >
-          <img src="../../images/icons/close1.svg" alt="close" width="20" height="20" />
+          <img
+            src="../../images/icons/close1.svg"
+            alt="close"
+            width={20}
+            height={20}
+            loading="lazy"
+            decoding="async"
+          />
         </button>
       </div>
     </div>
@@ -451,11 +462,26 @@ const Step1: React.FC<{
   return (
     <div className="step-content step1-layout">
       <div className="step1-mascot-mobile" aria-hidden="true">
-        <img src="../../images/dog-register.svg" alt="" />
+        <img
+          src="../../images/dog-register.svg"
+          alt=""
+          loading="eager"
+          decoding="sync"
+          width={1}
+          height={1}
+        />
       </div>
       <div className="step1-card">
         <div className="step1-header">
-          <img className="step1-mascot" src="../../images/dog-register.svg" alt="dog mascot" />
+          <img
+            className="step1-mascot"
+            src="../../images/dog-register.svg"
+            alt="dog mascot"
+            loading="eager"
+            decoding="sync"
+            width={1}
+            height={1}
+          />
           <h1 className="step1-title">Join Our Family</h1>
           <p className="step1-sub">
             4 quick steps: you, your dog's details (obviously),
@@ -561,7 +587,14 @@ const Step2: React.FC<{
   return (
     <div className="step-content split-layout">
       <div className="split-image">
-        <img src="https://images.unsplash.com/photo-1601979031925-424e53b6caaa?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="fluffy dog" />
+        <img
+          src="https://images.unsplash.com/photo-1601979031925-424e53b6caaa?q=80&w=687&auto=format&fit=crop"
+          alt="fluffy dog"
+          loading="lazy"
+          decoding="async"
+          width={4}
+          height={3}
+        />
         <div className="image-overlay" />
       </div>
       <div className="split-form">
@@ -693,7 +726,14 @@ const Step3: React.FC<{
   return (
     <div className="step-content split-layout">
       <div className="split-image">
-        <img src="https://plus.unsplash.com/premium_photo-1666229410352-c4686b71cea2?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="fluffy dog" />
+        <img
+          src="https://plus.unsplash.com/premium_photo-1666229410352-c4686b71cea2?q=80&w=687&auto=format&fit=crop"
+          alt="fluffy dog"
+          loading="lazy"
+          decoding="async"
+          width={4}
+          height={3}
+        />
         <div className="image-overlay" />
       </div>
       <div className="split-form">
@@ -706,7 +746,10 @@ const Step3: React.FC<{
         </label>
 
         <div className="dob-row">
-          <div className={`field-wrap dob-field-wrap ${dobUnknown ? "dob-disabled" : ""}`} onClick={() => !dobUnknown && dobRef.current?.showPicker()}>
+          <div className={`field-wrap dob-field-wrap ${dobUnknown ? "dob-disabled" : ""}`} onClick={() => {
+              if (dobUnknown) return;
+              try { dobRef.current?.showPicker(); } catch { /* iOS doesn't support showPicker */ }
+            }}>
             <input ref={dobRef} className={`field-input lavender calendar-input ${errors.dogDob ? "error" : ""}`} type="date" value={data.dogDob} disabled={dobUnknown} onChange={(e) => handleDobChange(e.target.value)} />
             <FieldError error={errors.dogDob} />
           </div>
@@ -723,7 +766,15 @@ const Step3: React.FC<{
         <div className="life-stage-grid">
           {LIFE_STAGES.map((s) => (
             <button key={s.key} type="button" className={`life-stage-card ${data.lifeStage === s.key ? "selected" : ""}`} onClick={() => onChange("lifeStage", s.key)}>
-              <img src={s.icon} alt={s.label} className="ls-icon" />
+              <img
+                src={s.icon}
+                alt={s.label}
+                className="ls-icon"
+                loading="lazy"
+                decoding="async"
+                width={1}
+                height={1}
+              />
               <span className="ls-label">{s.label}</span>
               <span className="ls-age">{s.age}</span>
             </button>
@@ -770,6 +821,10 @@ const Step3: React.FC<{
                         <img
                           src={opt.img}
                           alt={opt.label}
+                          loading="lazy"
+                          decoding="async"
+                          width={1}
+                          height={1}
                           onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                         />
                         <span>{opt.label}</span>
@@ -823,6 +878,10 @@ const Step4: React.FC<{
               src="../../images/paint/male_icon.png"
               alt="male dog"
               className="gender-icon"
+              loading="lazy"
+              decoding="async"
+              width={1}
+              height={1}
               style={{ pointerEvents: "none" }}
             />
             <span className="gender-label" style={{ pointerEvents: "none" }}>Boy</span>
@@ -836,6 +895,10 @@ const Step4: React.FC<{
               src="../../images/paint/female_icon.png"
               alt="female dog"
               className="gender-icon"
+              loading="lazy"
+              decoding="async"
+              width={1}
+              height={1}
               style={{ pointerEvents: "none" }}
             />
             <span className="gender-label" style={{ pointerEvents: "none" }}>Girl</span>
@@ -862,7 +925,14 @@ const Step5: React.FC<{
   return (
     <div className="step-content split-layout">
       <div className="split-image">
-        <img src="https://images.unsplash.com/photo-1662279058026-b16f21310354?q=80&w=734&auto=format&fit=crop" alt="fluffy dog" />
+        <img
+          src="https://images.unsplash.com/photo-1662279058026-b16f21310354?q=80&w=734&auto=format&fit=crop"
+          alt="fluffy dog"
+          loading="lazy"
+          decoding="async"
+          width={4}
+          height={3}
+        />
         <div className="image-overlay" />
       </div>
       <div className="split-form">

@@ -8,6 +8,7 @@ import type { TravelDirection } from './TravelFlow/types';
 import ArticleTravelBags from './Articles/Articletravelbags';
 import ArticleFeeding    from './Articles/ArticleFeeding';
 import ArticleAnxiety    from './Articles/ArticleAnxiety';
+import { ChevronsRight } from 'lucide-react';
 
 type View = 'travel' | 'article-bags' | 'article-feeding' | 'article-anxiety';
 
@@ -25,7 +26,16 @@ const IntentCard: React.FC<IntentCardProps> = ({ title, description, mapImage, o
     <h2 className="intent-card__title">{title}</h2>
     <p className="intent-card__desc">{description}</p>
     <div className="intent-card__map">
-      <img src={mapImage} alt="" className="intent-card__map-img" aria-hidden="true" />
+      <img
+        src={mapImage}
+        alt=""
+        className="intent-card__map-img"
+        aria-hidden="true"
+        loading="lazy"
+        decoding="async"
+        width={4}
+        height={3}
+      />
     </div>
     <div className="intent-card__footer">
       <span className="intent-card__arrow" aria-hidden="true"><ArrowIcon /></span>
@@ -39,7 +49,15 @@ interface ArticleCardProps {
 const ArticleCard: React.FC<ArticleCardProps> = ({ image, title, onClick }) => (
   <div className="article-card" role="button" tabIndex={0} onClick={onClick} onKeyDown={e => e.key === 'Enter' && onClick()}>
     <div className="article-card__img">
-      <img src={image} alt="" aria-hidden="true" />
+      <img
+        src={image}
+        alt=""
+        aria-hidden="true"
+        loading="lazy"
+        decoding="async"
+        width={16}
+        height={9}
+      />
     </div>
     <div className="article-card__body">
       <p className="article-card__title">{title}</p>
@@ -93,7 +111,7 @@ const TravelPage: React.FC<TravelPageProps> = ({ onFlowChange }) => {
             <div className="travel-hero__ctas">
               <button className="travel-hero__cta travel-hero__cta--primary" onClick={() => openFlow('from-uk')}>
                 Get started
-                <i className="bi bi-chevron-double-right"></i>
+                <ChevronsRight/>
 
               </button>
               <button className="travel-hero__cta travel-hero__cta--ghost"
@@ -104,7 +122,15 @@ const TravelPage: React.FC<TravelPageProps> = ({ onFlowChange }) => {
           </div>
         </div>
         <div className="travel-hero__right">
-          <img className="travel-hero__image" src="../images/Travelling.webp" alt="Person travelling and looking at mountains with their dog" />
+          <img
+            className="travel-hero__image"
+            src="../images/Travelling.webp"
+            alt="Person travelling and looking at mountains with their dog"
+            loading="eager"
+            decoding="sync"
+            width={16}
+            height={9}
+          />
         </div>
       </section>
 

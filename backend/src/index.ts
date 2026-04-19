@@ -70,8 +70,17 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Static uploads
-app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+// Static uploads — with long-term cache headers
+app.use("/uploads", express.static(path.join(__dirname, "../uploads"), {
+  maxAge: "1y",
+  immutable: true,
+}));
+
+// Static assets — with long-term cache headers
+app.use("/assets", express.static(path.join(__dirname, "../assets"), {
+  maxAge: "1y",
+  immutable: true,
+}));
 
 // Health check
 app.get("/api/health", (_req, res) => {

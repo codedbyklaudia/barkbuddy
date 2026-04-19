@@ -57,7 +57,17 @@ const BusinessResetPassword: React.FC = () => {
 
           {tokenValid === false && (
             <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: "2.5rem", marginBottom: "1rem" }}><img style={{ width: "15%", height: "15%" }} src="../../images/icons/error.svg"></img></div>
+              <div style={{ fontSize: "2.5rem", marginBottom: "1rem" }}>
+                <img
+                  src="../../images/icons/error.svg"
+                  alt="Error"
+                  style={{ width: "15%", height: "15%" }}
+                  loading="lazy"
+                  decoding="async"
+                  width={1}
+                  height={1}
+                />
+              </div>
               <h2 style={{ fontFamily: "Marcellus, serif", fontWeight: 600, color: "#3a2f51", marginBottom: "3rem" }}>
                 Link expired or invalid
               </h2>

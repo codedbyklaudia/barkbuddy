@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './ForumPolicy.scss';
 import Footer from "../Footer";
+import {
+  ShieldCheck, Calendar, RefreshCw, ArrowLeft, Mail, Flag,
+  Building2, MapPin,
+} from 'lucide-react';
 
 interface Section {
   id: string;
@@ -59,15 +63,15 @@ const ForumPolicy: React.FC = () => {
           </h1>
           <div className="policy-hero__meta">
             <span className="policy-hero__badge">
-              <i className="bi bi-shield-check" />
+              <ShieldCheck size={13} />
               UK Compliant
             </span>
             <span className="policy-hero__badge">
-              <i className="bi bi-calendar3" />
+              <Calendar size={13} />
               Effective: January 2026
             </span>
             <span className="policy-hero__badge">
-              <i className="bi bi-arrow-clockwise" />
+              <RefreshCw size={13} />
               Last Updated: March 2026
             </span>
           </div>
@@ -78,7 +82,7 @@ const ForumPolicy: React.FC = () => {
       <div className="policy-date-bar">
         <p>By using the BarkBuddy Forum you agree to this policy, our <strong>Terms of Service</strong>, and our <strong>Privacy Policy</strong>.</p>
         <Link to="/forum" className="policy-date-bar__back">
-          <i className="bi bi-arrow-left" /> Back to Homepage
+          <ArrowLeft size={14} /> Back to Homepage
         </Link>
       </div>
 
@@ -237,11 +241,11 @@ const ForumPolicy: React.FC = () => {
               <p>If you believe content breaches this Policy or UK law, please report it using the Forum reporting tool or contact us directly. We will review all reports in a timely and reasonable manner.</p>
               <div className="policy-contact">
                 <div className="policy-contact__row">
-                  <i className="bi bi-envelope" />
+                  <Mail size={15} />
                   <span>Email: <a href="mailto:paws@barkbuddy.org.uk">paws@barkbuddy.org.uk</a></span>
                 </div>
                 <div className="policy-contact__row">
-                  <i className="bi bi-flag" />
+                  <Flag size={15} />
                   <span>Use the <strong>Report</strong> button on any Forum post</span>
                 </div>
               </div>
@@ -291,15 +295,15 @@ const ForumPolicy: React.FC = () => {
               <p>For any questions relating to this Policy, please contact us:</p>
               <div className="policy-contact">
                 <div className="policy-contact__row">
-                  <i className="bi bi-building" />
+                  <Building2 size={15} />
                   <span><strong>BarkBuddy</strong></span>
                 </div>
                 <div className="policy-contact__row">
-                  <i className="bi bi-geo-alt" />
+                  <MapPin size={15} />
                   <span>London, United Kingdom</span>
                 </div>
                 <div className="policy-contact__row">
-                  <i className="bi bi-envelope" />
+                  <Mail size={15} />
                   <span><a href="mailto:paws@barkbuddy.org.uk">paws@barkbuddy.org.uk</a></span>
                 </div>
               </div>

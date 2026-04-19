@@ -9,7 +9,7 @@ import DashboardView from './DashboardView';
 import Sidebar, { MobileTopNav } from './Sidebar';
 import SettingsView from './SettingsView';
 import SavedView from './SavedView';
-import logoSrc from "../../../images/logo.png";
+import logoSrc from "../../../images/logo.webp";
 import { Logs } from "lucide-react";
 
 
@@ -74,6 +74,11 @@ async function safeGetNotifications(token: string): Promise<AppNotification[]> {
 async function safeMarkRead(token: string, ids: string[]): Promise<void> {
   try { await markNotificationsRead(token, ids); } catch { /* silent */ }
 }
+// Cloudinary optimizer
+const clImg = (url: string, width = 120) =>
+  url?.includes('cloudinary.com')
+    ? url.replace('/upload/', `/upload/f_auto,q_auto,w_${width}/`)
+    : url;
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();

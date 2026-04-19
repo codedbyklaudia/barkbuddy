@@ -9,7 +9,15 @@ const Footer: React.FC = () => {
         {/* Logo Section */}
         <div className="footer__brand">
           <div className="footer__logo">
-            <img src="../../images/logo.png" alt="BarkBuddy" className="footer__logo-img" />
+            <img
+              src="../../images/logo.webp"
+              alt="BarkBuddy"
+              className="footer__logo-img"
+              loading="lazy"
+              decoding="async"
+              width={1}
+              height={1}
+            />
           </div>
           <div className="footer__social">
             <a href="https://www.tiktok.com/@bark.buddy.uk" className="footer__social-link" aria-label="TikTok">

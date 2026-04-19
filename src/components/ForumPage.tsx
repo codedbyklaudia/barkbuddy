@@ -8,6 +8,11 @@ import {
   likeComment, unlikeComment,
   type ForumPost, type ForumComment,
 } from '../api/Forum';
+import {
+  ChevronsRight, Search, X, Flag, Trash2, ArrowLeft,
+  Plus, CheckCircle, AlertCircle, Quote, Check,
+  MessageSquare, Lock, Pencil, BoxSelect, ExternalLink,
+} from 'lucide-react';
 
 const API_BASE: string = import.meta.env.VITE_API_URL ?? 'http://localhost:4000/api';
 
@@ -94,7 +99,7 @@ const ForumLocked: React.FC = () => (
     </div>
     <div className="forum-locked__overlay" />
     <div className="forum-locked__card">
-      <div className="forum-locked__icon"><i className="bi bi-chat-heart" /></div>
+      <div className="forum-locked__icon"><MessageSquare size={32} /></div>
       <h1 className="forum-locked__title">Join the Community</h1>
       <p className="forum-locked__sub">
         The BarkBuddy Forum is where dog owners share advice, ask questions, and support each other.
@@ -115,7 +120,9 @@ const ForumLocked: React.FC = () => (
 // Toast
 const Toast: React.FC<{ message: string; type?: 'success' | 'error' }> = ({ message, type = 'success' }) => (
   <div className={`forum-toast forum-toast--${type}`}>
-    <i className={`bi ${type === 'success' ? 'bi-check-circle' : 'bi-exclamation-circle'}`} />
+    {type === 'success'
+      ? <CheckCircle size={15} />
+      : <AlertCircle size={15} />}
     {message}
   </div>
 );
@@ -148,14 +155,14 @@ const ReportModal: React.FC<{
       <div className="forum-modal forum-modal--report" onClick={e => e.stopPropagation()}>
         <div className="forum-modal-header">
           <div className="forum-modal-header__left">
-            <i className="bi bi-flag forum-modal-header__icon" />
+            <Flag size={16} className="forum-modal-header__icon" />
             <h3>Report {target.type === 'post' ? 'Post' : 'Comment'}</h3>
           </div>
-          <button className="forum-modal-close" onClick={onClose}><i className="bi bi-x" /></button>
+          <button className="forum-modal-close" onClick={onClose}><X size={16} /></button>
         </div>
         <div className="forum-modal-body">
           <div className="report-preview">
-            <i className="bi bi-quote" />
+            <Quote size={14} />
             <p>{target.type === 'post' ? (target as any).title : (target as any).preview}</p>
           </div>
           {error && <div className="forum-modal-error">{error}</div>}
@@ -164,7 +171,7 @@ const ReportModal: React.FC<{
             {REPORT_REASONS.map(r => (
               <button key={r} className={`report-reason-btn ${reason === r ? 'report-reason-btn--active' : ''}`}
                 onClick={() => setReason(r)}>
-                <span className="report-reason-btn__check">{reason === r && <i className="bi bi-check" />}</span>
+                <span className="report-reason-btn__check">{reason === r && <Check size={12} />}</span>
                 {r}
               </button>
             ))}
@@ -178,7 +185,7 @@ const ReportModal: React.FC<{
         <div className="forum-modal-footer">
           <button className="forum-btn-cancel" onClick={onClose}>Cancel</button>
           <button className="forum-btn-report" onClick={handleSubmit} disabled={submitting || !reason}>
-            <i className="bi bi-flag" />{submitting ? 'Submitting…' : 'Submit Report'}
+            <Flag size={13} />{submitting ? 'Submitting…' : 'Submit Report'}
           </button>
         </div>
       </div>
@@ -215,10 +222,10 @@ const NewPostModal: React.FC<{
       <div className="forum-modal" onClick={e => e.stopPropagation()}>
         <div className="forum-modal-header">
           <div className="forum-modal-header__left">
-            <i className="bi bi-pencil-square forum-modal-header__icon" />
+            <Pencil size={16} className="forum-modal-header__icon" />
             <h3>Start a Discussion</h3>
           </div>
-          <button className="forum-modal-close" onClick={onClose}><i className="bi bi-x" /></button>
+          <button className="forum-modal-close" onClick={onClose}><X size={16} /></button>
         </div>
         <div className="forum-modal-body">
           {errors.general && <div className="forum-modal-error">{errors.general}</div>}
@@ -335,13 +342,13 @@ const CommentItem: React.FC<{
             <button className="comment-action-btn comment-action-btn--report" title="Report"
               onClick={() => onReport({ type: 'comment', id: comment.id,
                 preview: comment.content.slice(0, 120) + (comment.content.length > 120 ? '…' : '') })}>
-              <i className="bi bi-flag" />
+              <Flag size={13} />
             </button>
           )}
           {isOwner && (
             <button className="comment-action-btn comment-action-btn--delete"
               onClick={() => onDelete(comment.id)} title="Delete">
-              <i className="bi bi-trash3" />
+              <Trash2 size={13} />
             </button>
           )}
         </div>
@@ -504,7 +511,7 @@ const PostDetail: React.FC<{
 
       {/* ── Back ── */}
       <button className="forum-back-btn" onClick={onBack}>
-        <i className="bi bi-arrow-left" /> Back to Forum
+        <ArrowLeft size={15} /> Back to Forum
       </button>
 
       {/* ── Post card ── */}
@@ -516,7 +523,7 @@ const PostDetail: React.FC<{
           {token && !isOwner && (
             <button className="post-report-btn"
               onClick={() => onReport({ type: 'post', id: post.id, title: post.title })}>
-              <i className="bi bi-flag" /> Report
+              <Flag size={13} /> Report
             </button>
           )}
         </div>
@@ -524,7 +531,7 @@ const PostDetail: React.FC<{
         {/* Big editorial title */}
         <h2 className="post-detail-title">{post.title}</h2>
 
-        {/* Author meta row — avatar + name + date stacked */}
+        {/* Author meta row */}
         <div className="post-detail-author">
           <UserAvatar name={post.userName ?? ''} url={post.userAvatar} size={38} />
           <div className="post-detail-author__info">
@@ -660,7 +667,7 @@ const ForumPage: React.FC<CommunityForumProps> = ({ initialPostId, initialCommen
     <div className="forum-page">
       <div className="forum-page__inner">
 
-        {/* Hero — same layout as TravelPage hero */}
+        {/* Hero */}
         <section className="forum-page-hero">
           <div className="forum-page-hero__left">
             <p className="forum-page-hero__eyebrow">Community Forum</p>
@@ -681,7 +688,7 @@ const ForumPage: React.FC<CommunityForumProps> = ({ initialPostId, initialCommen
                   onClick={() => setShowNewPost(true)}
                 >
                   Start a discussion
-                  <i className="bi bi-chevron-double-right" />
+                  <ChevronsRight size={16} />
                 </button>
                 <button
                   className="forum-page-hero__cta forum-page-hero__cta--ghost"
@@ -692,9 +699,9 @@ const ForumPage: React.FC<CommunityForumProps> = ({ initialPostId, initialCommen
               </div>
             </div>
 
-            {/* Search — below CTAs, secondary */}
+            {/* Search */}
             <div className="forum-page-hero__search">
-              <i className="bi bi-search forum-page-hero__search-icon" />
+              <Search size={15} className="forum-page-hero__search-icon" />
               <input
                 className="forum-page-hero__search-input"
                 placeholder="Search discussions…"
@@ -705,7 +712,7 @@ const ForumPage: React.FC<CommunityForumProps> = ({ initialPostId, initialCommen
               {searchInput && (
                 <button className="forum-page-hero__search-clear"
                   onClick={() => { setSearchInput(''); setSearch(''); }}>
-                  <i className="bi bi-x" />
+                  <X size={14} />
                 </button>
               )}
               <button className="forum-page-hero__search-btn" onClick={() => setSearch(searchInput)}>
@@ -718,6 +725,10 @@ const ForumPage: React.FC<CommunityForumProps> = ({ initialPostId, initialCommen
             <img
               src="/images/Forum.webp"
               alt="Dogs Community Picture"
+              loading="eager"
+              decoding="sync"
+              width={16}
+              height={9}
               onError={e => (e.currentTarget.style.display = 'none')}
             />
           </div>
@@ -769,8 +780,6 @@ const ForumPage: React.FC<CommunityForumProps> = ({ initialPostId, initialCommen
                     ) : (
                       posts.map(post => (
                         <tr key={post.id} className="forum-row" onClick={() => setSelectedPost(post.id)}>
-
-                          {/* Title + author name below on mobile */}
                           <td className="col-title">
                             <div className="forum-row-title-wrap">
                               <span className="forum-row-title">{post.title}</span>
@@ -779,7 +788,6 @@ const ForumPage: React.FC<CommunityForumProps> = ({ initialPostId, initialCommen
                               </span>
                             </div>
                           </td>
-
                           <td className="col-date">{formatDate(post.createdAt)}</td>
                           <td className="col-cat"><span className="forum-cat-label">{post.category}</span></td>
                           <td className="col-comments">
@@ -789,18 +797,18 @@ const ForumPage: React.FC<CommunityForumProps> = ({ initialPostId, initialCommen
                             <div className="forum-row-actions">
                               <button className="forum-open-btn" title="Open"
                                 onClick={() => setSelectedPost(post.id)}>
-                                <i className="bi bi-box-arrow-right"></i>
+                                <ExternalLink size={14} />
                               </button>
                               {(user as any)?.id !== post.userId && (
                                 <button className="forum-report-row-btn" title="Report post"
                                   onClick={() => setReportTarget({ type: 'post', id: post.id, title: post.title })}>
-                                  <i className="bi bi-flag" />
+                                  <Flag size={13} />
                                 </button>
                               )}
                               {(user as any)?.id === post.userId && (
                                 <button className="forum-delete-row-btn" title="Delete post"
                                   onClick={() => handleDeletePost(post.id)}>
-                                  <i className="bi bi-trash3" />
+                                  <Trash2 size={13} />
                                 </button>
                               )}
                             </div>
@@ -814,11 +822,12 @@ const ForumPage: React.FC<CommunityForumProps> = ({ initialPostId, initialCommen
               </>
             )}
           </div>
+
           {/* CTA */}
           <div className="forum-cta">
             <p className="forum-cta-text">Can't find what you're looking for?</p>
             <button className="forum-cta-btn" onClick={() => setShowNewPost(true)}>
-              <i className="bi bi-plus-lg" /> Start a discussion
+              <Plus size={15} /> Start a discussion
             </button>
           </div>
 

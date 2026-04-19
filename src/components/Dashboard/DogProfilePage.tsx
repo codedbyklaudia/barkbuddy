@@ -3,9 +3,12 @@ import { useParams } from "react-router-dom";
 import "./DogProfilePage.scss";
 import { getPublicDogProfile } from "../../api/Dogs";
 import type { PublicDogProfile } from "../../api/Dogs";
-
-// ─── Personality image map ────────────────────────────────────────────────────
-
+// Cloudinary optimizer
+const clImg = (url: string, width = 120) =>
+  url?.includes('cloudinary.com')
+    ? url.replace('/upload/', `/upload/f_auto,q_auto,w_${width}/`)
+    : url;
+// Personality image map 
 const PERSONALITY_MAP: Record<string, { label: string; img: string }> = {
   game_fetch:     { label: "Ball chaser",      img: "../images/personality/ball.png"          },
   game_tug:       { label: "Tug of war",        img: "../images/personality/tug.png"           },
@@ -37,8 +40,7 @@ const STAGE_LABEL: Record<string, string> = {
   senior: "Senior 🏆",
 };
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
+// Helpers
 function calcAge(dob?: string): string {
   if (!dob) return "";
   const months = Math.floor((Date.now() - new Date(dob).getTime()) / (1000 * 60 * 60 * 24 * 30.44));
@@ -58,8 +60,7 @@ function humanYears(dob?: string): string {
   return `≈ ${Math.round(h)} human years`;
 }
 
-// ─── Postcard — the html2canvas capture target ────────────────────────────────
-
+// Postcard — the html2canvas capture target
 const Postcard: React.FC<{ dog: PublicDogProfile }> = ({ dog }) => {
   const age    = calcAge(dog.dob);
   const human  = humanYears(dog.dob);

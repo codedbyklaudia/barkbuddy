@@ -161,6 +161,10 @@ const IllustrationCard: React.FC<IllustrationCardProps> = ({ name, image, select
             src={image}
             alt={name}
             className="illus-card__img"
+            loading="lazy"
+            decoding="async"
+            width={4}
+            height={3}
             onError={() => setImgError(true)}
           />
         ) : (
@@ -194,14 +198,14 @@ const IconTips: React.FC = () => (
   </svg>
 );
 
-// ─── Step metadata ────────────────────────────────────────────────────────────
+// Step metadata
 const STEP_META: Record<string, { icon: React.ReactNode; accent: string }> = {
   Requirements:  { icon: <IconRequirements />,  accent: 'requirements'  },
   Documentation: { icon: <IconDocumentation />, accent: 'documentation' },
   Tips:          { icon: <IconTips />,          accent: 'tips'          },
 };
 
-// ─── ContentCardCarousel ──────────────────────────────────────────────────────
+// ContentCardCarousel
 interface ContentCardCarouselProps {
   cards: ContentCard[];
   stepLabel: string;
@@ -224,6 +228,11 @@ const ContentCardCarousel: React.FC<ContentCardCarouselProps> = ({
     if (!total) { setIdx(0); return; }
     setIdx(prev => (prev >= total ? total - 1 : prev));
   }, [total]);
+
+  React.useEffect(() => {
+  setIdx(0);
+  setAnimKey(k => k + 1);
+}, [cards]);
 
   React.useEffect(() => {
     containerRef.current?.focus({ preventScroll: true });
@@ -288,6 +297,10 @@ const ContentCardCarousel: React.FC<ContentCardCarouselProps> = ({
                 src={country.image}
                 alt={country.name}
                 className="content-step__flag-img"
+                loading="lazy"
+                decoding="async"
+                width={1}
+                height={1}
                 onError={() => setImgError(true)}
               />
             ) : (
@@ -466,7 +479,15 @@ const StepSidebar: React.FC<StepSidebarProps> = ({
     <aside className="travel-sidebar">
       {/* Logo links home */}
       <Link to="/" className="travel-sidebar__logo" aria-label="Go to BarkBuddy home">
-        <img src="/images/logo.png" alt="BarkBuddy" className="travel-sidebar__logo-img" />
+        <img
+          src="/images/logo.webp"
+          alt="BarkBuddy"
+          className="travel-sidebar__logo-img"
+          loading="eager"
+          decoding="sync"
+          width={1}
+          height={1}
+        />
       </Link>
 
       <p className="travel-sidebar__tagline">

@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './ForumPolicy.scss';
 import Footer from "../Footer";
+import {
+  ShieldCheck, Calendar, RefreshCw, ArrowLeft,
+  Building2, MapPin, Mail, Globe,
+} from 'lucide-react';
 
 interface Section {
   id: string;
@@ -62,15 +66,15 @@ const Terms: React.FC = () => {
           </h1>
           <div className="policy-hero__meta">
             <span className="policy-hero__badge">
-              <i className="bi bi-shield-check" />
+              <ShieldCheck size={13} />
               UK Compliant
             </span>
             <span className="policy-hero__badge">
-              <i className="bi bi-calendar3" />
+              <Calendar size={13} />
               Effective: January 2026
             </span>
             <span className="policy-hero__badge">
-              <i className="bi bi-arrow-clockwise" />
+              <RefreshCw size={13} />
               Last Updated: March 2026
             </span>
           </div>
@@ -81,7 +85,7 @@ const Terms: React.FC = () => {
       <div className="policy-date-bar">
         <p>Please read these Terms carefully before using BarkBuddy. By accessing our platform, you agree to be bound by them.</p>
         <Link to="/" className="policy-date-bar__back">
-          <i className="bi bi-arrow-left" /> Back to Homepage
+          <ArrowLeft size={14} /> Back to Homepage
         </Link>
       </div>
 
@@ -105,7 +109,6 @@ const Terms: React.FC = () => {
         {/* Content */}
         <main className="policy-content">
 
-          {/* 01 */}
           <section id="intro" className="policy-section">
             <p className="policy-section__number">01</p>
             <h2 className="policy-section__title">About These Terms</h2>
@@ -118,7 +121,6 @@ const Terms: React.FC = () => {
             </div>
           </section>
 
-          {/* 02 */}
           <section id="eligibility" className="policy-section">
             <p className="policy-section__number">02</p>
             <h2 className="policy-section__title">Eligibility &amp; Registration</h2>
@@ -131,17 +133,14 @@ const Terms: React.FC = () => {
                 <li className="policy-list__item"><span>Notify us immediately of any unauthorised use of your account</span></li>
                 <li className="policy-list__item"><span>Accept responsibility for all activity that occurs under your account</span></li>
               </ul>
-              <p>We reserve the right to refuse registration or suspend accounts at our discretion, including where we believe information provided is inaccurate or misleading.</p>
             </div>
           </section>
 
-          {/* 03 */}
           <section id="platform" className="policy-section">
             <p className="policy-section__number">03</p>
             <h2 className="policy-section__title">Using BarkBuddy</h2>
             <div className="policy-section__body">
               <p>BarkBuddy is a platform that connects dog owners with dog care services, dog-friendly places, and a community of fellow dog lovers across the UK.</p>
-
               <div className="policy-subsection">
                 <p className="policy-subsection__title">Service Finder</p>
                 <ul className="policy-list">
@@ -150,7 +149,6 @@ const Terms: React.FC = () => {
                   <li className="policy-list__item"><span>View business profiles, photos, contact details, and user reviews</span></li>
                 </ul>
               </div>
-
               <div className="policy-subsection">
                 <p className="policy-subsection__title">Community Forum</p>
                 <ul className="policy-list">
@@ -158,7 +156,6 @@ const Terms: React.FC = () => {
                   <li className="policy-list__item"><span>All Forum use is also governed by our Forum &amp; Community Policy</span></li>
                 </ul>
               </div>
-
               <div className="policy-subsection">
                 <p className="policy-subsection__title">Travel Tools</p>
                 <ul className="policy-list">
@@ -166,7 +163,6 @@ const Terms: React.FC = () => {
                   <li className="policy-list__item"><span>Generate travel preparation documents for your pet</span></li>
                 </ul>
               </div>
-
               <div className="policy-subsection">
                 <p className="policy-subsection__title">BarkBuddy Dashboard</p>
                 <ul className="policy-list">
@@ -177,7 +173,6 @@ const Terms: React.FC = () => {
             </div>
           </section>
 
-          {/* 04 */}
           <section id="listings" className="policy-section">
             <p className="policy-section__number">04</p>
             <h2 className="policy-section__title">Business Listings &amp; Services</h2>
@@ -187,7 +182,6 @@ const Terms: React.FC = () => {
                 <li className="policy-list__item"><span>All information provided must be accurate, truthful, and kept up to date</span></li>
                 <li className="policy-list__item"><span>Businesses must hold all required licences, insurance, and certifications applicable under UK law</span></li>
                 <li className="policy-list__item"><span>BarkBuddy reserves the right to approve, reject, or remove any listing at our sole discretion</span></li>
-                <li className="policy-list__item"><span>Listings are subject to a review and verification process before appearing on the Platform</span></li>
                 <li className="policy-list__item"><span>BarkBuddy acts as a directory and does not directly employ, endorse, or guarantee the services of any listed business</span></li>
               </ul>
               <div className="policy-section__callout--warning policy-section__callout">
@@ -196,61 +190,48 @@ const Terms: React.FC = () => {
             </div>
           </section>
 
-          {/* 05 */}
           <section id="bookings" className="policy-section">
             <p className="policy-section__number">05</p>
             <h2 className="policy-section__title">Bookings &amp; Payments</h2>
             <div className="policy-section__body">
-              <p>Where BarkBuddy facilitates contact between users and businesses, the following applies:</p>
               <ul className="policy-list">
                 <li className="policy-list__item"><span>Pricing, availability, and booking terms are set by individual businesses, not BarkBuddy</span></li>
-                <li className="policy-list__item"><span>Users should confirm all details - including pricing, cancellation policies, and care standards - directly with the business before proceeding</span></li>
+                <li className="policy-list__item"><span>Users should confirm all details directly with the business before proceeding</span></li>
                 <li className="policy-list__item"><span>Any payments made directly to a business are between the user and that business</span></li>
-                <li className="policy-list__item"><span>BarkBuddy is not responsible for refunds, cancellations, or disputes arising from bookings made through or facilitated by the Platform</span></li>
+                <li className="policy-list__item"><span>BarkBuddy is not responsible for refunds, cancellations, or disputes arising from bookings</span></li>
               </ul>
               <div className="policy-section__callout">
-                <p>If you have a dispute with a business, please contact them in the first instance. If you believe a listing is fraudulent or misleading, please report it to us at <strong>paws@barkbuddy.org.uk</strong>.</p>
+                <p>If you believe a listing is fraudulent or misleading, please report it to us at <strong>paws@barkbuddy.org.uk</strong>.</p>
               </div>
             </div>
           </section>
 
-          {/* 06 */}
           <section id="conduct" className="policy-section">
             <p className="policy-section__number">06</p>
             <h2 className="policy-section__title">User Conduct</h2>
             <div className="policy-section__body">
               <p>You agree to use BarkBuddy lawfully and respectfully at all times. You must not:</p>
               <ul className="policy-list">
-                <li className="policy-list__item"><span>Use the Platform for any unlawful purpose or in violation of any UK law or regulation</span></li>
-                <li className="policy-list__item"><span>Attempt to gain unauthorised access to any part of the Platform or its underlying systems</span></li>
+                <li className="policy-list__item"><span>Use the Platform for any unlawful purpose or in violation of any UK law</span></li>
+                <li className="policy-list__item"><span>Attempt to gain unauthorised access to any part of the Platform</span></li>
                 <li className="policy-list__item"><span>Submit false, misleading, or fraudulent reviews, listings, or information</span></li>
                 <li className="policy-list__item"><span>Harass, threaten, or abuse other users or businesses</span></li>
-                <li className="policy-list__item"><span>Use automated tools to scrape, crawl, or collect data from the Platform without our consent</span></li>
+                <li className="policy-list__item"><span>Use automated tools to scrape or collect data without our consent</span></li>
                 <li className="policy-list__item"><span>Impersonate any person, business, or organisation</span></li>
-                <li className="policy-list__item"><span>Post spam, unsolicited advertising, or promotional content outside of designated areas</span></li>
-                <li className="policy-list__item"><span>Engage in any activity that could damage, disable, or impair the operation of the Platform</span></li>
+                <li className="policy-list__item"><span>Post spam, unsolicited advertising, or promotional content</span></li>
               </ul>
-              <p>Breach of these conduct rules may result in immediate suspension or termination of your account.</p>
             </div>
           </section>
 
-          {/* 07 */}
           <section id="content" className="policy-section">
             <p className="policy-section__number">07</p>
             <h2 className="policy-section__title">User Content &amp; Licence</h2>
             <div className="policy-section__body">
-              <p>When you submit content to BarkBuddy, you confirm that:</p>
-              <ul className="policy-list">
-                <li className="policy-list__item"><span>You own the content or have the right to share it</span></li>
-                <li className="policy-list__item"><span>The content does not infringe any third-party intellectual property, privacy, or other rights</span></li>
-                <li className="policy-list__item"><span>The content complies with these Terms and our Forum &amp; Community Policy</span></li>
-              </ul>
+              <p>When you submit content to BarkBuddy, you confirm that you own it or have the right to share it, and that it complies with these Terms.</p>
               <p>By submitting content, you grant BarkBuddy a <strong>non-exclusive, royalty-free, worldwide, sublicensable licence</strong> to use, reproduce, display, distribute, and adapt that content for the purpose of operating and promoting the Platform.</p>
-              <p>BarkBuddy does not claim ownership of your content. You may delete your content at any time, subject to any legal or operational retention obligations.</p>
             </div>
           </section>
 
-          {/* 08 */}
           <section id="vet" className="policy-section">
             <p className="policy-section__number">08</p>
             <h2 className="policy-section__title">Veterinary Disclaimer</h2>
@@ -259,36 +240,30 @@ const Terms: React.FC = () => {
                 <p>BarkBuddy does <strong>not</strong> provide veterinary, medical, or professional animal care advice. Nothing on the Platform constitutes professional veterinary advice.</p>
               </div>
               <p>Always consult a qualified veterinary surgeon registered with the <strong>Royal College of Veterinary Surgeons (RCVS)</strong> for any health, medical, or welfare concerns relating to your dog.</p>
-              <p>BarkBuddy accepts no liability for any harm, loss, or injury to any animal arising from reliance on content found on the Platform.</p>
             </div>
           </section>
 
-          {/* 09 */}
           <section id="ip" className="policy-section">
             <p className="policy-section__number">09</p>
             <h2 className="policy-section__title">Intellectual Property</h2>
             <div className="policy-section__body">
-              <p>All content, design, code, trademarks, logos, and materials on BarkBuddy that are not user-generated are the intellectual property of <strong>BarkBuddy Ltd</strong> or our licensors.</p>
+              <p>All content, design, code, trademarks, and materials on BarkBuddy that are not user-generated are the intellectual property of <strong>BarkBuddy Ltd</strong> or our licensors.</p>
               <ul className="policy-list">
-                <li className="policy-list__item"><span>You may not copy, reproduce, distribute, or create derivative works from BarkBuddy's proprietary content without our prior written consent</span></li>
-                <li className="policy-list__item"><span>The BarkBuddy name, logo, and brand identity are our registered or unregistered trademarks and may not be used without permission</span></li>
-                <li className="policy-list__item"><span>Any feedback or suggestions you provide to us may be used freely by BarkBuddy without obligation to you</span></li>
+                <li className="policy-list__item"><span>You may not copy, reproduce, distribute, or create derivative works without our prior written consent</span></li>
+                <li className="policy-list__item"><span>The BarkBuddy name, logo, and brand identity may not be used without permission</span></li>
               </ul>
             </div>
           </section>
 
-          {/* 10 */}
           <section id="privacy" className="policy-section">
             <p className="policy-section__number">10</p>
             <h2 className="policy-section__title">Privacy &amp; Data Protection</h2>
             <div className="policy-section__body">
-              <p>We take your privacy seriously. The personal data you provide when using BarkBuddy is processed in accordance with the <strong>Data Protection Act 2018</strong> and the <strong>UK General Data Protection Regulation (UK GDPR)</strong>.</p>
-              <p>Our <Link to="/privacy-policy" style={{ color: '#927ACF', fontWeight: 700 }}>Privacy Policy</Link> explains in full what data we collect, how we use it, how long we retain it, and your rights as a data subject.</p>
-              <p>By using BarkBuddy, you acknowledge that you have read and understood our Privacy Policy.</p>
+              <p>We take your privacy seriously. The personal data you provide is processed in accordance with the <strong>Data Protection Act 2018</strong> and <strong>UK GDPR</strong>.</p>
+              <p>Our <Link to="/privacy-policy" style={{ color: '#927ACF', fontWeight: 700 }}>Privacy Policy</Link> explains in full what data we collect, how we use it, and your rights as a data subject.</p>
             </div>
           </section>
 
-          {/* 11 */}
           <section id="liability" className="policy-section">
             <p className="policy-section__number">11</p>
             <h2 className="policy-section__title">Limitation of Liability</h2>
@@ -296,77 +271,51 @@ const Terms: React.FC = () => {
               <p>To the fullest extent permitted by UK law, BarkBuddy Ltd shall not be liable for:</p>
               <ul className="policy-list">
                 <li className="policy-list__item"><span>Any indirect, incidental, special, or consequential loss arising from your use of the Platform</span></li>
-                <li className="policy-list__item"><span>Loss of data, revenue, goodwill, or profits, whether or not foreseeable</span></li>
                 <li className="policy-list__item"><span>The acts, omissions, or negligence of any business listed on the Platform</span></li>
-                <li className="policy-list__item"><span>Any harm, injury, or loss to you or your dog arising from services booked or found through BarkBuddy</span></li>
-                <li className="policy-list__item"><span>Temporary unavailability of the Platform due to maintenance, technical issues, or events outside our control</span></li>
+                <li className="policy-list__item"><span>Any harm, injury, or loss to you or your dog arising from services found through BarkBuddy</span></li>
+                <li className="policy-list__item"><span>Temporary unavailability of the Platform due to maintenance or events outside our control</span></li>
               </ul>
               <div className="policy-section__callout">
-                <p>Nothing in these Terms excludes or limits our liability for death or personal injury caused by our negligence, fraud or fraudulent misrepresentation, or any other liability that cannot be excluded under UK law.</p>
+                <p>Nothing in these Terms excludes or limits our liability for death or personal injury caused by our negligence, or any other liability that cannot be excluded under UK law.</p>
               </div>
-              <p>Where liability cannot be fully excluded, our total liability to you for any claim shall not exceed the amount you paid to us (if any) in the 12 months preceding the claim.</p>
             </div>
           </section>
 
-          {/* 12 */}
           <section id="termination" className="policy-section">
             <p className="policy-section__number">12</p>
             <h2 className="policy-section__title">Termination</h2>
             <div className="policy-section__body">
-              <p>You may close your BarkBuddy account at any time by contacting us or using the account settings within the Platform.</p>
-              <p>We reserve the right to suspend or terminate your account without notice if:</p>
-              <ul className="policy-list">
-                <li className="policy-list__item"><span>You breach these Terms or any of our policies</span></li>
-                <li className="policy-list__item"><span>We reasonably suspect fraudulent, abusive, or unlawful activity</span></li>
-                <li className="policy-list__item"><span>We are required to do so by law or a regulatory authority</span></li>
-              </ul>
-              <p>Upon termination, your right to access the Platform ceases immediately.</p>
+              <p>You may close your BarkBuddy account at any time via account settings or by contacting us.</p>
+              <p>We reserve the right to suspend or terminate your account without notice if you breach these Terms, we suspect fraudulent activity, or we are required to do so by law.</p>
             </div>
           </section>
 
-          {/* 13 */}
           <section id="law" className="policy-section">
             <p className="policy-section__number">13</p>
             <h2 className="policy-section__title">Governing Law</h2>
             <div className="policy-section__body">
-              <p>These Terms are governed by and construed in accordance with the laws of <strong>England and Wales</strong>. Any disputes arising out of or in connection with these Terms shall be subject to the exclusive jurisdiction of the courts of England and Wales.</p>
-              <p>If you are a consumer, you may also have the right to bring proceedings in the courts of the country where you are domiciled, in accordance with applicable consumer protection law.</p>
+              <p>These Terms are governed by the laws of <strong>England and Wales</strong>. Any disputes shall be subject to the exclusive jurisdiction of the courts of England and Wales.</p>
             </div>
           </section>
 
-          {/* 14 */}
           <section id="changes" className="policy-section">
             <p className="policy-section__number">14</p>
             <h2 className="policy-section__title">Changes to These Terms</h2>
             <div className="policy-section__body">
-              <p>We may update these Terms from time to time. When we make material changes, we will notify you by email or via a prominent notice on the Platform.</p>
-              <p>Your continued use of BarkBuddy after the effective date of any updated Terms constitutes your acceptance of those changes. If you do not agree to the updated Terms, you must stop using the Platform and may close your account.</p>
+              <p>We may update these Terms from time to time. When we make material changes, we will notify you by email or via a prominent notice on the Platform. Your continued use of BarkBuddy after the effective date constitutes acceptance of the updated Terms.</p>
             </div>
           </section>
 
-          {/* 15 */}
           <section id="contact" className="policy-section">
             <p className="policy-section__number">15</p>
             <h2 className="policy-section__title">Contact Us</h2>
             <div className="policy-section__body">
-              <p>If you have any questions, concerns, or complaints regarding these Terms or your use of BarkBuddy, please get in touch with us:</p>
+              <p>If you have any questions, concerns, or complaints regarding these Terms, please get in touch:</p>
               <div className="policy-contact">
-                <div className="policy-contact__row">
-                  <i className="bi bi-building" />
-                  <span><strong>BarkBuddy</strong></span>
-                </div>
-                <div className="policy-contact__row">
-                  <i className="bi bi-geo-alt" />
-                  <span>London, United Kingdom</span>
-                </div>
-                <div className="policy-contact__row">
-                  <i className="bi bi-envelope" />
-                  <span><a href="mailto:paws@barkbuddy.org.uk">paws@barkbuddy.org.uk</a></span>
-                </div>
-                <div className="policy-contact__row">
-                  <i className="bi bi-globe" />
-                  <span><a href="https://www.barkbuddy.org.uk" target="_blank" rel="noopener noreferrer">www.barkbuddy.org.uk</a></span>
-                </div>
+                <div className="policy-contact__row"><Building2 size={15} /><span><strong>BarkBuddy</strong></span></div>
+                <div className="policy-contact__row"><MapPin size={15} /><span>London, United Kingdom</span></div>
+                <div className="policy-contact__row"><Mail size={15} /><span><a href="mailto:paws@barkbuddy.org.uk">paws@barkbuddy.org.uk</a></span></div>
+                <div className="policy-contact__row"><Globe size={15} /><span><a href="https://www.barkbuddy.org.uk" target="_blank" rel="noopener noreferrer">www.barkbuddy.org.uk</a></span></div>
               </div>
             </div>
           </section>

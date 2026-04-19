@@ -33,6 +33,12 @@ const Icon: React.FC<{ name: string; size?: number }> = ({ name, size = 16 }) =>
   return <>{icons[name] ?? null}</>;
 };
 
+// Cloudinary optimizer
+const clImg = (url: string, width = 120) =>
+  url?.includes('cloudinary.com')
+    ? url.replace('/upload/', `/upload/f_auto,q_auto,w_${width}/`)
+    : url;
+
 // Toggle Switch
 const Toggle: React.FC<{ on: boolean; onChange: () => void; disabled?: boolean }> = ({ on, onChange, disabled }) => (
   <button className={`sv-toggle ${on ? "on" : ""}`} onClick={onChange} disabled={disabled} aria-checked={on} role="switch">
@@ -94,7 +100,10 @@ const AvatarHero: React.FC<{
         <div className="sv-avatar-wrap" onClick={() => inputRef.current?.click()} title="Change photo">
           <div className="sv-avatar">
             {user.avatarUrl
-              ? <img src={user.avatarUrl} alt={user.name} />
+              ? <img src={user.avatarUrl} alt={user.name} loading="lazy"
+                  decoding="async"
+                  width={1}
+                  height={1} />
               : <span>{user.name.charAt(0).toUpperCase()}</span>}
           </div>
           <div className="sv-avatar-overlay">
@@ -335,7 +344,10 @@ const DogRow: React.FC<{
       <div className="sv-dog-avatar-wrap" onClick={() => inputRef.current?.click()} title="Change photo">
         <div className="sv-dog-avatar">
           {dog.avatarUrl
-            ? <img src={dog.avatarUrl} alt={dog.name} />
+            ? <img src={dog.avatarUrl} alt={dog.name} loading="lazy"
+                  decoding="async"
+                  width={1}
+                  height={1}/>
             : <span>{dog.name.charAt(0).toUpperCase()}</span>}
         </div>
         {uploading && <div className="sv-dog-avatar-loading"><Icon name="spinner" size={12} /></div>}

@@ -2,6 +2,10 @@ import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import './FAQPage.scss';
 import Footer from '../Footer';
+import {
+  UserCircle, LayoutGrid, SearchIcon, MessageCircle, MapPin, ShieldCheck,
+  Store, Search, X, Plus, Minus, Mail, HeartPulse, SmilePlus,
+} from 'lucide-react';
 
 interface FAQItem {
   q: string;
@@ -10,7 +14,7 @@ interface FAQItem {
 
 interface FAQCategory {
   id: string;
-  icon: string;
+  icon: React.ReactNode;
   label: string;
   items: FAQItem[];
 }
@@ -18,7 +22,7 @@ interface FAQCategory {
 const FAQ_DATA: FAQCategory[] = [
   {
     id: 'account',
-    icon: 'bi-person-circle',
+    icon: <UserCircle size={16} />,
     label: 'Account & Registration',
     items: [
       {
@@ -45,7 +49,7 @@ const FAQ_DATA: FAQCategory[] = [
   },
   {
     id: 'dashboard',
-    icon: 'bi-grid',
+    icon: <LayoutGrid size={16} />,
     label: 'Dog Profiles & Dashboard',
     items: [
       {
@@ -72,7 +76,7 @@ const FAQ_DATA: FAQCategory[] = [
   },
   {
     id: 'services',
-    icon: 'bi-search-heart',
+    icon: <SearchIcon size={16} />,
     label: 'Service Finder & Listings',
     items: [
       {
@@ -103,7 +107,7 @@ const FAQ_DATA: FAQCategory[] = [
   },
   {
     id: 'forum',
-    icon: 'bi-chat-dots',
+    icon: <MessageCircle size={16} />,
     label: 'Community Forum',
     items: [
       {
@@ -120,7 +124,7 @@ const FAQ_DATA: FAQCategory[] = [
       },
       {
         q: 'How do I report a post that breaks the rules?',
-        a: 'Click the Report flag on any post to alert our moderation team. We review all reports and take appropriate action. For urgent concerns, contact us directly at paws@barkbuddy.co.uk.',
+        a: 'Click the Report flag on any post to alert our moderation team. We review all reports and take appropriate action. For urgent concerns, contact us directly at paws@barkbuddy.org.uk.',
       },
       {
         q: 'Can I be banned from the Forum?',
@@ -130,7 +134,7 @@ const FAQ_DATA: FAQCategory[] = [
   },
   {
     id: 'travel',
-    icon: 'bi-geo-alt',
+    icon: <MapPin size={16} />,
     label: 'Travel Tools',
     items: [
       {
@@ -153,7 +157,7 @@ const FAQ_DATA: FAQCategory[] = [
   },
   {
     id: 'privacy',
-    icon: 'bi-shield-lock',
+    icon: <ShieldCheck size={16} />,
     label: 'Privacy & Data',
     items: [
       {
@@ -180,7 +184,7 @@ const FAQ_DATA: FAQCategory[] = [
   },
   {
     id: 'business',
-    icon: 'bi-shop',
+    icon: <Store size={16} />,
     label: 'Business Owners',
     items: [
       {
@@ -254,7 +258,7 @@ const FAQPage: React.FC = () => {
 
           {/* Search */}
           <div className="faq-hero__search">
-            <i className="bi bi-search faq-hero__search-icon" />
+            <Search size={16} className="faq-hero__search-icon" />
             <input
               type="text"
               placeholder="Search questions… "
@@ -264,7 +268,7 @@ const FAQPage: React.FC = () => {
             />
             {searchQuery && (
               <button className="faq-hero__search-clear" onClick={() => setSearchQuery('')}>
-                <i className="bi bi-x" />
+                <X size={15} />
               </button>
             )}
           </div>
@@ -292,7 +296,9 @@ const FAQPage: React.FC = () => {
                     onClick={() => toggleItem(key)}
                   >
                     <span>{r.item.q}</span>
-                    <i className={`bi ${openItem === key ? 'bi-dash' : 'bi-plus'} faq-accordion__icon`} />
+                    {openItem === key
+                      ? <Minus size={16} className="faq-accordion__icon" />
+                      : <Plus size={16} className="faq-accordion__icon" />}
                   </button>
                   <div className={`faq-accordion__body ${openItem === key ? 'faq-accordion__body--open' : ''}`}>
                     <p>{r.item.a}</p>
@@ -302,7 +308,7 @@ const FAQPage: React.FC = () => {
             })}
             {filteredResults.length === 0 && (
               <div className="faq-empty">
-                <i className="bi bi-emoji-neutral" />
+                <SmilePlus size={32} />
                 <p>Can't find what you're looking for? <a href="mailto:paws@barkbuddy.org.uk">Contact us</a> and we'll help.</p>
               </div>
             )}
@@ -321,7 +327,7 @@ const FAQPage: React.FC = () => {
                 className={`faq-sidebar__btn ${activeCategory === cat.id ? 'faq-sidebar__btn--active' : ''}`}
                 onClick={() => { setActiveCategory(cat.id); setOpenItem(null); }}
               >
-                <i className={`bi ${cat.icon} faq-sidebar__btn-icon`} />
+                <span className="faq-sidebar__btn-icon">{cat.icon}</span>
                 {cat.label}
                 <span className="faq-sidebar__count">{cat.items.length}</span>
               </button>
@@ -330,10 +336,10 @@ const FAQPage: React.FC = () => {
             <div className="faq-sidebar__contact">
               <p>Still need help?</p>
               <a href="mailto:paws@barkbuddy.org.uk" className="faq-sidebar__contact-link">
-                <i className="bi bi-envelope" /> Email us
+                <Mail size={14} /> Email us
               </a>
               <Link to="/forum" className="faq-sidebar__contact-link">
-                <i className="bi bi-chat-dots" /> Ask the community
+                <MessageCircle size={14} /> Ask the community
               </Link>
             </div>
           </aside>
@@ -341,7 +347,7 @@ const FAQPage: React.FC = () => {
           {/* Questions panel */}
           <main className="faq-panel">
             <div className="faq-panel__header">
-              <i className={`bi ${currentCategory.icon} faq-panel__header-icon`} />
+              <span className="faq-panel__header-icon">{currentCategory.icon}</span>
               <div>
                 <h2 className="faq-panel__title">{currentCategory.label}</h2>
                 <p className="faq-panel__count">{currentCategory.items.length} questions</p>
@@ -361,7 +367,9 @@ const FAQPage: React.FC = () => {
                       onClick={() => toggleItem(key)}
                     >
                       <span>{item.q}</span>
-                      <i className={`bi ${openItem === key ? 'bi-dash' : 'bi-plus'} faq-accordion__icon`} />
+                      {openItem === key
+                        ? <Minus size={16} className="faq-accordion__icon" />
+                        : <Plus size={16} className="faq-accordion__icon" />}
                     </button>
                     <div className={`faq-accordion__body ${openItem === key ? 'faq-accordion__body--open' : ''}`}>
                       <p>{item.a}</p>
@@ -377,15 +385,15 @@ const FAQPage: React.FC = () => {
       {/* Bottom CTA */}
       <section className="faq-cta">
         <div className="faq-cta__inner">
-          <i className="bi bi-heart-pulse faq-cta__icon" />
+          <HeartPulse size={32} className="faq-cta__icon" />
           <h2 className="faq-cta__title">Still have a question?</h2>
-          <p className="faq-cta__sub">We are happy to help. Drop us an email and we'll get back to you within one working day.</p>
+          <p className="faq-cta__sub">We are happy to help. Drop us an email and we'll get back to you within 24 hours.</p>
           <div className="faq-cta__actions">
             <a href="mailto:paws@barkbuddy.org.uk" className="faq-cta__btn faq-cta__btn--primary">
-              <i className="bi bi-envelope" /> Contact us
+              <Mail size={15} /> Contact us
             </a>
             <Link to="/forum" className="faq-cta__btn faq-cta__btn--ghost">
-              <i className="bi bi-chat-dots" /> Ask the community
+              <MessageCircle size={15} /> Ask the community
             </Link>
           </div>
         </div>
