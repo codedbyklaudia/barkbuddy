@@ -846,10 +846,10 @@ const BusinessDashboard: React.FC = () => {
     <div className="biz-dash">
       {toast && <Toast msg={toast.msg} type={toast.type} />}
 
-      {/* ── Mobile top bar ── */}
+      {/* Mobile top bar */}
       <header className="biz-dash__mobile-header">
         <Link to="/" className="biz-dash__mobile-header-logo">
-          <img src="/images/logo.png" alt="BarkBuddy" />
+          <img src="/images/logo.webp" alt="BarkBuddy" />
           <span>BarkBuddy</span>
         </Link>
         <button
@@ -868,7 +868,7 @@ const BusinessDashboard: React.FC = () => {
       <aside className="biz-dash__sidebar">
         <div className="biz-dash__sidebar-top">
           <Link to="/" className="biz-dash__logo">
-            <img src="/images/logo.png" alt="BarkBuddy" />
+            <img src="/images/logo.webp" alt="BarkBuddy" />
           </Link>
 
           <div className="biz-dash__biz-card">
@@ -1022,7 +1022,7 @@ const BusinessDashboard: React.FC = () => {
         </div>
       </main>
 
-      {/* ── Mobile bottom nav ── */}
+      {/* Mobile bottom nav */}
       <nav className="biz-dash__mobile-nav">
         {mobileNavItems.map(n => (
           <button

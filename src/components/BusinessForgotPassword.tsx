@@ -31,11 +31,21 @@ const BusinessForgotPassword: React.FC = () => {
     <div className="biz-login">
       <aside className="biz-login__panel">
         <div className="biz-login__panel-inner">
-          <img src="/images/logo.png" alt="BarkBuddy for business" className="biz-login__brand-icon" />
+          <img
+            src="/images/logo.png"
+            alt="BarkBuddy for business"
+            className="biz-login__brand-icon"
+            loading="eager"
+            decoding="sync"
+            width={1}
+            height={1}
+          />
           <div className="biz-login__brand">
             <h1>BarkBuddy<br /><em>for Business</em></h1>
           </div>
-          <Link to="/business/login" className="biz-login__home-link"><ChevronsLeft  size={"18"} /> Back</Link>
+          <Link to="/business/login" className="biz-login__home-link">
+            <ChevronsLeft size={18} /> Back
+          </Link>
         </div>
       </aside>
 
@@ -43,14 +53,27 @@ const BusinessForgotPassword: React.FC = () => {
         <div className="biz-login__form-inner">
           {status === "sent" ? (
             <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: "3rem", marginBottom: "1rem" }}><img style={{ width: "15%", height: "15%" }} src="../images/icons/sent.svg"></img>
+              <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>
+                <img
+                  src="../images/icons/sent.svg"
+                  alt="Email sent"
+                  style={{ width: "15%", height: "15%" }}
+                  loading="lazy"
+                  decoding="async"
+                  width={1}
+                  height={1}
+                />
               </div>
-              <h2 className="biz-login__form-header" style={{ color: "#3a2f51", marginBottom: "4rem" }}>Check your inbox</h2>
+              <h2 className="biz-login__form-header" style={{ color: "#3a2f51", marginBottom: "4rem" }}>
+                Check your inbox
+              </h2>
               <p style={{ color: "#3a2f51", fontSize: "1.4rem", lineHeight: 1.7, marginBottom: "2rem" }}>
                 If an approved account exists with that email, we've sent a reset link. It expires in 1 hour.
               </p>
               <Link to="/business/login" style={{ color: "#927ACF", fontSize: "1.3rem", fontWeight: 700, textDecoration: "none" }}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg> Back to login
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14" aria-hidden="true">
+                  <polyline points="15 18 9 12 15 6"/>
+                </svg> Back to login
               </Link>
             </div>
           ) : (

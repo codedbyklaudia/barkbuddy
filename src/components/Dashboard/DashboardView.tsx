@@ -12,7 +12,11 @@ import {
   getBuddies, searchUsers, sendBuddyRequest, acceptBuddy, removeBuddy,
 } from "../../api/users";
 import "./DashboardView.scss";
-
+// Cloudinary optimizer
+const clImg = (url: string, width = 120) =>
+  url?.includes('cloudinary.com')
+    ? url.replace('/upload/', `/upload/f_auto,q_auto,w_${width}/`)
+    : url;
 
 // Types
 interface UserProfile {
@@ -1138,8 +1142,8 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, dog, allDogs, token
   };
 
   const quickLinks = [
-    { Icon: CalendarDays,  label: "Buddy Calendar", sub: "Events & appointments",  nav: "calendar",        external: false },
-    { Icon: MessageCircle, label: "Community Forum", sub: "Chat with other owners", nav: "forum",           external: false },
+    { Icon: CalendarDays,  label: "Buddy Calendar", sub: "Events & appointments",  nav: "calendar",  external: false },
+    { Icon: MessageCircle, label: "Community Forum", sub: "Chat with other dog owners", nav: "#/forum-page",  external: true },
     { Icon: Map, label: "Find Services", sub: "Vets, groomers & walks", nav: "#/service-finder", external: true },
   ];
 
@@ -1197,7 +1201,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, dog, allDogs, token
             })}
           </div>
         </div>
-        <MyPostsBentoCard token={token} onViewForum={() => onNav("forum")} onViewPost={onViewForumPost} />
+        <MyPostsBentoCard token={token} onViewForum={() => window.location.href = "#/forum-page"} onViewPost={onViewForumPost} />
       </div>
 
       {/* PROFILE HUB */}

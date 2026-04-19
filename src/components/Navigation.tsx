@@ -2,18 +2,26 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import './Navigation.scss';
-import { Hand, SunDim, Ligature, LogIn, ArrowDownFromLine, MousePointer2, UserRoundPlus } from 'lucide-react';
+import {
+  Hand, SunDim, Ligature, LogIn, ArrowDownFromLine, MousePointer2, UserRoundPlus,
+  Heart, Store, Plane, LayoutGrid, BookmarkCheck, Phone, Briefcase, ChevronDown,
+} from 'lucide-react';
 
 import { useAuth } from '../context/AuthContext';
 import { getProfile } from '../api/users';
 
-const GroomingIcon  = () => <img src='../../images/icons/grooming.svg'  alt="Grooming"  className="menu-icon" />;
-const NutritionIcon = () => <img src='../../images/icons/nutrition.svg' alt="Nutrition" className="menu-icon" />;
-const TrainingIcon  = () => <img src='../../images/icons/training.svg'  alt="Training"  className="menu-icon" />;
-const HealthIcon    = () => <img src='../../images/icons/health.svg'    alt="Health"    className="menu-icon" />;
+const GroomingIcon  = () => <img src='../../images/icons/grooming.svg'  alt="Grooming"  className="menu-icon" loading="lazy" decoding="async" width={24} height={24} />;
+const NutritionIcon = () => <img src='../../images/icons/nutrition.svg' alt="Nutrition" className="menu-icon" loading="lazy" decoding="async" width={24} height={24} />;
+const TrainingIcon  = () => <img src='../../images/icons/training.svg'  alt="Training"  className="menu-icon" loading="lazy" decoding="async" width={24} height={24} />;
+const HealthIcon    = () => <img src='../../images/icons/health.svg'    alt="Health"    className="menu-icon" loading="lazy" decoding="async" width={24} height={24} />;
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// Cloudinary optimizer
+const clImg = (url: string, width = 120) =>
+  url?.includes('cloudinary.com')
+    ? url.replace('/upload/', `/upload/f_auto,q_auto,w_${width}/`)
+    : url;
 
+// Types 
 interface A11ySettings {
   fontSize:      'normal' | 'large' | 'xl';
   highContrast:  boolean;
@@ -50,8 +58,7 @@ function applyA11y(s: A11ySettings) {
   try { localStorage.setItem('bb_a11y', JSON.stringify(s)); } catch {}
 }
 
-// ─── NavAvatar ────────────────────────────────────────────────────────────────
-
+// NavAvatar
 interface NavAvatarProps {
   src?:      string;
   initials?: string;
@@ -61,12 +68,20 @@ interface NavAvatarProps {
 
 const NavAvatar: React.FC<NavAvatarProps> = ({ src, initials = '?', alt = 'User avatar', size = 'md' }) => (
   <div className={`nav-avatar nav-avatar--${size}`} aria-hidden="true">
-    {src ? <img src={src} alt={alt} /> : <span>{initials}</span>}
+    {src
+      ? <img
+          src={clImg(src, 120)}
+          alt={alt}
+          loading="lazy"
+          decoding="async"
+          width={1}
+          height={1}
+        />
+      : <span>{initials}</span>}
   </div>
 );
 
-// ─── Accessibility Panel ──────────────────────────────────────────────────────
-
+// Accessibility Panel
 interface A11yPanelProps {
   onClose:   () => void;
   isMobile?: boolean;
@@ -76,14 +91,12 @@ const AccessibilityPanel: React.FC<A11yPanelProps> = ({ onClose, isMobile = fals
   const [settings, setSettings] = useState<A11ySettings>(loadA11y);
   const ref = useRef<HTMLDivElement>(null);
 
-  // Escape key
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
   }, [onClose]);
 
-  // Outside click — desktop only (mobile uses backdrop button)
   useEffect(() => {
     if (isMobile) return;
     const handler = (e: MouseEvent) => {
@@ -93,18 +106,13 @@ const AccessibilityPanel: React.FC<A11yPanelProps> = ({ onClose, isMobile = fals
     return () => document.removeEventListener('mousedown', handler);
   }, [onClose, isMobile]);
 
-  // Scroll lock — mobile only
-  // Locks both document.body AND the mobile menu element so neither scrolls
   useEffect(() => {
     if (!isMobile) return;
-
     const mobileMenu = document.getElementById('mobile-menu');
     const prevBodyOverflow = document.body.style.overflow;
     const prevMenuOverflow = mobileMenu?.style.overflow ?? '';
-
     document.body.style.overflow = 'hidden';
     if (mobileMenu) mobileMenu.style.overflow = 'hidden';
-
     return () => {
       document.body.style.overflow = prevBodyOverflow;
       if (mobileMenu) mobileMenu.style.overflow = prevMenuOverflow;
@@ -133,7 +141,6 @@ const AccessibilityPanel: React.FC<A11yPanelProps> = ({ onClose, isMobile = fals
       aria-label="Accessibility settings"
       aria-modal="true"
     >
-      {/* Header */}
       <div className="a11y-panel-header">
         <div className="a11y-panel-title">
           <span className="a11y-panel-badge" aria-hidden="true"><Hand /></span>
@@ -149,7 +156,6 @@ const AccessibilityPanel: React.FC<A11yPanelProps> = ({ onClose, isMobile = fals
         </button>
       </div>
 
-      {/* Text size */}
       <div className="a11y-section">
         <p className="a11y-section-label">Text size</p>
         <div className="a11y-font-row" role="group" aria-label="Text size">
@@ -169,7 +175,6 @@ const AccessibilityPanel: React.FC<A11yPanelProps> = ({ onClose, isMobile = fals
 
       <div className="a11y-divider" />
 
-      {/* Visual toggles */}
       <div className="a11y-section">
         <p className="a11y-section-label">Visual preferences</p>
         {toggleRows.map(({ key, icon, label, sub }) => {
@@ -199,8 +204,6 @@ const AccessibilityPanel: React.FC<A11yPanelProps> = ({ onClose, isMobile = fals
     </div>
   );
 
-  // Mobile: portal to document.body to escape nav's stacking context
-  // (backdrop-filter on <nav> traps position:fixed children otherwise)
   if (isMobile) {
     return ReactDOM.createPortal(
       <div className="a11y-backdrop" aria-hidden="false">
@@ -219,8 +222,7 @@ const AccessibilityPanel: React.FC<A11yPanelProps> = ({ onClose, isMobile = fals
   return panel;
 };
 
-// ─── Accessibility Button (desktop) ──────────────────────────────────────────
-
+// Accessibility Button (desktop)
 const AccessibilityButton: React.FC = () => {
   const [open, setOpen] = useState(false);
   useEffect(() => { applyA11y(loadA11y()); }, []);
@@ -242,8 +244,7 @@ const AccessibilityButton: React.FC = () => {
   );
 };
 
-// ─── User Menu (desktop) ──────────────────────────────────────────────────────
-
+// User Menu (desktop)
 const UserMenu: React.FC = () => {
   const { user: authUser, token, logout } = useAuth();
   const navigate = useNavigate();
@@ -280,10 +281,11 @@ const UserMenu: React.FC = () => {
       >
         <NavAvatar src={avatarUrl} initials={initials} alt={name || 'User'} size="trigger" />
         <span className="navigation__user-trigger-name">{name.split(' ')[0] || 'Account'}</span>
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"
-          className={`dropdown-arrow ${open ? 'dropdown-arrow--open' : ''}`} aria-hidden="true">
-          <path d="M6 8L2 4h8L6 8z"/>
-        </svg>
+        <ChevronDown
+          size={12}
+          className={`dropdown-arrow ${open ? 'dropdown-arrow--open' : ''}`}
+          aria-hidden="true"
+        />
       </button>
 
       {open && (
@@ -330,8 +332,7 @@ const UserMenu: React.FC = () => {
   );
 };
 
-// ─── Mobile User Menu ─────────────────────────────────────────────────────────
-
+// Mobile User Menu
 const MobileUserMenu: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const { user: authUser, token, logout } = useAuth();
   const navigate = useNavigate();
@@ -383,8 +384,7 @@ const MobileUserMenu: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   );
 };
 
-// ─── Main Navigation ──────────────────────────────────────────────────────────
-
+// Main Navigation
 const Navigation: React.FC = () => {
   const { token, isLoading } = useAuth();
   const isAuthenticated = !!token;
@@ -394,14 +394,12 @@ const Navigation: React.FC = () => {
   const [scrolled,       setScrolled]       = useState(false);
   const [mobileA11yOpen, setMobileA11yOpen] = useState(false);
 
-  // Scroll listener
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 10);
     window.addEventListener('scroll', handler, { passive: true });
     return () => window.removeEventListener('scroll', handler);
   }, []);
 
-  // Cleanup hover timer on unmount
   useEffect(() => { return () => { if (closeTimer) clearTimeout(closeTimer); }; }, [closeTimer]);
 
   const toggleMenu          = () => setIsMenuOpen(v => !v);
@@ -418,6 +416,13 @@ const Navigation: React.FC = () => {
     { icon: <HealthIcon />,    label: 'Health',    to: '/tips/health'    },
   ];
 
+  const DropArrow = ({ open }: { open: boolean }) => (
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"
+      className={`dropdown-arrow ${open ? 'dropdown-arrow--open' : ''}`} aria-hidden="true">
+      <path d="M6 8L2 4h8L6 8z"/>
+    </svg>
+  );
+
   return (
     <nav className={`navigation ${scrolled ? 'navigation--scrolled' : ''}`} role="navigation" aria-label="Main navigation">
       <a href="#main-content" className="navigation__skip-link">Skip to main content</a>
@@ -426,7 +431,15 @@ const Navigation: React.FC = () => {
         {/* Logo */}
         <div className="navigation__logo">
           <Link to="/" aria-label="BarkBuddy — go to homepage">
-            <img src="../images/logo.png" alt="BarkBuddy" className="navigation__logo-img" />
+            <img
+              src="../images/logo.webp"
+              alt="BarkBuddy"
+              className="navigation__logo-img"
+              loading="eager"
+              decoding="sync"
+              width={1}
+              height={1}
+            />
           </Link>
         </div>
 
@@ -436,8 +449,8 @@ const Navigation: React.FC = () => {
             onMouseEnter={() => handleMouseEnter('care')} onMouseLeave={handleMouseLeave}>
             <a href="#care-tips" className="navigation__menu-link" role="menuitem"
               aria-haspopup="true" aria-expanded={activeDropdown === 'care'}>
-              <i className="bi bi-suit-heart" aria-hidden="true" /> Dog Care
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor" className="dropdown-arrow" aria-hidden="true"><path d="M6 8L2 4h8L6 8z"/></svg>
+              <Heart size={15} aria-hidden="true" /> Dog Care
+              <DropArrow open={activeDropdown === 'care'} />
             </a>
             {activeDropdown === 'care' && (
               <div className="navigation__mega-dropdown" role="menu" onMouseEnter={handleDropdownEnter} onMouseLeave={handleDropdownLeave}>
@@ -455,13 +468,13 @@ const Navigation: React.FC = () => {
 
           <li className="navigation__menu-item" role="none">
             <Link to="/service-finder" className="navigation__menu-link" role="menuitem">
-              <i className="bi bi-shop" aria-hidden="true" /> BarkBuddy Discover
+              <Store size={15} aria-hidden="true" /> BarkBuddy Discover
             </Link>
           </li>
 
           <li className="navigation__menu-item" role="none">
             <Link to="/travel-page" className="navigation__menu-link" role="menuitem">
-              <i className="bi bi-airplane" aria-hidden="true" /> Travel
+              <Plane size={15} aria-hidden="true" /> Travel
             </Link>
           </li>
 
@@ -469,15 +482,15 @@ const Navigation: React.FC = () => {
             onMouseEnter={() => handleMouseEnter('more')} onMouseLeave={handleMouseLeave}>
             <a href="#more" className="navigation__menu-link" role="menuitem"
               aria-haspopup="true" aria-expanded={activeDropdown === 'more'}>
-              <i className="bi bi-grid" aria-hidden="true" /> More
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor" className="dropdown-arrow" aria-hidden="true"><path d="M6 8L2 4h8L6 8z"/></svg>
+              <LayoutGrid size={15} aria-hidden="true" /> More
+              <DropArrow open={activeDropdown === 'more'} />
             </a>
             {activeDropdown === 'more' && (
               <div className="navigation__dropdown" role="menu" onMouseEnter={handleDropdownEnter} onMouseLeave={handleDropdownLeave}>
-                <a href="#about" role="menuitem"><i className="bi bi-bookmark-heart-fill" aria-hidden="true" /> About BarkBuddy</a>
-                <a href="#contact" role="menuitem"><i className="bi bi-telephone" aria-hidden="true" /> Contact BarkBuddy</a>
+                <a href="#about" role="menuitem"><BookmarkCheck size={15} aria-hidden="true" /> About BarkBuddy</a>
+                <a href="#contact" role="menuitem"><Phone size={15} aria-hidden="true" /> Contact BarkBuddy</a>
                 <Link to="/register-business" className="navigation__secondary-highlight" role="menuitem">
-                  <i className="bi bi-briefcase" aria-hidden="true" /> BarkBuddy for Business
+                  <Briefcase size={15} aria-hidden="true" /> BarkBuddy for Business
                 </Link>
               </div>
             )}
@@ -494,8 +507,8 @@ const Navigation: React.FC = () => {
             <UserMenu />
           ) : (
             <>
-              <Link to="/login"    className="btn--nav btn-login"><LogIn /> Log In</Link>
-              <Link to="/register" className="btn--nav btn-register"><UserRoundPlus /> Register</Link>
+              <Link to="/login"    className="btn--nav btn-login"><LogIn size={15} /> Log In</Link>
+              <Link to="/register" className="btn--nav btn-register"><UserRoundPlus size={15} /> Register</Link>
             </>
           )}
         </div>
@@ -507,7 +520,15 @@ const Navigation: React.FC = () => {
           aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
           aria-expanded={isMenuOpen} aria-controls="mobile-menu"
         >
-          <img src={isMenuOpen ? '../../images/icons/close.svg' : '../../images/icons/hamburger-menu.svg'} alt="" aria-hidden="true" />
+          <img
+            src={isMenuOpen ? '../../images/icons/close.svg' : '../../images/icons/hamburger-menu.svg'}
+            alt=""
+            aria-hidden="true"
+            loading="eager"
+            decoding="sync"
+            width={24}
+            height={24}
+          />
         </button>
       </div>
 
@@ -523,10 +544,8 @@ const Navigation: React.FC = () => {
             <button className="navigation__mobile-toggle"
               onClick={() => handleDropdownClick('care-mobile')}
               aria-haspopup="true" aria-expanded={activeDropdown === 'care-mobile'}>
-              <i className="bi bi-suit-heart" aria-hidden="true" /> Dog Care
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"
-                className={`dropdown-arrow ${activeDropdown === 'care-mobile' ? 'dropdown-arrow--open' : ''}`}
-                aria-hidden="true"><path d="M6 8L2 4h8L6 8z"/></svg>
+              <Heart size={15} aria-hidden="true" /> Dog Care
+              <DropArrow open={activeDropdown === 'care-mobile'} />
             </button>
             {activeDropdown === 'care-mobile' && (
               <div className="navigation__mobile-submenu navigation__mobile-submenu--grid" role="menu">
@@ -540,25 +559,23 @@ const Navigation: React.FC = () => {
             )}
           </li>
 
-          <li role="none"><Link to="/service-finder" onClick={toggleMenu} role="menuitem"><i className="bi bi-shop" aria-hidden="true" /> BarkBuddy Discover</Link></li>
-          <li role="none"><Link to="/travel-page"    onClick={toggleMenu} role="menuitem"><i className="bi bi-airplane" aria-hidden="true" /> Travel</Link></li>
+          <li role="none"><Link to="/service-finder" onClick={toggleMenu} role="menuitem"><Store size={15} aria-hidden="true" /> BarkBuddy Discover</Link></li>
+          <li role="none"><Link to="/travel-page"    onClick={toggleMenu} role="menuitem"><Plane size={15} aria-hidden="true" /> Travel</Link></li>
 
           {/* More */}
           <li role="none">
             <button className="navigation__mobile-toggle"
               onClick={() => handleDropdownClick('more-mobile')}
               aria-haspopup="true" aria-expanded={activeDropdown === 'more-mobile'}>
-              <i className="bi bi-grid" aria-hidden="true" /> More
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"
-                className={`dropdown-arrow ${activeDropdown === 'more-mobile' ? 'dropdown-arrow--open' : ''}`}
-                aria-hidden="true"><path d="M6 8L2 4h8L6 8z"/></svg>
+              <LayoutGrid size={15} aria-hidden="true" /> More
+              <DropArrow open={activeDropdown === 'more-mobile'} />
             </button>
             {activeDropdown === 'more-mobile' && (
               <div className="navigation__mobile-submenu" role="menu">
-                <Link to="/about"             onClick={toggleMenu} role="menuitem"><i className="bi bi-bookmark-heart-fill" aria-hidden="true" /> About BarkBuddy</Link>
-                <Link to="/contact"           onClick={toggleMenu} role="menuitem"><i className="bi bi-telephone" aria-hidden="true" /> Contact BarkBuddy</Link>
+                <Link to="/about"             onClick={toggleMenu} role="menuitem"><BookmarkCheck size={15} aria-hidden="true" /> About BarkBuddy</Link>
+                <Link to="/contact"           onClick={toggleMenu} role="menuitem"><Phone size={15} aria-hidden="true" /> Contact BarkBuddy</Link>
                 <Link to="/register-business" onClick={toggleMenu} role="menuitem" className="navigation__mobile-highlight">
-                  <i className="bi bi-briefcase" aria-hidden="true" /> BarkBuddy for Business
+                  <Briefcase size={15} aria-hidden="true" /> BarkBuddy for Business
                 </Link>
               </div>
             )}
@@ -576,9 +593,7 @@ const Navigation: React.FC = () => {
             >
               <span className="navigation__mobile-a11y-icon" aria-hidden="true"><Hand /></span>
               <span>Accessibility settings</span>
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"
-                className={`dropdown-arrow ${mobileA11yOpen ? 'dropdown-arrow--open' : ''}`}
-                aria-hidden="true"><path d="M6 8L2 4h8L6 8z"/></svg>
+              <DropArrow open={mobileA11yOpen} />
             </button>
           </li>
 
@@ -590,15 +605,15 @@ const Navigation: React.FC = () => {
               <MobileUserMenu onClose={toggleMenu} />
             ) : (
               <li className="navigation__mobile-buttons" role="none">
-                <Link to="/login"    className="btn--nav btn-login"    onClick={toggleMenu}><LogIn /> Login</Link>
-                <Link to="/register" className="btn--nav btn-register" onClick={toggleMenu}><UserRoundPlus /> Register</Link>
+                <Link to="/login"    className="btn--nav btn-login"    onClick={toggleMenu}><LogIn size={15} /> Login</Link>
+                <Link to="/register" className="btn--nav btn-register" onClick={toggleMenu}><UserRoundPlus size={15} /> Register</Link>
               </li>
             )
           )}
         </ul>
       </div>
 
-      {/* Mobile a11y panel — portalled to body, rendered at nav root level */}
+      {/* Mobile a11y panel */}
       {mobileA11yOpen && (
         <AccessibilityPanel
           onClose={() => setMobileA11yOpen(false)}

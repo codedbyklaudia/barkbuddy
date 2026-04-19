@@ -2,9 +2,19 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import './ServiceFinder.scss';
 import Footer from './Footer';
+import {
+  ChevronsRight, MapPin, Phone, BadgeCheck, XCircle,
+  Filter, Hourglass, TriangleAlert, ArrowRight
+} from 'lucide-react';
 import { formatServiceType } from '../utils/formatservicetype';
 
 const MAPS_KEY: string = import.meta.env.VITE_GOOGLE_MAPS_KEY ?? '';
+
+// Cloudinary optimizer
+const clImg = (url: string, width = 120) =>
+  url?.includes('cloudinary.com')
+    ? url.replace('/upload/', `/upload/f_auto,q_auto,w_${width}/`)
+    : url;
 
 // Types
 interface Listing {
@@ -250,19 +260,26 @@ const ListingRow: React.FC<{ listing: Listing; activeTab: TabType }> = ({ listin
     <article className="listing-card listing-card--row">
       <div className="listing-card__image listing-card__image--small">
         {listing.primary_photo
-          ? <img src={listing.primary_photo} alt={listing.business_name} />
+          ? <img
+               src={clImg(listing.primary_photo, 400)}
+              alt={listing.business_name}
+              loading="lazy"
+              decoding="async"
+              width={4}
+              height={3}
+            />
           : <div className="listing-card__no-photo">🐾</div>}
-        {listing.is_new && <span className="listing-card__badge"><i className="bi bi-patch-check" /> New</span>}
+        {listing.is_new && <span className="listing-card__badge"><BadgeCheck size={12} /> New</span>}
       </div>
       <div className="listing-card__content">
         <span className="listing-card__category">{formatServiceType(listing.type)}</span>
         <h3 className="listing-card__title">{listing.business_name}</h3>
         <p className="listing-card__meta">
-          <i className="bi bi-geo-fill" /> {listing.address}, {listing.postcode}
+          <MapPin size={13} /> {listing.address}, {listing.postcode}
           {listing.distance_km != null && <> · <strong style={{ color: '#5B4B8A' }}>{listing.distance_km} km</strong></>}
         </p>
         {listing.description && <p className="listing-card__description">{listing.description}</p>}
-        {listing.contact_phone && <p className="listing-card__meta"><i className="bi bi-telephone" /> {listing.contact_phone}</p>}
+        {listing.contact_phone && <p className="listing-card__meta"><Phone size={13} /> {listing.contact_phone}</p>}
         <span className="listing-card__button">
           Check more
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -286,17 +303,24 @@ const GridCard: React.FC<{ listing: Listing; activeTab: TabType }> = ({ listing,
     <article className="listing-card listing-card--grid">
       <div className="listing-card__image">
         {listing.primary_photo
-          ? <img src={listing.primary_photo} alt={listing.business_name} />
+          ? <img
+               src={clImg(listing.primary_photo, 400)}
+              alt={listing.business_name}
+              loading="lazy"
+              decoding="async"
+              width={4}
+              height={3}
+            />
           : <div className="listing-card__no-photo">🐾</div>}
-        {listing.is_new && <span className="listing-card__badge"><i className="bi bi-patch-check" /> New</span>}
+        {listing.is_new && <span className="listing-card__badge"><BadgeCheck size={12} /> New</span>}
       </div>
       <div className="listing-card__content">
         <span className="listing-card__category">{formatServiceType(listing.type)}</span>
         <h3 className="listing-card__title">{listing.business_name}</h3>
-        <p className="listing-card__meta"><i className="bi bi-geo" /> {listing.address}</p>
+        <p className="listing-card__meta"><MapPin size={13} /> {listing.address}</p>
         {listing.description && <p className="listing-card__description">{listing.description}</p>}
         <span className="listing-card__button">
-          Check more <i className="bi bi-arrow-right" />
+          Check more <ArrowRight size={14} />
         </span>
       </div>
     </article>
@@ -458,16 +482,18 @@ const ServiceFinder: React.FC = () => {
   }, [activeTab]);
 
   useEffect(() => { performSearch({}); }, [activeTab, performSearch]);
-
+  
+  //Geo-Location
   const detectLocation = () => {
   if (!navigator.geolocation) {
     setLocationError('Geolocation is not supported by your browser.');
     return;
   }
 
+  // Reset everything cleanly
   setLocationError('');
   setLocationStatus('requesting');
-  setLocationInput('Requesting location…');
+  setLocationInput('');
 
   navigator.geolocation.getCurrentPosition(
     pos => {
@@ -476,6 +502,7 @@ const ServiceFinder: React.FC = () => {
       setSearchCoords(coords);
       setLocationInput('My location');
       setLocationStatus('granted');
+      setLocationError('');
       performSearch({ ...filters, query: searchQuery, lat: coords.lat, lng: coords.lng });
       scrollToResults();
     },
@@ -483,26 +510,29 @@ const ServiceFinder: React.FC = () => {
       setLocationInput('');
       setLocationStatus('denied');
 
-      switch (err.code) {
-        case err.PERMISSION_DENIED:
-          setLocationError(
-            'Location access was denied. On mobile, go to your browser Settings → Site permissions → Location and allow access for this site.'
-          );
-          break;
-        case err.POSITION_UNAVAILABLE:
-          setLocationError('Your location could not be determined. Try entering a postcode instead.');
-          break;
-        case err.TIMEOUT:
-          setLocationError('Location request timed out. Please try again or enter a postcode.');
-          break;
-        default:
-          setLocationError('Could not get your location. Try entering a postcode.');
+      const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+      const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+
+      if (err.code === err.PERMISSION_DENIED) {
+        if (isIOS && isSafari) {
+          setLocationError('To allow location on iPhone: Settings → Safari → Location → "Ask" or "Allow". Then reload the page.');
+        } else if (isIOS) {
+          setLocationError('To allow location: Settings → [your browser] → Location → Allow. Then reload.');
+        } else {
+          setLocationError('Location blocked. Click the lock icon in your browser address bar → Site settings → Location → Allow. Then reload.');
+        }
+      } else if (err.code === err.POSITION_UNAVAILABLE) {
+        setLocationError('Location unavailable. Please enter a postcode instead.');
+      } else if (err.code === err.TIMEOUT) {
+        setLocationError('Location timed out. Please try again or enter a postcode.');
+      } else {
+        setLocationError('Could not get location. Please enter a postcode.');
       }
     },
     {
-      enableHighAccuracy: true,  
-      timeout: 15000,           
-      maximumAge: 30000,      
+      enableHighAccuracy: false, 
+      timeout: 10000,
+      maximumAge: 0,
     }
   );
 };
@@ -556,13 +586,12 @@ const ServiceFinder: React.FC = () => {
   // Skeleton count — mirrors the last known result count if available
   const skeletonCount = listings.length > 0 ? Math.min(listings.length, 6) : 4;
 
-  // Location button icon — reflects current permission state
   const locateBtnIcon = () => {
-    if (locationStatus === 'requesting') return <i className="bi bi-hourglass-split" />;
-    if (locationStatus === 'denied')     return <i className="bi bi-geo-alt-fill" style={{ color: '#ef4444' }} />;
-    if (locationStatus === 'granted')    return <i className="bi bi-geo-alt-fill" style={{ color: '#22c55e' }} />;
-    return <i className="bi bi-crosshair" />;
-  };
+  if (locationStatus === 'requesting') return <Hourglass size={16} />;
+  if (locationStatus === 'denied')     return <MapPin size={16} style={{ color: '#ef4444' }} />;
+  if (locationStatus === 'granted')    return <MapPin size={16} style={{ color: '#22c55e' }} />;
+  return <MapPin size={16} />;
+};
 
   return (
     <div className="service-finder-page">
@@ -595,7 +624,7 @@ const ServiceFinder: React.FC = () => {
             <div className="fh__ctas">
               <button className="fh__cta fh__cta--primary" onClick={scrollToResults}>
                 {activeTab === 'services' ? 'Find a service' : 'Explore now'}
-                <i className="bi bi-chevron-double-right" />
+                <ChevronsRight size={16} />
               </button>
               <button
                 className="fh__cta fh__cta--ghost"
@@ -654,7 +683,7 @@ const ServiceFinder: React.FC = () => {
               {locationError && (
                 <p className="fh__location-error" role="alert">
                   {locationStatus === 'denied' && (
-                    <i className="bi bi-exclamation-triangle-fill" style={{ marginRight: '6px' }} />
+                    <TriangleAlert size={14} style={{ marginRight: '6px' }} />
                   )}
                   {locationError}
                 </p>
@@ -673,6 +702,10 @@ const ServiceFinder: React.FC = () => {
               ? '/images/Illustrations/Services-Finder-Hero (2).webp'
               : '/images/Illustrations/Activities-Finder-Hero(2).webp'}
             alt=""
+            loading="eager"
+            decoding="sync"
+            width={16}
+            height={9}
           />
         </div>
 
@@ -718,7 +751,14 @@ const ServiceFinder: React.FC = () => {
               title={cat.label}
             >
               <div className="type-btn__circle">
-                <img src={cat.icon} alt={cat.label} />
+                <img
+                  src={cat.icon}
+                  alt={cat.label}
+                  loading="lazy"
+                  decoding="async"
+                  width={1}
+                  height={1}
+                />
               </div>
               <span className="type-btn__label">{cat.label}</span>
             </div>
@@ -794,14 +834,14 @@ const ServiceFinder: React.FC = () => {
 
         {locationError && (
           <p className="finder-search__error finder-search__error--location" role="alert">
-            {locationStatus === 'denied' && <i className="bi bi-geo-alt-fill" style={{ marginRight: '6px' }} />}
+            {locationStatus === 'denied' && <MapPin size={14} style={{ marginRight: '6px' }} />}
             {locationError}
           </p>
         )}
 
         {hasActiveFilters && (
           <button className="finder-search__clear-all" onClick={clearAll}>
-            <i className="bi bi-x-circle" /> Clear all
+            <XCircle size={14} /> Clear all
           </button>
         )}
 
@@ -814,7 +854,7 @@ const ServiceFinder: React.FC = () => {
         </p>
 
         <button className="finder-search__filter-toggle" onClick={() => setFiltersOpen(o => !o)}>
-          <i className="bi bi-funnel" />
+          <Filter />
           {filtersOpen ? 'Hide filters' : 'Filters'}
           {activeFilterCount > 0 && (
             <span className="finder-search__filter-badge">{activeFilterCount}</span>

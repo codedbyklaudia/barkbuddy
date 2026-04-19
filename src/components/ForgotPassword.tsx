@@ -1,10 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.scss";
-import { polyline } from "framer-motion/client";
-
 const BASE = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
-
 // Decorations 
 const ForgotDecorations: React.FC = () => (
   <>
@@ -76,7 +73,15 @@ const ForgotPasswordPage: React.FC = () => {
           {!success ? (
             <>
               <div className="step1-header">
-                <img className="step1-mascot" src="../../images/dog-register.svg" alt="dog mascot" />
+                <img
+                  className="step1-mascot"
+                  src="../../images/dog-register.svg"
+                  alt="dog mascot"
+                  loading="eager"
+                  decoding="sync"
+                  width={1}
+                  height={1}
+                />
                 <h1 className="step1-title">Forgot Password?</h1>
                 <p className="step1-sub">
                   No worries! Enter your email below and<br />

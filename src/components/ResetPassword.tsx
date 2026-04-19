@@ -4,7 +4,7 @@ import "./Login.scss";
 
 const BASE = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
 
-// ─── Decorations ──────────────────────────────────────────────────────────────
+// Decorations
 const ResetDecorations: React.FC = () => (
   <>
     <div className="s0-rings" aria-hidden="true">
@@ -23,7 +23,7 @@ const ResetDecorations: React.FC = () => (
   </>
 );
 
-// ─── Eye Toggle ───────────────────────────────────────────────────────────────
+// Eye Toggle
 const EyeIcon: React.FC<{ visible: boolean }> = ({ visible }) =>
   visible ? (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -37,7 +37,7 @@ const EyeIcon: React.FC<{ visible: boolean }> = ({ visible }) =>
     </svg>
   );
 
-// ─── Reset Password Page ──────────────────────────────────────────────────────
+// Reset Password Page
 const ResetPasswordPage: React.FC = () => {
   const navigate        = useNavigate();
   const [searchParams]  = useSearchParams();
@@ -52,7 +52,7 @@ const ResetPasswordPage: React.FC = () => {
   const [success,         setSuccess]         = useState(false);
   const [tokenValid,      setTokenValid]      = useState<boolean | null>(null);
 
-  // ── Verify token is valid on page load ────────────────────────────────────
+  // Verify token is valid on page load
   useEffect(() => {
     if (!token) { setTokenValid(false); return; }
 
@@ -99,7 +99,7 @@ const ResetPasswordPage: React.FC = () => {
 
   const canProceed = password && confirmPassword;
 
-  // ── Loading token check ───────────────────────────────────────────────────
+  // Loading token check
   if (tokenValid === null) return (
     <div className="register-page">
       <ResetDecorations />
@@ -114,7 +114,7 @@ const ResetPasswordPage: React.FC = () => {
     </div>
   );
 
-  // ── Invalid / expired token ───────────────────────────────────────────────
+  // Invalid / expired token
   if (!tokenValid) return (
     <div className="register-page">
       <ResetDecorations />
@@ -160,7 +160,15 @@ const ResetPasswordPage: React.FC = () => {
           {!success ? (
             <>
               <div className="step1-header">
-                <img className="step1-mascot" src="../../images/dog-register.svg" alt="dog mascot" />
+                <img
+                  className="step1-mascot"
+                  src="../../images/dog-register.svg"
+                  alt="dog mascot"
+                  loading="eager"
+                  decoding="sync"
+                  width={1}
+                  height={1}
+                />
                 <h1 className="step1-title">New Password</h1>
                 <p className="step1-sub">
                   Choose a strong password for<br />your BarkBuddy account.

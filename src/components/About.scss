@@ -3,7 +3,7 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-// ─── Animations ───────────────────────────────────────────────────────────────
+// Animations
 @keyframes reveal-up {
   from { opacity: 0; transform: translateY(28px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -14,7 +14,7 @@
   to   { opacity: 1; }
 }
 
-// ─── Page shell ───────────────────────────────────────────────────────────────
+// Page shell 
 .about-page {
   min-height: 100dvh;
   background: $soft-pearl;
@@ -49,12 +49,12 @@
   &--light { color: $soft-pearl; }
 }
 
-// ─── Hero ─────────────────────────────────────────────────────────────────────
+// Hero
 .about-hero {
   display: grid !important;
   grid-template-columns: 1fr 1fr !important;
   width: 100%;
-  position: relative;
+  @include  relative;
   overflow: hidden;
   background: $twilight-purple;
   background-image:
@@ -71,7 +71,7 @@
   display: flex;
   align-items: stretch;
   padding: $space-xl clamp($space-xl, 5vw, 72px) 0;
-  position: relative;
+  @include relative;
   background-image: radial-gradient(circle, rgba($soft-pearl, 0.04) 1px, transparent 1px);
   background-size: 24px 24px;
   min-height: 600px;
@@ -86,8 +86,7 @@
 
 .about-hero__heading-block {
   flex: 1;
-  display: flex;
-  flex-direction: column;
+  @include column;
   justify-content: center;
   padding-bottom: clamp(4rem, 7vw, 6rem);
 }
@@ -143,8 +142,7 @@
 }
 
 .about-hero__ctas {
-  display: flex;
-  align-items: center;
+  @include center;
   gap: $space-md;
   flex-wrap: wrap;
   animation: reveal-up 0.65s 0.25s ease both;
@@ -156,8 +154,7 @@
   font-weight: $fw-regular;
   letter-spacing: 0.04em;
   @include cursor;
-  border: none;
-  text-decoration: none;
+  @include  none;
   display: inline-flex;
   align-items: center;
   gap: $space-sm;
@@ -191,7 +188,7 @@
 }
 
 .about-hero__right {
-  position: relative;
+  @include relative;
   overflow: hidden;
   min-height: 600px;
   width: 100%;
@@ -201,7 +198,7 @@
 
   &::before {
     content: '';
-    position: absolute;
+    @include absolute;
     inset: 0;
     background: linear-gradient(
       135deg,
@@ -214,7 +211,7 @@
 
   &::after {
     content: '';
-    position: absolute;
+    @include absolute;
     inset: 0;
     background:
       linear-gradient(to right,  rgba($twilight-purple, 0.98) 0%, rgba($twilight-purple, 0.5) 25%, transparent 55%),
@@ -226,7 +223,7 @@
 }
 
 .about-hero__image {
-  position: absolute;
+  @include absolute;
   top: 0; left: 0;
   width: 100%; height: 100%;
   display: block;
@@ -237,7 +234,7 @@
 }
 
 .about-hero__wave {
-  position: absolute;
+  @include absolute;
   bottom: -1px;
   left: 0;
   width: 100%;
@@ -247,7 +244,7 @@
   z-index: 10;
 }
 
-// ─── Photo component ──────────────────────────────────────────────────────────
+// Photo component
 .about-photo {
   @include relative;
   display: inline-block;
@@ -294,7 +291,7 @@
   }
 }
 
-// ─── Story section ────────────────────────────────────────────────────────────
+// Story section
 .about-story {
   padding: clamp(4rem, 7vw, 6rem) clamp(1.5rem, 6vw, 6rem);
   max-width: 1160px;
@@ -342,10 +339,9 @@
   }
 }
 
-// ─── Divider ──────────────────────────────────────────────────────────────────
+// Divider
 .about-divider {
-  display: flex;
-  align-items: center;
+  @include center;
   gap: $space-xl;
   padding: 0 clamp(1.5rem, 6vw, 6rem);
   max-width: 1160px;
@@ -365,7 +361,7 @@
   }
 }
 
-// ─── Mission section ──────────────────────────────────────────────────────────
+// Mission section
 .about-mission {
   padding: clamp(4rem, 7vw, 6rem) clamp(1.5rem, 6vw, 6rem);
   max-width: 1160px;
@@ -421,7 +417,7 @@
   }
 }
 
-// ─── How it works ─────────────────────────────────────────────────────────────
+// How it works
 .about-how {
   background: #fff;
   padding: clamp(4rem, 7vw, 6rem) clamp(1.5rem, 6vw, 6rem);
@@ -448,8 +444,7 @@
 }
 
 .about-how__tiers {
-  display: flex;
-  align-items: center;
+  @include center;
   gap: $space-xl;
 
   @media (max-width: $bp-tablet) {
@@ -461,9 +456,7 @@
 .about-how__arrow {
   flex-shrink: 0;
   color: rgba($twilight-purple, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
 
   @media (max-width: $bp-tablet) {
     transform: rotate(90deg);
@@ -474,8 +467,7 @@
   flex: 1;
   border-radius: $radius-lg;
   padding: $space-xxl;
-  display: flex;
-  flex-direction: column;
+  @include column;
   gap: $space-xl;
 
   &--free {
@@ -485,12 +477,12 @@
 
   &--account {
     background: $twilight-purple;
-    position: relative;
+    @include relative;
     overflow: hidden;
 
     &::before {
       content: '';
-      position: absolute; inset: 0;
+      @include absolute; inset: 0;
       background: radial-gradient(ellipse 80% 60% at 10% 10%, rgba($serene-purple, 0.2) 0%, transparent 70%);
       pointer-events: none;
     }
@@ -520,10 +512,9 @@
 }
 
 .about-tier__header {
-  display: flex;
-  align-items: center;
+  @include center;
   gap: $space-lg;
-  position: relative;
+  @include relative;
   z-index: 1;
 }
 
@@ -532,9 +523,7 @@
   flex-shrink: 0;
   background: rgba($serene-purple, 0.1);
   border-radius: $radius-md;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   padding: 10px;
 
   img { 
@@ -561,16 +550,14 @@
 
 .about-tier__list {
   list-style: none;
-  display: flex;
-  flex-direction: column;
+  @include column;
   gap: $space-md;
   position: relative;
   z-index: 1;
 }
 
 .about-feature-item {
-  display: flex;
-  align-items: center;
+  @include center;
   gap: $space-md;
   font-size: $t-body-des;
   color: rgba($twilight-purple, 0.65);
@@ -583,16 +570,16 @@
   }
 }
 
-// ─── Vision section ───────────────────────────────────────────────────────────
+// Vision section
 .about-vision {
   background: $twilight-purple;
   padding: clamp(4.5rem, 8vw, 7rem) clamp(1.5rem, 6vw, 6rem);
-  position: relative;
+  @include relative;
   overflow: hidden;
 
   &::before {
     content: '';
-    position: absolute; inset: 0;
+    @include absolute; inset: 0;
     background:
       radial-gradient(ellipse 60% 70% at 0% 50%, rgba($serene-purple, 0.2) 0%, transparent 60%),
       radial-gradient(ellipse 40% 50% at 100% 0%, rgba($gentle-amethyst, 0.12) 0%, transparent 60%);
@@ -603,7 +590,7 @@
 .about-vision__inner {
   max-width: 1000px;
   @include margin-center;
-  position: relative;
+  @include relative;
   z-index: 1;
 }
 
@@ -673,18 +660,18 @@
   @include margin-center;
 }
 
-// ─── Closing ──────────────────────────────────────────────────────────────────
+// Closing 
 .about-closing {
   padding: clamp(5rem, 9vw, 8rem) clamp(1.5rem, 6vw, 6rem);
   text-align: center;
-  position: relative;
+  @include relative;
   overflow: hidden;
 }
 
 .about-closing__inner {
   max-width: 640px;
   @include margin-center;
-  position: relative;
+  @include relative;
   z-index: 1;
 }
 
@@ -733,9 +720,7 @@
 }
 
 .about-closing__cta {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   gap: $space-lg;
   flex-wrap: wrap;
 }

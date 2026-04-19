@@ -3,11 +3,10 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-// ─── Loading screen ───────────────────────────────────────────────────────────
+// Loading screen
 .biz-dash-loading {
   min-height: 100dvh;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
+  @include flex-column;
   gap: $space-lg;
   background: $soft-pearl;
   font-family: $font-secondary;
@@ -30,13 +29,13 @@
   50%       { box-shadow: 0 0 0 5px rgba(#34d399, 0.08), 0 0 14px rgba(#34d399, 0.35); }
 }
 
-// ─── Force password change overlay ───────────────────────────────────────────
+// Force password change overlay
 .biz-force-overlay {
   position: fixed; inset: 0;
   background: rgba($twilight-purple, 0.65);
   backdrop-filter: blur(6px);
   z-index: 1000;
-  display: flex; align-items: center; justify-content: center;
+  @include flex-center;
   padding: $space-lg;
   font-family: $font-secondary;
 }

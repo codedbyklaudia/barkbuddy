@@ -3,7 +3,10 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import './ServiceDetailPage.scss';
 import Footer from './Footer';
 import { formatServiceType } from '../utils/formatservicetype';
-import { SquarePen, TicketPercent, Star, Info, Search, CheckCircle, AlertCircle, Bookmark } from 'lucide-react';
+import {
+  SquarePen, TicketPercent, Star, Info, Search, CheckCircle, AlertCircle,
+  Bookmark, BadgeCheck, MapPin, Phone, Mail, Globe, ExternalLink, Lock,
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useSaved } from '../context/SavedContext';
 
@@ -50,6 +53,11 @@ interface Statistics {
   average_rating: number | string;
   total_reviews: number;
 }
+// Cloudinary optimizer
+const clImg = (url: string, width = 120) =>
+  url?.includes('cloudinary.com')
+    ? url.replace('/upload/', `/upload/f_auto,q_auto,w_${width}/`)
+    : url;
 
 // Star rating display
 const StarRow = ({ rating, size = 16 }: { rating: number; size?: number }) => (
@@ -110,7 +118,7 @@ const SaveButton: React.FC<{
     if (!isLoggedIn) {
       setShowLoginMsg(true);
       setTimeout(() => setShowLoginMsg(false), 3000);
-      return;   // just show message, nothing else
+      return;
     }
     toggleService({
       id:       String(business.id),
@@ -137,7 +145,7 @@ const SaveButton: React.FC<{
         </button>
         {showLoginMsg && (
           <p className="sdp-save-login-msg">
-            <i className="bi bi-lock" /> Please log in to save listings
+            <Lock size={13} /> Please log in to save listings
           </p>
         )}
       </div>
@@ -156,7 +164,7 @@ const SaveButton: React.FC<{
       </button>
       {showLoginMsg && (
         <p className="sdp-save-login-msg">
-          <i className="bi bi-lock" /> Please log in to save listings
+          <Lock size={13} /> Please log in to save listings
         </p>
       )}
     </div>
@@ -169,10 +177,8 @@ const ServiceDetailPage: React.FC = () => {
   const navigate     = useNavigate();
   const location     = useLocation();
 
-  // Restore the tab we came from so back button returns to the right tab
   const fromTab = (location.state?.from as string) ?? 'services';
 
-  // Page data
   const [business, setBusiness]     = useState<Business | null>(null);
   const [photos, setPhotos]         = useState<Photo[]>([]);
   const [reviews, setReviews]       = useState<Review[]>([]);
@@ -180,14 +186,11 @@ const ServiceDetailPage: React.FC = () => {
   const [loading, setLoading]       = useState(true);
   const [error, setError]           = useState('');
 
-  // Auth
   const { token, logout, user, isLoading: authLoading } = useAuth();
   const isLoggedIn = !!token;
 
-  // Lightbox
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
-  // Review modal
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewRating, setReviewRating]       = useState(0);
   const [reviewComment, setReviewComment]     = useState('');
@@ -195,7 +198,6 @@ const ServiceDetailPage: React.FC = () => {
   const [reviewError, setReviewError]         = useState('');
   const [reviewSuccess, setReviewSuccess]     = useState(false);
 
-  // Fetch
   useEffect(() => {
     if (!id) return;
     const load = async () => {
@@ -221,7 +223,6 @@ const ServiceDetailPage: React.FC = () => {
     load();
   }, [id]);
 
-  // Refresh stats
   const refreshStats = useCallback(async () => {
     if (!id) return;
     try {
@@ -234,12 +235,10 @@ const ServiceDetailPage: React.FC = () => {
     }
   }, [id]);
 
-  // Back navigation — returns to correct tab
   const handleBack = () => {
     navigate('/service-finder', { state: { tab: fromTab } });
   };
 
-  // Review modal
   const handleOpenReview = () => {
     if (!isLoggedIn) { navigate('/login'); return; }
     setReviewRating(0);
@@ -289,7 +288,6 @@ const ServiceDetailPage: React.FC = () => {
     }
   };
 
-  // Lightbox
   const openLightbox  = (index: number) => setLightboxIndex(index);
   const closeLightbox = () => setLightboxIndex(null);
 
@@ -310,7 +308,6 @@ const ServiceDetailPage: React.FC = () => {
     return () => window.removeEventListener('keydown', onKey);
   }, [lightboxIndex, navigateLightbox]);
 
-  // Guards
   if (loading) return (
     <div className="activity-details">
       <div className="activity-details__loading">
@@ -331,7 +328,6 @@ const ServiceDetailPage: React.FC = () => {
     </div>
   );
 
-  // Derived values
   const primaryPhoto  = photos.find(p => p.is_primary) || photos[0];
   const otherPhotos   = photos.filter(p => p !== primaryPhoto);
   const averageRating = Number(statistics.average_rating) || 0;
@@ -352,80 +348,87 @@ const ServiceDetailPage: React.FC = () => {
                 {formatServiceType(business.type)}
               </span>
               <SaveButton
-                  business={business}
-                  averageRating={averageRating}
-                  variant="header"
-                  isLoggedIn={isLoggedIn}
-                />
+                business={business}
+                averageRating={averageRating}
+                variant="header"
+                isLoggedIn={isLoggedIn}
+              />
             </div>
 
             <h1 className="activity-details__title">{business.business_name}</h1>
             <p className="activity-details__details-address">{business.address}, {business.postcode}</p>
             {business.is_new && (
               <span className="activity-details__new-badge">
-                <i className="bi bi-patch-check" /> New on BarkBuddy
+                <BadgeCheck size={14} /> New on BarkBuddy
               </span>
             )}
           </div>
 
           {/* Photo hero */}
-{photos.length > 0 && (
-  <div className="activity-details__photo-hero">
-    <div
-      className="photo-hero__main"
-      onClick={() => primaryPhoto && openLightbox(photos.indexOf(primaryPhoto))}
-      role="button"
-      aria-label="Open photo"
-    >
-      {primaryPhoto && (
-        <img
-          src={primaryPhoto.cloudinary_url}
-          alt={business.business_name}
-        />
-      )}
-      <div className="photo-hero__main-overlay">
-        <span className="photo-hero__zoom-icon"><Search size={46} /></span>
-      </div>
-    </div>
+          {photos.length > 0 && (
+            <div className="activity-details__photo-hero">
+              <div
+                className="photo-hero__main"
+                onClick={() => primaryPhoto && openLightbox(photos.indexOf(primaryPhoto))}
+                role="button"
+                aria-label="Open photo"
+              >
+                {primaryPhoto && (
+                  <img
+                    src={clImg(primaryPhoto.cloudinary_url, 800)}
+                    alt={business.business_name}
+                    loading="eager"
+                    width={4}
+                    height={3}
+                  />
+                )}
+                <div className="photo-hero__main-overlay">
+                  <span className="photo-hero__zoom-icon"><Search size={46} /></span>
+                </div>
+              </div>
 
-    {otherPhotos.length > 0 && (
-      <div className="photo-hero__grid">
-        {otherPhotos.slice(0, 4).map((photo, idx) => (
-          <div
-            key={photo.id}
-            className="photo-hero__thumb"
-            onClick={() => openLightbox(photos.indexOf(photo))}
-            role="button"
-            aria-label={`Open photo ${idx + 2}`}
-          >
-            <img
-              src={photo.cloudinary_url}
-              alt={`${business.business_name} photo ${idx + 2}`}
-            />
-            {idx === 3 && photos.length > 5 && (
-              <div className="photo-hero__more-overlay">+{photos.length - 5} more</div>
-            )}
-          </div>
-        ))}
-        {photos.length > 5 && (
-          <div className="photo-hero__more-pill" onClick={() => openLightbox(5)} role="button">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-              <rect x="3" y="3" width="18" height="18" rx="2" />
-              <circle cx="8.5" cy="8.5" r="1.5" />
-              <polyline points="21 15 16 10 5 21" />
-            </svg>
-            {photos.length - 5} more photos
-          </div>
-        )}
-      </div>
-    )}
-  </div>
-)}
+              {otherPhotos.length > 0 && (
+                <div className="photo-hero__grid">
+                  {otherPhotos.slice(0, 4).map((photo, idx) => (
+                    <div
+                      key={photo.id}
+                      className="photo-hero__thumb"
+                      onClick={() => openLightbox(photos.indexOf(photo))}
+                      role="button"
+                      aria-label={`Open photo ${idx + 2}`}
+                    >
+                      <img
+                        src={clImg(photo.cloudinary_url, 400)}
+                        alt={`${business.business_name} photo ${idx + 2}`}
+                        loading="lazy"
+                        decoding="async"
+                        width={4}
+                        height={3}
+                      />
+                      {idx === 3 && photos.length > 5 && (
+                        <div className="photo-hero__more-overlay">+{photos.length - 5} more</div>
+                      )}
+                    </div>
+                  ))}
+                  {photos.length > 5 && (
+                    <div className="photo-hero__more-pill" onClick={() => openLightbox(5)} role="button">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                        <rect x="3" y="3" width="18" height="18" rx="2" />
+                        <circle cx="8.5" cy="8.5" r="1.5" />
+                        <polyline points="21 15 16 10 5 21" />
+                      </svg>
+                      {photos.length - 5} more photos
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Venue details */}
           <div className="activity-details__details">
             <div className="detail-item">
-              <span className="detail-item__icon"><i className="bi bi-pin-map" /></span>
+              <span className="detail-item__icon"><MapPin size={16} /></span>
               <div>
                 <p className="detail-item__label">Venue Address</p>
                 <p className="detail-item__value">{business.address}, {business.postcode}</p>
@@ -433,7 +436,7 @@ const ServiceDetailPage: React.FC = () => {
             </div>
             {business.contact_phone && (
               <div className="detail-item">
-                <span className="detail-item__icon"><i className="bi bi-telephone" /></span>
+                <span className="detail-item__icon"><Phone size={16} /></span>
                 <div>
                   <p className="detail-item__label">Phone</p>
                   <a href={`tel:${business.contact_phone}`} className="detail-item__value detail-item__value--link">
@@ -444,7 +447,7 @@ const ServiceDetailPage: React.FC = () => {
             )}
             {business.contact_email && (
               <div className="detail-item">
-                <span className="detail-item__icon"><i className="bi bi-envelope-open-heart" /></span>
+                <span className="detail-item__icon"><Mail size={16} /></span>
                 <div>
                   <p className="detail-item__label">Contact Email</p>
                   <a href={`mailto:${business.contact_email}`} className="detail-item__value detail-item__value--link">
@@ -455,11 +458,11 @@ const ServiceDetailPage: React.FC = () => {
             )}
             {business.website && (
               <div className="detail-item">
-                <span className="detail-item__icon"><i className="bi bi-browser-safari" /></span>
+                <span className="detail-item__icon"><Globe size={16} /></span>
                 <div>
                   <p className="detail-item__label">Website</p>
                   <a href={business.website} target="_blank" rel="noopener noreferrer" className="detail-item__value detail-item__value--link">
-                    Visit website <i className="bi bi-box-arrow-up-right" />
+                    Visit website <ExternalLink size={12} />
                   </a>
                 </div>
               </div>
@@ -551,8 +554,12 @@ const ServiceDetailPage: React.FC = () => {
                 {otherPhotos.slice(4).map((photo, idx) => (
                   <div key={photo.id} className="gallery-item" onClick={() => openLightbox(photos.indexOf(photo))}>
                     <img
-                      src={photo.cloudinary_url}
+                      src={clImg(photo.cloudinary_url, 400)}
                       alt={`${business.business_name} photo ${idx + 6}`}
+                      loading="lazy"
+                      decoding="async"
+                      width={4}
+                      height={3}
                     />
                   </div>
                 ))}
@@ -621,9 +628,11 @@ const ServiceDetailPage: React.FC = () => {
             )}
             <img
               key={lightboxIndex}
-              src={currentPhoto.cloudinary_url}
+              src={clImg(currentPhoto.cloudinary_url, 1200)}
               alt={business.business_name}
               className="lightbox__img"
+              width={4}
+              height={3}
             />
             {photos.length > 1 && (
               <button className="lightbox__nav lightbox__nav--next" onClick={() => navigateLightbox(1)} aria-label="Next photo">›</button>

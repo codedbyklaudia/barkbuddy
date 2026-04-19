@@ -1,7 +1,8 @@
 import React, { useState, useRef, useCallback,useEffect } from "react";
 import { Link } from "react-router-dom";
-import { PawPrint , Star, ChartPie, LogIn, ChevronsLeft, Camera, X} from 'lucide-react';
+import { PawPrint , Star, ChartPie,ChevronsRight, LogIn, ChevronsLeft, Camera, X, Image, FileCheck,FileText,MapPin} from 'lucide-react';
 import "./RegisterBusiness.scss";
+
 
 type BusinessCategory = "activities" | "services" | "";
 
@@ -244,7 +245,14 @@ const TypeGrid: React.FC<{ types: { key: string; label: string; icon: string; de
           className={`rb-type-chip ${selected === t.key ? "rb-type-chip--selected" : ""}`}
           onClick={() => onSelect(t.key)}>
           <span className="rb-type-chip__icon" aria-hidden="true">
-            <img src={t.icon} alt="" />
+            <img
+              src={t.icon}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              width={1}
+              height={1}
+            />
           </span>
           <span className="rb-type-chip__label">{t.label}</span>
           <span className="rb-type-chip__desc">{t.desc}</span>
@@ -512,10 +520,9 @@ const ActivityStep2: React.FC<{ data: ActivityFormData; errors: ValidationErrors
       <div className="rb-doc-examples">
         <p className="rb-doc-examples__title">Accepted documents:</p>
         <ul>
-          <li><i className="bi bi-file-earmark-pdf"></i> PDF or image of your dog-friendly policy</li>
-          <li><i className="bi bi-camera"></i> Photo of your "Dogs Welcome" sign at the entrance</li>
-          <li><i className="bi bi-image"></i> Screenshot of your menu noting dogs are welcome</li>
-          <li><i className="bi bi-file-earmark-check-fill"></i> Any official statement or certificate</li>
+          <li><FileText size={15} /> PDF or image of your dog-friendly policy</li>
+          <li><Image size={15} /> Screenshot of your menu noting dogs are welcome, with logo</li>
+          <li><FileCheck size={15} /> Official statement or certificate</li>
         </ul>
       </div>
       <div
@@ -618,14 +625,22 @@ function validateActivity1(d: ActivityFormData): ValidationErrors {
 // Success
 const SuccessScreen: React.FC<{ category: BusinessCategory; businessName: string }> = ({ category, businessName }) => (
   <div className="rb-success">
-    <span className="rb-success__icon" aria-hidden="true"><img src="../images/icons_1/success_message.png" alt="Success Picture" /></span>
+    <span className="rb-success__icon" aria-hidden="true">
+      <img
+        src="../images/icons_1/success_message.png"
+        alt="Success Picture"
+        loading="lazy"
+        decoding="async"
+        width={1}
+        height={1}
+      /></span>
     <h2 className="rb-success__title">{category === "services" ? "You're registered!" : "Application submitted!"}</h2>
     <p className="rb-success__text">
       {category === "services"
         ? `Welcome, ${businessName}! Please check your email to verify your account so we can begin reviewing your details. The review process takes up to 24 hours. Once approved, you'll receive your login details to access and manage your dashboard. We'll contact you if we need any additional information.`
         : `Thank you for applying, ${businessName}! Please check your email to verify your submission so we can begin reviewing your details. The review process takes up to 72 hours. You'll receive an email with the outcome once the review is complete. We'll be in touch if we need any additional information.`}
     </p>
-    <Link to="/" className="rb-success__btn"><i className="bi bi-chevron-double-left"></i> Back to BarkBuddy</Link>
+    <Link to="/" className="rb-success__btn"><ChevronsLeft/> Back to BarkBuddy</Link>
   </div>
 );
 
@@ -879,7 +894,15 @@ const RegisterBusinessPage: React.FC = () => {
  
         <div className="rb-hero__left">
           <div className="rb-hero__panel-inner">
-            <img src="/images/logo.png" alt="BarkBuddy for business" className="biz-login__brand-icon" />
+            <img
+              src="/images/logo.webp"
+              alt="BarkBuddy for business"
+              className="biz-login__brand-icon"
+              loading="eager"
+              decoding="sync"
+              width={1}
+              height={1}
+            />
             <div className="rb-hero__brand">
               <h1 className="rb-hero__title">
                 BarkBuddy<br /><em>for Business</em>
@@ -914,7 +937,16 @@ const RegisterBusinessPage: React.FC = () => {
             ].map(c => (
               <button key={c.cat} className={`rb-cat-card rb-cat-card--${c.cat}`}
                 onClick={() => { setCategory(c.cat); setStep(1); }} aria-label={`Register as ${c.title}`}>
-                <div className="rb-cat-card__icon" aria-hidden="true"><img src={c.icon} alt="" /></div>
+                <div className="rb-cat-card__icon" aria-hidden="true">
+                  <img
+                    src={c.icon}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    width={1}
+                    height={1}
+                  />
+                </div>
                 <div className="rb-cat-card__body">
                   <h3 className="rb-cat-card__title">{c.title}</h3>
                   <p className="rb-cat-card__desc">{c.desc}</p>
@@ -948,7 +980,15 @@ const RegisterBusinessPage: React.FC = () => {
             <div className="rb-sidebar__inner">
               <div className="rb-sidebar__category">
                 <div className="rb-sidebar__cat-img">
-                  <img src={category === "services" ? "../images/icons_1/Services.png" : "../images/icons_1/Activities.png"} alt="" aria-hidden="true" />
+                  <img
+                    src={category === "services" ? "../images/icons_1/Services.png" : "../images/icons_1/Activities.png"}
+                    alt=""
+                    aria-hidden="true"
+                    loading="lazy"
+                    decoding="async"
+                    width={1}
+                    height={1}
+                  />
                 </div>
                 <div>
                   <p className="rb-sidebar__cat-label">Registering as</p>
@@ -960,11 +1000,11 @@ const RegisterBusinessPage: React.FC = () => {
                 <p className="rb-sidebar__perks-title">What you get</p>
                 <ul role="list">
                   {[
-                    { icon: <i className="bi bi-pin-map"></i>, text: "Listed on BarkBuddy's directory" },
+                    { icon: <MapPin size={15} />, text: "Listed on BarkBuddy's directory" },
                     { icon:  <PawPrint  />, text: "Reach thousands of dog owners"  },
                     { icon: <Star />,   text: "Community reviews & ratings"     },
                     { icon: <ChartPie  />, text: "Direct booking enquiries"        },
-                    { icon: <i className="bi bi-pin-map"></i>,      text: "Always free to list"},
+                    { icon: <MapPin size={15} />,      text: "Always free to list"},
                   ].map(({ icon, text }) => (
                     <li key={text}>
                       <span className="rb-sidebar__perk-icon" aria-hidden="true">{icon}</span>
@@ -1030,7 +1070,7 @@ const RegisterBusinessPage: React.FC = () => {
                   {loading || emailCheckState === "checking"
                     ? <><span className="rb-spinner" aria-hidden="true" />{emailCheckState === "checking" ? "Checking email…" : "Processing…"}</>
                     : <>{category === "services" && step === 1 ? "Create Account" : category === "activities" && step === 2 ? "Submit Application" : "Continue"}
-                        <i className="bi bi-chevron-double-right"></i>
+                        <ChevronsRight />
 
                       </>
                   }

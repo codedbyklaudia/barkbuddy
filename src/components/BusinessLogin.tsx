@@ -49,15 +49,23 @@ const BusinessLogin: React.FC = () => {
 
   return (
     <div className="biz-login">
-
-      {/* Left — brand panel */}
       <aside className="biz-login__panel">
         <div className="biz-login__panel-inner">
-          <img src="/images/logo.png" alt="BarkBuddy for business" className="biz-login__brand-icon" />
+          <img
+            src="/images/logo.webp"
+            alt="BarkBuddy for business"
+            className="biz-login__brand-icon"
+            loading="eager"
+            decoding="sync"
+            width={1}
+            height={1}
+          />
           <div className="biz-login__brand">
             <h1>BarkBuddy<br /><em>for Business</em></h1>
-            <p>Manage your listing, update your details, and connect with dog owners in your area.</p>
-            <Link to="/" className="biz-login__home-link"><ChevronsLeft  size={"18"} /> Back to BarkBuddy</Link>
+            <p>Manage your listing, update your details, and show your business to the dog owners in your area.</p>
+            <Link to="/" className="biz-login__home-link">
+              <ChevronsLeft size={18} /> Back to BarkBuddy
+            </Link>
           </div>
         </div>
       </aside>

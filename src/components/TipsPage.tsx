@@ -122,11 +122,26 @@ const TipModal: React.FC<{
 
         {tip.image ? (
           <div className="tip-modal__image">
-            <img src={tip.image} alt={tip.title} />
+            <img
+              src={tip.image}
+              alt={tip.title}
+              loading="lazy"
+              decoding="async"
+              width={16}
+              height={9}
+            />
           </div>
         ) : (
           <div className="tip-modal__image tip-modal__image--placeholder">
-            <img src={tip.icon} alt="" className="tip-modal__icon-fallback" />
+            <img
+              src={tip.icon}
+              alt=""
+              className="tip-modal__icon-fallback"
+              loading="lazy"
+              decoding="async"
+              width={1}
+              height={1}
+            />
           </div>
         )}
 
@@ -220,10 +235,26 @@ const TipCard: React.FC<{
     >
       <div className="tip-card__image-wrap">
         {tip.image ? (
-          <img src={tip.image} alt={tip.title} className="tip-card__image" />
+          <img
+            src={tip.image}
+            alt={tip.title}
+            className="tip-card__image"
+            loading="lazy"
+            decoding="async"
+            width={16}
+            height={9}
+          />
         ) : (
           <div className="tip-card__image-placeholder">
-            <img src={tip.icon} alt="" className="tip-card__icon-fallback" />
+            <img
+              src={tip.icon}
+              alt=""
+              className="tip-card__icon-fallback"
+              loading="lazy"
+              decoding="async"
+              width={1}
+              height={1}
+            />
           </div>
         )}
       </div>
@@ -259,7 +290,7 @@ const TipCard: React.FC<{
   );
 };
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
+// Main Page 
 const TipsPage: React.FC<TipsPageProps> = ({
   category, title, titleAccent, subtitle, heroIcon, tips,
 }) => {
@@ -318,7 +349,15 @@ const TipsPage: React.FC<TipsPageProps> = ({
 
       <header className="tips-hero">
         <div className="tips-hero__bg" aria-hidden="true">
-          <img src={heroIcon} alt="" className="tips-hero__bg-img" />
+          <img
+            src={heroIcon}
+            alt=""
+            className="tips-hero__bg-img"
+            loading="eager"
+            decoding="sync"
+            width={16}
+            height={9}
+          />
           <div className="tips-hero__bg-veil" />
         </div>
         <div className="tips-hero__inner">

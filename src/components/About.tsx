@@ -11,7 +11,15 @@ interface FeatureItemProps {
 }
 const FeatureItem: React.FC<FeatureItemProps> = ({ icon, text }) => (
   <li className="about-feature-item">
-    <img src={icon} alt="" className="about-feature-item__icon" />
+    <img
+      src={icon}
+      alt=""
+      className="about-feature-item__icon"
+      loading="lazy"
+      decoding="async"
+      width={24}
+      height={24}
+    />
     <span>{text}</span>
   </li>
 );
@@ -60,12 +68,16 @@ const About: React.FC = () => {
           </div>
         </div>
 
-        {/* Right — photo */}
+        {/* Right — photo — above the fold → eager */}
         <div className="about-hero__right" aria-hidden="true">
           <img
             src="../images/Illustrations/paw-hand.webp"
-            alt=""
+            alt="Paw and hand illustration"
             className="about-hero__image"
+            loading="eager"
+            decoding="sync"
+            width={16}
+            height={9}
           />
         </div>
 
@@ -82,7 +94,7 @@ const About: React.FC = () => {
 
       </section>
 
-      {/* Story section  */}
+      {/* Story section */}
       <section className="about-story">
         <div className="about-story__inner">
 
@@ -118,7 +130,14 @@ const About: React.FC = () => {
           <div className="about-story__photo-wrap">
             <div className="about-photo about-photo--portrait">
               <div className="about-photo__placeholder">
-                <img src="../../images/klaudia+nox.jpeg" alt="Klaudia and Nox" />
+                <img
+                  src="../../images/klaudia+nox.jpeg"
+                  alt="Picture of Klaudia and her dog, Nox"
+                  loading="lazy"
+                  decoding="async"
+                  width={3}
+                  height={4}
+                />
               </div>
               <div className="about-photo__frame" aria-hidden="true" />
             </div>
@@ -127,21 +146,36 @@ const About: React.FC = () => {
         </div>
       </section>
 
-      {/* Divider  */}
+      {/* Divider */}
       <div className="about-divider" aria-hidden="true">
         <div className="about-divider__line" />
-        <img src="/images/icons/dog-origami.svg" alt="Origami Dog" className="about-divider__icon" />
+        <img
+          src="/images/icons/dog-origami.svg"
+          alt="Origami Dog"
+          className="about-divider__icon"
+          loading="lazy"
+          decoding="async"
+          width={40}
+          height={40}
+        />
         <div className="about-divider__line" />
       </div>
 
-      {/* Mission  */}
+      {/* Mission */}
       <section className="about-mission">
         <div className="about-mission__inner">
 
           <div className="about-story__photo-wrap about-story__photo-wrap--left">
             <div className="about-photo about-photo--landscape">
               <div className="about-photo__placeholder">
-                <img src="../images/Nox_pic.jpeg" alt="Founder dog picture" />
+                <img
+                  src="../images/Nox_pic.jpeg"
+                  alt="Founder dog picture"
+                  loading="lazy"
+                  decoding="async"
+                  width={4}
+                  height={3}
+                />
               </div>
               <div className="about-photo__frame" aria-hidden="true" />
             </div>
@@ -167,7 +201,7 @@ const About: React.FC = () => {
         </div>
       </section>
 
-      {/* How it works  */}
+      {/* How it works */}
       <section className="about-how">
         <div className="about-how__inner">
           <div className="about-how__header">
@@ -185,7 +219,14 @@ const About: React.FC = () => {
             <div className="about-tier about-tier--free">
               <div className="about-tier__header">
                 <div className="about-tier__icon">
-                  <img src="/images/icons/free.svg" alt="Free - icon" />
+                  <img
+                    src="/images/icons/free.svg"
+                    alt="Free - icon"
+                    loading="lazy"
+                    decoding="async"
+                    width={32}
+                    height={32}
+                  />
                 </div>
                 <div>
                   <h3 className="about-tier__title">Explore Freely</h3>
@@ -193,10 +234,10 @@ const About: React.FC = () => {
                 </div>
               </div>
               <ul className="about-tier__list">
-                <FeatureItem icon="/images/icons/care.svg"      text="Dog care tips" />
-                <FeatureItem icon="/images/icons/plane.svg"         text="Travel guide" />
-                <FeatureItem icon="/images/icons/map-pin-check.svg"  text="Dog-friendly locations" />
-                <FeatureItem icon="/images/icons/services.svg"      text="Local services directory" />
+                <FeatureItem icon="/images/icons/care.svg"             text="Dog care tips" />
+                <FeatureItem icon="/images/icons/plane.svg"            text="Travel guide" />
+                <FeatureItem icon="/images/icons/map-pin-check.svg"    text="Dog-friendly locations" />
+                <FeatureItem icon="/images/icons/services.svg"         text="Local services directory" />
               </ul>
             </div>
 
@@ -207,7 +248,14 @@ const About: React.FC = () => {
             <div className="about-tier about-tier--account">
               <div className="about-tier__header">
                 <div className="about-tier__icon">
-                  <img src="/images/icons/book-key.svg" alt="Unlock book key" />
+                  <img
+                    src="/images/icons/book-key.svg"
+                    alt="Unlock book key"
+                    loading="lazy"
+                    decoding="async"
+                    width={32}
+                    height={32}
+                  />
                 </div>
                 <div>
                   <h3 className="about-tier__title">Unlock Personalised Features</h3>
@@ -215,11 +263,11 @@ const About: React.FC = () => {
                 </div>
               </div>
               <ul className="about-tier__list">
-                <FeatureItem icon="/images/icons/care.svg"          text="Age-personalised care tips" />
-                <FeatureItem icon="/images/icons/calendar-days.svg"   text="Health calendar & reminders" />
-                <FeatureItem icon="/images/icons/folder-heart.svg"    text="Save favourite services" />
-                <FeatureItem icon="/images/icons/message-circle.svg"  text="Community forum" />
-                <FeatureItem icon="/images/icons/android.svg"            text="Android app with walk tracker" />
+                <FeatureItem icon="/images/icons/care.svg"             text="Age-personalised care tips" />
+                <FeatureItem icon="/images/icons/calendar-days.svg"    text="Health calendar & reminders" />
+                <FeatureItem icon="/images/icons/folder-heart.svg"     text="Save favourite services" />
+                <FeatureItem icon="/images/icons/message-circle.svg"   text="Community forum" />
+                <FeatureItem icon="/images/icons/android.svg"          text="Android app with walk tracker" />
               </ul>
             </div>
 
@@ -227,7 +275,7 @@ const About: React.FC = () => {
         </div>
       </section>
 
-      {/* Vision  */}
+      {/* Vision */}
       <section className="about-vision">
         <div className="about-vision__inner">
           <div className="about-vision__header">
@@ -264,7 +312,14 @@ const About: React.FC = () => {
       <section className="about-closing">
         <div className="about-closing__inner">
           <div className="about-closing__paw" aria-hidden="true">
-            <img src="/images/icons/dog-origami.svg" alt="Origami Dog Icon" />
+            <img
+              src="/images/icons/dog-origami.svg"
+              alt="Origami Dog Icon"
+              loading="lazy"
+              decoding="async"
+              width={40}
+              height={40}
+            />
           </div>
           <h2 className="about-closing__title">
             Built with love - for us, the dog parents

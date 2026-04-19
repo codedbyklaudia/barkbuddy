@@ -56,10 +56,15 @@ const LoginForm: React.FC<{
 
   return (
     <div className="step-content login-layout">
-
-      {/* mobile mascot: above card, peeks into card top edge */}
       <div className="login-mascot-mobile" aria-hidden="true">
-        <img src="../../images/dog-register.svg" alt="" />
+        <img
+          src="../../images/dog-register.svg"
+          alt=""
+          loading="eager"
+          decoding="sync"
+          width={1}
+          height={1}
+        />
       </div>
 
       <div className="login-card">
@@ -69,6 +74,10 @@ const LoginForm: React.FC<{
             className="login-mascot"
             src="../../images/dog-register.svg"
             alt="dog mascot"
+            loading="eager"
+            decoding="sync"
+            width={1}
+            height={1}
           />
           <h1 className="login-title">Log In</h1>
           <p className="login-sub">
