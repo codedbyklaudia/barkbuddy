@@ -704,6 +704,7 @@ const ServiceFinder: React.FC = () => {
             alt=""
             loading="eager"
             decoding="sync"
+            fetchPriority="high"
             width={16}
             height={9}
           />

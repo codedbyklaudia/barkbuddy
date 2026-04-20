@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import './HeroSection.scss';
 import { Link } from 'react-router-dom';
 import { ChevronsRight } from 'lucide-react';
@@ -7,20 +7,22 @@ interface ImageItem {
   id: number;
   src: string;
   alt: string;
-  priority?: boolean; 
+  priority?: boolean;
 }
 
+const column1Images: ImageItem[] = [
+  { id: 1, src: '../../images/labrador.webp',    alt: 'Labrador',        priority: true  },
+  { id: 2, src: '../../images/pug.webp',         alt: 'Pug',             priority: false },
+  { id: 7, src: '../../images/husky.webp',       alt: 'Husky',           priority: false },
+];
+
+const column2Images: ImageItem[] = [
+  { id: 3, src: '../../images/border-collie.webp', alt: 'Border Collie',   priority: true  },
+  { id: 4, src: '../../images/corgi.webp',          alt: 'Corgi',           priority: false },
+  { id: 8, src: '../../images/mixed-breed.webp',    alt: 'Mixed-breed dog', priority: false },
+];
+
 const HeroSection: React.FC = () => {
-  const column1Images: ImageItem[] = [
-    { id: 1, src: '../../images/labrador.webp',    alt: 'Labrador',        priority: true },
-    { id: 2, src: '../../images/pug.webp',         alt: 'Pug',             priority: false },
-    { id: 7, src: '../../images/husky.webp',       alt: 'Husky',           priority: false },
-  ];
-  const column2Images: ImageItem[] = [
-    { id: 3, src: '../../images/border-collie.webp', alt: 'Border Collie', priority: true },
-    { id: 4, src: '../../images/corgi.webp',          alt: 'Corgi',         priority: false },
-    { id: 8, src: '../../images/mixed-breed.webp',    alt: 'Mixed-breed dog', priority: false },
-  ];
   return (
     <section className="hero">
       <div className="hero__content">
@@ -34,7 +36,6 @@ const HeroSection: React.FC = () => {
             Service Finder
             <ChevronsRight size={16} />
           </Link>
-
           <Link to="/travel-page" className="btn1 btn1--2">
             Travel Guide
             <ChevronsRight size={16} />
@@ -48,39 +49,44 @@ const HeroSection: React.FC = () => {
         {/* Row 1 - Scrolls Right */}
         <div className="image-row scroll-right">
           <div className="scroll-content">
-            {[...column1Images, ...column1Images, ...column1Images].map((image, index) => (
-              <div key={`row1-${index}`} className="image-card">
-                <img
-                  src={image.src}
-                  alt={image.alt}
-                  // Only the first occurrence is priority — all duplicates are lazy
-                  loading={index < column1Images.length && image.priority ? 'eager' : 'lazy'}
-                  decoding={index < column1Images.length && image.priority ? 'sync' : 'async'}
-                  width={220}
-                  fetchPriority="high"
-                  height={280}
-                />
-              </div>
-            ))}
+            {[...column1Images, ...column1Images, ...column1Images].map((image, index) => {
+              const isFirst = index < column1Images.length && image.priority;
+              return (
+                <div key={`row1-${index}`} className="image-card">
+                  <img
+                    src={image.src}
+                    alt={image.alt}
+                    loading={isFirst ? 'eager' : 'lazy'}
+                    decoding={isFirst ? 'sync' : 'async'}
+                    fetchPriority={isFirst ? 'high' : 'low'}
+                    width={220}
+                    height={280}
+                  />
+                </div>
+              );
+            })}
           </div>
         </div>
 
         {/* Row 2 - Scrolls Left */}
         <div className="image-row scroll-left">
           <div className="scroll-content">
-            {[...column2Images, ...column2Images, ...column2Images].map((image, index) => (
-              <div key={`row2-${index}`} className="image-card">
-                <img
-                  src={image.src}
-                  alt={image.alt}
-                  loading={index < column2Images.length && image.priority ? 'eager' : 'lazy'}
-                  decoding={index < column2Images.length && image.priority ? 'sync' : 'async'}
-                  fetchPriority="high"
-                  width={220}
-                  height={280}
-                />
-              </div>
-            ))}
+            {[...column2Images, ...column2Images, ...column2Images].map((image, index) => {
+              const isFirst = index < column2Images.length && image.priority;
+              return (
+                <div key={`row2-${index}`} className="image-card">
+                  <img
+                    src={image.src}
+                    alt={image.alt}
+                    loading={isFirst ? 'eager' : 'lazy'}
+                    decoding={isFirst ? 'sync' : 'async'}
+                    fetchPriority={isFirst ? 'high' : 'low'}
+                    width={220}
+                    height={280}
+                  />
+                </div>
+              );
+            })}
           </div>
         </div>
 
