@@ -1,8 +1,8 @@
 import type { Country, Continent, ContentCard, CountryContent } from './types';
 
-// ─── Local font imports (bundled by Vite) ─────────────────────────────────────
-import marcellusTTF  from '../../fonts/Marcellus/Marcellus-Regular.ttf';
-import fredokaTTF    from '../../fonts/Fredoka/Fredoka-font.ttf';
+// Local font imports (bundled by Vite) 
+import marcellusTTF  from '../../fonts/Marcellus/Marcellus-Regular.woff2';
+import fredokaTTF    from '../../fonts/Fredoka/Fredoka-font.woff2';
 
 export interface ChecklistPayload {
   country: Country;
@@ -10,7 +10,7 @@ export interface ChecklistPayload {
   content: Omit<CountryContent, 'countryId'>;
 }
 
-// ─── Brand palette ────────────────────────────────────────────────────────────
+// Brand palette
 const C = {
   twilight:  [46,  14,  74]  as [number, number, number],
   serene:    [130, 90,  190] as [number, number, number],
@@ -34,7 +34,7 @@ const PH = 297;
 const M  = 18;
 const CW = PW - M * 2;
 
-// ─── Get natural image dimensions via browser Image API ──────────────────────
+// Get natural image dimensions via browser Image API 
 function getImageDimensions(src: string): Promise<{ w: number; h: number }> {
   return new Promise(resolve => {
     const img = new Image();
@@ -44,7 +44,7 @@ function getImageDimensions(src: string): Promise<{ w: number; h: number }> {
   });
 }
 
-// ─── Convert a Vite-imported asset URL → base64 ───────────────────────────────
+// Convert a Vite-imported asset URL → base64
 async function assetToBase64(url: string): Promise<string | null> {
   try {
     const res   = await fetch(url);
@@ -62,18 +62,17 @@ async function assetToBase64(url: string): Promise<string | null> {
   }
 }
 
-// ─── Main generator ───────────────────────────────────────────────────────────
+// Main generator 
 export async function generateTravelChecklist(payload: ChecklistPayload): Promise<void> {
   const { default: jsPDF } = await import('jspdf');
 
   const [marcellusB64, fredokaB64, logoB64, logoDims] = await Promise.all([
     assetToBase64(marcellusTTF),
     assetToBase64(fredokaTTF),
-    assetToBase64('/images/logo.png'),
-    getImageDimensions('/images/logo.png'),
+    assetToBase64('/images/logo.webp'),
+    getImageDimensions('/images/logo.webp'),
   ]);
 
-  // Preserve natural aspect ratio — never stretch the logo
   const logoAspect = logoDims.w / logoDims.h;
   const logoCoverH = 44;
   const logoCoverW = logoCoverH * logoAspect;
@@ -87,22 +86,22 @@ export async function generateTravelChecklist(payload: ChecklistPayload): Promis
 
   if (marcellusB64) {
     try {
-      doc.addFileToVFS('Marcellus-Regular.ttf', marcellusB64);
-      doc.addFont('Marcellus-Regular.ttf', 'Marcellus', 'normal');
+      doc.addFileToVFS('Marcellus-Regular.woff2', marcellusB64);
+      doc.addFont('Marcellus-Regular.woff2', 'Marcellus', 'normal');
       hasMarkellus = true;
     } catch { /* fallback to helvetica */ }
   }
   if (fredokaB64) {
     try {
-      doc.addFileToVFS('Fredoka-Regular.ttf', fredokaB64);
-      doc.addFont('Fredoka-Regular.ttf', 'Fredoka', 'normal');
+      doc.addFileToVFS('Fredoka-Regular.woff2', fredokaB64);
+      doc.addFont('Fredoka-Regular.woff2', 'Fredoka', 'normal');
       hasFredoka = true;
     } catch { /* fallback to helvetica */ }
   }
 
   let y = 0;
 
-  // ── Colour helpers ───────────────────────────────────────────────────────
+  // Colour helpers 
   const fill = (...rgb: [number,number,number]) => doc.setFillColor(...rgb);
   const draw = (...rgb: [number,number,number]) => doc.setDrawColor(...rgb);
   const ink  = (...rgb: [number,number,number]) => doc.setTextColor(...rgb);
