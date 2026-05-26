@@ -14,7 +14,6 @@ import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute, GuestRoute } from './components/ProtectedRoute';
 import ScrollToTop from './components/ScrollToTop';
 
-// Always eager — needed immediately on load
 import Navigation from './components/Navigation';
 import HomePage   from './components/HomePage';
 

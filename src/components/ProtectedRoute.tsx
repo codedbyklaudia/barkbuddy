@@ -1,8 +1,7 @@
 import React from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-
-// ─── ProtectedRoute — redirects to /login if not authenticated ───
+// ProtectedRoute
 export const ProtectedRoute: React.FC = () => {
   const { user, isLoading } = useAuth();
 
@@ -16,11 +15,9 @@ export const ProtectedRoute: React.FC = () => {
 
   return user ? <Outlet /> : <Navigate to="/login" replace />;
 };
-
-// ─── GuestRoute — redirects to /dashboard if already logged in ──
+// GuestRoute — redirects to /dashboard if already logged in 
 export const GuestRoute: React.FC = () => {
   const { user, isLoading } = useAuth();
-
   if (isLoading) {
     return (
       <div className="auth-loading">
@@ -28,6 +25,5 @@ export const GuestRoute: React.FC = () => {
       </div>
     );
   }
-
   return user ? <Navigate to="/dashboard" replace /> : <Outlet />;
 };

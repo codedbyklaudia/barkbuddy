@@ -13,7 +13,7 @@ const FROM       = "BarkBuddy <paws@barkbuddy.org.uk>";
 
 const generateToken = () => crypto.randomBytes(32).toString("hex");
 
-// ─── POST /api/password/forgot ────────────────────────────────────────────────
+// POST /api/password/forgot
 router.post("/forgot", [
   body("email").isEmail().withMessage("Please enter a valid email").normalizeEmail(),
 ], async (req: Request, res: Response): Promise<void> => {
@@ -69,7 +69,7 @@ router.post("/forgot", [
   }
 });
 
-// ─── POST /api/password/reset ─────────────────────────────────────────────────
+// POST /api/password/reset
 router.post("/reset", [
   body("token").notEmpty().withMessage("Reset token is required"),
   body("password")

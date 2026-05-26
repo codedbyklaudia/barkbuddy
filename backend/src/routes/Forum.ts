@@ -4,8 +4,7 @@ import { authenticate, AuthRequest } from "../middleware/auth";
 
 const router = Router();
 
-// ─── GET /api/forum/posts ─────────────────────────────────────────────────────
-// Returns posts with live comment count and createdAt in UTC ISO text.
+// GET /api/forum/posts 
 router.get("/posts", async (req: any, res: Response): Promise<void> => {
   try {
     const { category, search, page = 1, limit = 20 } = req.query;
@@ -65,7 +64,7 @@ router.get("/posts", async (req: any, res: Response): Promise<void> => {
   }
 });
 
-// ─── GET /api/forum/posts/:id ─────────────────────────────────────────────────
+// GET /api/forum/posts/:id
 router.get("/posts/:id", async (req: any, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
@@ -128,7 +127,7 @@ router.get("/posts/:id", async (req: any, res: Response): Promise<void> => {
   }
 });
 
-// ─── GET /api/forum/my-posts ──────────────────────────────────────────────────
+// GET /api/forum/my-posts
 router.get("/my-posts", authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const result = await pool.query(
@@ -158,7 +157,7 @@ router.get("/my-posts", authenticate, async (req: AuthRequest, res: Response): P
   }
 });
 
-// ─── POST /api/forum/posts ────────────────────────────────────────────────────
+// POST /api/forum/posts
 router.post("/posts", authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { title, content, category } = req.body;
@@ -190,7 +189,7 @@ router.post("/posts", authenticate, async (req: AuthRequest, res: Response): Pro
   }
 });
 
-// ─── PATCH /api/forum/posts/:id ───────────────────────────────────────────────
+// PATCH /api/forum/posts/:id
 router.patch("/posts/:id", authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
@@ -236,7 +235,7 @@ router.patch("/posts/:id", authenticate, async (req: AuthRequest, res: Response)
   }
 });
 
-// ─── DELETE /api/forum/posts/:id ──────────────────────────────────────────────
+// DELETE /api/forum/posts/:id
 router.delete("/posts/:id", authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
@@ -255,7 +254,7 @@ router.delete("/posts/:id", authenticate, async (req: AuthRequest, res: Response
   }
 });
 
-// ─── POST /api/forum/posts/:id/comments ──────────────────────────────────────
+// POST /api/forum/posts/:id/comments
 router.post("/posts/:id/comments", authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id }                  = req.params;
@@ -301,7 +300,7 @@ router.post("/posts/:id/comments", authenticate, async (req: AuthRequest, res: R
   }
 });
 
-// ─── DELETE /api/forum/comments/:id ──────────────────────────────────────────
+// DELETE /api/forum/comments/:id
 router.delete("/comments/:id", authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
@@ -325,7 +324,7 @@ router.delete("/comments/:id", authenticate, async (req: AuthRequest, res: Respo
   }
 });
 
-// ─── POST /api/forum/comments/:id/like ───────────────────────────────────────
+// POST /api/forum/comments/:id/like
 router.post("/comments/:id/like", authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id }   = req.params;
@@ -355,7 +354,7 @@ router.post("/comments/:id/like", authenticate, async (req: AuthRequest, res: Re
   }
 });
 
-// ─── DELETE /api/forum/comments/:id/like ─────────────────────────────────────
+// DELETE /api/forum/comments/:id/like 
 router.delete("/comments/:id/like", authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
@@ -376,7 +375,7 @@ router.delete("/comments/:id/like", authenticate, async (req: AuthRequest, res: 
   }
 });
 
-// ─── GET /api/forum/categories ────────────────────────────────────────────────
+// GET /api/forum/categories
 router.get("/categories", async (req: any, res: Response): Promise<void> => {
   try {
     const result = await pool.query(

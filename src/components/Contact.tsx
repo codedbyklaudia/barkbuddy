@@ -136,7 +136,7 @@ const Contact: React.FC = () => {
         </div>
 
         <div className="contact-hero__right" aria-hidden="true">
-          <img src="../images/Illustrations/Contact-Us.webp" alt="Contact Us Dog Picture" className="contact-hero__image" />
+          <img src="../images/Illustrations/Contact-Us.webp" alt="Contact Us Dog Picture" className="contact-hero__image" loading="eager" decoding="sync" width={16} height={9} />
         </div>
 
         <svg className="contact-hero__wave" viewBox="0 0 1440 72"

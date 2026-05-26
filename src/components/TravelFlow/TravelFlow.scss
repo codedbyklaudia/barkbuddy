@@ -91,11 +91,11 @@ $accent-tips:          #d4a84b;
   @media (max-width: $bp-tablet) { display: none; }
 }
 
-// ─── Layout shell ─────────────────────────────────────────────────────────────
+// Layout shell
 .travel-flow {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 480px);
-  min-height: 100vh;
+  height: 100vh;      
   overflow: hidden;
   background-color: $soft-pearl;
 
@@ -1138,7 +1138,7 @@ $accent-tips:          #d4a84b;
   &__step-sub { @include type-ui($t-forgot-des); color: $gentle-amethyst; font-style: italic; }
 }
 
-// ─── Very small screens ───────────────────────────────────────────────────────
+// Very small screens 
 @media (max-width: 400px) {
   html, body { max-width: 100%; overflow-x: hidden; }
 

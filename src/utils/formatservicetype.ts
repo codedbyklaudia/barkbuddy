@@ -1,11 +1,5 @@
-/**
- * Format service/activity type for display
- * Converts database values (lowercase, no spaces) to user-friendly display names
- */
-
 export const formatServiceType = (type: string | null | undefined): string => {
   if (!type) return 'Unknown';
-
   const typeFormatMap: Record<string, string> = {
     // Services
     'groomer': 'Groomer',
@@ -15,7 +9,6 @@ export const formatServiceType = (type: string | null | undefined): string => {
     'pet_shop': 'Pet Shop', 
     'behaviourist': 'Behaviourist',
     'behaviorist': 'Behaviorist',
-    
     // Activities
     'hotel': 'Hotel',
     'restaurant': 'Restaurant',
@@ -27,19 +20,12 @@ export const formatServiceType = (type: string | null | undefined): string => {
     'dog_walker': 'Dog Walker',
     'dog-walker': 'Dog Walker',
   };
-
   const normalizedType = type.toLowerCase().trim();
   return typeFormatMap[normalizedType] || type;
 };
-
-/**
- * Format multiple types as a comma-separated list
- */
 export const formatServiceTypes = (types: string[]): string => {
   return types.map(t => formatServiceType(t)).join(', ');
 };
-
-
 export const getServiceTypeColor = (type: string): string => {
   const colorMap: Record<string, string> = {
     // Services
@@ -49,7 +35,6 @@ export const getServiceTypeColor = (type: string): string => {
     'pet_shop': 'bg-yellow-100 text-yellow-800',
     'behaviourist': 'bg-indigo-100 text-indigo-800',
     'behaviorist': 'bg-indigo-100 text-indigo-800',
-    
     // Activities
     'hotel': 'bg-purple-100 text-purple-800',
     'restaurant': 'bg-orange-100 text-orange-800',
@@ -61,11 +46,9 @@ export const getServiceTypeColor = (type: string): string => {
     'dog_walker': 'bg-sky-100 text-sky-800',
     'dog-walker': 'bg-sky-100 text-sky-800',
   };
-
   const normalizedType = type.toLowerCase().trim();
   return colorMap[normalizedType] || 'bg-gray-100 text-gray-800';
 };
-
 export const getServiceTypeIcon = (type: string): string => {
   const iconMap: Record<string, string> = {
     // Services
@@ -76,7 +59,6 @@ export const getServiceTypeIcon = (type: string): string => {
     'pet_shop': '/images/icons/pet-shop.svg',
     'behaviourist': '/images/icons/behaviourist.svg',
     'behaviorist': '/images/icons/behaviorist.svg',
-    
     // Activities
     'hotel': '/images/icons/hotel.svg',
     'restaurant': '/images/icons/restaurant.svg',
@@ -88,12 +70,9 @@ export const getServiceTypeIcon = (type: string): string => {
     'dog_walker': '/images/icons/dog-walker.svg',
     'dog-walker': '/images/icons/dog-walker.svg',
   };
-
   const normalizedType = type.toLowerCase().trim();
   return iconMap[normalizedType] || '/images/icons/default.svg';
 };
-
-
 export const getServiceTypeIconName = (type: string): string => {
   const iconNameMap: Record<string, string> = {
     // Services
@@ -120,8 +99,6 @@ export const getServiceTypeIconName = (type: string): string => {
   const normalizedType = type.toLowerCase().trim();
   return iconNameMap[normalizedType] || 'default';
 };
-
-
 export const getServiceTypeIconAlt = (type: string): string => {
   return `${formatServiceType(type)} icon`;
 };

@@ -5,25 +5,22 @@ import React, {
 
 const BASE = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
+// Types
 export type SavedItemType = "tip" | "service";
-
 export interface SavedTip {
   type:     "tip";
-  id:       string;        // DB row id (uuid)
-  itemId:   string;        // original tip id — used for isSaved checks
+  id:       string;       
+  itemId:   string;       
   title:    string;
   summary:  string;
   category: string;
   icon:     string;
   savedAt:  number;
 }
-
 export interface SavedService {
   type:      "service";
-  id:        string;       // DB row id (uuid)
-  itemId:    string;       // original service id
+  id:        string;      
+  itemId:    string;       
   title:     string;
   category:  string;
   address?:  string;
@@ -34,8 +31,7 @@ export interface SavedService {
 
 export type SavedItem = SavedTip | SavedService;
 
-// ─── Context shape ────────────────────────────────────────────────────────────
-
+// Context shape 
 interface SavedContextValue {
   savedItems:    SavedItem[];
   loading:       boolean;
@@ -51,7 +47,7 @@ interface SavedContextValue {
 
 const SavedContext = createContext<SavedContextValue | null>(null);
 
-// ─── Helper — normalise raw DB row → SavedItem ────────────────────────────────
+// Helper — normalise raw DB row → SavedItem 
 function normaliseItem(raw: any): SavedItem {
   const savedAt = raw.savedAt
     ? (typeof raw.savedAt === "number" ? raw.savedAt : new Date(raw.savedAt).getTime())
@@ -59,7 +55,7 @@ function normaliseItem(raw: any): SavedItem {
 
   const base = {
     id:      raw.id      ?? raw.itemId ?? "",
-    itemId:  raw.itemId  ?? raw.id     ?? "",   // handle both shapes
+    itemId:  raw.itemId  ?? raw.id     ?? "",   
     title:   raw.title   ?? "",
     savedAt,
   };
@@ -84,8 +80,7 @@ function normaliseItem(raw: any): SavedItem {
   } as SavedTip;
 }
 
-// ─── Provider ─────────────────────────────────────────────────────────────────
-
+// Provider
 export const SavedProvider: React.FC<{
   children: React.ReactNode;
   token:    string | null;
@@ -93,7 +88,7 @@ export const SavedProvider: React.FC<{
   const [savedItems, setSavedItems] = useState<SavedItem[]>([]);
   const [loading, setLoading]       = useState(false);
 
-  // ── Load from DB ────────────────────────────────────────────────────────
+  // Load from DB
   useEffect(() => {
     if (!token) { setSavedItems([]); return; }
     setLoading(true);
@@ -109,21 +104,19 @@ export const SavedProvider: React.FC<{
       .finally(() => setLoading(false));
   }, [token]);
 
-  // ── isSaved — works with both old `id` and new `itemId` ─────────────────
+  // isSaved
   const isSaved = useCallback(
     (id: string) => savedItems.some(i => i.itemId === id || i.id === id),
     [savedItems],
   );
 
-  // ── Internal save helper ─────────────────────────────────────────────────
+  // Internal save helper
   const saveItem = useCallback(async (
     type: "tip" | "service",
-    // accepts old shape { id, ... } or new shape { itemId, ... }
     data: Record<string, any>
   ) => {
     if (!token) return;
 
-    // Support both old API (id) and new API (itemId)
     const itemId = data.itemId ?? data.id ?? "";
 
     const existing = savedItems.find(
@@ -142,7 +135,7 @@ export const SavedProvider: React.FC<{
         setSavedItems(prev => [...prev, existing]);
       }
     } else {
-      // ── Save ──
+      // Save
       const tempId = `temp-${Date.now()}`;
       const optimistic = normaliseItem({ ...data, type, id: tempId, itemId, savedAt: Date.now() });
       setSavedItems(prev => [optimistic, ...prev]);
@@ -175,21 +168,21 @@ export const SavedProvider: React.FC<{
     }
   }, [token, savedItems]);
 
-  // ── toggleTip — same signature as old context ────────────────────────────
+  // toggleTip
   const toggleTip = useCallback(
     (tip: Omit<SavedTip, "type" | "savedAt" | "id"> & { id?: string }) =>
       saveItem("tip", tip),
     [saveItem],
   );
 
-  // ── toggleService — same signature as old context ────────────────────────
+  // toggleService
   const toggleService = useCallback(
     (svc: Omit<SavedService, "type" | "savedAt" | "id"> & { id?: string }) =>
       saveItem("service", svc),
     [saveItem],
   );
 
-  // ── removeSaved ──────────────────────────────────────────────────────────
+  //removeSaved
   const removeSaved = useCallback(async (id: string) => {
     if (!token) return;
     const removed = savedItems.find(i => i.id === id);
@@ -204,7 +197,7 @@ export const SavedProvider: React.FC<{
     }
   }, [token, savedItems]);
 
-  // ── clearAll ─────────────────────────────────────────────────────────────
+  // clearAll
   const clearAll = useCallback(async () => {
     if (!token) return;
     const backup = savedItems;
@@ -238,7 +231,7 @@ export const SavedProvider: React.FC<{
   );
 };
 
-// ─── Hook ─────────────────────────────────────────────────────────────────────
+// Hook
 
 export function useSaved(): SavedContextValue {
   const ctx = useContext(SavedContext);

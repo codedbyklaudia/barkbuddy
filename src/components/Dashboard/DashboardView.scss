@@ -423,7 +423,7 @@
 .link-sub   { font-size: 0.72rem; color: var(--text-3); }
 .link-arrow { color: var(--text-3); flex-shrink: 0; transition: all 0.13s; }
 
-// ── PROFILE HUB ───────────────────────────────────────────────────────────────
+// PROFILE HUB
 .dv-hub {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -498,11 +498,10 @@
   @media (max-width: 600px) { padding: 16px; }
 }
 
-// ── PROFILE CARD ──────────────────────────────────────────────────────────────
+// PROFILE CARD
 .pc-root {
-  position: relative;
-  display: flex;
-  flex-direction: column;
+  @include relative;
+  @include column;
   background: var(--surface);
   border-radius: var(--r-xl);
   overflow: hidden;

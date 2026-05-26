@@ -1,7 +1,6 @@
 export interface ValidationErrors {
   [field: string]: string;
 }
-
 export const validateStep1 = (data: {
   email: string; name: string; password: string; confirmPassword: string;
 }): ValidationErrors => {
@@ -18,14 +17,12 @@ export const validateStep1 = (data: {
   else if (data.confirmPassword !== data.password) errors.confirmPassword = "Passwords do not match";
   return errors;
 };
-
 export const validateStep2 = (data: { dogName: string; breed: string }): ValidationErrors => {
   const errors: ValidationErrors = {};
   if (!data.dogName?.trim()) errors.dogName = "Please enter your dog's name";
   if (!data.breed) errors.breed = "Please select a breed";
   return errors;
 };
-
 export const validateStep3 = (data: {
   lifeStage: string; personality: string[]; dogDob?: string;
 }): ValidationErrors => {
@@ -39,14 +36,12 @@ export const validateStep3 = (data: {
   }
   return errors;
 };
-
 // Step 4: Gender
 export const validateStep4 = (data: { dogGender: string }): ValidationErrors => {
   const errors: ValidationErrors = {};
   if (!data.dogGender) errors.dogGender = "Please select your dog's gender";
   return errors;
 };
-
 // Step 5: Policies
 export const validateStep5 = (accepted: Record<string, boolean>): ValidationErrors => {
   const errors: ValidationErrors = {};
@@ -55,6 +50,5 @@ export const validateStep5 = (accepted: Record<string, boolean>): ValidationErro
   if (!accepted.forum)   errors.forum   = "You must accept the Forum Policy";
   return errors;
 };
-
 export const isValid = (errors: ValidationErrors): boolean =>
   Object.keys(errors).length === 0;

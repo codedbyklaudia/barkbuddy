@@ -46,8 +46,7 @@
  
   background-image: radial-gradient(circle, rgba($soft-pearl, 0.04) 1px, transparent 1px);
   background-size: 20px 20px;
- 
-  // Decorative circle — pushed far enough it never overlaps text
+
   &::after {
     content: '';
     @include absolute;

@@ -1,0 +1,147 @@
+const express = require('express');
+const router = express.Router();
+const { Pool } = require('pg');
+const authenticateToken = require('../middleware/auth');
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
+
+
+// POST /api/walks - Save a completed walk
+router.post('/', authenticateToken, async (req, res) => {
+    const userId = req.user.id;
+    const { dog_ids, started_at, ended_at, duration_seconds,
+            distance_km, steps, route, notes } = req.body;
+
+    if (!started_at || !distance_km) {
+        return res.status(400).json({ error: 'started_at and distance_km are required' });
+    }
+
+    try {
+        const result = await pool.query(
+            `INSERT INTO walks
+             (user_id, dog_ids, started_at, ended_at, duration_seconds,
+              distance_km, steps, route, notes)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+             RETURNING *`,
+            [userId, dog_ids || [], started_at, ended_at,
+             duration_seconds, distance_km, steps,
+             route ? JSON.stringify(route) : null, notes]
+        );
+        res.status(201).json({ walk: result.rows[0] });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to save walk' });
+    }
+});
+
+// GET /api/walks/stats?month=2026-05 Monthly stats
+router.get('/stats', authenticateToken, async (req, res) => {
+    const userId = req.user.id;
+    const { month } = req.query; // e.g. "2026-05"
+
+    try {
+        // Monthly totals
+        const monthQuery = month
+            ? `WHERE user_id = $1 AND TO_CHAR(started_at, 'YYYY-MM') = $2`
+            : `WHERE user_id = $1 AND TO_CHAR(started_at, 'YYYY-MM') = TO_CHAR(NOW(), 'YYYY-MM')`;
+        const monthParams = month ? [userId, month] : [userId];
+
+        const monthStats = await pool.query(
+            `SELECT
+               COALESCE(SUM(distance_km), 0)       AS total_km,
+               COALESCE(SUM(steps), 0)              AS total_steps,
+               COALESCE(SUM(duration_seconds), 0)   AS total_duration,
+               COUNT(*)                             AS total_walks
+             FROM walks ${monthQuery}`,
+            monthParams
+        );
+
+        // This week — Mon to today
+        const weekStats = await pool.query(
+            `SELECT
+               DATE_TRUNC('day', started_at AT TIME ZONE 'UTC') AS walk_day,
+               COALESCE(SUM(distance_km), 0) AS day_km
+             FROM walks
+             WHERE user_id = $1
+               AND started_at >= DATE_TRUNC('week', NOW())
+               AND started_at < NOW() + INTERVAL '1 day'
+             GROUP BY walk_day
+             ORDER BY walk_day`,
+            [userId]
+        );
+
+        // Goals
+        const goals = await pool.query(
+            `SELECT daily_km, monthly_km FROM walk_goals WHERE user_id = $1`,
+            [userId]
+        );
+
+        res.json({
+            monthly: monthStats.rows[0],
+            week:    weekStats.rows,
+            goals:   goals.rows[0] || { daily_km: 3.0, monthly_km: 93.0 }
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to fetch stats' });
+    }
+});
+
+// GET /api/walks ── Walk history
+router.get('/', authenticateToken, async (req, res) => {
+    const userId = req.user.id;
+    const limit  = parseInt(req.query.limit) || 20;
+    const offset = parseInt(req.query.offset) || 0;
+
+    try {
+        const result = await pool.query(
+            `SELECT id, dog_ids, started_at, ended_at, duration_seconds,
+                    distance_km, steps, notes
+             FROM walks
+             WHERE user_id = $1
+             ORDER BY started_at DESC
+             LIMIT $2 OFFSET $3`,
+            [userId, limit, offset]
+        );
+        res.json({ walks: result.rows });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to fetch walks' });
+    }
+});
+
+// PUT /api/walks/goals ── Update goals 
+router.put('/goals', authenticateToken, async (req, res) => {
+    const userId = req.user.id;
+    const { daily_km, monthly_km } = req.body;
+
+    try {
+        await pool.query(
+            `INSERT INTO walk_goals (user_id, daily_km, monthly_km)
+             VALUES ($1, $2, $3)
+             ON CONFLICT (user_id) DO UPDATE
+             SET daily_km = $2, monthly_km = $3, updated_at = NOW()`,
+            [userId, daily_km || 3.0, monthly_km || 93.0]
+        );
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to update goals' });
+    }
+});
+
+// DELETE /api/walks/:id
+router.delete('/:id', authenticateToken, async (req, res) => {
+    const userId = req.user.id;
+    try {
+        await pool.query(
+            `DELETE FROM walks WHERE id = $1 AND user_id = $2`,
+            [req.params.id, userId]
+        );
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to delete walk' });
+    }
+});
+
+module.exports = router;
