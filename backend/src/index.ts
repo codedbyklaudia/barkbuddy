@@ -66,6 +66,9 @@ app.use(cors({
   credentials: true,
 }));
 
+const walksRouter = require('./routes/walks_api');
+app.use('/api/walks', walksRouter);
+
 // Body parsers
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
