@@ -4,13 +4,13 @@ export type EventType = "vaccine" | "flea_tick" | "worming" | "vet" | "grooming"
 
 export interface HealthEvent {
   id:            string;
-  dog_id:        string;      // which dog this belongs to
-  dog_name?:     string;      // returned by backend for display
+  dog_id:        string;   
+  dog_name?:     string;  
   dog_is_main?:  boolean;
   type:          EventType;
   title:         string;
   notes?:        string;
-  due_date:      string;      // always "YYYY-MM-DD" — no TZ shift
+  due_date:      string; 
   completed:     boolean;
   completed_at?: string;
   created_at:    string;
@@ -39,7 +39,6 @@ const authRequest = async <T>(
 export const getHealthEvents = (token: string) =>
   authRequest<{ events: HealthEvent[] }>("/health-events", token);
 
-// dog_id is optional — backend falls back to primary dog if omitted
 export const addHealthEvent = (token: string, data: {
   type:      EventType;
   title:     string;
@@ -62,7 +61,7 @@ export const editHealthEvent = (token: string, id: string, data: {
   title?:    string;
   due_date?: string;
   notes?:    string;
-  dog_id?:   string;   // allows reassigning event to a different dog
+  dog_id?:   string;  
 }) =>
   authRequest<{ event: HealthEvent }>(`/health-events/${id}`, token, {
     method: "PATCH",

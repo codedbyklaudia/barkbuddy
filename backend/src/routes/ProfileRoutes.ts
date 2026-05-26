@@ -5,7 +5,7 @@ import { authenticate, AuthRequest } from "../middleware/auth";
 const router = Router();
 router.use(authenticate);
 
-// ── Shared builder ────────────────────────────────────────────────────────────
+// Shared builder 
 async function buildProfile(targetUserId: string, requestingUserId: string) {
 
   // Core user — includes banner_url
@@ -83,7 +83,7 @@ async function buildProfile(targetUserId: string, requestingUserId: string) {
     name:            u.name,
     bio:             u.bio ?? null,
     avatarUrl:       u.avatar_url ?? null,
-    bannerUrl:       u.banner_url ?? null,   // ← added
+    bannerUrl:       u.banner_url ?? null,
     createdAt:       u.created_at,
     profileComplete: u.profile_complete ?? 0,
     buddyCount,
@@ -94,7 +94,7 @@ async function buildProfile(targetUserId: string, requestingUserId: string) {
   };
 }
 
-// ── GET /api/users/me/profile ─────────────────────────────────────────────────
+// GET /api/users/me/profile 
 router.get("/me/profile", async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const profile = await buildProfile(

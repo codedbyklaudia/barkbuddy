@@ -7,7 +7,7 @@ import pool from "../db";
 const router  = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "changeme";
 
-// ─── POST /api/business/login ─────────────────────────────────────────────────
+// POST /api/business/login 
 router.post("/login", [
   body("username").trim().notEmpty().withMessage("Username is required"),
   body("password").notEmpty().withMessage("Password is required"),

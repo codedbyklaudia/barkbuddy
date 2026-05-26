@@ -13,14 +13,9 @@ const VerifyBusinessEmail: React.FC = () => {
 
   useEffect(() => {
     let token: string | null = null;
-
-    // 1. Try location.search first (internal navigation via React Router)
     if (location.search) {
       token = new URLSearchParams(location.search).get("token");
     }
-
-    // 2. Fallback: parse query from the hash itself (direct link click from email)
-    //    e.g. window.location.hash = "#/business/verify-email?token=abc123"
     if (!token) {
       const hash    = window.location.hash;
       const qIndex  = hash.indexOf("?");
@@ -28,20 +23,14 @@ const VerifyBusinessEmail: React.FC = () => {
         token = new URLSearchParams(hash.slice(qIndex)).get("token");
       }
     }
-
     if (!token) {
       setStatus("error");
       setMessage("No verification token found in the link. Please check the email and try again.");
       return;
     }
-
-    // FIX: URLSearchParams.get() already URL-decodes the token value.
-    // Do NOT wrap it in encodeURIComponent — that double-encodes it and the
-    // backend query finds no matching row, returning 400 "invalid or expired".
     fetch(`${API_BASE}/business/verify-email?token=${token}`)
       .then(res => res.json())
       .then(data => {
-        // FIX: handle all common success shapes backends may return
         const isVerified =
           data.verified === true ||
           data.success  === true ||

@@ -696,18 +696,18 @@ const ServiceFinder: React.FC = () => {
         {/* RIGHT PANEL */}
         <div className="fh__right" aria-hidden="true">
           <img
-            key={activeTab}
-            className="fh__bg-image"
-            src={activeTab === 'services'
-              ? '/images/Illustrations/Services-Finder-Hero (2).webp'
-              : '/images/Illustrations/Activities-Finder-Hero(2).webp'}
-            alt=""
-            loading="eager"
-            decoding="sync"
-            fetchPriority="high"
-            width={16}
-            height={9}
-          />
+          key={activeTab}
+          className="fh__bg-image"
+          src={activeTab === 'services'
+            ? '/images/Illustrations/Services-Finder-Hero (2).webp'
+            : '/images/Illustrations/Activities-Finder-Hero(2).webp'}
+          alt=""
+          loading="eager"
+          decoding="sync"
+          fetchPriority="high"
+          width={16}
+          height={9}
+        />
         </div>
 
       </section>

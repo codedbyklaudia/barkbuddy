@@ -47,7 +47,6 @@ router.patch("/read", authenticate, async (req: AuthRequest, res: Response): Pro
 
   try {
     if (ids && ids.length > 0) {
-      // Mark specific ones — only if they belong to this user
       await pool.query(
         `UPDATE notifications
          SET is_read = true

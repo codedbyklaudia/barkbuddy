@@ -215,7 +215,7 @@ router.patch("/:id", [
   }
 });
 
-// ─── DELETE /:id ──────────────────────────────────────────────────────────────
+// DELETE /:id 
 router.delete("/:id", async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const result = await pool.query(

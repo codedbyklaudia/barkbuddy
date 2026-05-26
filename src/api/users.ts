@@ -17,8 +17,7 @@ const authRequest = async <T>(
   return data as T;
 };
 
-// ── User profile ──────────────────────────────────────────────────────────────
-
+// User profile 
 export const getProfile = (token: string) =>
   authRequest<{ user: any; dog: any }>("/users/me", token);
 
@@ -53,8 +52,7 @@ export const uploadUserBanner = (token: string, file: File) => {
   );
 };
 
-// ── Preferences ───────────────────────────────────────────────────────────────
-
+// Preferences 
 export const updatePreferences = (token: string, data: {
   emailNotifications?: boolean;
   preferences?:        Record<string, any>;
@@ -65,8 +63,7 @@ export const updatePreferences = (token: string, data: {
     body:    JSON.stringify(data),
   });
 
-// ── Dog ───────────────────────────────────────────────────────────────────────
-
+// Dog
 export const updateDog = (token: string, data: {
   name?:        string;
   breed?:       string;
@@ -88,15 +85,12 @@ export const uploadDogAvatar = (token: string, file: File) => {
     "/users/me/dog/avatar", token, { method: "POST", body: form }
   );
 };
-
-// Remove an extra (non-main) dog — maps to DELETE /api/users/me/dogs/:dogId
 export const removeDog = (token: string, dogId: string) =>
   authRequest<{ message: string }>(`/users/me/dogs/${dogId}`, token, {
     method: "DELETE",
   });
 
-// ── Notifications ─────────────────────────────────────────────────────────────
-
+// Notifications
 export const getNotifications = (token: string) =>
   authRequest<{ notifications: any[]; unread_count: number }>("/notifications", token)
     .then(data => ({
@@ -122,8 +116,7 @@ export const markNotificationsRead = (token: string, ids: string[]) =>
     body:    JSON.stringify({ ids }),
   });
 
-// ── Buddies ───────────────────────────────────────────────────────────────────
-
+// Buddies 
 export const getBuddies = (token: string) =>
   authRequest<{ buddies: any[]; pendingIn: any[]; pendingOut: any[] }>("/buddies", token);
 
