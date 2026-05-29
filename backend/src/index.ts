@@ -6,24 +6,25 @@ import { Pool } from "pg";
 import { v2 as cloudinary } from "cloudinary";
 import multer from "multer";
 
-import authRoutes             from "./routes/auth";
-import usersRoutes            from "./routes/users";
-import passwordRoutes         from "./routes/password";
-import healthEventsRoutes     from "./routes/healthEvents";
-import forumRoutes            from "./routes/Forum";
-import notificationsRouter    from "./routes/Notifications";
-import businessRoutes         from "./routes/Business";
-import contactRouter          from "./routes/Contact";
-import adminRouter            from "./routes/Admin";
-import businessAuthRouter     from "./routes/Businessauth";
-import businessPasswordRouter from "./routes/Businesspassword";
+import authRoutes              from "./routes/auth";
+import usersRoutes             from "./routes/users";
+import passwordRoutes          from "./routes/password";
+import healthEventsRoutes      from "./routes/healthEvents";
+import forumRoutes             from "./routes/Forum";
+import notificationsRouter     from "./routes/Notifications";
+import businessRoutes          from "./routes/Business";
+import contactRouter           from "./routes/Contact";
+import adminRouter             from "./routes/Admin";
+import businessAuthRouter      from "./routes/Businessauth";
+import businessPasswordRouter  from "./routes/Businesspassword";
 import businessDashboardRouter from "./routes/Businessdashboard";
-import listingsRouter         from "./routes/Listings";
-import buddiesRouter          from "./routes/buddies";
-import dogsRouter             from "./routes/Dogs";
-import reviewRouter           from "./routes/Reviews";
-import profileRouter          from "./routes/ProfileRoutes";
-import savedRouter            from "./routes/saved";
+import listingsRouter          from "./routes/Listings";
+import buddiesRouter           from "./routes/buddies";
+import dogsRouter              from "./routes/Dogs";
+import reviewRouter            from "./routes/Reviews";
+import profileRouter           from "./routes/ProfileRoutes";
+import savedRouter             from "./routes/saved";
+import walksRouter             from "./routes/Walks";
 
 dotenv.config();
 
@@ -57,7 +58,6 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, curl, Render health checks)
     if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) return callback(null, true);
     console.warn("[CORS] Blocked origin:", origin);
@@ -66,20 +66,15 @@ app.use(cors({
   credentials: true,
 }));
 
-const walksRouter = require('./routes/walks_api');
-app.use('/api/walks', walksRouter);
-
-// Body parsers
+// Body parsers — MUST come before routes that read req.body
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Static uploads — with long-term cache headers
+// Static files
 app.use("/uploads", express.static(path.join(__dirname, "../uploads"), {
   maxAge: "1y",
   immutable: true,
 }));
-
-// Static assets — with long-term cache headers
 app.use("/assets", express.static(path.join(__dirname, "../assets"), {
   maxAge: "1y",
   immutable: true,
@@ -109,8 +104,9 @@ app.use("/api/business/dashboard", businessDashboardRouter);
 app.use("/api/business",           businessAuthRouter);
 app.use("/api/business",           businessRoutes);
 app.use("/api/listings",           listingsRouter);
+app.use("/api/walks",              walksRouter);
 
-// GET /api/listings/new  — kept here only if NOT already in listingsRouter
+// GET /api/listings/new
 app.get("/api/listings/new", async (_req, res) => {
   try {
     const result = await pool.query(`
@@ -197,14 +193,14 @@ app.use((_req, res) => {
   res.status(404).json({ message: "Route not found" });
 });
 
-// Start 
+// Start
 app.listen(PORT, () => {
   console.log(`🚀 BarkBuddy server running on port ${PORT}`);
-  console.log(`   NODE_ENV: ${process.env.NODE_ENV ?? "development"}`);
-  console.log(`   DATABASE: ${process.env.DATABASE_URL ? "✅ set" : "❌ MISSING"}`);
-  console.log(`   JWT:      ${process.env.JWT_SECRET  ? "✅ set" : "❌ MISSING"}`);
-  console.log(`   RESEND:   ${process.env.RESEND_API_KEY ? "✅ set" : "❌ MISSING"}`);
-  console.log(`   CLOUDINARY: ${process.env.CLOUDINARY_CLOUD_NAME ? "✅ set" : "❌ MISSING"}`);
+  console.log(`   NODE_ENV:    ${process.env.NODE_ENV ?? "development"}`);
+  console.log(`   DATABASE:    ${process.env.DATABASE_URL    ? "✅ set" : "❌ MISSING"}`);
+  console.log(`   JWT:         ${process.env.JWT_SECRET      ? "✅ set" : "❌ MISSING"}`);
+  console.log(`   RESEND:      ${process.env.RESEND_API_KEY  ? "✅ set" : "❌ MISSING"}`);
+  console.log(`   CLOUDINARY:  ${process.env.CLOUDINARY_CLOUD_NAME ? "✅ set" : "❌ MISSING"}`);
 });
 
 export default app;

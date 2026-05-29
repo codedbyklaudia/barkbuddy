@@ -1,19 +1,23 @@
-const express = require('express');
-const router = express.Router();
-const { Pool } = require('pg');
-const authenticateToken = require('../middleware/auth');
+import { Router, Request, Response } from "express";
+import { Pool } from "pg";
+import authenticateToken from "../middleware/auth";
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
+const router = Router();
 
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false },
+});
 
-// POST /api/walks - Save a completed walk
-router.post('/', authenticateToken, async (req, res) => {
-    const userId = req.user.id;
+// POST /api/walks — Save a completed walk
+router.post("/", authenticateToken, async (req: Request, res: Response) => {
+    const userId = (req as any).user.id;
     const { dog_ids, started_at, ended_at, duration_seconds,
             distance_km, steps, route, notes } = req.body;
 
     if (!started_at || !distance_km) {
-        return res.status(400).json({ error: 'started_at and distance_km are required' });
+        res.status(400).json({ error: "started_at and distance_km are required" });
+        return;
     }
 
     try {
@@ -30,33 +34,31 @@ router.post('/', authenticateToken, async (req, res) => {
         res.status(201).json({ walk: result.rows[0] });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'Failed to save walk' });
+        res.status(500).json({ error: "Failed to save walk" });
     }
 });
 
-// GET /api/walks/stats?month=2026-05 Monthly stats
-router.get('/stats', authenticateToken, async (req, res) => {
-    const userId = req.user.id;
-    const { month } = req.query; // e.g. "2026-05"
+// GET /api/walks/stats?month=2026-05 — Monthly stats
+router.get("/stats", authenticateToken, async (req: Request, res: Response) => {
+    const userId = (req as any).user.id;
+    const { month } = req.query;
 
     try {
-        // Monthly totals
-        const monthQuery = month
+        const monthParams: any[] = month ? [userId, month] : [userId];
+        const monthFilter = month
             ? `WHERE user_id = $1 AND TO_CHAR(started_at, 'YYYY-MM') = $2`
             : `WHERE user_id = $1 AND TO_CHAR(started_at, 'YYYY-MM') = TO_CHAR(NOW(), 'YYYY-MM')`;
-        const monthParams = month ? [userId, month] : [userId];
 
         const monthStats = await pool.query(
             `SELECT
-               COALESCE(SUM(distance_km), 0)       AS total_km,
-               COALESCE(SUM(steps), 0)              AS total_steps,
-               COALESCE(SUM(duration_seconds), 0)   AS total_duration,
-               COUNT(*)                             AS total_walks
-             FROM walks ${monthQuery}`,
+               COALESCE(SUM(distance_km), 0)     AS total_km,
+               COALESCE(SUM(steps), 0)            AS total_steps,
+               COALESCE(SUM(duration_seconds), 0) AS total_duration,
+               COUNT(*)                           AS total_walks
+             FROM walks ${monthFilter}`,
             monthParams
         );
 
-        // This week — Mon to today
         const weekStats = await pool.query(
             `SELECT
                DATE_TRUNC('day', started_at AT TIME ZONE 'UTC') AS walk_day,
@@ -70,7 +72,6 @@ router.get('/stats', authenticateToken, async (req, res) => {
             [userId]
         );
 
-        // Goals
         const goals = await pool.query(
             `SELECT daily_km, monthly_km FROM walk_goals WHERE user_id = $1`,
             [userId]
@@ -79,19 +80,19 @@ router.get('/stats', authenticateToken, async (req, res) => {
         res.json({
             monthly: monthStats.rows[0],
             week:    weekStats.rows,
-            goals:   goals.rows[0] || { daily_km: 3.0, monthly_km: 93.0 }
+            goals:   goals.rows[0] || { daily_km: 3.0, monthly_km: 93.0 },
         });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'Failed to fetch stats' });
+        res.status(500).json({ error: "Failed to fetch stats" });
     }
 });
 
-// GET /api/walks ── Walk history
-router.get('/', authenticateToken, async (req, res) => {
-    const userId = req.user.id;
-    const limit  = parseInt(req.query.limit) || 20;
-    const offset = parseInt(req.query.offset) || 0;
+// GET /api/walks — Walk history
+router.get("/", authenticateToken, async (req: Request, res: Response) => {
+    const userId = (req as any).user.id;
+    const limit  = parseInt(req.query.limit as string) || 20;
+    const offset = parseInt(req.query.offset as string) || 0;
 
     try {
         const result = await pool.query(
@@ -106,13 +107,13 @@ router.get('/', authenticateToken, async (req, res) => {
         res.json({ walks: result.rows });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'Failed to fetch walks' });
+        res.status(500).json({ error: "Failed to fetch walks" });
     }
 });
 
-// PUT /api/walks/goals ── Update goals 
-router.put('/goals', authenticateToken, async (req, res) => {
-    const userId = req.user.id;
+// PUT /api/walks/goals — Update goals
+router.put("/goals", authenticateToken, async (req: Request, res: Response) => {
+    const userId = (req as any).user.id;
     const { daily_km, monthly_km } = req.body;
 
     try {
@@ -126,13 +127,13 @@ router.put('/goals', authenticateToken, async (req, res) => {
         res.json({ success: true });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'Failed to update goals' });
+        res.status(500).json({ error: "Failed to update goals" });
     }
 });
 
 // DELETE /api/walks/:id
-router.delete('/:id', authenticateToken, async (req, res) => {
-    const userId = req.user.id;
+router.delete("/:id", authenticateToken, async (req: Request, res: Response) => {
+    const userId = (req as any).user.id;
     try {
         await pool.query(
             `DELETE FROM walks WHERE id = $1 AND user_id = $2`,
@@ -140,8 +141,8 @@ router.delete('/:id', authenticateToken, async (req, res) => {
         );
         res.json({ success: true });
     } catch (err) {
-        res.status(500).json({ error: 'Failed to delete walk' });
+        res.status(500).json({ error: "Failed to delete walk" });
     }
 });
 
-module.exports = router;
+export default router;
