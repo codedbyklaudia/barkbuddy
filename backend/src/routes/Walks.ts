@@ -1,17 +1,12 @@
-import { Router, Request, Response } from "express";
-import { Pool } from "pg";
-import authenticateToken from "../middleware/auth";
+import { Router, Response } from "express";
+import { authenticate, AuthRequest } from "../middleware/auth";
+import pool from "../db";
 
 const router = Router();
 
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
-});
-
 // POST /api/walks — Save a completed walk
-router.post("/", authenticateToken, async (req: Request, res: Response) => {
-    const userId = (req as any).user.id;
+router.post("/", authenticate, async (req: AuthRequest, res: Response) => {
+    const userId = req.user!.userId;
     const { dog_ids, started_at, ended_at, duration_seconds,
             distance_km, steps, route, notes } = req.body;
 
@@ -39,8 +34,8 @@ router.post("/", authenticateToken, async (req: Request, res: Response) => {
 });
 
 // GET /api/walks/stats?month=2026-05 — Monthly stats
-router.get("/stats", authenticateToken, async (req: Request, res: Response) => {
-    const userId = (req as any).user.id;
+router.get("/stats", authenticate, async (req: AuthRequest, res: Response) => {
+    const userId = req.user!.userId;
     const { month } = req.query;
 
     try {
@@ -89,8 +84,8 @@ router.get("/stats", authenticateToken, async (req: Request, res: Response) => {
 });
 
 // GET /api/walks — Walk history
-router.get("/", authenticateToken, async (req: Request, res: Response) => {
-    const userId = (req as any).user.id;
+router.get("/", authenticate, async (req: AuthRequest, res: Response) => {
+    const userId = req.user!.userId;
     const limit  = parseInt(req.query.limit as string) || 20;
     const offset = parseInt(req.query.offset as string) || 0;
 
@@ -112,8 +107,8 @@ router.get("/", authenticateToken, async (req: Request, res: Response) => {
 });
 
 // PUT /api/walks/goals — Update goals
-router.put("/goals", authenticateToken, async (req: Request, res: Response) => {
-    const userId = (req as any).user.id;
+router.put("/goals", authenticate, async (req: AuthRequest, res: Response) => {
+    const userId = req.user!.userId;
     const { daily_km, monthly_km } = req.body;
 
     try {
@@ -132,8 +127,8 @@ router.put("/goals", authenticateToken, async (req: Request, res: Response) => {
 });
 
 // DELETE /api/walks/:id
-router.delete("/:id", authenticateToken, async (req: Request, res: Response) => {
-    const userId = (req as any).user.id;
+router.delete("/:id", authenticate, async (req: AuthRequest, res: Response) => {
+    const userId = req.user!.userId;
     try {
         await pool.query(
             `DELETE FROM walks WHERE id = $1 AND user_id = $2`,
