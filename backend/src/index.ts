@@ -26,8 +26,9 @@ import profileRouter           from "./routes/ProfileRoutes";
 import savedRouter             from "./routes/saved";
 import walksRouter             from "./routes/Walks";
 import { createServer } from "http";
-import { initSocket } from "./Socket";
 import chatRouter       from "./routes/Chat";
+import { initSocket } from "./socket";
+
 
 dotenv.config();
 
