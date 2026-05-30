@@ -27,7 +27,7 @@ import reviewRouter            from "./routes/Reviews";
 import profileRouter           from "./routes/ProfileRoutes";
 import savedRouter             from "./routes/saved";
 import walksRouter             from "./routes/Walks";
-import chatRouter              from "./routes/chat";
+import chatRouter              from "./routes/Chat";
 import { verifyToken }         from "./utils/jwt";
 import pool                    from "./db";
 
