@@ -26,7 +26,7 @@ import profileRouter           from "./routes/ProfileRoutes";
 import savedRouter             from "./routes/saved";
 import walksRouter             from "./routes/Walks";
 import { createServer } from "http";
-import { initSocket }   from "./routes/Socket";
+import { initSocket } from "./Socket";
 import chatRouter       from "./routes/Chat";
 
 dotenv.config();
@@ -197,8 +197,13 @@ app.use((_req, res) => {
   res.status(404).json({ message: "Route not found" });
 });
 
+const httpServer = createServer(app);
+ 
+// Attach Socket.io
+initSocket(httpServer);
+ 
 // Start
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
   console.log(`🚀 BarkBuddy server running on port ${PORT}`);
   console.log(`   NODE_ENV:    ${process.env.NODE_ENV ?? "development"}`);
   console.log(`   DATABASE:    ${process.env.DATABASE_URL    ? "✅ set" : "❌ MISSING"}`);
