@@ -25,6 +25,9 @@ import reviewRouter            from "./routes/Reviews";
 import profileRouter           from "./routes/ProfileRoutes";
 import savedRouter             from "./routes/saved";
 import walksRouter             from "./routes/Walks";
+import { createServer } from "http";
+import { initSocket }   from "./routes/Socket";
+import chatRouter       from "./routes/Chat";
 
 dotenv.config();
 
@@ -105,6 +108,7 @@ app.use("/api/business",           businessAuthRouter);
 app.use("/api/business",           businessRoutes);
 app.use("/api/listings",           listingsRouter);
 app.use("/api/walks",              walksRouter);
+app.use("/api/chat", chatRouter);
 
 // GET /api/listings/new
 app.get("/api/listings/new", async (_req, res) => {
