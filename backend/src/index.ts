@@ -27,7 +27,7 @@ import reviewRouter            from "./routes/Reviews";
 import profileRouter           from "./routes/ProfileRoutes";
 import savedRouter             from "./routes/saved";
 import walksRouter             from "./routes/Walks";
-import chatRouter              from "./routes/Chat";
+import chatRouter              from "./routes/chat";
 import { verifyToken }         from "./utils/jwt";
 import pool                    from "./db";
 
@@ -173,6 +173,22 @@ io.on("connection", (socket: Socket) => {
   const userId = (socket as any).userId as string;
   socket.join(`user:${userId}`);
 
+  // Notify buddies this user is now online
+  (async () => {
+    try {
+      await pool.query(
+        `UPDATE users SET last_seen = NOW() WHERE id = $1`, [userId]);
+      const buddies = await pool.query(
+        `SELECT CASE WHEN sender_id = $1 THEN receiver_id ELSE sender_id END AS buddy_id
+         FROM buddy_requests WHERE (sender_id = $1 OR receiver_id = $1) AND status = 'accepted'`,
+        [userId]
+      );
+      for (const row of buddies.rows) {
+        io.to(`user:${row.buddy_id}`).emit("buddy_came_online", { userId });
+      }
+    } catch (err) { console.error("[Socket] online notify error:", err); }
+  })();
+
   socket.on("join_conversation",  (id: string) => socket.join(`conv:${id}`));
   socket.on("leave_conversation", (id: string) => socket.leave(`conv:${id}`));
 
@@ -241,7 +257,30 @@ io.on("connection", (socket: Socket) => {
     }
   });
 
-  socket.on("disconnect", () => console.log(`[Socket] Disconnected: ${userId}`));
+  socket.on("disconnect", async () => {
+    console.log(`[Socket] Disconnected: ${userId}`);
+    try {
+      // Update last_seen and clear online status
+      await pool.query(
+        `UPDATE users SET last_seen = NOW(), status = NULL WHERE id = $1`,
+        [userId]
+      );
+      // Notify buddies user went offline
+      const buddies = await pool.query(
+        `SELECT CASE WHEN sender_id = $1 THEN receiver_id ELSE sender_id END AS buddy_id
+         FROM buddy_requests WHERE (sender_id = $1 OR receiver_id = $1) AND status = 'accepted'`,
+        [userId]
+      );
+      for (const row of buddies.rows) {
+        io.to(`user:${row.buddy_id}`).emit("buddy_went_offline", {
+          userId,
+          lastSeen: new Date().toISOString(),
+        });
+      }
+    } catch (err) {
+      console.error("[Socket] disconnect update error:", err);
+    }
+  });
 });
 
 httpServer.listen(PORT, () => {

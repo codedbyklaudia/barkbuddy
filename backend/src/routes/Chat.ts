@@ -5,6 +5,29 @@ import { authenticate, AuthRequest } from "../middleware/auth";
 const router = Router();
 router.use(authenticate);
 
+// ─── SQL to create tables (run once) ─────────────────────────────────────────
+// CREATE TABLE IF NOT EXISTS conversations (
+//   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+//   user1_id UUID REFERENCES users(id) ON DELETE CASCADE,
+//   user2_id UUID REFERENCES users(id) ON DELETE CASCADE,
+//   last_message TEXT,
+//   last_message_at TIMESTAMPTZ,
+//   created_at TIMESTAMPTZ DEFAULT NOW(),
+//   UNIQUE(user1_id, user2_id)
+// );
+//
+// CREATE TABLE IF NOT EXISTS messages (
+//   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+//   conversation_id UUID REFERENCES conversations(id) ON DELETE CASCADE,
+//   sender_id UUID REFERENCES users(id) ON DELETE CASCADE,
+//   content TEXT NOT NULL,
+//   read_at TIMESTAMPTZ,
+//   created_at TIMESTAMPTZ DEFAULT NOW()
+// );
+//
+// CREATE INDEX IF NOT EXISTS idx_messages_conv ON messages(conversation_id, created_at);
+// ─────────────────────────────────────────────────────────────────────────────
+
 // GET /api/chat/conversations — all conversations for current user
 router.get("/conversations", async (req: AuthRequest, res: Response): Promise<void> => {
     const userId = req.user!.userId;
@@ -158,6 +181,32 @@ router.post("/conversations/:id/messages", async (req: AuthRequest, res: Respons
         res.status(201).json({ message: msg.rows[0] });
     } catch (err) {
         console.error("POST /chat/messages error:", err);
+        res.status(500).json({ message: "Something went wrong." });
+    }
+});
+
+// GET /api/chat/status/:userId — check if a user is online (last_seen within 2 mins)
+router.get("/status/:userId", async (req: AuthRequest, res: Response): Promise<void> => {
+    const { userId } = req.params;
+    try {
+        const result = await pool.query(
+            `SELECT last_seen, status FROM users WHERE id = $1`, [userId]);
+        if (result.rows.length === 0) { res.status(404).json({ online: false }); return; }
+
+        const lastSeen = result.rows[0].last_seen;
+        const status   = result.rows[0].status;
+
+        // Consider online if last_seen within last 2 minutes
+        const isOnline = lastSeen
+            && (new Date().getTime() - new Date(lastSeen).getTime()) < 2 * 60 * 1000;
+
+        res.json({
+            online:   !!isOnline,
+            lastSeen: lastSeen,
+            status:   status,
+        });
+    } catch (err) {
+        console.error("GET /chat/status error:", err);
         res.status(500).json({ message: "Something went wrong." });
     }
 });
