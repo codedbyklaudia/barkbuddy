@@ -6,26 +6,27 @@ const router = Router();
 
 // Update streak on walk save
 const updateStreak = async (userId: string): Promise<void> => {
-    const result = await pool.query(
-        `SELECT last_walk_date, streak FROM users WHERE id = $1`, [userId]
-    );
-    const row = result.rows[0];
-    const today     = new Date().toISOString().split("T")[0]; // e.g. "2026-06-06"
+    const today     = new Date().toISOString().split("T")[0];
     const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
 
-    // Already walked today — don't change streak
-    if (row.last_walk_date && row.last_walk_date.toISOString().split("T")[0] === today) return;
+    const result = await pool.query(
+        `SELECT streak, last_walk_date::text AS last_walk_date FROM users WHERE id = $1`,
+        [userId]
+    );
 
-    const lastDate = row.last_walk_date
-        ? row.last_walk_date.toISOString().split("T")[0]
-        : null;
+    const row = result.rows[0];
+    const lastDate: string | null = row.last_walk_date ?? null;
+
+    console.log("updateStreak →", { today, yesterday, lastDate, streak: row.streak });
+
+    if (lastDate === today) return; // already walked today
 
     const newStreak = lastDate === yesterday
-        ? (row.streak ?? 0) + 1  // consecutive day — extend
-        : 1;                      // gap or first ever walk — reset to 1
+        ? (row.streak ?? 0) + 1
+        : 1;
 
     await pool.query(
-        `UPDATE users SET streak = $1, last_walk_date = $2 WHERE id = $3`,
+        `UPDATE users SET streak = $1, last_walk_date = $2::date WHERE id = $3`,
         [newStreak, today, userId]
     );
 };
