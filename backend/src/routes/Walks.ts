@@ -4,8 +4,8 @@ import pool from "../db";
 
 const router = Router();
 
-// Update streak on walk save
-const updateStreak = async (userId: string): Promise<void> => {
+// Returns the new streak so the response can include it
+const updateStreak = async (userId: string): Promise<number> => {
     const today     = new Date().toISOString().split("T")[0];
     const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
 
@@ -14,12 +14,10 @@ const updateStreak = async (userId: string): Promise<void> => {
         [userId]
     );
 
-    const row = result.rows[0];
-    const lastDate: string | null = row.last_walk_date ?? null;
+    const row      = result.rows[0];
+    const lastDate = row.last_walk_date ?? null;
 
-    console.log("updateStreak →", { today, yesterday, lastDate, streak: row.streak });
-
-    if (lastDate === today) return; // already walked today
+    if (lastDate === today) return row.streak ?? 0; // already walked today
 
     const newStreak = lastDate === yesterday
         ? (row.streak ?? 0) + 1
@@ -29,9 +27,11 @@ const updateStreak = async (userId: string): Promise<void> => {
         `UPDATE users SET streak = $1, last_walk_date = $2::date WHERE id = $3`,
         [newStreak, today, userId]
     );
+
+    return newStreak;
 };
 
-// POST /api/walks — Save a completed walk
+// POST /api/walks
 router.post("/", authenticate, async (req: AuthRequest, res: Response) => {
     const userId = req.user!.userId;
     const { dog_ids, started_at, ended_at, duration_seconds,
@@ -54,16 +54,17 @@ router.post("/", authenticate, async (req: AuthRequest, res: Response) => {
              route ? JSON.stringify(route) : null, notes]
         );
 
-        await updateStreak(userId);
+        // Update streak and include new value in response
+        const newStreak = await updateStreak(userId);
 
-        res.status(201).json({ walk: result.rows[0] });
+        res.status(201).json({ walk: result.rows[0], streak: newStreak });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: "Failed to save walk" });
     }
 });
 
-// GET /api/walks/stats?month=2026-05 — Monthly + weekly stats
+// GET /api/walks/stats
 router.get("/stats", authenticate, async (req: AuthRequest, res: Response) => {
     const userId = req.user!.userId;
     const { month } = req.query;
@@ -84,15 +85,14 @@ router.get("/stats", authenticate, async (req: AuthRequest, res: Response) => {
             monthParams
         );
 
-        // Week: Mon–Sun of current week, group by day
         const weekStats = await pool.query(
             `SELECT
-               DATE_TRUNC('day', started_at) AS walk_day,
-               COALESCE(SUM(distance_km), 0) AS day_km
+               (started_at AT TIME ZONE 'UTC')::date AS walk_day,
+               COALESCE(SUM(distance_km), 0)         AS day_km
              FROM walks
              WHERE user_id = $1
-               AND started_at >= DATE_TRUNC('week', NOW())
-               AND started_at <  DATE_TRUNC('week', NOW()) + INTERVAL '7 days'
+               AND (started_at AT TIME ZONE 'UTC')::date >= DATE_TRUNC('week', CURRENT_DATE)
+               AND (started_at AT TIME ZONE 'UTC')::date <  DATE_TRUNC('week', CURRENT_DATE) + INTERVAL '7 days'
              GROUP BY walk_day
              ORDER BY walk_day`,
             [userId]
@@ -114,7 +114,7 @@ router.get("/stats", authenticate, async (req: AuthRequest, res: Response) => {
     }
 });
 
-// GET /api/walks — Walk history
+// GET /api/walks
 router.get("/", authenticate, async (req: AuthRequest, res: Response) => {
     const userId = req.user!.userId;
     const limit  = parseInt(req.query.limit as string) || 20;
@@ -137,7 +137,7 @@ router.get("/", authenticate, async (req: AuthRequest, res: Response) => {
     }
 });
 
-// PUT /api/walks/goals — Update goals
+// PUT /api/walks/goals
 router.put("/goals", authenticate, async (req: AuthRequest, res: Response) => {
     const userId = req.user!.userId;
     const { daily_km, monthly_km } = req.body;
