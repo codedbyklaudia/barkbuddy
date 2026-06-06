@@ -4,6 +4,27 @@ import pool from "../db";
 
 const router = Router();
 
+// Update streak on walk save
+const updateStreak = async (userId: string): Promise<void> => {
+    const result = await pool.query(
+        `SELECT last_walk_date, streak FROM users WHERE id = $1`, [userId]
+    );
+    const { last_walk_date, streak } = result.rows[0];
+    const today     = new Date().toISOString().split("T")[0];
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
+
+    if (last_walk_date === today) return; // already logged today, no change
+
+    const newStreak = last_walk_date === yesterday
+        ? (streak ?? 0) + 1  // extend streak
+        : 1;                  // reset streak
+
+    await pool.query(
+        `UPDATE users SET streak = $1, last_walk_date = $2 WHERE id = $3`,
+        [newStreak, today, userId]
+    );
+};
+
 // POST /api/walks — Save a completed walk
 router.post("/", authenticate, async (req: AuthRequest, res: Response) => {
     const userId = req.user!.userId;
@@ -26,6 +47,9 @@ router.post("/", authenticate, async (req: AuthRequest, res: Response) => {
              duration_seconds, distance_km, steps,
              route ? JSON.stringify(route) : null, notes]
         );
+
+        await updateStreak(userId);
+
         res.status(201).json({ walk: result.rows[0] });
     } catch (err) {
         console.error(err);
