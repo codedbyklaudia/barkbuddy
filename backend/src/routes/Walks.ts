@@ -9,15 +9,20 @@ const updateStreak = async (userId: string): Promise<void> => {
     const result = await pool.query(
         `SELECT last_walk_date, streak FROM users WHERE id = $1`, [userId]
     );
-    const { last_walk_date, streak } = result.rows[0];
-    const today     = new Date().toISOString().split("T")[0];
+    const row = result.rows[0];
+    const today     = new Date().toISOString().split("T")[0]; // e.g. "2026-06-06"
     const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
 
-    if (last_walk_date === today) return; // already logged today, no change
+    // Already walked today — don't change streak
+    if (row.last_walk_date && row.last_walk_date.toISOString().split("T")[0] === today) return;
 
-    const newStreak = last_walk_date === yesterday
-        ? (streak ?? 0) + 1  // extend streak
-        : 1;                  // reset streak
+    const lastDate = row.last_walk_date
+        ? row.last_walk_date.toISOString().split("T")[0]
+        : null;
+
+    const newStreak = lastDate === yesterday
+        ? (row.streak ?? 0) + 1  // consecutive day — extend
+        : 1;                      // gap or first ever walk — reset to 1
 
     await pool.query(
         `UPDATE users SET streak = $1, last_walk_date = $2 WHERE id = $3`,
@@ -57,7 +62,7 @@ router.post("/", authenticate, async (req: AuthRequest, res: Response) => {
     }
 });
 
-// GET /api/walks/stats?month=2026-05 — Monthly stats
+// GET /api/walks/stats?month=2026-05 — Monthly + weekly stats
 router.get("/stats", authenticate, async (req: AuthRequest, res: Response) => {
     const userId = req.user!.userId;
     const { month } = req.query;
@@ -78,14 +83,15 @@ router.get("/stats", authenticate, async (req: AuthRequest, res: Response) => {
             monthParams
         );
 
+        // Week: Mon–Sun of current week, group by day
         const weekStats = await pool.query(
             `SELECT
-               DATE_TRUNC('day', started_at AT TIME ZONE 'UTC') AS walk_day,
+               DATE_TRUNC('day', started_at) AS walk_day,
                COALESCE(SUM(distance_km), 0) AS day_km
              FROM walks
              WHERE user_id = $1
                AND started_at >= DATE_TRUNC('week', NOW())
-               AND started_at < NOW() + INTERVAL '1 day'
+               AND started_at <  DATE_TRUNC('week', NOW()) + INTERVAL '7 days'
              GROUP BY walk_day
              ORDER BY walk_day`,
             [userId]
