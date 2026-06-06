@@ -4,8 +4,7 @@ import { authenticate, AuthRequest } from "../middleware/auth";
 
 const router = Router();
 
-// ─── GET /api/reviews/business/:businessId ────────────────────────────────────
-// Public — no auth needed to read reviews
+// GET /api/reviews/business/:businessId
 router.get("/business/:businessId", async (req: Request, res: Response): Promise<void> => {
   try {
     const { businessId } = req.params;

@@ -78,6 +78,7 @@ router.get("/me", async (req: AuthRequest, res: Response): Promise<void> => {
         avatarUrl:          user.avatar_url,
         bannerUrl:          user.banner_url ?? null,
         emailNotifications: user.email_notifications,
+        streak:             user.streak ?? 0, 
         preferences:        user.preferences || {},
         createdAt:          user.created_at,
         updatedAt:          user.updated_at,
@@ -89,7 +90,23 @@ router.get("/me", async (req: AuthRequest, res: Response): Promise<void> => {
     res.status(500).json({ message: "Something went wrong." });
   }
 });
+export async function updateStreak(userId: string): Promise<void> {
+  const result = await pool.query(
+    `SELECT last_walk_date, streak FROM users WHERE id = $1`, [userId]
+  );
+  const { last_walk_date, streak } = result.rows[0];
+  const today = new Date().toISOString().split("T")[0];
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
 
+  let newStreak = 1;
+  if (last_walk_date === today) return;
+  if (last_walk_date === yesterday) newStreak = (streak ?? 0) + 1;
+
+  await pool.query(
+    `UPDATE users SET streak = $1, last_walk_date = $2 WHERE id = $3`,
+    [newStreak, today, userId]
+  );
+}
 // PATCH /api/users/me
 router.patch("/me", [
   body("name").optional().trim().isLength({ min: 2, max: 100 }).withMessage("Name must be 2–100 characters"),
@@ -118,7 +135,7 @@ router.patch("/me", [
 
   try {
     const userResult = await pool.query(
-      "SELECT id, name, email, bio, avatar_url, password_hash FROM users WHERE id = $1",
+      "SELECT id, name, email, bio, profile_complete, avatar_url, banner_url, streak, email_notifications, preferences, created_at, updated_at FROM users WHERE id = $1",
       [userId]
     );
     const user = userResult.rows[0];
