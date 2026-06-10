@@ -1,0 +1,108 @@
+@mixin fixed{position: fixed; z-index: 1001;width: 100%;}
+@mixin flex-between{display: flex; align-items: center; justify-content: space-between;}
+@mixin flex-center{display: flex; align-items: center; justify-content: center;}
+@mixin margin-center{margin: 0 auto;}
+@mixin flex-column{display: flex; align-items: center; text-align: center; flex-direction: column;}
+@mixin column{display: flex; flex-direction: column;}
+@mixin center{display: flex; align-items: center;}
+//Positions
+@mixin relative{position: relative;}
+@mixin absolute{position: absolute;}
+@mixin fixed{position: fixed;}
+
+@mixin cursor{cursor: pointer;}
+@mixin width($width: null, $height: null) {
+  height: $val;
+  width: $val;
+}
+
+//Text decor
+@mixin text-none{text-decoration: none;}
+
+@mixin none {background: none;outline: none;border: none; text-decoration: none;}
+
+// Typography 
+@mixin type-ui($size: null, $weight: null) {
+  font-family: $font-secondary;
+  @if $size   { font-size: $size; }
+  @if $weight { font-weight: $weight; }
+}
+// Primary / display font (headings, hero text)
+@mixin type-display($size: null, $weight: null) {
+  font-family: $font-primary;
+  @if $size   { font-size: $size; }
+  @if $weight { font-weight: $weight; }
+}
+
+// Uppercase badge / label text — always bold + tracked
+@mixin label-caps($spacing: 0.07em) {
+  text-transform: uppercase;
+  letter-spacing: $spacing;
+  font-weight: $fw-bold;
+}
+
+// Single-line truncation
+@mixin truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+// Layout 
+@mixin col-start {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+
+// Interaction
+
+// cursor + transition shorthand for interactive elements
+// Usage: @include interactive;  or  @include interactive(0.25s);
+@mixin interactive($dur: 0.2s) {
+  cursor: pointer;
+  transition: all $dur ease;
+}
+
+
+//  Positioning 
+@mixin inset {
+  position: absolute;
+  inset: 0;
+}
+
+// position relative + z-index (lifts element above siblings)
+@mixin rel-z($z: 1) {
+  position: relative;
+  z-index: $z;
+}
+
+
+// UI Patterns 
+// Square icon container — centered, fixed size, rounded, doesn't shrink
+@mixin icon-box($size: 40px) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: $size;
+  height: $size;
+  border-radius: $radius-lg;
+  flex-shrink: 0;
+}
+
+// Frosted-glass card surface on dark backgrounds
+@mixin glass($alpha: 0.06, $border-alpha: 0.1) {
+  background: rgba($soft-pearl, $alpha);
+  border: 1px solid rgba($soft-pearl, $border-alpha);
+  border-radius: $radius-lg;
+}
+
+// Fully non-interactive decorative element
+@mixin no-interaction {
+  user-select: none;
+  pointer-events: none;
+}
+
+

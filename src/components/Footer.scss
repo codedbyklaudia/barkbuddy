@@ -1,0 +1,233 @@
+@import '../styles/variables';
+@import '../styles/mixins';
+
+.footer {
+  background-color: $soft-pearl;
+  padding: $space-xxl clamp($space-lg, 5vw, $space-xxl) $space-lg;
+  border-top: 1px solid rgba($misty-lavender, 0.5);
+
+  @media (max-width: $bp-tablet) {
+    padding: $space-xl $space-lg $space-lg;
+  }
+
+  @media (max-width: $bp-mobile) {
+    padding: $space-xl $space-md $space-md;
+  }
+
+  // ─── CONTAINER ───────────────────────────────────────────────────────────────
+
+  &__container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: clamp($space-xl, 4vw, $space-xxl);
+    padding-bottom: $space-xl;
+    border-bottom: 1px solid rgba($misty-lavender, 0.5);
+    align-items: start;
+
+    @media (max-width: $bp-tablet) {
+      grid-template-columns: 1fr;
+      gap: $space-xl;
+    }
+
+    @media (max-width: $bp-mobile) {
+      grid-template-columns: 1fr;
+      gap: $space-xl;
+      text-align: center;
+    }
+  }
+
+  // ─── BRAND COLUMN ────────────────────────────────────────────────────────────
+
+  &__brand {
+    @include column;
+    align-items: flex-start;
+    gap: $space-lg;
+
+    @media (max-width: $bp-tablet) {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    @media (max-width: $bp-mobile) {
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: $space-md;
+    }
+  }
+
+  &__logo {
+    @include center;
+  }
+
+  &__logo-img {
+    height: 160px;
+    width: auto;
+    display: block;
+    object-fit: contain;
+
+    @media (max-width: $bp-mobile) {
+      height: 130px;
+    }
+  }
+
+  &__social {
+    display: flex;
+    gap: $space-sm;
+
+    @media (max-width: $bp-mobile) {
+      justify-content: center;
+    }
+  }
+
+  &__social-link {
+    width: 38px;
+    height: 38px;
+    border-radius: $radius-round;
+    background-color: rgba($misty-lavender, 0.25);
+    color: $text-color-dark;
+    @include flex-center;
+    transition: all 0.25s ease;
+    text-decoration: none;
+
+    &:hover {
+      background-color: $serene-purple;
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba($serene-purple, 0.25);
+    }
+
+    svg {
+      width: 17px;
+      height: 17px;
+    }
+  }
+
+  // ─── LINKS GRID ──────────────────────────────────────────────────────────────
+
+  &__links {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: $space-xl;
+
+    @media (max-width: $bp-tablet) {
+      gap: $space-lg;
+    }
+
+    @media (max-width: $bp-mobile) {
+      grid-template-columns: 1fr;
+      gap: $space-lg;
+      text-align: center;
+    }
+  }
+
+  &__column {
+    @include column;
+    gap: $space-md;
+
+    @media (max-width: $bp-mobile) {
+      align-items: center;
+      gap: $space-sm;
+    }
+  }
+
+  &__column-title {
+    font-family: $font-primary;
+    font-size: $t-but-des;
+    font-weight: $fw-regular;
+    letter-spacing: 0.14em;
+    color: $serene-purple;
+    text-transform: uppercase;
+    margin: 0 0 $space-xs;
+
+    @media (max-width: $bp-mobile) {
+      text-align: center;
+      width: 100%;
+    }
+  }
+
+  &__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    @include column;
+    gap: $space-sm;
+
+    @media (max-width: $bp-mobile) {
+      align-items: center;
+      width: 100%;
+    }
+
+    li {
+      @media (max-width: $bp-mobile) {
+        width: 100%;
+        text-align: center;
+      }
+    }
+
+    li a {
+      font-family: $font-secondary;
+      font-size: $t-link-des;
+      color: rgba($text-color-dark, 0.7);
+      text-decoration: none;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0;
+
+      &::after {
+        content: '🐾';
+        font-size: 0.7rem;
+        opacity: 0;
+        transform: translateX(-4px);
+        transition: all 0.2s ease;
+        margin-left: 4px;
+      }
+
+      &:hover {
+        color: $serene-purple;
+        &::after {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+    }
+  }
+
+  // ─── BOTTOM BAR ──────────────────────────────────────────────────────────────
+
+  &__bottom {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-top: $space-lg;
+    text-align: center;
+
+    p {
+      font-family: $font-secondary;
+      font-size: $t-forgot-des;
+      color: rgba($text-color-dark, 0.5);
+      line-height: 1.6;
+    }
+  }
+
+  &__heart {
+    font-weight: $fw-regular;
+    color: $twilight-purple;
+    letter-spacing: 0.04em;
+  }
+
+  &__creator {
+    color: $serene-purple;
+    text-decoration: none;
+    font-weight: $fw-medium;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: $twilight-purple;
+      text-decoration: underline;
+    }
+  }
+}

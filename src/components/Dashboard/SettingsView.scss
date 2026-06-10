@@ -1,0 +1,777 @@
+@import '../../styles/variables';
+@import '../../styles/mixins';
+
+// Animations
+@keyframes sv-fade-in  { from { opacity: 0; }                              to { opacity: 1; } }
+@keyframes sv-pop-in   { from { opacity: 0; transform: translateY(20px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes sv-slide-up { from { opacity: 0; transform: translateY(100%); } to { opacity: 1; transform: translateY(0); } }
+@keyframes sv-spin     { to { transform: rotate(360deg); } }
+
+.spin-icon { animation: sv-spin 0.8s linear infinite; }
+
+// Page shell
+.sv-page {
+  @include column;
+  gap: $space-sm;
+  max-width: 720px;
+  margin: 0 auto;
+  padding-bottom: $space-xxl;
+
+  @media (min-width: $bp-tablet) { gap: $space-md; }
+}
+
+// Avatar hero card
+.sv-avatar-card { margin-bottom: $space-xs; }
+
+.sv-avatar-layout {
+  @include center;
+  gap: $space-lg;
+  padding: $space-lg $space-xl;
+
+  @media (max-width: $bp-mobile) { gap: $space-md; padding: $space-md; }
+}
+
+.sv-avatar-wrap {
+  @include relative;
+  flex-shrink: 0;
+  cursor: pointer;
+  border-radius: 50%;
+  &:hover .sv-avatar-overlay { opacity: 1; }
+}
+
+.sv-avatar {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: rgba($twilight-purple, 0.08);
+  border: 2.5px solid rgba($twilight-purple, 0.15);
+  @include flex-center;
+  font-family: $font-primary;
+  font-size: 1.7rem;
+  font-weight: $fw-medium;
+  color: $twilight-purple;
+  overflow: hidden;
+  transition: border-color 0.2s;
+
+  img { width: 100%; height: 100%; object-fit: cover; }
+
+  .sv-avatar-wrap:hover & { border-color: rgba($twilight-purple, 0.35); }
+
+  @media (min-width: $bp-tablet) { width: 84px; height: 84px; }
+}
+
+.sv-avatar-overlay {
+  @include absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba($twilight-purple, 0.55);
+  @include flex-center;
+  color: $soft-pearl;
+  opacity: 0;
+  transition: opacity 0.18s;
+}
+
+.sv-avatar-info { flex: 1; min-width: 0; }
+
+.sv-avatar-name {
+  font-family: $font-primary;
+  font-size: 1.25rem;
+  font-weight: $fw-medium;
+  color: $text-color-dark;
+  margin-bottom: 2px;
+  letter-spacing: -0.01em;
+  @media (min-width: $bp-tablet) { font-size: 1.4rem; }
+}
+
+.sv-avatar-sub {
+  font-family: $font-secondary;
+  font-size: $t-but-des;
+  color: $gentle-amethyst;
+  line-height: 1.5;
+}
+
+.sv-progress-row {
+  @include center;
+  gap: $space-sm;
+  margin-top: $space-sm;
+  max-width: 240px;
+}
+
+.sv-progress-label {
+  font-family: $font-secondary;
+  font-size: 0.74rem;
+  color: $gentle-amethyst;
+  white-space: nowrap;
+}
+
+.sv-progress-bar {
+  flex: 1;
+  height: 5px;
+  background: rgba($gentle-amethyst, 0.15);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.sv-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, $twilight-purple, $serene-purple);
+  border-radius: 99px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sv-progress-pct {
+  font-family: $font-secondary;
+  font-size: 0.74rem;
+  font-weight: $fw-bold;
+  color: $twilight-purple;
+  min-width: 30px;
+  text-align: right;
+}
+
+// Section 
+.sv-section {
+  @include column;
+  gap: 6px;
+}
+
+.sv-section-label {
+  @include center;
+  gap: 6px;
+  font-family: $font-secondary;
+  font-size: 0.7rem;
+  font-weight: $fw-bold;
+  color: rgba($twilight-purple, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0 $space-xs;
+}
+
+.sv-section-icon {
+  display: flex;
+  color: rgba($twilight-purple, 0.4);
+}
+
+// Card
+.sv-card {
+  background: $soft-pearl;
+  border: 1px solid rgba($gentle-amethyst, 0.16);
+  border-radius: $radius-lg;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 3px 10px rgba(0,0,0,0.04);
+}
+
+// Row
+.sv-row {
+  @include flex-between;
+  gap: $space-md;
+  padding: 14px $space-xl;
+  border-bottom: 1px solid rgba($gentle-amethyst, 0.09);
+  transition: background 0.15s;
+
+  &.no-border { border-bottom: none; }
+  &:last-child:not(:first-child) { border-bottom: none; }
+
+  @media (max-width: $bp-mobile) { padding: 12px $space-md; gap: $space-sm; }
+}
+
+.sv-row-meta {
+  flex: 1;
+  min-width: 0;
+  @include column;
+  gap: 2px;
+}
+
+.sv-row-label {
+  font-family: $font-secondary;
+  font-size: $t-but-des;
+  color: $text-color-dark;
+  font-weight: $fw-medium;
+}
+
+.sv-row-hint {
+  font-family: $font-secondary;
+  font-size: 0.76rem;
+  color: $gentle-amethyst;
+  line-height: 1.45;
+}
+
+.sv-row-right {
+  @include center;
+  gap: $space-sm;
+  flex-shrink: 0;
+}
+
+.sv-row-value {
+  font-family: $font-secondary;
+  font-size: $t-but-des;
+  color: $gentle-amethyst;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+  @media (max-width: $bp-mobile) { max-width: 100px; }
+}
+
+.sv-row-action {
+  font-family: $font-secondary;
+  font-size: $t-but-des;
+  font-weight: $fw-medium;
+  color: $twilight-purple;
+  @include none;
+  @include cursor;
+  padding: 5px 10px;
+  border-radius: $radius-sm;
+  white-space: nowrap;
+  transition: background 0.15s;
+  outline: none;
+  flex-shrink: 0;
+
+  &:hover { background: rgba($twilight-purple, 0.07); }
+  &.danger { color: #dc2626; &:hover { background: rgba(#dc2626, 0.06); } }
+}
+
+// Toggle 
+.sv-toggle {
+  width: 42px;
+  height: 23px;
+  border-radius: 999px;
+  background: rgba($gentle-amethyst, 0.2);
+  border: none;
+  outline: none;
+  @include cursor;
+  @include relative;
+  flex-shrink: 0;
+  transition: background 0.24s ease;
+  padding: 0;
+
+  &.on { background: $twilight-purple; }
+  &:disabled { opacity: 0.38; cursor: not-allowed; }
+}
+
+.sv-toggle-thumb {
+  @include absolute;
+  top: 3px;
+  left: 3px;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  transition: transform 0.24s cubic-bezier(0.34, 1.4, 0.64, 1);
+
+  .sv-toggle.on & { transform: translateX(19px); }
+}
+
+// Dog rows 
+.sv-dog-row {
+  @include center;
+  gap: $space-md;
+  padding: 13px $space-xl;
+  border-bottom: 1px solid rgba($gentle-amethyst, 0.09);
+  @media (max-width: $bp-mobile) { padding: 12px $space-md; gap: $space-sm; }
+}
+
+.sv-dog-avatar-wrap {
+  @include relative;
+  @include cursor;
+  flex-shrink: 0;
+}
+
+.sv-dog-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba($twilight-purple, 0.08);
+  border: 1.5px solid rgba($twilight-purple, 0.12);
+  @include flex-center;
+  font-family: $font-secondary;
+  font-size: 0.9rem;
+  font-weight: $fw-bold;
+  color: $twilight-purple;
+  overflow: hidden;
+  img { width: 100%; height: 100%; object-fit: cover; }
+}
+
+.sv-dog-avatar-loading {
+  @include absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.35);
+  @include flex-center;
+  color: $soft-pearl;
+}
+
+.sv-dog-info {
+  flex: 1;
+  min-width: 0;
+  @include column;
+  gap: 2px;
+}
+
+.sv-dog-name {
+  font-family: $font-secondary;
+  font-size: $t-but-des;
+  font-weight: $fw-bold;
+  color: $text-color-dark;
+}
+
+.sv-dog-gender { color: $gentle-amethyst; font-weight: $fw-regular; }
+
+.sv-dog-meta {
+  font-family: $font-secondary;
+  font-size: 0.76rem;
+  color: $gentle-amethyst;
+}
+
+.sv-dog-stage {
+  font-size: 0.7rem;
+  font-weight: $fw-bold;
+  padding: 1px 7px;
+  border-radius: 999px;
+  text-transform: capitalize;
+  &.stage-puppy  { background: rgba($serene-purple, 0.1);     color: $twilight-purple; }
+  &.stage-adult  { background: rgba($twilight-purple, 0.08);  color: $twilight-purple; }
+  &.stage-senior { background: rgba($gentle-amethyst, 0.12); color: $twilight-purple; }
+}
+
+.sv-dog-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.sv-dog-btn {
+  font-family: $font-secondary;
+  font-size: $t-but-des;
+  font-weight: $fw-medium;
+  background: none;
+  border: 1px solid rgba($gentle-amethyst, 0.22);
+  border-radius: $radius-sm;
+  padding: 5px 13px;
+  color: $gentle-amethyst;
+  @include cursor;
+  transition: all 0.15s;
+  outline: none;
+
+  &:hover { border-color: $twilight-purple; color: $twilight-purple; background: rgba($twilight-purple, 0.04); }
+  &.primary {
+    background: $twilight-purple;
+    border-color: $twilight-purple;
+    color: $soft-pearl;
+    &:hover { background: darken($twilight-purple, 7%); }
+  }
+}
+
+.sv-dogs-empty {
+  padding: $space-lg $space-xl;
+  font-family: $font-secondary;
+  font-size: $t-but-des;
+  color: $gentle-amethyst;
+  font-style: italic;
+}
+
+.sv-add-dog-row {
+  @include center;
+  gap: $space-sm;
+  padding: 13px $space-xl;
+  @include none;
+  @include cursor;
+  width: 100%;
+  text-align: left;
+  transition: background 0.15s;
+  &:hover { background: rgba($twilight-purple, 0.025); }
+  @media (max-width: $bp-mobile) { padding: 12px $space-md; }
+}
+
+.sv-add-dog-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: $radius-round;
+  background: rgba($gentle-amethyst, 0.08);
+  @include flex-center;
+  color: $gentle-amethyst;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+  .sv-add-dog-row:hover & { background: rgba($twilight-purple, 0.1); color: $twilight-purple; }
+}
+
+.sv-add-dog-label {
+  font-family: $font-secondary;
+  font-size: $t-but-des;
+  color: $gentle-amethyst;
+  transition: color 0.15s;
+  .sv-add-dog-row:hover & { color: $twilight-purple; }
+}
+
+// Preferences (inside modal)
+.sv-pref-master {
+  @include flex-between;
+  gap: $space-md;
+  padding: $space-md;
+  background: rgba($twilight-purple, 0.04);
+  border-radius: $radius-md;
+  margin-bottom: $space-md;
+  border: 1px solid rgba($twilight-purple, 0.09);
+}
+
+.sv-pref-list {
+  @include column;
+  gap: 2px;
+  transition: opacity 0.22s;
+  &.disabled { opacity: 0.35; pointer-events: none; }
+}
+
+.sv-pref-row {
+  @include center;
+  justify-content: space-between;
+  gap: $space-md;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba($gentle-amethyst, 0.08);
+  &:last-child { border-bottom: none; }
+}
+
+.sv-pref-label {
+  font-family: $font-secondary;
+  font-size: $t-but-des;
+  font-weight: $fw-medium;
+  color: $text-color-dark;
+  margin-bottom: 1px;
+  display: block;
+}
+
+.sv-pref-hint {
+  font-family: $font-secondary;
+  font-size: 0.74rem;
+  color: $gentle-amethyst;
+  display: block;
+}
+
+// MODAL SYSTEM 
+.sv-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  @include flex-center;
+  padding: 1.25rem;
+  background: rgba(#1e1059, 0.52);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  overflow-y: auto;
+  animation: sv-fade-in 0.18s ease both;
+}
+
+// Modal card
+.sv-modal {
+  @include relative;
+  background: #fff;
+  border-radius: 22px;
+  width: 100%;
+  max-width: 480px;
+  max-height: calc(100dvh - 2.5rem);
+  @include column;
+  box-shadow:
+    0 4px 20px rgba(#1e1059, 0.12),
+    0 20px 60px rgba(#1e1059, 0.2);
+  animation: sv-pop-in 0.28s cubic-bezier(0.34, 1.2, 0.64, 1) both;
+  overflow: hidden;
+  box-sizing: border-box;
+
+  // Accent stripe
+  &::before {
+    content: '';
+    @include absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, $twilight-purple, $serene-purple);
+    border-radius: 22px 22px 0 0;
+    z-index: 1;
+    pointer-events: none;
+  }
+}
+
+// Header — pinned, never scrolls
+.sv-modal-header {
+  @include flex-between;
+  padding: 1.4rem 1.6rem 1rem;
+  flex-shrink: 0;
+
+  span, h3 {
+    font-family: $font-primary;
+    font-size: 1.1rem;
+    font-weight: $fw-regular;
+    color: $twilight-purple;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+}
+
+.sv-modal-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba($twilight-purple, 0.06);
+  border: none;
+  @include cursor;
+  @include flex-center;
+  color: rgba($twilight-purple, 0.45);
+  flex-shrink: 0;
+  transition: all 0.18s;
+
+  &:hover {
+    background: rgba($twilight-purple, 0.12);
+    color: $twilight-purple;
+    transform: rotate(90deg);
+  }
+}
+
+// Body — scrollable
+.sv-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 1.6rem 1.2rem;
+  @include column;
+  gap: 0;
+  overscroll-behavior: contain;
+
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: rgba($twilight-purple, 0.15); border-radius: 2px; }
+}
+
+// Form elements
+.sv-label {
+  display: block;
+  font-family: $font-secondary;
+  font-size: 0.72rem;
+  font-weight: $fw-bold;
+  color: rgba($twilight-purple, 0.5);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 1.1rem;
+  margin-bottom: 5px;
+}
+
+.sv-optional {
+  font-weight: $fw-regular;
+  font-size: 0.68rem;
+  color: rgba($twilight-purple, 0.3);
+  text-transform: none;
+  letter-spacing: 0;
+  margin-left: 5px;
+}
+
+.sv-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid rgba($twilight-purple, 0.13);
+  border-radius: 10px;
+  font-family: $font-secondary;
+  font-size: 0.92rem;
+  color: $twilight-purple;
+  background: rgba($twilight-purple, 0.02);
+  outline: none;
+  transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+  box-sizing: border-box;
+
+  &::placeholder { color: rgba($twilight-purple, 0.26); }
+  &:hover { border-color: rgba($twilight-purple, 0.24); }
+  &:focus {
+    border-color: $twilight-purple;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba($twilight-purple, 0.08);
+  }
+  &.error {
+    border-color: #e05252;
+    background: rgba(#e05252, 0.03);
+    &:focus { box-shadow: 0 0 0 3px rgba(#e05252, 0.09); }
+  }
+}
+
+.sv-textarea {
+  resize: vertical;
+  min-height: 88px;
+  line-height: 1.6;
+}
+
+.sv-char-hint {
+  font-family: $font-secondary;
+  font-size: 0.7rem;
+  color: rgba($twilight-purple, 0.28);
+  text-align: right;
+  margin-top: 3px;
+}
+
+.sv-field-err {
+  font-family: $font-secondary;
+  font-size: 0.74rem;
+  color: #e05252;
+  margin-top: 4px;
+  @include center;
+  gap: 4px;
+}
+
+.sv-modal-divider {
+  @include center;
+  gap: $space-md;
+  font-family: $font-secondary;
+  font-size: 0.68rem;
+  font-weight: $fw-bold;
+  color: rgba($twilight-purple, 0.35);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 1.4rem;
+  margin-bottom: 0;
+
+  &::before, &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba($twilight-purple, 0.09);
+  }
+
+  span {
+    font-weight: $fw-regular;
+    text-transform: none;
+    letter-spacing: 0;
+    color: rgba($twilight-purple, 0.28);
+    font-size: 0.75rem;
+  }
+}
+
+.sv-modal-error {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-sm;
+  background: rgba(#e05252, 0.06);
+  border: 1px solid rgba(#e05252, 0.18);
+  color: #c0392b;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-family: $font-secondary;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  margin-bottom: $space-sm;
+}
+
+.sv-modal-success {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-sm;
+  background: rgba(#16a34a, 0.06);
+  border: 1px solid rgba(#16a34a, 0.18);
+  color: #15803d;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-family: $font-secondary;
+  font-size: 0.82rem;
+  margin-bottom: $space-sm;
+}
+
+// Password field wrapper
+.sv-pw-wrap { @include relative; }
+.sv-pw-eye {
+  @include absolute; right: 11px; top: 50%; transform: translateY(-50%);
+  @include none; @include cursor;
+  color: rgba($twilight-purple, 0.35);
+  display: flex; padding: 4px;
+  transition: color 0.15s;
+  &:hover { color: $twilight-purple; }
+}
+
+// Radio & chip buttons 
+.sv-radio-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.sv-radio-btn {
+  padding: 6px 16px;
+  border: 1.5px solid rgba($twilight-purple, 0.13);
+  border-radius: 999px;
+  background: rgba($twilight-purple, 0.02);
+  font-family: $font-secondary;
+  font-size: 0.82rem;
+  color: rgba($twilight-purple, 0.5);
+  @include cursor;
+  transition: all 0.18s;
+  outline: none;
+
+  &:hover { border-color: rgba($twilight-purple, 0.3); color: $twilight-purple; background: rgba($twilight-purple, 0.04); }
+  &.selected { border-color: $twilight-purple; background: $twilight-purple; color: rgba($soft-pearl, 0.92); font-weight: $fw-bold; }
+}
+
+.sv-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.sv-chip {
+  padding: 5px 14px;
+  border: 1.5px solid rgba($twilight-purple, 0.13);
+  border-radius: 999px;
+  background: rgba($twilight-purple, 0.02);
+  font-family: $font-secondary;
+  font-size: 0.82rem;
+  color: rgba($twilight-purple, 0.5);
+  @include cursor;
+  text-transform: capitalize;
+  transition: all 0.18s;
+  outline: none;
+
+  &:hover { border-color: rgba($twilight-purple, 0.3); color: $twilight-purple; }
+  &.selected { border-color: $twilight-purple; background: rgba($twilight-purple, 0.08); color: $twilight-purple; font-weight: $fw-bold; }
+}
+
+// Modal footer — pinned
+.sv-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: $space-sm;
+  padding: 1rem 1.6rem 1.4rem;
+  flex-shrink: 0;
+  border-top: 1px solid rgba($twilight-purple, 0.07);
+}
+
+.sv-btn-cancel {
+  padding: 9px 20px;
+  border: 1.5px solid rgba($twilight-purple, 0.14);
+  border-radius: 999px;
+  background: transparent;
+  font-family: $font-secondary;
+  font-size: 0.84rem;
+  color: rgba($twilight-purple, 0.5);
+  @include cursor;
+  transition: all 0.18s;
+  outline: none;
+
+  &:hover { border-color: rgba($twilight-purple, 0.28); color: $twilight-purple; background: rgba($twilight-purple, 0.04); }
+}
+
+.sv-btn-save {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 22px;
+  border: none;
+  border-radius: 999px;
+  background: $twilight-purple;
+  font-family: $font-secondary;
+  font-size: 0.84rem;
+  font-weight: $fw-bold;
+  color: rgba($soft-pearl, 0.92);
+  @include cursor;
+  transition: filter 0.2s, transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 14px rgba($twilight-purple, 0.28);
+  outline: none;
+
+  &:hover:not(:disabled) {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba($twilight-purple, 0.36);
+  }
+  &:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+}
+.sv-dog-btn {
+  &.danger         { color: rgb(241, 119, 119); border-color: red; }
+  &.danger:hover   { background: rgb(241, 119, 119); color: #fff; }
+  &.confirming     { background: red; color: #fff; }
+}

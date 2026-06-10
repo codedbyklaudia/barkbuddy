@@ -1,0 +1,967 @@
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import './ServiceFinder.scss';
+import Footer from './Footer';
+import {
+  ChevronsRight, MapPin, Phone, BadgeCheck, XCircle,
+  Filter, Hourglass, TriangleAlert, ArrowRight
+} from 'lucide-react';
+import { formatServiceType } from '../utils/formatservicetype';
+
+const MAPS_KEY: string = import.meta.env.VITE_GOOGLE_MAPS_KEY ?? '';
+
+// Cloudinary optimizer
+const clImg = (url: string, width = 120) =>
+  url?.includes('cloudinary.com')
+    ? url.replace('/upload/', `/upload/f_auto,q_auto,w_${width}/`)
+    : url;
+
+// Types
+interface Listing {
+  id: number;
+  business_name: string;
+  type: string;
+  address: string;
+  postcode: string;
+  lat?: number;
+  lng?: number;
+  contact_phone?: string;
+  contact_email?: string;
+  website?: string;
+  description?: string;
+  approved_at: string;
+  price_list?: string;
+  primary_photo?: string;
+  photo_count: number;
+  is_new: boolean;
+  distance_km?: number;
+}
+
+interface Filters {
+  radius: number;
+  type: string;
+  newOnly: boolean;
+}
+
+type TabType = 'services' | 'activities';
+
+// In-memory cache
+interface CacheEntry {
+  listings: Listing[];
+  meta: { radiusKm: number | null; locationFound: boolean; searchLat?: number; searchLng?: number } | null;
+  ts: number;
+}
+const cache = new Map<string, CacheEntry>();
+const CACHE_TTL = 60_000; // 1 minute
+
+// Type icons
+const SERVICE_TYPES = [
+  { icon: '../images/icons_1/grooming_icon.png', label: 'Groomer' },
+  { icon: '../images/icons_1/vet_icon.png',      label: 'Vet' },
+  { icon: '/images/icons_1/trainer_icon.png',    label: 'Behaviorist' },
+  { icon: '../images/icons_1/petshop_icon.png',  label: 'Pet Shop' },
+];
+
+const ACTIVITY_TYPES = [
+  { icon: '../images/icons_1/hotel_icon.png',      label: 'Hotel' },
+  { icon: '../images/icons_1/restaurant_icon.png', label: 'Restaurant' },
+  { icon: '../images/icons_1/park_icon.png',       label: 'Park' },
+  { icon: '../images/icons_1/beach_icon.png',      label: 'Beaches' },
+];
+
+const API_BASE: string = import.meta.env.VITE_API_URL ?? 'http://localhost:4000/api';
+
+const RADIUS_OPTIONS = [5, 10, 25, 50];
+
+// Google Maps loader
+let mapsLoaded = false;
+let mapsCallbacks: (() => void)[] = [];
+
+function loadGoogleMaps(apiKey: string): Promise<void> {
+  return new Promise((resolve) => {
+    if (mapsLoaded) { resolve(); return; }
+    mapsCallbacks.push(resolve);
+    if (document.getElementById('google-maps-script')) return;
+    (window as any).__onGoogleMapsLoad = () => {
+      mapsLoaded = true;
+      mapsCallbacks.forEach(cb => cb());
+      mapsCallbacks = [];
+    };
+    const s = document.createElement('script');
+    s.id  = 'google-maps-script';
+    s.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=__onGoogleMapsLoad`;
+    s.async = true;
+    document.head.appendChild(s);
+  });
+}
+
+// Map component
+const UnifiedMap: React.FC<{
+  listings: Listing[];
+  userLocation: { lat: number; lng: number } | null;
+  searchCoords: { lat: number; lng: number } | null;
+  radiusKm: number | null;
+  activeTab: TabType;
+}> = ({ listings, userLocation, searchCoords, radiusKm, activeTab }) => {
+  const mapRef  = useRef<HTMLDivElement>(null);
+  const mapInst = useRef<google.maps.Map | null>(null);
+  const markers = useRef<google.maps.Marker[]>([]);
+  const circle  = useRef<google.maps.Circle | null>(null);
+  const infoWin = useRef<google.maps.InfoWindow | null>(null);
+
+  const UK_CENTRE = { lat: 54.5, lng: -3.5 };
+  const UK_ZOOM   = 6;
+
+  useEffect(() => {
+    if (!MAPS_KEY) return;
+    loadGoogleMaps(MAPS_KEY).then(() => {
+      if (!mapRef.current) return;
+
+      const hasContext = !!(searchCoords || userLocation);
+      const centre     = searchCoords || userLocation || UK_CENTRE;
+
+      if (!mapInst.current) {
+        mapInst.current = new google.maps.Map(mapRef.current, {
+          center: hasContext ? centre : UK_CENTRE,
+          zoom:   hasContext ? 12 : UK_ZOOM,
+          styles: [
+            { featureType: 'poi',     stylers: [{ visibility: 'off' }] },
+            { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+          ],
+          mapTypeControl: false, streetViewControl: false, fullscreenControl: true,
+        });
+        infoWin.current = new google.maps.InfoWindow();
+      }
+
+      markers.current.forEach(m => m.setMap(null));
+      markers.current = [];
+      circle.current?.setMap(null);
+      circle.current = null;
+
+      if (searchCoords && radiusKm) {
+        circle.current = new google.maps.Circle({
+          map: mapInst.current, center: searchCoords, radius: radiusKm * 1000,
+          fillColor: '#5B4B8A', fillOpacity: 0.06,
+          strokeColor: '#5B4B8A', strokeWeight: 1.5, strokeOpacity: 0.3,
+        });
+      }
+
+      if (userLocation) {
+        new google.maps.Marker({
+          position: userLocation, map: mapInst.current,
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 10, fillColor: '#5B4B8A', fillOpacity: 1,
+            strokeColor: '#fff', strokeWeight: 3,
+          },
+          title: 'Your location', zIndex: 1000,
+        });
+      }
+
+      listings.forEach(l => {
+        if (!l.lat || !l.lng) return;
+        const marker = new google.maps.Marker({
+          position: { lat: l.lat, lng: l.lng },
+          map: mapInst.current!,
+          title: l.business_name,
+          cursor: 'pointer',
+          icon: {
+            url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 48" width="36" height="48">
+                <path fill="#5B4B8A" stroke="#fff" stroke-width="2"
+                  d="M18 2C10.3 2 4 8.3 4 16c0 9.9 14 30 14 30S32 25.9 32 16C32 8.3 25.7 2 18 2z"/>
+                <circle fill="white" cx="18" cy="16" r="7"/>
+              </svg>`),
+            scaledSize: new google.maps.Size(36, 48),
+            anchor:     new google.maps.Point(18, 48),
+          },
+        });
+
+        // Pin click: show info window with a link that opens in a new tab 
+        marker.addListener('click', () => {
+          const detailUrl = `/#/activity/${l.id}`;
+          infoWin.current?.setContent(`
+            <div style="font-family:sans-serif;max-width:240px;padding:10px 8px 6px;color:#2D1B69;">
+              <strong style="color:#5B4B8A;font-size:14px;display:block;margin-bottom:4px;">${l.business_name}</strong>
+              <p style="margin:3px 0;font-size:12px;color:#888;">${formatServiceType(l.type)}</p>
+              <p style="margin:3px 0;font-size:12px;">${l.address}, ${l.postcode}</p>
+              ${l.distance_km != null ? `<p style="margin:3px 0;font-size:12px;color:#5B4B8A;font-weight:600;">${l.distance_km} km away</p>` : ''}
+              ${l.is_new ? `<p style="margin:3px 0;font-size:11px;color:#7c3aed;">New on BarkBuddy</p>` : ''}
+              ${l.contact_phone ? `<p style="margin:3px 0;font-size:12px;">${l.contact_phone}</p>` : ''}
+              <a
+                href="${detailUrl}"
+                target="_blank"
+                rel="noopener noreferrer"
+                style="
+                  display:inline-flex;align-items:center;gap:5px;
+                  margin-top:8px;padding:6px 12px;
+                  background:#5B4B8A;color:#fff;
+                  border-radius:20px;font-size:12px;font-weight:600;
+                  text-decoration:none;
+                "
+              >
+                View details ↗
+              </a>
+            </div>`);
+          infoWin.current?.open(mapInst.current, marker);
+        });
+
+        markers.current.push(marker);
+      });
+
+      const pinned = listings.filter(l => l.lat && l.lng);
+
+      if (pinned.length > 1) {
+        const bounds = new google.maps.LatLngBounds();
+        if (searchCoords) bounds.extend(searchCoords);
+        pinned.forEach(l => { if (l.lat && l.lng) bounds.extend({ lat: l.lat, lng: l.lng }); });
+        mapInst.current!.fitBounds(bounds, 80);
+      } else if (searchCoords) {
+        mapInst.current!.setCenter(searchCoords);
+        mapInst.current!.setZoom(radiusKm ? Math.max(10, 14 - Math.log2(radiusKm)) : 11);
+      } else {
+        mapInst.current!.setCenter(UK_CENTRE);
+        mapInst.current!.setZoom(UK_ZOOM);
+      }
+    });
+  }, [listings, userLocation, searchCoords, radiusKm]);
+
+  if (!MAPS_KEY) return (
+    <div className="unified-finder__map unified-finder__map--placeholder">
+      <p>Add <code>VITE_GOOGLE_MAPS_KEY</code> to enable the map</p>
+    </div>
+  );
+  return <div ref={mapRef} className="unified-finder__map" />;
+};
+
+// Skeleton row card
+const SkeletonRow: React.FC = () => (
+  <article className="listing-card listing-card--row listing-card--skeleton">
+    <div className="listing-card__image listing-card__image--small skeleton-box" />
+    <div className="listing-card__content">
+      <div className="skeleton-line skeleton-line--short" style={{ width: '50px', marginBottom: '8px' }} />
+      <div className="skeleton-line skeleton-line--title" />
+      <div className="skeleton-line" style={{ width: '75%' }} />
+      <div className="skeleton-line skeleton-line--short" style={{ width: '40%' }} />
+      <div className="skeleton-line" style={{ width: '80px', height: '28px', borderRadius: '20px', marginTop: '8px' }} />
+    </div>
+  </article>
+);
+
+// Listing row card — opens in new tab
+const ListingRow: React.FC<{ listing: Listing; activeTab: TabType }> = ({ listing, activeTab }) => (
+  <Link
+    to={`/activity/${listing.id}`}
+    state={{ from: activeTab }}
+    target="_blank"
+    rel="noopener noreferrer"
+    style={{ textDecoration: 'none' }}
+  >
+    <article className="listing-card listing-card--row">
+      <div className="listing-card__image listing-card__image--small">
+        {listing.primary_photo
+          ? <img
+               src={clImg(listing.primary_photo, 400)}
+              alt={listing.business_name}
+              loading="lazy"
+              decoding="async"
+              width={4}
+              height={3}
+            />
+          : <div className="listing-card__no-photo">🐾</div>}
+        {listing.is_new && <span className="listing-card__badge"><BadgeCheck size={12} /> New</span>}
+      </div>
+      <div className="listing-card__content">
+        <span className="listing-card__category">{formatServiceType(listing.type)}</span>
+        <h3 className="listing-card__title">{listing.business_name}</h3>
+        <p className="listing-card__meta">
+          <MapPin size={13} /> {listing.address}, {listing.postcode}
+          {listing.distance_km != null && <> · <strong style={{ color: '#5B4B8A' }}>{listing.distance_km} km</strong></>}
+        </p>
+        {listing.description && <p className="listing-card__description">{listing.description}</p>}
+        {listing.contact_phone && <p className="listing-card__meta"><Phone size={13} /> {listing.contact_phone}</p>}
+        <span className="listing-card__button">
+          Check more
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+        </span>
+      </div>
+    </article>
+  </Link>
+);
+
+// Grid card — opens in new tab
+const GridCard: React.FC<{ listing: Listing; activeTab: TabType }> = ({ listing, activeTab }) => (
+  <Link
+    to={`/activity/${listing.id}`}
+    state={{ from: activeTab }}
+    target="_blank"
+    rel="noopener noreferrer"
+    style={{ textDecoration: 'none' }}
+  >
+    <article className="listing-card listing-card--grid">
+      <div className="listing-card__image">
+        {listing.primary_photo
+          ? <img
+               src={clImg(listing.primary_photo, 400)}
+              alt={listing.business_name}
+              loading="lazy"
+              decoding="async"
+              width={4}
+              height={3}
+            />
+          : <div className="listing-card__no-photo">🐾</div>}
+        {listing.is_new && <span className="listing-card__badge"><BadgeCheck size={12} /> New</span>}
+      </div>
+      <div className="listing-card__content">
+        <span className="listing-card__category">{formatServiceType(listing.type)}</span>
+        <h3 className="listing-card__title">{listing.business_name}</h3>
+        <p className="listing-card__meta"><MapPin size={13} /> {listing.address}</p>
+        {listing.description && <p className="listing-card__description">{listing.description}</p>}
+        <span className="listing-card__button">
+          Check more <ArrowRight size={14} />
+        </span>
+      </div>
+    </article>
+  </Link>
+);
+
+// Main component
+const ServiceFinder: React.FC = () => {
+  const [activeTab, setActiveTab]               = useState<TabType>('services');
+  const [searchQuery, setSearchQuery]           = useState('');
+  const [locationInput, setLocationInput]       = useState('');
+  const [listings, setListings]                 = useState<Listing[]>([]);
+  const [featuredListings, setFeaturedListings] = useState<Listing[]>([]);
+  const [userLocation, setUserLocation]         = useState<{ lat: number; lng: number } | null>(null);
+  const [searchCoords, setSearchCoords]         = useState<{ lat: number; lng: number } | null>(null);
+  const [loading, setLoading]                   = useState(false);
+  const [featuredLoading, setFeaturedLoading]   = useState(true);
+  const [hasSearched, setHasSearched]           = useState(false);
+  const [error, setError]                       = useState('');
+  const [locationError, setLocationError]       = useState('');
+  const [locationStatus, setLocationStatus]     = useState<'idle' | 'requesting' | 'granted' | 'denied'>('idle');
+  const [filtersOpen, setFiltersOpen]           = useState(false);
+  const [openFaq, setOpenFaq]                   = useState<number | null>(null);
+  const [filters, setFilters]                   = useState<Filters>({ radius: 10, type: '', newOnly: false });
+  const [searchMeta, setSearchMeta]             = useState<{ radiusKm: number | null; locationFound: boolean } | null>(null);
+
+  // Abort controller ref — cancels in-flight requests when a new one starts
+  const abortRef = useRef<AbortController | null>(null);
+
+  // Refs
+  const typesRef   = useRef<HTMLDivElement>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
+
+  // Restore tab from navigation state
+  const location = useLocation();
+  useEffect(() => {
+    if (location.state?.tab) {
+      setActiveTab(location.state.tab as TabType);
+    }
+  }, []);
+
+  const scrollToResults = useCallback(() => {
+    setTimeout(() => {
+      typesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  }, []);
+
+  const faqData = [
+    {
+      question: 'How do I book a service or activity?',
+      answer: 'Contact the business directly using the phone number or website shown on their listing.',
+    },
+    {
+      question: 'How do I search near me?',
+      answer: 'Click the location icon in the search bar to use your GPS location, or type a postcode, city, or area like "North London".',
+    },
+    {
+      question: 'What does the radius filter do?',
+      answer: 'It limits results to businesses within that distance from your searched location. The default is 10km.',
+    },
+  ];
+
+  const currentTypes      = activeTab === 'services' ? SERVICE_TYPES : ACTIVITY_TYPES;
+  const tabLabel          = activeTab === 'services' ? 'Services' : 'Activities';
+  const searchPlaceholder = activeTab === 'services'
+    ? 'Groomer, vet, pet shop…'
+    : 'Hotel, park, beach…';
+
+  // Featured listings — with cache
+  useEffect(() => {
+    const endpoint  = activeTab === 'services' ? 'services' : 'activities';
+    const cacheKey  = `featured:${endpoint}`;
+    const cached    = cache.get(cacheKey);
+
+    if (cached && Date.now() - cached.ts < CACHE_TTL) {
+      setFeaturedListings(cached.listings.slice(0, 3));
+      setFeaturedLoading(false);
+      return;
+    }
+
+    setFeaturedLoading(true);
+    fetch(`${API_BASE}/listings/${endpoint}?new_only=true`)
+      .then(r => r.json())
+      .then(d => {
+        const key      = activeTab === 'services' ? 'services' : 'activities';
+        const results  = d[key] ?? [];
+        cache.set(cacheKey, { listings: results, meta: null, ts: Date.now() });
+        setFeaturedListings(results.slice(0, 3));
+        setFeaturedLoading(false);
+      })
+      .catch(() => setFeaturedLoading(false));
+  }, [activeTab]);
+
+  // Core search — with cache + abort
+  const performSearch = useCallback(async (opts: {
+    query?: string; location?: string; lat?: number; lng?: number;
+    radius?: number; type?: string; newOnly?: boolean;
+  }) => {
+    const endpoint = activeTab === 'services' ? 'services' : 'activities';
+    const params   = new URLSearchParams();
+    if (opts.query?.trim())  params.set('search',   opts.query.trim());
+    if (opts.type?.trim())   params.set('type',     opts.type.trim());
+    if (opts.newOnly)        params.set('new_only', 'true');
+    if (opts.radius != null) params.set('radius',   String(opts.radius));
+    if (opts.lat != null && opts.lng != null) {
+      params.set('lat', String(opts.lat));
+      params.set('lng', String(opts.lng));
+    } else if (opts.location?.trim() && opts.location !== 'My location') {
+      params.set('location', opts.location.trim());
+    }
+
+    const cacheKey = `search:${endpoint}:${params.toString()}`;
+    const cached   = cache.get(cacheKey);
+
+    // Serve from cache immediately — no spinner
+    if (cached && Date.now() - cached.ts < CACHE_TTL) {
+      setListings(cached.listings);
+      setSearchMeta(cached.meta);
+      if (cached.meta?.searchLat && cached.meta?.searchLng) {
+        setSearchCoords({ lat: (cached.meta as any).searchLat, lng: (cached.meta as any).searchLng });
+      }
+      setHasSearched(true);
+      setLoading(false);
+      return;
+    }
+
+    // Cancel any previous in-flight request
+    abortRef.current?.abort();
+    abortRef.current = new AbortController();
+
+    setLoading(true);
+    setError('');
+    setHasSearched(true);
+
+    try {
+      const res  = await fetch(`${API_BASE}/listings/${endpoint}?${params}`, {
+        signal: abortRef.current.signal,
+      });
+      const data = await res.json();
+      const key  = activeTab === 'services' ? 'services' : 'activities';
+      const results = data[key] ?? [];
+      const meta    = data.meta ?? null;
+
+      cache.set(cacheKey, { listings: results, meta, ts: Date.now() });
+
+      setListings(results);
+      setSearchMeta(meta);
+      if (meta?.searchLat && meta?.searchLng) {
+        setSearchCoords({ lat: meta.searchLat, lng: meta.searchLng });
+      } else if (!opts.lat && !opts.lng) {
+        setSearchCoords(null);
+      }
+    } catch (err: any) {
+      if (err.name === 'AbortError') return;
+      setError('Failed to load listings. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }, [activeTab]);
+
+  useEffect(() => { performSearch({}); }, [activeTab, performSearch]);
+  
+  //Geo-Location
+  const detectLocation = () => {
+  if (!navigator.geolocation) {
+    setLocationError('Geolocation is not supported by your browser.');
+    return;
+  }
+
+  // Reset everything cleanly
+  setLocationError('');
+  setLocationStatus('requesting');
+  setLocationInput('');
+
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      setUserLocation(coords);
+      setSearchCoords(coords);
+      setLocationInput('My location');
+      setLocationStatus('granted');
+      setLocationError('');
+      performSearch({ ...filters, query: searchQuery, lat: coords.lat, lng: coords.lng });
+      scrollToResults();
+    },
+    err => {
+      setLocationInput('');
+      setLocationStatus('denied');
+
+      const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+      const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+
+      if (err.code === err.PERMISSION_DENIED) {
+        if (isIOS && isSafari) {
+          setLocationError('To allow location on iPhone: Settings → Safari → Location → "Ask" or "Allow". Then reload the page.');
+        } else if (isIOS) {
+          setLocationError('To allow location: Settings → [your browser] → Location → Allow. Then reload.');
+        } else {
+          setLocationError('Location blocked. Click the lock icon in your browser address bar → Site settings → Location → Allow. Then reload.');
+        }
+      } else if (err.code === err.POSITION_UNAVAILABLE) {
+        setLocationError('Location unavailable. Please enter a postcode instead.');
+      } else if (err.code === err.TIMEOUT) {
+        setLocationError('Location timed out. Please try again or enter a postcode.');
+      } else {
+        setLocationError('Could not get location. Please enter a postcode.');
+      }
+    },
+    {
+      enableHighAccuracy: false, 
+      timeout: 10000,
+      maximumAge: 0,
+    }
+  );
+};
+
+  // Type button click
+  const handleTypeClick = (label: string) => {
+    const newType = filters.type === label ? '' : label;
+    const next    = { ...filters, type: newType };
+    setFilters(next);
+    performSearch({
+      query: searchQuery,
+      location: locationInput,
+      lat: userLocation?.lat,
+      lng: userLocation?.lng,
+      ...next,
+    });
+    scrollToResults();
+  };
+
+  // Search bar submit
+  const handleSearch = () => {
+    if (locationInput === 'My location' && userLocation) {
+      performSearch({ query: searchQuery, lat: userLocation.lat, lng: userLocation.lng, ...filters });
+    } else {
+      performSearch({ query: searchQuery, location: locationInput, ...filters });
+    }
+    scrollToResults();
+  };
+
+  const handleApplyFilters = () => { setFiltersOpen(false); handleSearch(); };
+
+  const clearAll = () => {
+    setSearchQuery('');
+    setLocationInput('');
+    setFilters({ radius: 10, type: '', newOnly: false });
+    setUserLocation(null);
+    setSearchCoords(null);
+    setSearchMeta(null);
+    setLocationStatus('idle');
+    performSearch({});
+  };
+
+  const activeFilterCount = [
+    filters.type !== '',
+    filters.radius !== 10,
+    filters.newOnly,
+  ].filter(Boolean).length;
+
+  const hasActiveFilters = !!(searchQuery || locationInput || filters.type || filters.newOnly || filters.radius !== 10);
+
+  // Skeleton count — mirrors the last known result count if available
+  const skeletonCount = listings.length > 0 ? Math.min(listings.length, 6) : 4;
+
+  const locateBtnIcon = () => {
+  if (locationStatus === 'requesting') return <Hourglass size={16} />;
+  if (locationStatus === 'denied')     return <MapPin size={16} style={{ color: '#ef4444' }} />;
+  if (locationStatus === 'granted')    return <MapPin size={16} style={{ color: '#22c55e' }} />;
+  return <MapPin size={16} />;
+};
+
+  return (
+    <div className="service-finder-page">
+
+      {/* HERO */}
+      <section className="fh" key={activeTab}>
+
+        {/* LEFT PANEL */}
+        <div className="fh__left">
+          <div className="fh__heading-block">
+
+            <p className="fh__eyebrow">
+              {activeTab === 'services' ? 'Dog Services' : 'Dog-Friendly Places'}
+            </p>
+
+            <h1 className="fh__heading">
+              {activeTab === 'services' ? (
+                <>Find the best<br />dog care,<br /><em>near you.</em></>
+              ) : (
+                <>Explore dog-<br />friendly places,<br /><em>across the UK.</em></>
+              )}
+            </h1>
+
+            <p className="fh__sub">
+              {activeTab === 'services'
+                ? <>Groomers, vets, trainers, pet shops &amp; more — all <strong>verified</strong>, all across the UK.</>
+                : <>Parks, hotels, restaurants &amp; trails — because <strong>your dog comes too.</strong> Wherever the adventure takes you.</>}
+            </p>
+
+            <div className="fh__ctas">
+              <button className="fh__cta fh__cta--primary" onClick={scrollToResults}>
+                {activeTab === 'services' ? 'Find a service' : 'Explore now'}
+                <ChevronsRight size={16} />
+              </button>
+              <button
+                className="fh__cta fh__cta--ghost"
+                onClick={() => setActiveTab(activeTab === 'services' ? 'activities' : 'services')}
+              >
+                View {activeTab === 'services' ? 'Activities' : 'Services'}
+              </button>
+            </div>
+
+            {/* Inline search */}
+            <div className="fh__search-wrap">
+              <div className="fh__search">
+                <div className="fh__search-field">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+                    <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
+                  </svg>
+                  <div className="fh__search-field-inner">
+                    <label htmlFor="fh-query">What</label>
+                    <input
+                      id="fh-query"
+                      type="text"
+                      placeholder={searchPlaceholder}
+                      value={searchQuery}
+                      onChange={e => setSearchQuery(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && handleSearch()}
+                    />
+                  </div>
+                </div>
+                <div className="fh__search-field">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
+                    <circle cx="12" cy="9" r="2.5" />
+                  </svg>
+                  <div className="fh__search-field-inner">
+                    <label htmlFor="fh-location">Where</label>
+                    <input
+                      id="fh-location"
+                      type="text"
+                      placeholder="Postcode or city…"
+                      value={locationInput}
+                      onChange={e => { setLocationInput(e.target.value); setUserLocation(null); }}
+                      onKeyDown={e => e.key === 'Enter' && handleSearch()}
+                    />
+                  </div>
+                  <button
+                    className={`fh__locate fh__locate--${locationStatus}`}
+                    onClick={detectLocation}
+                    disabled={locationStatus === 'requesting'}
+                    style={{ display: locationStatus === 'granted' ? 'none' : undefined }}
+                  >
+                    {locateBtnIcon()}
+                  </button>
+                </div>
+                <button className="fh__search-btn" onClick={handleSearch}>Search</button>
+              </div>
+              {locationError && (
+                <p className="fh__location-error" role="alert">
+                  {locationStatus === 'denied' && (
+                    <TriangleAlert size={14} style={{ marginRight: '6px' }} />
+                  )}
+                  {locationError}
+                </p>
+              )}
+            </div>
+
+          </div>
+        </div>
+
+        {/* RIGHT PANEL */}
+        <div className="fh__right" aria-hidden="true">
+          <img
+          key={activeTab}
+          className="fh__bg-image"
+          src={activeTab === 'services'
+            ? '/images/Illustrations/Services-Finder-Hero (2).webp'
+            : '/images/Illustrations/Activities-Finder-Hero(2).webp'}
+          alt=""
+          loading="eager"
+          decoding="sync"
+          fetchPriority="high"
+          width={16}
+          height={9}
+        />
+        </div>
+
+      </section>
+
+      {/* FEATURED */}
+      <section className="featured-section">
+        <div className="featured-section__header">
+          <span className="featured-section__eyebrow">Our Selection</span>
+          <h2 className="featured-section__title">
+            Featured {activeTab === 'services' ? 'Services' : 'Activities'}
+          </h2>
+        </div>
+        <div className="featured-section__grid">
+          {featuredLoading
+            ? Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="listing-card listing-card--grid">
+                  <div className="listing-card__image skeleton-box" />
+                  <div className="listing-card__content">
+                    <div className="skeleton-line skeleton-line--title" />
+                    <div className="skeleton-line" />
+                    <div className="skeleton-line skeleton-line--short" />
+                  </div>
+                </div>
+              ))
+            : featuredListings.map(l => <GridCard key={l.id} listing={l} activeTab={activeTab} />)}
+        </div>
+      </section>
+
+      {/* SEARCH + RESULTS */}
+      <section className="finder-search">
+
+        {/* Type icon buttons */}
+        <div ref={typesRef} className="finder-search__types">
+          {currentTypes.map(cat => (
+            <div
+              key={cat.label}
+              className={`type-btn ${filters.type === cat.label ? 'type-btn--active' : ''}`}
+              onClick={() => handleTypeClick(cat.label)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={e => e.key === 'Enter' && handleTypeClick(cat.label)}
+              title={cat.label}
+            >
+              <div className="type-btn__circle">
+                <img
+                  src={cat.icon}
+                  alt={cat.label}
+                  loading="lazy"
+                  decoding="async"
+                  width={1}
+                  height={1}
+                />
+              </div>
+              <span className="type-btn__label">{cat.label}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Search bar */}
+        <div className="finder-search__bar">
+          <div className="finder-search__input-wrap">
+            <svg className="finder-search__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+              <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
+            </svg>
+            <input
+              type="text"
+              placeholder={searchPlaceholder}
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleSearch()}
+              className="finder-search__input"
+            />
+            {searchQuery && (
+              <button className="finder-search__clear" onClick={() => setSearchQuery('')}>✕</button>
+            )}
+          </div>
+
+          <div className="finder-search__input-wrap">
+            <svg className="finder-search__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
+              <circle cx="12" cy="9" r="2.5" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Postcode, city or area…"
+              value={locationInput}
+              onChange={e => { setLocationInput(e.target.value); setUserLocation(null); }}
+              onKeyDown={e => e.key === 'Enter' && handleSearch()}
+              className="finder-search__input"
+            />
+            {locationInput && (
+              <button
+                className="finder-search__clear"
+                onClick={() => {
+                  setLocationInput('');
+                  setUserLocation(null);
+                  setSearchCoords(null);
+                  setLocationStatus('idle');
+                }}
+              >✕</button>
+            )}
+          <button
+              className={`finder-search__locate-btn finder-search__locate-btn--${locationStatus}`}
+              onClick={detectLocation}
+              title={
+                locationStatus === 'denied'
+                  ? 'Location access denied — click to try again'
+                  : locationStatus === 'requesting'
+                  ? 'Requesting location…'
+                  : 'Use my location'
+              }
+              disabled={locationStatus === 'requesting'}
+              style={{ display: locationStatus === 'granted' ? 'none' : undefined }}
+            >
+              {locateBtnIcon()}
+            </button>
+          </div>
+
+          <button className="finder-search__button" onClick={handleSearch}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+              <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
+            </svg>
+          </button>
+        </div>
+
+        {locationError && (
+          <p className="finder-search__error finder-search__error--location" role="alert">
+            {locationStatus === 'denied' && <MapPin size={14} style={{ marginRight: '6px' }} />}
+            {locationError}
+          </p>
+        )}
+
+        {hasActiveFilters && (
+          <button className="finder-search__clear-all" onClick={clearAll}>
+            <XCircle size={14} /> Clear all
+          </button>
+        )}
+
+        <p className="finder-search__context">
+          {searchMeta?.locationFound
+            ? `Showing results within ${searchMeta.radiusKm} km`
+            : 'Showing all UK listings'}
+          {filters.type    && ` · ${filters.type}`}
+          {filters.newOnly && ' · New only'}
+        </p>
+
+        <button className="finder-search__filter-toggle" onClick={() => setFiltersOpen(o => !o)}>
+          <Filter />
+          {filtersOpen ? 'Hide filters' : 'Filters'}
+          {activeFilterCount > 0 && (
+            <span className="finder-search__filter-badge">{activeFilterCount}</span>
+          )}
+        </button>
+
+        {filtersOpen && (
+          <div className="finder-search__filter-panel">
+            <div className="filter-group">
+              <p className="filter-label">Search radius</p>
+              <div className="filter-chips">
+                {RADIUS_OPTIONS.map(km => (
+                  <button
+                    key={km}
+                    className={`filter-chip ${filters.radius === km ? 'filter-chip--active' : ''}`}
+                    onClick={() => setFilters(f => ({ ...f, radius: km }))}
+                  >
+                    {km} km
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="filter-group">
+              <label className="filter-toggle">
+                <input
+                  type="checkbox"
+                  checked={filters.newOnly}
+                  onChange={e => setFilters(f => ({ ...f, newOnly: e.target.checked }))}
+                />
+                Show new listings only (last 30 days)
+              </label>
+            </div>
+            <div className="filter-actions">
+              <button className="filter-apply-btn" onClick={handleApplyFilters}>Apply filters</button>
+              <button className="filter-reset-btn" onClick={() => setFilters({ radius: 10, type: '', newOnly: false })}>Reset</button>
+            </div>
+          </div>
+        )}
+
+        {error && <p className="finder-search__error">{error}</p>}
+
+        {/* Results */}
+        <div ref={resultsRef} className="search-results-layout">
+          <div className="search-results-layout__map-wrapper">
+            <UnifiedMap
+              listings={listings}
+              userLocation={userLocation}
+              searchCoords={searchCoords}
+              radiusKm={searchMeta?.radiusKm ?? null}
+              activeTab={activeTab}
+            />
+          </div>
+
+          <div className="search-results-layout__listings">
+            <h2 className="search-results__title">
+              {loading
+                ? 'Searching…'
+                : `${listings.length} result${listings.length !== 1 ? 's' : ''}`}
+              {filters.type && ` · ${filters.type}`}
+              {locationInput && locationInput !== 'My location'
+                ? ` near ${locationInput}`
+                : locationInput === 'My location' ? ' near you' : ''}
+            </h2>
+
+            {/* Skeleton cards replace the spinner */}
+            {loading && Array.from({ length: skeletonCount }).map((_, i) => (
+              <SkeletonRow key={i} />
+            ))}
+
+            {!loading && hasSearched && listings.length === 0 && (
+              <div className="finder-search__empty">
+                <p>No listings found. Try a wider radius or different search.</p>
+                <button onClick={clearAll}>Clear all filters</button>
+              </div>
+            )}
+
+            {!loading && listings.map(l => (
+              <ListingRow key={l.id} listing={l} activeTab={activeTab} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="faq">
+        <h2 className="faq__title">Your questions, answered!</h2>
+        <p className="faq__subtitle">
+          Read more of our FAQ <Link to="/faq" className="faq__link">here</Link>.
+        </p>
+        <div className="faq__list">
+          {faqData.map((faq, i) => (
+            <div key={i} className={`faq__item ${openFaq === i ? 'faq__item--open' : ''}`}>
+              <button className="faq__question" onClick={() => setOpenFaq(openFaq === i ? null : i)}>
+                <span>{faq.question}</span>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="faq__icon">
+                  <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+              </button>
+              <div className="faq__answer"><p>{faq.answer}</p></div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <Footer />
+    </div>
+  );
+};
+
+export default ServiceFinder;

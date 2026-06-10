@@ -1,0 +1,564 @@
+@import '../styles/mixins';
+@import '../styles/variables';
+
+// reset
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+*:focus,
+*:focus-visible,
+*:focus-within { outline: none !important; box-shadow: none; }
+
+// page shell
+.login-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background-color: $twilight-purple;
+  font-family: $font-primary;
+  @include column;
+  flex: 1;
+  @include relative;
+  overflow-x: hidden;
+
+  &::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    background-size: 200px 200px;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.5;
+  }
+
+  &::after {
+    content: '';
+    position: fixed;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(#a78bfa, 0.08) 0%, transparent 70%);
+    top: -200px;
+    right: -200px;
+    pointer-events: none;
+    z-index: 0;
+    animation: blobDrift 12s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes blobDrift {
+  0%   { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(-40px, 60px) scale(1.1); }
+}
+
+// rings
+.s0-rings {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.s0-ring {
+  @include absolute;
+  border-radius: 50%;
+  border: 1px solid rgba($misty-lavender, 0.12);
+  transform: translate(-50%, -50%);
+  animation: ringPulse 3s ease-in-out infinite;
+
+  &-1 { width: 180px; height: 180px; animation-delay: 0s; }
+  &-2 { width: 280px; height: 280px; animation-delay: 0.4s; border-color: rgba($misty-lavender, 0.07); }
+  &-3 { width: 400px; height: 400px; animation-delay: 0.8s; border-color: rgba($misty-lavender, 0.04); }
+
+  @media (max-width: $bp-mobile) {
+    &-1 { width: 120px; height: 120px; }
+    &-2 { width: 190px; height: 190px; }
+    &-3 { width: 270px; height: 270px; }
+  }
+}
+
+@keyframes ringPulse {
+  0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+  50%       { opacity: 1;   transform: translate(-50%, -50%) scale(1.04); }
+}
+
+// corner dots - desktop only
+.reg-corner-dots {
+  position: fixed;
+  pointer-events: none;
+  z-index: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 6px);
+  gap: 8px;
+
+  span { width: 4px; height: 4px; border-radius: 50%; display: block; }
+
+  &.top-left {
+    top: $space-xxl;
+    left: $space-xxl;
+    span { background: rgba($misty-lavender, 0.18); }
+  }
+
+  &.bottom-right {
+    bottom: $space-xxl;
+    right: $space-xxl;
+    span { background: rgba($misty-lavender, 0.12); }
+  }
+
+  @media (max-width: $bp-tablet) { display: none; }
+}
+
+// deco lines - desktop only
+.reg-deco-line {
+  position: fixed;
+  pointer-events: none;
+  z-index: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1px;
+  height: 180px;
+  background: linear-gradient(to bottom, transparent, rgba($misty-lavender, 0.15), transparent);
+
+  &.left  { left: 2.5rem; }
+  &.right { right: 2.5rem; }
+
+  @media (max-width: $bp-tablet) { display: none; }
+}
+
+// home button
+.reg-home-btn {
+  position: fixed;
+  top: $space-md;
+  left: $space-md;
+  z-index: 200;
+  @include flex-center;
+  gap: $space-xs;
+  background: rgba($misty-lavender, 0.92);
+  backdrop-filter: blur(8px);
+  border-radius: 50px;
+  padding: $space-xs $space-md;
+  font-family: $font-secondary;
+  font-size: $t-but-des;
+  font-weight: $fw-medium;
+  color: $text-color-dark;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  box-shadow: $shadow-sm;
+
+  svg { color: $twilight-purple; }
+
+  &:hover {
+    background: $misty-lavender;
+    transform: translateY(-1px);
+    box-shadow: $shadow-md;
+  }
+
+  @media (max-width: $bp-mobile) {
+    padding: $space-xs $space-sm;
+    font-size: 0.75rem;
+    top: $space-sm;
+    left: $space-sm;
+    svg { width: 16px; height: 16px; }
+  }
+}
+
+// layout 
+.login-layout {
+  flex: 1;
+  @include flex-column;
+  align-items: center;
+  justify-content: center;
+  padding: 6rem $space-md 4rem;
+  @include relative;
+  z-index: 1;
+  width: 100%;
+  min-height: 100dvh;
+  box-sizing: border-box;
+
+  @media (max-width: $bp-tablet) {
+    padding: 5rem $space-lg 3rem;
+  }
+
+  @media (max-width: $bp-mobile) {
+    justify-content: flex-start;
+    align-items: center;
+    min-height: 0;
+    background: $twilight-purple;
+    padding: 4rem $space-sm 2rem;
+    flex: 1;
+  }
+
+  @media (max-width: 360px) {
+    padding: 3.5rem 0.75rem 1.5rem;
+  }
+}
+
+// mobile mascot - above card, hidden on desktop
+.login-mascot-mobile {
+  display: none;
+
+  @media (max-width: $bp-mobile) {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin-bottom: -1.5rem;
+    position: relative;
+    z-index: 5;
+
+    img {
+      width: 150px;
+      height: auto;
+      display: block;
+      filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.35));
+      animation: float 3.5s ease-in-out infinite;
+    }
+  }
+
+  @media (max-width: 360px) {
+    margin-bottom: -1.25rem;
+    img { width: 125px; }
+  }
+}
+
+// card
+.login-card {
+  background: $misty-lavender;
+  border-radius: $radius-lg;
+  padding: $space-xxl $space-xxl $space-xl;
+  max-width: 520px;
+  width: 100%;
+  @include relative;
+  z-index: 1;
+  isolation: isolate;
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.15),
+    0 8px 16px rgba(0, 0, 0, 0.18),
+    0 24px 40px rgba(0, 0, 0, 0.20),
+    0 48px 64px rgba(0, 0, 0, 0.14);
+  margin-inline: auto;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 5%;
+    right: 5%;
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(255,255,255,0.5), transparent);
+    border-radius: $radius-lg $radius-lg 0 0;
+  }
+
+  @media (max-width: $bp-tablet) {
+    padding: $space-xl $space-xl $space-lg;
+    max-width: 480px;
+  }
+
+  @media (max-width: $bp-mobile) {
+    // top padding gives room for overlapping mascot
+    padding: 3rem $space-md $space-md;
+    border-radius: $radius-md;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  @media (max-width: 360px) {
+    padding: 2.75rem $space-sm $space-sm;
+  }
+}
+
+// card header
+.login-header {
+  text-align: center;
+  margin-bottom: $space-lg;
+  @include relative;
+  padding-top: 1.5rem;
+
+  @media (max-width: $bp-mobile) {
+    margin-bottom: $space-sm;
+    padding-top: 0.25rem;
+  }
+}
+
+// desktop mascot - absolute top-right of card
+.login-mascot {
+  @include absolute;
+  right: -3.5rem;
+  top: -10.3rem;
+  width: 150px;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2));
+  pointer-events: none;
+
+  @media (max-width: $bp-tablet) {
+    width: 110px;
+    right: -2rem;
+    top: -5rem;
+  }
+
+  // hidden on mobile
+  @media (max-width: $bp-mobile) {
+    display: none;
+  }
+}
+
+// title
+.login-title {
+  font-family: $font-primary;
+  font-size: $t-sub-des;
+  font-weight: $fw-regular;
+  color: $text-color-dark;
+  letter-spacing: 0.05em;
+  margin-bottom: $space-lg;
+
+  @media (max-width: $bp-tablet) { font-size: 1.7rem; }
+  @media (max-width: $bp-mobile) { font-size: 1.75rem; }
+  @media (max-width: 360px)      { font-size: 1.5rem; }
+}
+
+// subtitle
+.login-sub {
+  font-family: $font-secondary;
+  font-size: $t-body-des;
+  color: $twilight-purple;
+  line-height: $lh-normal;
+  font-weight: $fw-light;
+  margin-bottom: $space-lg;
+
+  em { font-style: italic; font-family: $font-primary; }
+
+  @media (max-width: $bp-tablet) { font-size: 0.9rem; }
+  @media (max-width: $bp-mobile) { font-size: 0.95rem; }
+}
+
+// input fields
+.field-grid {
+  @include column;
+  gap: $space-md; 
+  width: 100%;
+}
+
+.field-wrap {
+  @include column;
+  gap: 0.25rem;
+  @include relative;
+  width: 100%;
+}
+
+.field-input {
+  width: 100%;
+  padding: 0.6rem $space-md;
+  border-radius: $radius-md;
+  font-family: $font-secondary;
+  font-size: $t-but-des;
+  color: $text-color-dark;
+  background: rgba($soft-pearl, 0.9);
+  transition: background 0.2s;
+  outline: none;
+  border: none;
+
+  // 16px min prevents iOS zoom on focus
+  @media (max-width: $bp-mobile) {
+    font-size: 16px;
+    padding: 0.65rem $space-md;
+  }
+
+  &::placeholder {
+    color: rgba($gentle-amethyst, 0.7);
+    font-style: italic;
+  }
+
+  &:focus { background: $soft-pearl; }
+
+  &.error {
+    background: #fff8f8 !important;
+    box-shadow: inset 0 0 0 1.5px #e05252;
+  }
+}
+
+.password-wrap {
+  @include relative;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  border-radius: $radius-md;
+  .field-input { padding-right: 2.8rem; }
+}
+
+.eye-btn {
+  @include absolute;
+  right: $space-sm;
+  top: 50%;
+  transform: translateY(-50%);
+  @include none;
+  @include cursor;
+  color: $gentle-amethyst;
+  @include flex-center;
+  padding: 0;
+  min-width: 36px;
+  min-height: 36px;
+  transition: color 0.2s;
+  outline: none;
+
+  svg { width: 16px; height: 16px; }
+  &:hover { color: $serene-purple; }
+}
+
+.field-error {
+  font-family: $font-secondary;
+  font-size: 0.72rem;
+  color: #e05252;
+  font-weight: $fw-medium;
+  padding-left: 0.2rem;
+  @include center;
+  gap: 0.25rem;
+
+  &::before { content: '⚠'; font-size: 0.65rem; }
+}
+
+// forgot password
+.login-forgot {
+  text-align: right;
+  margin-top: $space-xs;
+  margin-bottom: $space-xs;
+
+  a {
+    font-family: $font-secondary;
+    font-size: $t-but-des;
+    color: $serene-purple;
+    @include text-none;
+    opacity: 0.8;
+    display: inline-block;
+    padding: 0.25rem 0;
+    transition: opacity 0.2s;
+
+    @media (max-width: $bp-mobile) {
+      padding: 0.3rem 0;
+      font-size: 0.85rem;
+    }
+
+    &:hover { opacity: 1; text-decoration: underline; }
+  }
+}
+
+// api error banner
+.api-error-banner {
+  background: #fff8f8;
+  border: 1.5px solid #fca5a5;
+  color: #b91c1c;
+  border-radius: $radius-md;
+  padding: $space-sm $space-md;
+  font-family: $font-secondary;
+  font-size: 0.78rem;
+  font-weight: $fw-medium;
+  margin-bottom: $space-sm;
+  text-align: center;
+  animation: slideDown 0.25s ease;
+}
+
+// button row
+.log-actions {
+  @include flex-center;
+  margin-top: $space-sm;
+  &.centered { justify-content: center; }
+}
+
+// btn
+.btn-next {
+  @include flex-center;
+  @include none;
+  @include cursor;
+  gap: $space-xs;
+  background: $twilight-purple !important;
+  color: $soft-pearl !important;
+  border-radius: 50px;
+  font-family: $font-secondary;
+  font-size: $t-but-des;
+  font-weight: $fw-medium;
+  letter-spacing: 0.03em;
+  transition: all 0.25s ease;
+  box-shadow: $shadow-purple-glow;
+  padding: $space-sm $space-xl;
+
+  &:hover:not(.disabled) {
+    background: $serene-purple !important;
+    transform: translateY(-1px);
+    box-shadow: $shadow-2xl;
+  }
+
+  &.disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  &.login-btn {
+    padding: $space-sm $space-xxl;
+    font-weight: $fw-bold;
+
+    @media (max-width: $bp-tablet) {
+      padding: $space-sm $space-xl;
+    }
+
+    @media (max-width: $bp-mobile) {
+      width: 100%;
+      justify-content: center;
+      padding: 0.8rem $space-lg;
+      font-size: 1rem;
+      border-radius: 50px;
+    }
+  }
+}
+
+.btn-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+// footer
+.login-footer-note {
+  text-align: center;
+  margin-top: $space-lg;
+  font-family: $font-secondary;
+  color: $twilight-purple;
+
+  p {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    white-space: nowrap;
+    margin: 0;
+
+    @media (max-width: 360px) { font-size: 0.88rem; }
+  }
+
+  a, .biz-link {
+    color: $serene-purple;
+    text-decoration: none;
+    font-weight: $fw-medium;
+    &:hover { text-decoration: underline; }
+  }
+
+  // hide old divider if still in DOM
+  .footer-divider { display: none; }
+  // hide old footer-row if still in DOM
+  .footer-row { display: contents; }
+
+  @media (max-width: $bp-mobile) {
+    margin-top: $space-xs;
+  }
+}
+
+// animations
+@keyframes spin      { to { transform: rotate(360deg); } }
+@keyframes float     { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
