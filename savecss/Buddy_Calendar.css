@@ -1,0 +1,2227 @@
+@font-face {
+  font-family: "Fredoka";
+  src: url("../Fonts/Fredoka/Fredoka-font.woff2") format("woff2");
+  font-weight: normal;
+  font-display: swap;
+  font-style: normal;
+}
+@font-face {
+  font-family: "Marcellus";
+  src: url("../Fonts/Marcellus/Marcellus-Regular.woff2") format("woff2");
+  font-weight: normal;
+  font-display: swap;
+  font-style: normal;
+}
+@keyframes calSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes calSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes calFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes pillPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+  50% {
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+  }
+}
+@keyframes popoverIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes pawBounce {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+}
+.cal-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  font-family: "Fredoka", sans-serif;
+  font-size: 1.2rem;
+  color: #927ACF;
+}
+
+.buddy-calendar {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1px solid rgba(146, 122, 207, 0.1);
+  box-shadow: 0 4px 24px rgba(130, 83, 210, 0.06), 0 1px 4px rgba(0, 0, 0, 0.03);
+  overflow: hidden;
+}
+
+.cal-topbar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+  padding: clamp(1.2rem, 2.5vw, 1.6rem) clamp(1.2rem, 3vw, 2rem);
+  background: linear-gradient(135deg, rgba(58, 47, 81, 0.04) 0%, rgba(222, 214, 240, 0.25) 50%, rgba(247, 247, 247, 0.1) 100%);
+  border-bottom: 1px solid rgba(146, 122, 207, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+.cal-topbar::before {
+  content: "";
+  position: absolute;
+  right: -40px;
+  top: -40px;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(130, 83, 210, 0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.cal-topbar-left {
+  position: relative;
+  z-index: 1;
+}
+
+.cal-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 1;
+  justify-content: center;
+}
+
+.cal-logo-area {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.cal-title {
+  font-family: "Marcellus", serif;
+  font-size: 1.5rem;
+  font-weight: 400;
+  color: #3A2F51;
+  margin: 0 0 3px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.cal-sub {
+  font-family: "Fredoka", sans-serif;
+  font-size: 1.05rem;
+  color: #B79EBE;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.cal-stats-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(146, 122, 207, 0.1);
+  border-radius: 20px;
+  padding: 8px 14px;
+  backdrop-filter: blur(4px);
+}
+@media (max-width: 380px) {
+  .cal-stats-bar {
+    gap: 4px;
+    padding: 6px 10px;
+  }
+}
+
+.cal-stat-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  border-right: 1px solid rgba(146, 122, 207, 0.1);
+}
+.cal-stat-item:last-child {
+  border-right: none;
+  padding-right: 0;
+}
+.cal-stat-item:first-child {
+  padding-left: 0;
+}
+
+.cal-stat-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.cal-stat-num {
+  font-family: "Marcellus", serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1;
+}
+@media (max-width: 380px) {
+  .cal-stat-num {
+    font-size: 0.9rem;
+  }
+}
+
+.cal-stat-lbl {
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.65rem;
+  color: #B79EBE;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+@media (max-width: 540px) {
+  .cal-stat-lbl {
+    display: none;
+  }
+}
+
+.cal-add-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: #3A2F51;
+  color: #f7f7f7;
+  border: none;
+  border-radius: 20px;
+  padding: 10px 18px;
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.95rem;
+  margin-top: 0.6rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+  letter-spacing: 0.01em;
+}
+.cal-add-btn:hover {
+  background: #6d28d9;
+  box-shadow: 0 5px 18px rgba(130, 83, 210, 0.45);
+  transform: translateY(-1px);
+}
+@media (max-width: 380px) {
+  .cal-add-btn {
+    font-size: 0.78rem;
+    padding: 8px 14px;
+  }
+}
+
+.cal-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px clamp(1.2rem, 3vw, 2rem);
+  border-bottom: 1px solid rgba(146, 122, 207, 0.1);
+  background: #f7f7f7;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.cal-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.cal-view-toggle {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: rgba(222, 214, 240, 0.5);
+  border-radius: 10px;
+  padding: 3px;
+}
+
+.view-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  outline: none;
+  border: none;
+  text-decoration: none;
+  border-radius: calc(10px - 3px);
+  padding: 7px 14px;
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.95rem;
+  color: #B79EBE;
+  cursor: pointer;
+  transition: all 0.18s;
+  white-space: nowrap;
+}
+.view-btn.active {
+  background: #ffffff;
+  color: #8253d2;
+  font-weight: 500;
+  box-shadow: 0 1px 6px rgba(130, 83, 210, 0.15);
+}
+.view-btn:not(.active):hover {
+  color: #3A2F51;
+}
+@media (max-width: 380px) {
+  .view-btn {
+    font-size: 0.72rem;
+    padding: 6px 10px;
+  }
+}
+
+.cal-filter-toggle {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: 1.5px solid rgba(146, 122, 207, 0.1);
+  border-radius: 10px;
+  padding: 7px 14px;
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.82rem;
+  color: #B79EBE;
+  cursor: pointer;
+  transition: all 0.18s;
+  white-space: nowrap;
+  position: relative;
+}
+.cal-filter-toggle:hover, .cal-filter-toggle.active {
+  border-color: #8253d2;
+  color: #8253d2;
+}
+.cal-filter-toggle.has-filter {
+  border-color: #8253d2;
+  color: #8253d2;
+  background: #ede9fe;
+}
+@media (max-width: 380px) {
+  .cal-filter-toggle {
+    font-size: 0.72rem;
+    padding: 6px 10px;
+  }
+}
+
+.filter-dot {
+  width: 6px;
+  height: 6px;
+  background: #8253d2;
+  border-radius: 50%;
+}
+
+.cal-filters-panel {
+  display: flex;
+  flex-direction: column;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px clamp(1.2rem, 3vw, 2rem);
+  background: rgba(222, 214, 240, 0.2);
+  border-bottom: 1px solid rgba(146, 122, 207, 0.1);
+  animation: calSlideDown 0.18s ease;
+}
+@media (max-width: 540px) {
+  .cal-filters-panel {
+    gap: 8px;
+    padding: 8px;
+  }
+}
+
+.cal-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.cal-filter-title {
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #B79EBE;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  min-width: 44px;
+}
+
+.cal-filter-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.cal-filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  border: 1.5px solid rgba(146, 122, 207, 0.1);
+  border-radius: 20px;
+  background: #ffffff;
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.92rem;
+  color: #B79EBE;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.cal-filter-btn:hover {
+  border-color: #8253d2;
+  color: #8253d2;
+}
+.cal-filter-btn.active {
+  font-weight: 500;
+}
+@media (max-width: 380px) {
+  .cal-filter-btn {
+    font-size: 0.65rem;
+    padding: 4px 8px;
+  }
+}
+
+.cal-clear-all {
+  background: none;
+  border: 1.5px solid rgba(239, 68, 68, 0.3);
+  border-radius: 20px;
+  color: #ef4444;
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.78rem;
+  padding: 5px 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.cal-clear-all:hover {
+  background: rgba(239, 68, 68, 0.06);
+}
+
+.cal-body {
+  padding: clamp(1rem, 2.5vw, 1.6rem) clamp(1rem, 3vw, 2rem);
+  background: #ffffff;
+  min-height: 400px;
+}
+@media (max-width: 540px) {
+  .cal-body {
+    padding: 16px 8px;
+  }
+}
+
+.month-grid-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.month-grid-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.month-grid-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.month-name {
+  font-family: "Marcellus", serif;
+  font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+  font-weight: 400;
+  color: #3A2F51;
+  letter-spacing: -0.02em;
+}
+
+.month-year {
+  font-family: "Marcellus", serif;
+  font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+  color: #8253d2;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+.month-nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  background: #ffffff;
+  border: 1.5px solid rgba(146, 122, 207, 0.1);
+  border-radius: 5px;
+  color: #8253d2;
+  cursor: pointer;
+  transition: all 0.18s;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.month-nav-btn:hover {
+  background: #ede9fe;
+  border-color: rgba(130, 83, 210, 0.3);
+}
+
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  background: rgba(146, 122, 207, 0.1);
+  border: 1px solid rgba(146, 122, 207, 0.1);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(130, 83, 210, 0.04);
+}
+
+.month-day-label {
+  background: rgba(222, 214, 240, 0.4);
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: #B79EBE;
+  text-align: center;
+  padding: 10px 0;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.month-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 3px;
+  background: #ffffff;
+  padding: 8px 6px;
+  min-height: 88px;
+  transition: background 0.15s;
+  cursor: default;
+  position: relative;
+}
+.month-cell.clickable {
+  cursor: pointer;
+}
+.month-cell.clickable:hover {
+  background: rgba(222, 214, 240, 0.35);
+}
+.month-cell.clickable:hover .month-cell-day:not(.today-badge) {
+  background: rgba(130, 83, 210, 0.08);
+  color: #8253d2;
+}
+.month-cell.clickable:active {
+  background: #3A2F51;
+  color: #f7f7f7;
+}
+.month-cell.empty {
+  background: rgba(222, 214, 240, 0.12);
+  cursor: default;
+}
+.month-cell.empty:hover {
+  background: rgba(222, 214, 240, 0.12);
+}
+.month-cell.today {
+  background: rgba(130, 83, 210, 0.02);
+}
+.month-cell.drag-over {
+  background: rgba(130, 83, 210, 0.08);
+  outline: 2px dashed rgba(130, 83, 210, 0.4);
+  outline-offset: -2px;
+}
+.month-cell.drag-over .month-cell-day:not(.today-badge) {
+  background: rgba(130, 83, 210, 0.12);
+  color: #8253d2;
+}
+@media (max-width: 768px) {
+  .month-cell {
+    min-height: 68px;
+    padding: 5px 4px;
+  }
+}
+@media (max-width: 540px) {
+  .month-cell {
+    min-height: 48px;
+    padding: 4px 3px;
+    gap: 2px;
+  }
+}
+
+.month-cell-day {
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: #3A2F51;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  align-self: flex-start;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+.month-cell-day.today-badge {
+  background: #8253d2;
+  color: white;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(130, 83, 210, 0.4);
+}
+@media (max-width: 540px) {
+  .month-cell-day {
+    width: 20px;
+    height: 20px;
+    font-size: 0.65rem;
+  }
+}
+
+.month-cell-events {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.month-cell-more {
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.58rem;
+  color: #B79EBE;
+  padding: 0 4px;
+  cursor: pointer;
+}
+.month-cell-more:hover {
+  color: #8253d2;
+}
+
+.cal-pill {
+  --pill-color: #8253d2;
+  --pill-bg: #ede9fe;
+  --pill-dog-color: #8253d2;
+  --pill-dog-bg: #ede9fe;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--pill-bg);
+  border: none;
+  border-radius: 6px;
+  padding: 3px 6px 3px 5px;
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.62rem;
+  font-weight: 500;
+  cursor: grab;
+  width: 100%;
+  overflow: hidden;
+  text-align: left;
+  white-space: nowrap;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 1px 3px rgba(130, 83, 210, 0.12);
+}
+.cal-pill:hover {
+  transform: translateY(-1px) scale(1.01);
+  box-shadow: 0 3px 10px rgba(130, 83, 210, 0.2);
+}
+.cal-pill:active {
+  cursor: grabbing;
+  transform: scale(0.98);
+}
+.cal-pill.cal-pill--overdue {
+  animation: pillPulse 2.5s ease-in-out infinite;
+}
+.cal-pill.cal-pill--done {
+  opacity: 0.5;
+}
+.cal-pill__strip {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--pill-color);
+  border-radius: 6px 0 0 6px;
+  flex-shrink: 0;
+}
+.cal-pill__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 4px;
+  flex-shrink: 0;
+}
+.cal-pill__icon img {
+  width: 11px;
+  height: 11px;
+  -o-object-fit: contain;
+     object-fit: contain;
+  opacity: 0.85;
+}
+.cal-pill__title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--pill-color);
+  font-size: 0.62rem;
+}
+.cal-pill__check {
+  font-size: 0.55rem;
+  color: #10b981;
+  flex-shrink: 0;
+  font-weight: 700;
+}
+.cal-pill__dog {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--pill-dog-bg);
+  color: var(--pill-dog-color);
+  border: 1.5px solid var(--pill-dog-color);
+  font-size: 0.5rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.cal-pill__dog img {
+  width: 100%;
+  height: 100%;
+  -o-object-fit: cover;
+     object-fit: cover;
+}
+@media (max-width: 540px) {
+  .cal-pill {
+    padding: 2px 3px;
+    gap: 2px;
+  }
+  .cal-pill__icon img {
+    width: 9px;
+    height: 9px;
+  }
+  .cal-pill__dog {
+    width: 12px;
+    height: 12px;
+    font-size: 0.44rem;
+  }
+}
+@media (max-width: 380px) {
+  .cal-pill {
+    padding: 0;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--pill-color);
+    opacity: 0.65;
+  }
+  .cal-pill__strip, .cal-pill__icon, .cal-pill__title, .cal-pill__check, .cal-pill__dog {
+    display: none;
+  }
+}
+
+.month-cell-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  flex-wrap: nowrap;
+  margin-top: 3px;
+  min-height: 18px;
+}
+
+.cal-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+  color: var(--dot-color, #8253d2);
+  transition: transform 0.15s ease;
+}
+.cal-dot svg {
+  display: block;
+  width: 13px;
+  height: 13px;
+}
+.cal-dot:hover {
+  transform: scale(1.3);
+}
+
+.month-cell-dots-more {
+  font-size: 0.52rem;
+  font-weight: 700;
+  color: #B79EBE;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.cal-popover {
+  position: absolute;
+  z-index: 1100;
+  background: #1e1b4b;
+  border-radius: 20px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  width: 290px;
+  max-width: calc(100vw - 2rem);
+  animation: popoverIn 0.18s ease;
+  overflow: hidden;
+}
+@media (max-width: 540px) {
+  .cal-popover {
+    width: 260px;
+  }
+}
+
+.cal-popover-header {
+  padding: 16px 16px 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.cal-popover-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.cal-popover-type-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.65rem;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.03em;
+}
+
+.cal-popover-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  border-radius: 5px;
+  width: 26px;
+  height: 26px;
+  transition: all 0.15s;
+}
+.cal-popover-close:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+.cal-popover-title {
+  font-family: "Marcellus", serif;
+  font-size: 1rem;
+  font-weight: 400;
+  color: #fff;
+  margin: 0 0 4px;
+  letter-spacing: -0.01em;
+}
+
+.cal-popover-dog-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 4px;
+}
+
+.cal-popover-date {
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.55);
+  margin-bottom: 4px;
+}
+
+.cal-popover-notes {
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.45);
+  font-style: italic;
+  margin-bottom: 4px;
+}
+
+.cal-popover-badge {
+  display: inline-block;
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.6rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+.cal-popover-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 16px;
+  flex-wrap: wrap;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.cal-popover-btn {
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.75rem;
+  border-radius: 10px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  border: 1.5px solid;
+  background: rgba(255, 255, 255, 0.06);
+  white-space: nowrap;
+}
+.cal-popover-btn.complete:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+.cal-popover-btn.edit {
+  border-color: rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.7);
+}
+.cal-popover-btn.edit:hover {
+  border-color: rgba(255, 255, 255, 0.45);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+.cal-popover-btn.delete {
+  border-color: rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+}
+.cal-popover-btn.delete:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: #ef4444;
+}
+
+@media (max-width: 639px) {
+  .cal-popover {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: min(320px, 90vw) !important;
+    max-height: 80vh;
+    overflow-y: auto;
+    z-index: 1200;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45) !important;
+    border-radius: 18px !important;
+  }
+}
+.agenda-list {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 24px;
+}
+@media (max-width: 540px) {
+  .agenda-list {
+    gap: 16px;
+  }
+}
+
+.agenda-group {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.agenda-group-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1.5px solid rgba(146, 122, 207, 0.1);
+}
+
+.agenda-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.agenda-group-label {
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.agenda-group-count {
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.68rem;
+  color: #f7f7f7;
+  background: #3A2F51;
+  border-radius: 20px;
+  padding: 1px 8px;
+  margin-left: auto;
+}
+
+.agenda-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: #ffffff;
+  border: 1px solid rgba(146, 122, 207, 0.1);
+  border-radius: 10px;
+  padding: 16px;
+  transition: box-shadow 0.18s, transform 0.15s;
+}
+.agenda-card:hover {
+  box-shadow: 0 4px 16px rgba(130, 83, 210, 0.08);
+  transform: translateY(-1px);
+}
+.agenda-card.done {
+  opacity: 0.55;
+}
+.agenda-card.done .agenda-card-title {
+  text-decoration: line-through;
+}
+@media (max-width: 540px) {
+  .agenda-card {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px;
+  }
+}
+
+.agenda-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+@media (max-width: 380px) {
+  .agenda-card-icon {
+    width: 34px;
+    height: 34px;
+  }
+}
+
+.agenda-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+
+.agenda-card-title {
+  font-family: "Fredoka", sans-serif;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #3A2F51;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.agenda-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.agenda-card-date {
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.9rem;
+  color: #B79EBE;
+}
+
+.agenda-card-notes {
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.9rem;
+  color: #B79EBE;
+  font-style: italic;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.agenda-card-dog-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.65rem;
+  font-weight: 500;
+}
+
+.agenda-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+@media (max-width: 540px) {
+  .agenda-card-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+.agenda-complete-btn {
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 6px 14px;
+  border: 1.5px solid;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.agenda-complete-btn:hover {
+  opacity: 0.8;
+}
+@media (max-width: 380px) {
+  .agenda-complete-btn {
+    font-size: 0.62rem;
+    padding: 4px 8px;
+  }
+}
+
+.agenda-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1.5px solid rgba(146, 122, 207, 0.1);
+  border-radius: 5px;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  color: #B79EBE;
+  transition: all 0.15s;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.agenda-icon-btn.edit:hover {
+  border-color: #8253d2;
+  color: #8253d2;
+  background: #ede9fe;
+}
+.agenda-icon-btn.delete:hover {
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.06);
+}
+@media (max-width: 380px) {
+  .agenda-icon-btn {
+    width: 26px;
+    height: 26px;
+    font-size: 0.68rem;
+  }
+}
+
+.cal-empty {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 32px;
+  gap: 8px;
+}
+.cal-empty .cal-empty-icon {
+  font-size: 2.8rem;
+  margin-bottom: 8px;
+  opacity: 0.5;
+}
+.cal-empty p {
+  font-family: "Fredoka", sans-serif;
+  font-size: 1.2rem;
+  color: #B79EBE;
+  margin: 0;
+  text-align: center;
+}
+
+.cal-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(58, 47, 81, 0.35);
+  backdrop-filter: blur(8px);
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: calFadeIn 0.15s ease;
+}
+@media (max-width: 540px) {
+  .cal-modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+}
+
+.cal-modal {
+  background: #ffffff;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 92dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  box-shadow: 0 24px 64px rgba(130, 83, 210, 0.18), 0 4px 16px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  animation: calSlideUp 0.22s ease;
+}
+@media (max-width: 540px) {
+  .cal-modal {
+    max-width: 100%;
+    border-radius: 20px 20px 0 0;
+    max-height: 90dvh;
+  }
+}
+
+.cal-modal-stripe {
+  height: 4px;
+  width: 100%;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+
+.cal-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid rgba(146, 122, 207, 0.1);
+  background: rgba(222, 214, 240, 0.25);
+}
+.cal-modal-header h3 {
+  font-family: "Marcellus", serif;
+  font-size: 1.2rem;
+  font-weight: 400;
+  color: #3A2F51;
+  margin: 4px 0 0;
+  letter-spacing: 0.01em;
+}
+@media (max-width: 540px) {
+  .cal-modal-header {
+    padding: 8px 16px;
+  }
+  .cal-modal-header h3 {
+    font-size: 0.9rem;
+  }
+}
+
+.cal-modal-title-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.cal-modal-type-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.65rem;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.03em;
+  transition: all 0.2s;
+}
+
+.cal-modal-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1.5px solid rgba(146, 122, 207, 0.1);
+  color: #B79EBE;
+  cursor: pointer;
+  border-radius: 5px;
+  width: 32px;
+  height: 32px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+.cal-modal-close:hover {
+  background: #ede9fe;
+  border-color: rgba(130, 83, 210, 0.3);
+  color: #8253d2;
+}
+
+.cal-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  -webkit-overflow-scrolling: touch;
+}
+.cal-modal-body::-webkit-scrollbar {
+  width: 4px;
+}
+.cal-modal-body::-webkit-scrollbar-thumb {
+  background: rgba(130, 83, 210, 0.2);
+  border-radius: 2px;
+}
+@media (max-width: 540px) {
+  .cal-modal-body {
+    padding: 8px 16px;
+  }
+}
+
+.cal-form-section {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+.cal-label {
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #8253d2;
+}
+
+.cal-optional {
+  font-weight: 400;
+  color: #B79EBE;
+}
+
+.cal-type-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+@media (max-width: 380px) {
+  .cal-type-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.cal-type-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  border: 1.5px solid rgba(146, 122, 207, 0.1);
+  border-radius: 10px;
+  background: rgba(247, 247, 247, 0.5);
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+.cal-type-btn:hover {
+  border-color: rgba(130, 83, 210, 0.3);
+  background: #ede9fe;
+}
+.cal-type-btn.selected {
+  box-shadow: 0 2px 10px rgba(130, 83, 210, 0.18);
+}
+
+.cal-type-icon {
+  width: 24px;
+  height: 24px;
+  -o-object-fit: contain;
+     object-fit: contain;
+}
+
+.cal-type-label {
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.65rem;
+  color: #3A2F51;
+  transition: color 0.15s;
+}
+
+.cal-input {
+  width: 100%;
+  padding: 8px 16px;
+  border: 1.5px solid rgba(130, 83, 210, 0.15);
+  border-radius: 10px;
+  font-family: "Fredoka", sans-serif;
+  font-size: max(16px, 0.9rem);
+  color: #3A2F51;
+  background: rgba(247, 247, 247, 0.4);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+.cal-input:focus {
+  border-color: #8253d2;
+  box-shadow: 0 0 0 3px rgba(130, 83, 210, 0.1);
+  background: #ffffff;
+}
+.cal-input.error {
+  border-color: #ef4444;
+}
+
+.cal-textarea {
+  resize: vertical;
+  min-height: 68px;
+  line-height: 1.5;
+}
+@media (max-width: 540px) {
+  .cal-textarea {
+    min-height: 54px;
+  }
+}
+
+.cal-field-error {
+  font-size: 0.9rem;
+  color: #ef4444;
+}
+
+.cal-modal-error {
+  background: #fff5f5;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: rgb(234.9802955665, 21.0197044335, 21.0197044335);
+  border-radius: 5px;
+  padding: 8px 16px;
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+}
+
+.cal-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  padding: 16px 24px;
+  border-top: 1px solid rgba(146, 122, 207, 0.1);
+  flex-shrink: 0;
+  background: rgba(222, 214, 240, 0.15);
+}
+@media (max-width: 540px) {
+  .cal-modal-footer {
+    padding: 8px 16px;
+    gap: 8px;
+  }
+}
+@media (max-width: 380px) {
+  .cal-modal-footer {
+    flex-direction: column-reverse;
+    gap: 4px;
+  }
+  .cal-modal-footer .cal-btn-cancel, .cal-modal-footer .cal-btn-save {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+.cal-btn-cancel {
+  background: none;
+  border: 1.5px solid rgba(130, 83, 210, 0.2);
+  color: #8253d2;
+  padding: 8px 24px;
+  border-radius: 20px;
+  font-family: "Fredoka", sans-serif;
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.cal-btn-cancel:hover {
+  background: #ede9fe;
+  border-color: rgba(130, 83, 210, 0.4);
+}
+@media (max-width: 540px) {
+  .cal-btn-cancel {
+    font-size: 0.78rem;
+    padding: 4px 16px;
+  }
+}
+
+.cal-btn-save {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: white;
+  border: none;
+  padding: 8px 24px;
+  border-radius: 20px;
+  font-family: "Fredoka", sans-serif;
+  font-size: 1.05rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 3px 12px rgba(130, 83, 210, 0.35);
+}
+.cal-btn-save:hover:not(:disabled) {
+  filter: brightness(1.08);
+  box-shadow: 0 5px 18px rgba(130, 83, 210, 0.45);
+  transform: translateY(-1px);
+}
+.cal-btn-save:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+@media (max-width: 540px) {
+  .cal-btn-save {
+    font-size: 0.78rem;
+    padding: 4px 16px;
+  }
+}
+
+.dnd-dialog {
+  max-width: 400px;
+}
+@media (max-width: 540px) {
+  .dnd-dialog {
+    max-width: 100%;
+    border-radius: 20px 20px 0 0;
+  }
+}
+
+.dnd-dialog-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 16px;
+}
+@media (max-width: 540px) {
+  .dnd-dialog-body {
+    padding: 16px;
+  }
+}
+
+.dnd-dialog-hint {
+  font-family: "Fredoka", sans-serif;
+  font-size: 1.2rem;
+  color: #B79EBE;
+  margin: 0;
+  line-height: 1.55;
+}
+.dnd-dialog-hint strong {
+  color: #3A2F51;
+  font-weight: 500;
+}
+
+.dnd-dialog-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+@media (max-width: 380px) {
+  .dnd-dialog-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.dnd-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 24px;
+  border-radius: 20px;
+  font-family: "Fredoka", sans-serif;
+  font-size: 1.05rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s;
+  white-space: nowrap;
+  border: 1.5px solid transparent;
+}
+.dnd-btn.dnd-btn-move {
+  color: white;
+  box-shadow: 0 2px 8px rgba(130, 83, 210, 0.3);
+}
+.dnd-btn.dnd-btn-move:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+.dnd-btn.dnd-btn-copy {
+  background: none;
+}
+.dnd-btn.dnd-btn-copy:hover {
+  opacity: 0.8;
+}
+.dnd-btn.dnd-btn-cancel {
+  background: none;
+  border-color: rgba(146, 122, 207, 0.1);
+  color: #B79EBE;
+}
+.dnd-btn.dnd-btn-cancel:hover {
+  border-color: #8253d2;
+  color: #8253d2;
+  background: #ede9fe;
+}
+@media (max-width: 540px) {
+  .dnd-btn {
+    font-size: 0.78rem;
+    padding: 4px 16px;
+  }
+}
+
+.cal-dog-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.cal-dog-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  border: 1.5px solid rgba(146, 122, 207, 0.1);
+  border-radius: 20px;
+  background: #ffffff;
+  font-family: "Fredoka", sans-serif;
+  font-size: 1.05rem;
+  color: #3A2F51;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.cal-dog-btn:hover {
+  border-color: rgba(130, 83, 210, 0.3);
+}
+.cal-dog-btn.selected {
+  font-weight: 500;
+}
+
+.cal-dog-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.cal-dog-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: "Fredoka", sans-serif;
+}
+
+@media (max-width: 639px) {
+  .month-day-label {
+    font-size: 0.62rem;
+    padding: 6px 0;
+  }
+  .month-cell {
+    min-height: 38px;
+    padding: 3px 2px;
+  }
+  .month-cell-day {
+    font-size: 0.65rem;
+  }
+  .month-cell-events {
+    display: none;
+  }
+}
+.year-view {
+  padding: 0 4px;
+}
+
+.year-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 12px 0 24px;
+}
+
+.year-nav-label {
+  font-family: "Marcellus", serif;
+  font-size: 1.4rem;
+  font-weight: 400;
+  color: #3A2F51;
+  letter-spacing: -0.03em;
+  min-width: 60px;
+  text-align: center;
+}
+
+.year-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+@media (max-width: 900px) {
+  .year-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (max-width: 600px) {
+  .year-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+}
+@media (max-width: 360px) {
+  .year-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+}
+
+.mini-month {
+  background: #ffffff;
+  border: 1px solid rgba(146, 122, 207, 0.1);
+  border-radius: 10px;
+  padding: 10px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
+}
+.mini-month:hover {
+  border-color: rgba(130, 83, 210, 0.3);
+  box-shadow: 0 4px 16px rgba(130, 83, 210, 0.1);
+  transform: translateY(-2px);
+}
+.mini-month:focus-visible {
+  outline: 2px solid #8253d2;
+  outline-offset: 2px;
+}
+@media (max-width: 600px) {
+  .mini-month {
+    padding: 8px 6px;
+    border-radius: 10px;
+  }
+}
+
+.mini-month-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.mini-month-name {
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #3A2F51;
+  letter-spacing: 0.02em;
+}
+@media (max-width: 600px) {
+  .mini-month-name {
+    font-size: 0.7rem;
+  }
+}
+
+.mini-month-count {
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 20px;
+  line-height: 1.6;
+}
+
+.mini-month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+}
+
+.mini-day-label {
+  font-size: 0.5rem;
+  font-weight: 500;
+  color: #B79EBE;
+  text-align: center;
+  padding: 1px 0 3px;
+  line-height: 1;
+}
+
+.mini-cell {
+  font-size: 0.58rem;
+  color: #64748b;
+  text-align: center;
+  line-height: 1;
+  padding: 2px 1px;
+  border-radius: 3px;
+  position: relative;
+  transition: background 0.12s ease;
+}
+.mini-cell.empty {
+  color: transparent;
+  pointer-events: none;
+}
+.mini-cell.today {
+  background: #8253d2;
+  color: #fff;
+  font-weight: 700;
+  border-radius: 50%;
+}
+.mini-cell.has-event {
+  font-weight: 500;
+  color: #3A2F51;
+}
+.mini-cell.has-event::after {
+  content: "";
+  display: block;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--mini-dot-color, #8253d2);
+  margin: 1px auto 0;
+}
+.mini-cell.has-event.today::after {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.day-view {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  animation: calSlideDown 0.2s ease both;
+}
+
+.day-view-header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(146, 122, 207, 0.1);
+  margin-bottom: 20px;
+}
+@media (max-width: 540px) {
+  .day-view-header {
+    gap: 8px;
+    padding-bottom: 12px;
+    margin-bottom: 14px;
+  }
+}
+
+.day-view-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 14px;
+  background: rgba(222, 214, 240, 0.4);
+  border: 1.5px solid rgba(183, 158, 190, 0.2);
+  border-radius: 20px;
+  font-family: "Fredoka", sans-serif;
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: rgba(58, 47, 81, 0.6);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.18s ease;
+}
+.day-view-back:hover {
+  background: #ede9fe;
+  color: #8253d2;
+  border-color: rgba(130, 83, 210, 0.25);
+}
+
+.day-view-title-wrap {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
+}
+
+.day-view-title {
+  font-family: "Marcellus", serif;
+  font-size: 1.2rem;
+  font-weight: 400;
+  color: #3A2F51;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+  letter-spacing: -0.01em;
+}
+@media (max-width: 540px) {
+  .day-view-title {
+    font-size: 0.82rem;
+  }
+}
+
+.day-view-today-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  background: rgba(130, 83, 210, 0.1);
+  color: #8253d2;
+  border: 1px solid rgba(130, 83, 210, 0.2);
+  border-radius: 999px;
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.day-view-count {
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.68rem;
+  color: #B79EBE;
+}
+
+.day-view-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: #8253d2;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  font-family: "Fredoka", sans-serif;
+  font-size: 1.05rem;
+  font-weight: 500;
+  cursor: pointer;
+  flex-shrink: 0;
+  white-space: nowrap;
+  transition: all 0.18s ease;
+  box-shadow: 0 2px 8px rgba(130, 83, 210, 0.3);
+}
+.day-view-add-btn:hover {
+  background: #6d28d9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(130, 83, 210, 0.4);
+}
+@media (max-width: 540px) {
+  .day-view-add-btn {
+    font-size: 0.72rem;
+    padding: 6px 10px;
+  }
+}
+
+.day-view-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.day-view-empty-icon {
+  font-size: 2.8rem;
+  line-height: 1;
+  opacity: 0.4;
+}
+
+.day-view-empty p {
+  font-family: "Fredoka", sans-serif;
+  font-size: 1.2rem;
+  color: #B79EBE;
+  margin: 0;
+}
+
+.day-view-empty-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  background: #ede9fe;
+  border: 1.5px dashed rgba(130, 83, 210, 0.3);
+  border-radius: 20px;
+  font-family: "Fredoka", sans-serif;
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: #8253d2;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  margin-top: 4px;
+}
+.day-view-empty-add:hover {
+  background: rgba(130, 83, 210, 0.14);
+  border-color: rgba(130, 83, 210, 0.5);
+}
+
+.day-view-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+@media (max-width: 540px) {
+  .day-view-groups {
+    gap: 16px;
+  }
+}
+
+.day-view-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+@media (max-width: 540px) {
+  .day-view-group {
+    gap: 8px;
+  }
+}
+
+.day-view-group-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1.5px solid rgba(146, 122, 207, 0.1);
+}
+
+.day-view-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.day-view-status-label {
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.68rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.day-view-group-count {
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.68rem;
+  color: #B79EBE;
+  background: rgba(222, 214, 240, 0.8);
+  border-radius: 20px;
+  padding: 1px 8px;
+  margin-left: auto;
+}
+
+.day-view-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #ffffff;
+  border: 1px solid rgba(146, 122, 207, 0.1);
+  border-radius: 10px;
+  padding: 14px 16px;
+  transition: box-shadow 0.18s ease, transform 0.15s ease;
+}
+.day-view-card:hover {
+  box-shadow: 0 4px 16px rgba(130, 83, 210, 0.1);
+  transform: translateY(-1px);
+}
+.day-view-card.done {
+  opacity: 0.55;
+}
+.day-view-card.done .day-view-card-title {
+  text-decoration: line-through;
+}
+@media (max-width: 540px) {
+  .day-view-card {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px;
+  }
+}
+
+.day-view-card-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+@media (max-width: 380px) {
+  .day-view-card-icon {
+    width: 38px;
+    height: 38px;
+  }
+  .day-view-card-icon img {
+    width: 18px !important;
+    height: 18px !important;
+  }
+}
+
+.day-view-card-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.day-view-card-title {
+  font-family: "Fredoka", sans-serif;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #3A2F51;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.day-view-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.day-view-card-type {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.65rem;
+  font-weight: 500;
+}
+
+.day-view-card-dog {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.65rem;
+  font-weight: 500;
+}
+
+.day-view-card-notes {
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.9rem;
+  color: #B79EBE;
+  font-style: italic;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.day-view-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+@media (max-width: 540px) {
+  .day-view-card-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+.day-view-complete-btn {
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 6px 12px;
+  border: 1.5px solid;
+  border-radius: 20px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+.day-view-complete-btn:hover {
+  opacity: 0.8;
+}
+@media (max-width: 380px) {
+  .day-view-complete-btn {
+    font-size: 0.62rem;
+    padding: 4px 8px;
+  }
+}
+
+.day-view-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: none;
+  border: 1.5px solid rgba(146, 122, 207, 0.1);
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.78rem;
+  color: #B79EBE;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.day-view-icon-btn.edit:hover {
+  border-color: #8253d2;
+  color: #8253d2;
+  background: #ede9fe;
+}
+.day-view-icon-btn.delete:hover {
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.06);
+}
+@media (max-width: 380px) {
+  .day-view-icon-btn {
+    width: 28px;
+    height: 28px;
+  }
+}/*# sourceMappingURL=Buddy_Calendar.css.map */
