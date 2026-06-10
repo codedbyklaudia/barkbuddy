@@ -1,0 +1,1349 @@
+@import '../../styles/mixins';
+@import '../../styles/variables';
+@import '../../styles/profile';
+@import './DashboardView';
+@import './Sidebar';
+@import './SettingsView';
+
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+// ─── Root Layout ──────────────────────────────────────────────────────────────
+.dashboard {
+  @include column;
+  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
+  background: $soft-pearl;
+  font-family: $font-primary;
+}
+
+// ─── Body row below header ────────────────────────────────────────────────────
+.db-body {
+  flex: 1;
+  display: flex;
+  gap: 0;
+  padding: $space-md;
+  overflow: visible;       // ← KEY FIX: was overflow:hidden which clipped sidebar icons
+  align-items: flex-start;
+
+  @media (min-width: $bp-laptop) {
+    gap: $space-lg;
+    padding: $space-lg $space-xl;
+  }
+}
+
+// Scrollable content area 
+.db-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: calc(100vh - 58px - 2 * #{$space-md});   
+ 
+  @media (min-width: $bp-laptop) {
+    height: calc(100vh - 68px - 2 * #{$space-lg});  
+    padding-right: $space-xs;
+  }
+ 
+  &::-webkit-scrollbar       { width: 5px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: rgba($gentle-amethyst, 0.25); border-radius: 3px; }
+}
+
+// Top Bar 
+.db-topbar {
+  @include flex-between;
+  padding: 0 $space-md;
+  height: 58px;           
+  background: rgba($soft-pearl, 0.97);
+  border-bottom: 1px solid rgba($misty-lavender, 0.4);
+  flex-shrink: 0;
+  gap: $space-sm;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 1px 8px rgba($twilight-purple, 0.06);
+ 
+  @media (min-width: $bp-tablet) {
+    padding: 0 $space-xl;
+    height: 68px;        
+    gap: $space-md;
+  }
+}
+
+.db-topbar-platform-btn {
+  background-color: $twilight-purple;
+  color: $text-color-white;
+  padding: $space-sm $space-md;
+  :hover {
+    background-color: rgba($misty-lavender, 0.12) !important;
+    color: $twilight-purple !important;
+    outline: none;
+  }
+}
+
+.db-topbar-left {
+  @include center;
+  gap: $space-md;
+  flex-shrink: 0;
+}
+
+// Logo 
+.bb-logo-img {
+  display: block;
+  object-fit: contain;
+  &.bb-logo-sm { height: 32px; }
+  &.bb-logo-md {
+    height: 40px;          
+    @media (min-width: $bp-tablet) { height: 42px; }
+  }
+  &.bb-logo-lg {
+    height: 45px;
+    @media (min-width: $bp-tablet) { height: 47px; }
+  }
+}
+
+.bb-logo-text { @include center; gap: 0.4rem; }
+.bb-logo-paw  { font-size: 1.1em; line-height: 1; }
+.bb-logo-name {
+  font-family: $font-primary;
+  font-weight: $fw-medium;
+  color: $twilight-purple;
+  letter-spacing: 0.01em;
+  &.bb-logo-sm { font-size: 0.85rem; }
+  &.bb-logo-md { font-size: 0.95rem; }
+  &.bb-logo-lg { font-size: 1.05rem; }
+}
+
+.db-topbar-title {
+  flex: 1;
+  text-align: center;
+  font-family: $font-primary;
+  font-size: 0.92rem;      
+  font-weight: $fw-regular;
+  color: $text-color-dark;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+ 
+  @media (min-width: $bp-tablet) { font-size: 1.05rem; }
+}
+
+.db-topbar-right {
+  @include center;
+  gap: 4px;
+  flex-shrink: 0;
+  @media (min-width: $bp-tablet) { gap: $space-sm; }
+}
+
+.db-topbar-bell {
+  @include none;
+  @include cursor;
+  color: $text-color-dark;
+  @include center;
+  width: 30px;
+  height: 30px;
+  border-radius: $radius-md;
+  transition: all 0.2s;
+ 
+  &:hover { color: $twilight-purple; background: rgba($twilight-purple, 0.06); }
+}
+
+.db-notif-bell-wrap {
+  @include relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.db-notif-badge {
+  position:    absolute;
+  top:         -6px;
+  left:        50%;
+  transform:   translateX(-50%);
+  min-width:   18px;
+  height:      18px;
+  padding:     0 4px;
+  border-radius: $radius-round;
+  background:  #e05252;
+  color:       #fff;
+  font-family: $font-secondary;
+  font-size:   0.68rem;
+  font-weight: $fw-bold;
+  line-height: 18px;
+  text-align:  center;
+  white-space: nowrap;
+  border:      2px solid $soft-pearl;
+  box-shadow:  0 1px 4px rgba(0, 0, 0, 0.18);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.db-topbar-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: $radius-round;
+  background: $twilight-purple;
+  overflow: hidden;
+  @include flex-center;
+  font-size: 0.78rem;
+  color: $misty-lavender;
+  font-weight: $fw-medium;
+  border: 2px solid rgba($twilight-purple, 0.25);
+  flex-shrink: 0;
+  img { width: 100%; height: 100%; object-fit: cover; }
+ 
+  @media (min-width: $bp-tablet) { width: 38px; height: 38px; font-size: $t-but-des; }
+}
+
+.db-topbar-name {
+  font-family: $font-secondary;
+  font-size: $t-but-des;
+  font-weight: $fw-medium;
+  color: $text-color-dark;
+}
+
+// Visibility helpers
+.db-desktop-only {
+  display: none !important;
+  @media (min-width: $bp-laptop) { display: flex !important; }
+}
+
+.db-mobile-only {
+  display: flex;
+  @media (min-width: $bp-laptop) { display: none !important; }
+}
+
+// Hamburger 
+.db-topbar-hamburger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: rgba($misty-lavender, 0.15);
+  border: 1.5px solid rgba($gentle-amethyst, 0.3);
+  border-radius: $radius-md;
+  cursor: pointer;
+  flex-shrink: 0;
+  color: $twilight-purple;
+  transition: all 0.2s;
+ 
+  .db-hamburger-bar { display: none; }
+ 
+  &:hover {
+    border-color: $twilight-purple;
+    background: rgba($twilight-purple, 0.06);
+  }
+ 
+  @media (min-width: $bp-laptop) { display: none !important; }
+}
+
+.db-hamburger-bar {
+  display: none; // replaced by Logs icon
+}
+
+.db-main { flex: 1; @include column; overflow: hidden; }
+
+// Views 
+.db-view {
+  @include column;
+  gap: $space-md;
+  @media (min-width: $bp-tablet) { gap: $space-xl; }
+}
+
+.db-greeting { @include flex-between; flex-wrap: wrap; gap: $space-sm; }
+.db-greeting-title {
+  font-family: $font-primary;
+  font-size: $t-but-des;
+  font-weight: $fw-regular;
+  color: $text-color-dark;
+  letter-spacing: 0.03em;
+  margin-bottom: 0.2rem;
+  @media (min-width: $bp-tablet) { font-size: 1.45rem; }
+}
+.db-greeting-sub {
+  font-family: $font-secondary;
+  font-size: $t-forgot-des;
+  color: $gentle-amethyst;
+  font-weight: $fw-regular;
+  @media (min-width: $bp-tablet) { font-size: $t-link-des; }
+}
+
+// ─── Home Hero ────────────────────────────────────────────────────────────────
+.home-hero {
+  @include column;
+  align-items: flex-start;
+  gap: $space-md;
+  background: $twilight-purple;
+  border-radius: $radius-lg;
+  padding: $space-lg;
+  @include relative;
+  overflow: hidden;
+
+  &::after {
+    content: '🐾';
+    @include absolute;
+    right: $space-md; bottom: -10px;
+    font-size: 4rem;
+    opacity: 0.07;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  @media (min-width: $bp-tablet) {
+    @include flex-between;
+    flex-direction: row;
+    padding: $space-xl $space-xxl;
+    gap: $space-lg;
+    &::after { font-size: 7rem; right: $space-xxl; }
+  }
+}
+
+.home-hero-title {
+  font-family: $font-primary;
+  font-size: $t-link-des;
+  font-weight: $fw-regular;
+  color: $misty-lavender;
+  letter-spacing: 0.02em;
+  margin-bottom: 0.3rem;
+  @media (min-width: $bp-tablet) { font-size: $t-sub-des; }
+}
+
+.home-hero-sub {
+  font-family: $font-secondary;
+  font-size: $t-forgot-des;
+  color: rgba($misty-lavender, 0.7);
+  max-width: 42ch;
+  line-height: 1.6;
+  @media (min-width: $bp-tablet) { font-size: $t-link-des; }
+}
+
+.home-hero-progress {
+  font-family: $font-secondary;
+  font-size: $t-forgot-des;
+  color: rgba($misty-lavender, 0.5);
+  margin-top: 0.35rem;
+  font-style: italic;
+}
+
+// ─── Check-in Button ──────────────────────────────────────────────────────────
+.btn-checkin {
+  @include center;
+  gap: $space-xs;
+  width: 100%; justify-content: center;
+  background: rgba($misty-lavender, 0.12);
+  color: $twilight-purple;
+  border: none;
+  padding: $space-xs $space-lg;
+  border-radius: 50px;
+  font-family: $font-secondary;
+  font-size: $t-forgot-des;
+  font-weight: $fw-bold;
+  @include cursor;
+  transition: all 0.25s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+
+  &:hover  { background: $soft-pearl; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.25); }
+  &.done   { background: #1b9a49; color: $soft-pearl; cursor: default; box-shadow: 0 4px 20px rgba(#1b9a49, 0.35); }
+
+  @media (min-width: $bp-tablet) { width: auto; padding: $space-sm $space-xl; }
+}
+
+// ─── Tip Banner ───────────────────────────────────────────────────────────────
+.tip-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-sm;
+  background: rgba($misty-lavender, 0.12);
+  border: 1px solid rgba($twilight-purple, 0.2);
+  border-left: 4px solid $twilight-purple;
+  border-radius: $radius-md;
+  padding: $space-sm $space-md;
+  @media (min-width: $bp-tablet) { padding: $space-md $space-lg; gap: $space-md; }
+}
+
+.tip-content { flex: 1; }
+
+.tip-label {
+  display: block;
+  font-family: $font-primary;
+  font-size: $t-body-des;
+  font-weight: $fw-medium;
+  color: $text-color-dark;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.3rem;
+  @media screen and (max-width: $bp-tablet) { font-size: $t-body-tab; }
+  @media screen and (max-width: $bp-mobile) { font-size: $t-body-mob; }
+}
+
+.tip-text {
+  font-family: $font-secondary;
+  font-size: $t-link-des;
+  font-weight: $fw-light;
+  color: $text-color-dark;
+  line-height: 1.6;
+  @media screen and (max-width: $bp-tablet) { font-size: $t-link-tab; }
+  @media screen and (max-width: $bp-mobile) { font-size: $t-link-mob; }
+}
+
+// ─── Card grids ───────────────────────────────────────────────────────────────
+.home-cards-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $space-md;
+  align-items: start;
+  @media (min-width: $bp-tablet) { grid-template-columns: 1fr 1.8fr; gap: $space-lg; }
+}
+
+.db-cards-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $space-md;
+  align-items: start;
+  @media (min-width: $bp-tablet)  { grid-template-columns: 1fr 1fr; gap: $space-md; }
+  @media (min-width: $bp-laptop)  { grid-template-columns: 1.4fr 1fr 1fr; gap: $space-lg; }
+}
+
+.db-card {
+  background: rgba($misty-lavender, 0.12);
+  border: 1px solid rgba($twilight-purple, 0.2);
+  border-radius: $radius-lg;
+  padding: $space-lg $space-md;
+  @include relative;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06), 0 2px 6px rgba(0,0,0,0.08), 0 8px 16px rgba(0,0,0,0.08);
+
+  &::before {
+    content: '';
+    @include absolute;
+    top: 0; left: 8%; right: 8%; height: 1px;
+    background: linear-gradient(to right, transparent, rgba(255,255,255,0.6), transparent);
+    border-radius: $radius-lg $radius-lg 0 0;
+  }
+
+  @media (min-width: $bp-tablet) { padding: $space-xl; }
+}
+
+.db-card-title {
+  font-family: $font-primary;
+  font-size: $t-sub-des;
+  font-weight: $fw-regular;
+  color: $text-color-dark;
+  letter-spacing: 0.04em;
+  margin-bottom: $space-md;
+  @media screen and (max-width: $bp-tablet) { font-size: $t-link-tab; }
+  @media screen and (max-width: $bp-mobile) { font-size: $t-link-mob; }
+}
+
+// ─── Streak Card ──────────────────────────────────────────────────────────────
+.streak-card {
+  background: rgba($misty-lavender, 0.12);
+  border: 1px solid rgba($twilight-purple, 0.2);
+  border-radius: $radius-lg;
+  padding: $space-lg;
+  @include column;
+  @include center;
+  text-align: center;
+  gap: $space-md;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06), 0 2px 6px rgba(0,0,0,0.08), 0 8px 16px rgba(0,0,0,0.08);
+  @media (min-width: $bp-tablet) { padding: $space-xl $space-lg; }
+  &.streak-warm .streak-flame-svg .lit-path { fill: $gentle-amethyst; }
+}
+
+.streak-icon-wrap { margin-bottom: -$space-xs; }
+
+.streak-flame-svg {
+  width: 62px; height: 74px; display: block;
+  transition: transform 0.3s ease;
+  .streak-warm & { animation: flameRock 2.4s ease-in-out infinite; filter: drop-shadow(0 4px 12px rgba(172, 128, 190, 0.45)); }
+}
+
+@keyframes flameRock {
+  0%, 100% { transform: rotate(-4deg) scale(1); }
+  50%       { transform: rotate(4deg) scale(1.06); }
+}
+
+.streak-number {
+  font-family: $font-primary;
+  font-size: $t-sub-des;
+  font-weight: $fw-medium;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: $twilight-purple;
+  margin-bottom: -$space-xs;
+  .streak-warm & { color: $twilight-purple; }
+}
+
+.streak-label {
+  font-family: $font-primary;
+  font-size: $t-body-des;
+  font-weight: $fw-medium;
+  color: $twilight-purple;
+  letter-spacing: 0.1em;
+}
+
+.streak-days { display: flex; gap: $space-xs; margin-top: $space-xs; width: 100%; justify-content: space-between; }
+.streak-day-col { @include column; @include center; gap: 6px; flex: 1; }
+
+.streak-day-name {
+  font-family: $font-secondary;
+  font-size: 0.7rem;
+  font-weight: $fw-medium;
+  color: $twilight-purple;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.streak-circle {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: rgba($gentle-amethyst, 0.1);
+  border: 2px solid rgba($twilight-purple, 0.2);
+  @include flex-center;
+  transition: all 0.25s ease;
+
+  &.checked { background: $twilight-purple; border-color: $twilight-purple; .streak-warm & { background: $gentle-amethyst; border-color: $misty-lavender; } }
+  &.today:not(.checked) { border-color: $twilight-purple; border-width: 2.5px; .streak-warm & { border-color: $gentle-amethyst; } }
+}
+
+.streak-tick { width: 14px; height: 14px; display: block; }
+
+.streak-nudge-text {
+  font-family: $font-secondary;
+  font-size: $t-link-des;
+  color: $twilight-purple;
+  line-height: $lh-tight;
+  max-width: 90%;
+  margin-top: $space-sm;
+  @media screen and (max-width: $bp-tablet) { font-size: $t-link-tab; }
+  @media screen and (max-width: $bp-mobile) { font-size: $t-link-mob; }
+  @media (min-width: $bp-laptop) { max-width: 20vw; }
+}
+
+// ─── Quick Links ──────────────────────────────────────────────────────────────
+.quick-links { @include column; gap: $space-sm; @media (min-width: $bp-tablet) { gap: $space-md; } }
+
+.quick-link-item {
+  @include center;
+  gap: $space-md;
+  padding: $space-sm $space-md;
+  @include none;
+  border: 1px solid rgba($gentle-amethyst, 0.2);
+  border-radius: $radius-md;
+  @include cursor;
+  transition: all 0.18s;
+  text-align: left;
+  &:hover { background: rgba($twilight-purple, 0.05); border-color: rgba($twilight-purple, 0.2); transform: translateX(2px); }
+  svg:last-child { margin-left: auto; color: $gentle-amethyst; }
+}
+
+.quick-link-icon { width: 40px; height: 40px; border-radius: $radius-sm; @include flex-center; flex-shrink: 0; @media screen and (max-width: $bp-tablet) { width: 30px; height: 30px; } }
+.quick-link-text { @include column; gap: 0.1rem; flex: 1; }
+.quick-link-label { font-family: $font-secondary; font-size: $t-but-des; font-weight: $fw-regular; color: $text-color-dark; @media screen and (max-width: $bp-tablet) { font-size: $t-but-tab; } @media screen and (max-width: $bp-mobile) { font-size: $t-but-mob; } }
+.quick-link-sub   { font-family: $font-secondary; font-size: $t-link-des; color: $gentle-amethyst; @media screen and (max-width: $bp-tablet) { font-size: $t-link-tab; } @media screen and (max-width: $bp-mobile) { font-size: $t-link-mob; } }
+
+// ─── Dog Card Tags ────────────────────────────────────────────────────────────
+.dog-card-tags { display: flex; flex-wrap: wrap; gap: $space-xs; }
+.dog-tag {
+  font-family: $font-secondary; font-size: $t-link-des; font-weight: $fw-medium;
+  color: $twilight-purple; background: rgba($twilight-purple, 0.08);
+  border: 1px solid rgba($twilight-purple, 0.15);
+  padding: 0.2rem 0.6rem; border-radius: $radius-lg; text-transform: capitalize;
+  &.life-tag { background: rgba($serene-purple, 0.1); border-color: rgba($serene-purple, 0.2); color: $serene-purple; }
+}
+
+// ─── Avatar Upload ────────────────────────────────────────────────────────────
+.avatar-upload {
+  @include relative; display: inline-block;
+  &.lg .avatar-img { width: 120px; height: 120px; font-size: $t-link-des; @media (min-width: $bp-tablet) { width: 150px; height: 150px; font-size: $t-but-des; } }
+  &.sm .avatar-img { width: 80px; height: 80px; font-size: $t-link-des; @media (min-width: $bp-tablet) { width: 100px; height: 100px; } }
+  &.shape-rounded .avatar-img { border-radius: $radius-md; }
+}
+
+.avatar-img {
+  border-radius: $radius-lg;
+  background: $serene-purple;
+  @include flex-center;
+  color: $soft-pearl;
+  overflow: hidden;
+  border: 3px solid rgba(167, 139, 250, 0.25);
+  @include relative;
+  img { width: 100%; height: 100%; object-fit: cover; }
+}
+
+.avatar-uploading { @include absolute; inset: 0; background: rgba(0,0,0,0.4); border-radius: $radius-lg; @include flex-center; color: $soft-pearl; }
+
+.avatar-edit-btn {
+  @include absolute;
+  bottom: -6px; right: -6px;
+  @include center;
+  gap: 4px;
+  background: $soft-pearl;
+  border: 2px solid $serene-purple;
+  border-radius: $radius-md;
+  padding: 4px 8px;
+  color: $twilight-purple;
+  @include cursor;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba($twilight-purple, 0.25);
+  font-family: $font-secondary;
+  font-size: $t-forgot-des;
+  font-weight: $fw-bold;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  &:hover { background: $serene-purple; color: white; transform: translateY(-1px); box-shadow: 0 4px 12px rgba($serene-purple, 0.4); }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+// ─── Dog Photo Hero ───────────────────────────────────────────────────────────
+.dog-photo-hero { width: 100%; }
+
+.dog-photo-img {
+  @include relative;
+  width: 100%;
+  aspect-ratio: 5/4;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  background: rgba($twilight-purple, 0.06);
+  border: 2px solid rgba($gentle-amethyst, 0.15);
+  img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.4s ease; }
+  &:hover img { transform: scale(1.03); }
+  @media (min-width: $bp-tablet) { aspect-ratio: 1 / 1; }
+}
+
+.dog-photo-placeholder { width: 100%; height: 100%; @include flex-column; gap: $space-sm; color: rgba($gentle-amethyst, 0.4); p { font-family: $font-secondary; font-size: $t-but-des; color: rgba($gentle-amethyst, 0.5); } }
+.dog-photo-uploading { @include absolute; inset: 0; background: rgba(0,0,0,0.4); @include flex-center; color: $soft-pearl; }
+
+.dog-photo-btn {
+  @include absolute; bottom: $space-md; right: $space-md;
+  width: 44px; height: 44px;
+  background: rgba(0,0,0,0.65); backdrop-filter: blur(4px);
+  border: 2px solid rgba(255,255,255,0.3); border-radius: $radius-round;
+  @include flex-center;
+  color: $soft-pearl; @include cursor; transition: all 0.2s;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  @media (min-width: $bp-tablet) { width: 48px; height: 48px; }
+  &:hover { background: $twilight-purple; border-color: rgba(255,255,255,0.5); transform: scale(1.08); box-shadow: 0 6px 20px rgba($twilight-purple, 0.5); }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+// ─── Bio Editor ───────────────────────────────────────────────────────────────
+.bio-display {
+  width: 100%; padding: $space-sm $space-md;
+  border: 1.5px dashed rgba($gentle-amethyst, 0.3);
+  border-radius: $radius-md; @include cursor; transition: all 0.2s;
+  &:hover { border-color: $serene-purple; background: rgba($serene-purple, 0.04); }
+}
+.bio-text        { font-family: $font-secondary; font-size: $t-link-des; color: $text-color-dark; line-height: 1.6; }
+.bio-placeholder { @include center; gap: 0.4rem; font-family: $font-secondary; font-size: $t-link-des; color: rgba($gentle-amethyst, 0.6); font-style: italic; }
+.bio-editor      { width: 100%; @include column; gap: $space-xs; }
+
+.bio-textarea {
+  width: 100%; padding: $space-sm $space-md;
+  border: 1.5px solid $serene-purple; border-radius: $radius-md;
+  font-family: $font-secondary; font-size: $t-link-des; color: $text-color-dark;
+  background: rgba(255,255,255,0.8); resize: vertical; outline: none;
+  box-shadow: 0 0 0 3px rgba($serene-purple, 0.1); line-height: 1.6;
+}
+
+.bio-editor-footer  { @include flex-between; }
+.bio-char-count     { font-family: $font-secondary; font-size: $t-link-des; color: $gentle-amethyst; }
+.bio-editor-actions { display: flex; gap: $space-xs; }
+
+.bio-btn-cancel {
+  background: none; border: 1px solid rgba($gentle-amethyst, 0.3); border-radius: $radius-lg; padding: 0.25rem 0.7rem;
+  font-family: $font-secondary; font-size: $t-link-des; color: $gentle-amethyst; @include cursor; transition: all 0.2s;
+  &:hover { border-color: $gentle-amethyst; }
+}
+
+.bio-btn-save {
+  @include center; gap: 0.3rem;
+  background: $twilight-purple; border: none; border-radius: $radius-lg; padding: 0.25rem 0.9rem;
+  font-family: $font-secondary; font-size: $t-link-des; font-weight: $fw-medium; color: $soft-pearl;
+  @include cursor; transition: all 0.2s;
+  &:hover { background: $serene-purple; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+// ─── Modals ───────────────────────────────────────────────────────────────────
+.checkin-overlay { align-items: flex-end; padding: 0; @media (min-width: $bp-mobile) { align-items: center; padding: $space-lg; } }
+
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.45); backdrop-filter: blur(4px);
+  z-index: 1000;
+  @include flex-center;
+  align-items: flex-end;
+  padding: 0;
+  animation: fadeIn 0.15s ease;
+  @media (min-width: $bp-mobile) { align-items: center; padding: $space-md; }
+}
+
+@keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+.modal {
+  background: $soft-pearl;
+  border-radius: 16px 16px 0 0;
+  width: 100%; max-width: 100%;
+  max-height: 88dvh;
+  @include column;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12), 0 24px 48px rgba(0,0,0,0.18);
+  animation: slideUp 0.2s ease;
+  @include relative;
+  @media (min-width: $bp-mobile) { max-width: 500px; border-radius: $radius-md; max-height: 90vh; }
+}
+
+.modal-header {
+  @include flex-between;
+  padding: 1rem 1rem 0;
+  h3 { font-family: $font-primary; font-size: $t-link-des; font-weight: 400; color: $twilight-purple; letter-spacing: 0.03em; }
+  @media (min-width: $bp-mobile) { padding: 1.25rem 1.5rem 0; }
+}
+
+.modal-close { @include none; @include cursor; color: $serene-purple; padding: 0.25rem; border-radius: 6px; display: flex; transition: all 0.2s; &:hover { background: rgba(139,92,246,0.1); } }
+
+.modal-body {
+  flex: 1; overflow-y: auto; padding: 1rem; @include column; gap: 0.4rem;
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-thumb { background: rgba(139,92,246,0.3); border-radius: 2px; }
+  @media (min-width: $bp-mobile) { padding: 1.25rem 1.5rem; }
+}
+
+.modal-label     { font-family: $font-secondary; font-size: $t-but-des; font-weight: 500; color: $twilight-purple; letter-spacing: 0.02em; margin-top: 0.5rem; }
+.modal-optional  { font-weight: 400; color: #8b5cf6; }
+.modal-char-hint { font-family: $font-secondary; font-size: $t-but-des; color: $twilight-purple; text-align: right; }
+
+.modal-input {
+  width: 100%; padding: 0.6rem 0.9rem;
+  border: 1.5px solid rgba(139,92,246,0.3); border-radius: $radius-sm;
+  font-family: $font-secondary; font-size: 0.95rem; color: $twilight-purple;
+  background: rgba(255,255,255,0.8); outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  &:focus { border-color: $serene-purple; box-shadow: 0 0 0 3px rgba(124,58,237,0.1); }
+  &.error { border-color: #e05252; background: #fff8f8; }
+}
+
+.modal-textarea    { resize: none; line-height: 1.6; }
+.modal-field-error { font-size: $t-but-des; color: #e05252; margin-top: 0.1rem; }
+
+.modal-divider {
+  font-family: $font-secondary; font-size: $t-link-des; font-weight: 600;
+  color: $twilight-purple; letter-spacing: 0.06em; text-transform: uppercase;
+  margin-top: 0.75rem; padding-top: 0.75rem;
+  border-top: 1px solid rgba(139,92,246,0.2);
+  span { font-weight: 400; text-transform: none; color: $serene-purple; letter-spacing: 0; }
+}
+
+.modal-error   { background: $soft-pearl; border: 1px solid #fca5a5; color: #b91c1c; border-radius: $radius-sm; padding: 0.6rem 0.9rem; font-size: $t-forgot-des; }
+.modal-success { background: $soft-pearl; border: 1px solid #86efac; color: #15803d; border-radius: $radius-sm; padding: 0.6rem 0.9rem; font-size: $t-forgot-des; }
+
+.modal-radio-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.modal-radio-btn { padding: 0.4rem 0.9rem; border: 1.5px solid rgba(139,92,246,0.3); border-radius: 50px; background: none; font-family: $font-secondary; font-size: $t-forgot-des; color: $serene-purple; @include cursor; transition: all 0.18s; &:hover { border-color: $serene-purple; background: rgba(124,58,237,0.05); } &.selected { border-color: $serene-purple; background: rgba(91,33,182,0.1); font-weight: 500; } }
+
+.modal-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.modal-chip  { padding: 0.3rem 0.7rem; border: 1.5px solid rgba(139,92,246,0.3); border-radius: 50px; background: none; font-family: $font-secondary; font-size: 0.85rem; color: #5b21b6; @include cursor; transition: all 0.18s; text-transform: capitalize; &:hover { border-color: $serene-purple; } &.selected { border-color: #5b21b6; background: rgba(91,33,182,0.1); font-weight: 500; } }
+
+.modal-footer { @include center; justify-content: flex-end; gap: 0.75rem; padding: 0.75rem 1rem; border-top: 1px solid rgba(139,92,246,0.15); @media (min-width: $bp-mobile) { padding: 1rem 1.5rem; } }
+.modal-btn-cancel { background: none; border: 1.5px solid rgba(139,92,246,0.3); color: $twilight-purple; padding: 0.5rem 1.2rem; border-radius: 50px; font-family: $font-secondary; font-size: 0.9rem; @include cursor; transition: all 0.2s; &:hover { background: rgba(139,92,246,0.06); } }
+.modal-btn-save   { @include center; gap: 0.4rem; background: $twilight-purple; color: $soft-pearl; border: none; padding: 0.5rem 1.4rem; border-radius: 50px; font-family: $font-secondary; font-size: 0.9rem; font-weight: 500; @include cursor; transition: all 0.2s; &:hover:not(:disabled) { background: #7c3aed; } &:disabled { opacity: 0.5; cursor: not-allowed; } }
+
+// ─── Preferences ──────────────────────────────────────────────────────────────
+.pref-toggle-row { @include flex-between; padding: 0.6rem 0; border-bottom: 1px solid rgba(139,92,246,0.12); &:last-child { border-bottom: none; } &.main-toggle { padding: 0.5rem 0.8rem; background: rgba(124,58,237,0.06); border-radius: 10px; border: 1px solid rgba(124,58,237,0.15); margin-bottom: 0.75rem; border-bottom: 1px solid rgba(124,58,237,0.15); } }
+.pref-label { font-family: $font-secondary; font-size: $t-but-des; font-weight: 500; color: $twilight-purple; display: block; }
+.pref-sub   { font-family: $font-secondary; font-size: $t-but-des; color: $twilight-purple; display: block; margin-top: 0.1rem; }
+.pref-list  { transition: opacity 0.2s; &.disabled { opacity: 0.4; pointer-events: none; } }
+
+.toggle-switch { @include relative; width: 44px; height: 24px; background: rgba(139,92,246,0.2); border: none; border-radius: 50px; @include cursor; transition: background 0.25s ease; flex-shrink: 0; &.on { background: $serene-purple; } &.small { width: 36px; height: 20px; } &:disabled { cursor: not-allowed; } }
+.toggle-thumb  { @include absolute; top: 3px; left: 3px; width: 18px; height: 18px; background: $soft-pearl; border-radius: $radius-round; transition: transform 0.25s ease; box-shadow: 0 1px 4px rgba(0,0,0,0.2); .toggle-switch.on & { transform: translateX(20px); } .toggle-switch.small & { width: 14px; height: 14px; } .toggle-switch.small.on & { transform: translateX(16px); } }
+
+// ─── Dog Details Section ──────────────────────────────────────────────────────
+.dog-details-section { margin-top: $space-sm; }
+
+.dog-details-heading {
+  font-family: $font-primary; font-size: 1.2rem; font-weight: $fw-medium; color: $text-color-dark; letter-spacing: 0.02em; margin-bottom: $space-md;
+  @media (min-width: $bp-tablet) { font-size: $t-sub-des; margin-bottom: $space-lg; }
+}
+
+.dog-details-grid {
+  display: grid; grid-template-columns: 1fr; gap: $space-md;
+  @media (min-width: $bp-mobile)  { grid-template-columns: repeat(2, 1fr); }
+  @media (min-width: $bp-laptop)  { grid-template-columns: repeat(3, 1fr); gap: $space-lg; }
+}
+
+.detail-card {
+  background: #f5f1fa; border-radius: $radius-lg; overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.08), 0 12px 24px rgba(0,0,0,0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  &:hover { transform: translateY(-2px); box-shadow: 0 2px 4px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.12), 0 20px 40px rgba(0,0,0,0.08); }
+}
+
+.detail-card-illustration { width: 90%; margin-left: 5%; height: 180px; border-radius: $radius-lg; margin-top: 5%; overflow: hidden; display: flex; align-items: flex-end; justify-content: center; @media (min-width: $bp-tablet) { height: 230px; } }
+.detail-card-img { width: 100%; height: 100%; object-fit: cover; object-position: center 45%; display: block; transition: transform 0.35s ease; :first-child { object-position: center 20%; } .detail-card:hover & { transform: scale(1.04); } }
+.detail-card-body   { padding: $space-md; @media (min-width: $bp-tablet) { padding: $space-lg; } }
+.detail-card-header { @include flex-between; margin-bottom: $space-md; }
+.detail-card-title  { font-family: $font-primary; font-size: $t-body-des; font-weight: $fw-medium; color: $text-color-dark; letter-spacing: 0.02em; }
+
+.detail-edit-btn {
+  background: $twilight-purple; border: 1px solid rgba($gentle-amethyst, 0.2); border-radius: $radius-sm; padding: 0.25rem 0.75rem;
+  font-family: $font-secondary; font-size: $t-forgot-des; font-weight: $fw-medium; color: $soft-pearl; @include cursor; transition: all 0.18s;
+  &:hover { background: rgba($twilight-purple, 0.08); border-color: rgba($twilight-purple, 0.2); color: $twilight-purple; }
+}
+
+.detail-list { list-style: none; @include column; gap: 0.35rem; li { list-style: none; font-family: $font-secondary; font-size: $t-link-des; color: $text-color-dark; line-height: $lh-tight; } }
+.detail-capitalize { text-transform: capitalize; }
+.detail-empty { font-family: $font-secondary; font-size: $t-but-des; color: rgba($gentle-amethyst, 0.6); font-style: italic; @include cursor; transition: color 0.2s; padding: $space-xs 0; &:hover { color: $serene-purple; } }
+
+// ─── Extra Dog Panel ──────────────────────────────────────────────────────────
+.extra-dog-panel { @include column; gap: $space-lg; @media (min-width: $bp-tablet) { gap: $space-xl; } }
+.extra-dog-panel-divider      { @include center; padding: $space-sm 0; }
+.extra-dog-panel-divider-line { flex: 1; height: 1.5px; background: linear-gradient(to right, transparent, rgba($gentle-amethyst, 0.25), transparent); border-radius: 2px; }
+
+.extra-dog-remove-panel {
+  @include center; gap: 0.35rem;
+  background: none; border: 1.5px solid rgba($gentle-amethyst, 0.2); border-radius: $radius-sm; padding: 0.35rem 0.75rem;
+  font-family: $font-secondary; font-size: 0.82rem; font-weight: $fw-medium; color: rgba($text-color-dark, 0.45); @include cursor; transition: all 0.18s; flex-shrink: 0;
+  &:hover { background: rgba(239, 68, 68, 0.06); border-color: rgba(239, 68, 68, 0.35); color: #ef4444; }
+}
+
+// ─── Add Dog Button ───────────────────────────────────────────────────────────
+.add-dog-row-section { margin-top: $space-sm; }
+
+.add-another-dog-btn {
+  @include center; gap: $space-md; width: 100%; padding: $space-md $space-lg;
+  background: $soft-pearl; border: 2px dashed rgba($gentle-amethyst, 0.35); border-radius: $radius-lg; @include cursor; transition: all 0.22s ease; text-align: left;
+  &:hover { border-color: $twilight-purple; background: rgba($twilight-purple, 0.03); box-shadow: 0 4px 18px rgba($twilight-purple, 0.08); .add-dog-btn-icon { background: rgba($twilight-purple, 0.15); color: $twilight-purple; } .add-dog-btn-label { color: $twilight-purple; } }
+  > svg:last-child { margin-left: auto; color: rgba($gentle-amethyst, 0.5); flex-shrink: 0; transition: color 0.2s; }
+  &:hover > svg:last-child { color: $twilight-purple; }
+  @media (min-width: $bp-tablet) { padding: $space-lg $space-xl; }
+}
+
+.add-dog-btn-icon  { width: 44px; height: 44px; border-radius: $radius-round; background: rgba($gentle-amethyst, 0.1); @include flex-center; color: $gentle-amethyst; flex-shrink: 0; transition: all 0.2s; }
+.add-dog-btn-text  { @include column; gap: 0.15rem; }
+.add-dog-btn-label { font-family: $font-primary; font-size: 1rem; font-weight: $fw-bold; color: $text-color-dark; transition: color 0.2s; }
+.add-dog-btn-sub   { font-family: $font-secondary; font-size: 0.88rem; color: rgba($text-color-dark, 0.45); }
+
+// ─── Dog Info Panel ───────────────────────────────────────────────────────────
+.dog-butternut-layout { display: grid; grid-template-columns: 1fr; gap: $space-lg; align-items: start; @media (min-width: $bp-tablet) { grid-template-columns: 300px 1fr; gap: $space-lg; } @media (min-width: $bp-laptop) { grid-template-columns: 360px 1fr; gap: $space-xl; } }
+
+.dog-info-panel {
+  background: #f5f1fa; border-radius: $radius-lg; padding: $space-md; @include column; align-items: center; text-align: center; gap: $space-md;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.08), 0 16px 32px rgba(0,0,0,0.08);
+  @include relative;
+  &::before { content: ''; @include absolute; top: 0; left: 8%; right: 8%; height: 1px; background: linear-gradient(to right, transparent, rgba(255,255,255,0.6), transparent); border-radius: $radius-lg $radius-lg 0 0; }
+  @media (min-width: $bp-tablet) { gap: $space-lg; padding: $space-xl; }
+}
+
+.dog-info-top    { @include column; @include center; gap: $space-sm; width: 100%; }
+.dog-info-name   { font-family: $font-primary; font-size: $t-tit-tab; font-weight: $fw-bold; color: $text-color-dark; letter-spacing: 0.02em; margin-bottom: 0.2rem; @media (min-width: $bp-tablet) { font-size: $t-title-des; } }
+.dog-info-gender { color: $twilight-purple; font-size: $t-tit-des; }
+.dog-info-breed  { font-family: $font-secondary; font-size: $t-but-des; font-weight: $fw-regular; color: $twilight-purple; margin-bottom: 0.3rem; }
+.dog-info-age    { display: flex; align-items: baseline; gap: $space-sm; justify-content: center; strong { font-family: $font-primary; font-size: $t-link-des; color: $twilight-purple; } }
+.dog-info-human-age { font-family: $font-primary; font-size: $t-but-des; }
+
+.dog-info-edit-btn {
+  @include center; gap: 0.3rem;
+  background: $twilight-purple; border: 1px solid rgba($misty-lavender, 0.2); border-radius: $radius-sm; padding: 0.3rem 0.65rem;
+  font-family: $font-secondary; font-size: $t-but-des; font-weight: $fw-regular; color: $soft-pearl;
+  @include cursor; transition: all 0.2s; flex-shrink: 0; outline: none; align-self: flex-end;
+  &:hover { background: rgba($misty-lavender, 0.12); color: $text-color-dark; }
+}
+
+.dog-stage-badge {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  font-family: $font-secondary; font-size: $t-but-des; font-weight: $fw-bold;
+  padding: 0.3rem 0.85rem; border-radius: 50px; text-transform: capitalize; svg { flex-shrink: 0; }
+  &.stage-puppy  { background: rgba($serene-purple, 0.12); color: $twilight-purple; border: 1px solid rgba($serene-purple, 0.2); }
+  &.stage-adult  { background: rgba($twilight-purple, 0.12); color: $twilight-purple; border: 1px solid rgba($twilight-purple, 0.2); }
+  &.stage-senior { background: rgba($gentle-amethyst, 0.12); color: $twilight-purple; border: 1px solid rgba($gentle-amethyst, 0.2); }
+}
+
+.dog-birthday-pill { font-family: $font-secondary; font-size: $t-link-des; color: $twilight-purple; background: rgba($serene-purple, 0.12); padding: 0.25rem 0.7rem; border-radius: $radius-lg; border: 1px solid rgba($gentle-amethyst, 0.2); }
+
+.dog-personality-tiles { display: flex; flex-wrap: wrap; gap: $space-xs; @media (min-width: $bp-tablet) { gap: $space-sm; } }
+
+.dog-personality-tile {
+  @include column; @include center; gap: 0.4rem;
+  background: $soft-pearl; border: 1px solid rgba($gentle-amethyst, 0.2); border-radius: $radius-lg; padding: $space-sm; min-width: 90px; flex: 1; max-width: 120px; transition: all 0.2s;
+  &:hover { border-color: rgba($twilight-purple, 0.3); box-shadow: 0 2px 8px rgba($twilight-purple, 0.08); transform: translateY(-1px); }
+  @media (min-width: $bp-tablet) { padding: $space-md; min-width: 105px; }
+}
+
+.dog-tile-icon  { width: 36px; height: 36px; background: rgba($twilight-purple, 0.08); border-radius: $radius-sm; @include flex-center; color: $twilight-purple; }
+.dog-tile-label { font-family: $font-secondary; font-size: $t-link-des; font-weight: $fw-medium; color: $text-color-dark; text-align: center; text-transform: capitalize; line-height: 1.2; }
+
+// ─── Share Banner ─────────────────────────────────────────────────────────────
+.dog-share-banner {
+  @include column; align-items: flex-start; gap: $space-md;
+  background: $twilight-purple; border-radius: $radius-lg; padding: $space-lg; @include relative; overflow: hidden;
+  @media (min-width: $bp-tablet) { @include center; flex-direction: row; padding: $space-lg $space-xl; }
+}
+
+.dog-share-paws  { @include absolute; right: $space-xl; top: 50%; transform: translateY(-50%); font-size: $t-sub-des; opacity: 0.12; letter-spacing: 4px; pointer-events: none; user-select: none; display: none; @media (min-width: $bp-tablet) { display: block; } }
+.dog-share-title { font-family: $font-primary; font-size: $t-sub-des; font-weight: $fw-regular; color: $misty-lavender; margin-bottom: 0.2rem; }
+.dog-share-sub   { font-family: $font-secondary; font-size: $t-link-des; color: rgba($misty-lavender, 0.65); }
+.dog-share-actions { display: flex; gap: $space-sm; @media (min-width: $bp-tablet) { margin-left: auto; } }
+
+.dog-share-btn {
+  @include center; gap: 0.3rem;
+  background: rgba($misty-lavender, 0.12); border: 1px solid rgba($misty-lavender, 0.25); border-radius: $radius-lg; padding: 0.45rem 1rem;
+  font-family: $font-secondary; font-size: $t-link-des; font-weight: $fw-medium; color: $misty-lavender; @include cursor; transition: all 0.2s;
+  &:hover { background: rgba($misty-lavender, 0.22); border-color: rgba($misty-lavender, 0.4); }
+  &.social { background: $misty-lavender; color: $twilight-purple; border-color: transparent; &:hover { background: white; } }
+}
+
+// ─── Dog Tips ─────────────────────────────────────────────────────────────────
+.dog-tips-card { .db-card-title { margin-bottom: 0; } }
+.dog-tips-header { @include flex-between; align-items: flex-start; margin-bottom: $space-lg; }
+.dog-tips-for    { font-family: $font-secondary; font-size: $t-but-des; color: $gentle-amethyst; margin-top: 0.2rem; }
+
+.dog-tips-stage-badge {
+  font-family: $font-secondary; font-size: $t-link-des; font-weight: $fw-medium; padding: 0.2rem 0.65rem; border-radius: 50px; text-transform: capitalize;
+  &.stage-puppy  { background: rgba($misty-lavender, 0.12); color: $twilight-purple; border: 1px solid rgba(rgba($misty-lavender, 0.35), 0.25); }
+  &.stage-adult  { background: rgba($serene-purple, 0.1); color: $twilight-purple; border: 1px solid rgba($serene-purple, 0.2); }
+  &.stage-senior { background: rgba($twilight-purple, 0.1); color: $soft-pearl; border: 1px solid rgba(rgba($twilight-purple, 0.04), 0.15); }
+}
+
+.dog-tips-grid { display: grid; grid-template-columns: 1fr; gap: $space-sm; @media (min-width: $bp-tablet) { grid-template-columns: repeat(2, 1fr); gap: $space-md; } }
+.dog-tip-item  { display: flex; gap: $space-md; padding: $space-md; background: rgba($twilight-purple, 0.04); border: 1px solid rgba($gentle-amethyst, 0.15); border-radius: $radius-md; }
+.dog-tip-icon  { width: 36px; height: 36px; flex-shrink: 0; background: rgba($twilight-purple, 0.1); border-radius: $radius-sm; display: flex; align-items: center; justify-content: center; color: $twilight-purple; }
+.dog-tip-title { font-family: $font-secondary; font-size: $t-link-des; font-weight: $fw-medium; color: $text-color-dark; margin-bottom: 0.25rem; }
+.dog-tip-text  { font-family: $font-secondary; font-size: $t-but-des; color: $gentle-amethyst; line-height: 1.6; }
+
+// ─── Placeholder & Loading ────────────────────────────────────────────────────
+.db-placeholder    { @include flex-column; height: 60vh; gap: $space-md; color: rgba($gentle-amethyst, 0.4); p { font-family: $font-secondary; font-size: 1rem; } }
+.dashboard-loading { @include flex-center; height: 100vh; background: $soft-pearl; }
+
+.spin-icon { animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+// ─── Mobile Drawer ────────────────────────────────────────────────────────────
+.mobile-drawer-backdrop {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(3px);
+  z-index: 200;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  &.is-open { display: block; opacity: 1; }
+  @media (min-width: $bp-laptop) { display: none !important; }
+}
+
+.mobile-drawer-panel {
+  position: fixed; top: 0; left: 0; bottom: 0;
+  width: 280px; max-width: 85vw;
+  background: $soft-pearl;
+  z-index: 201;
+  @include column;
+  box-shadow: 4px 0 32px rgba(0, 0, 0, 0.18);
+  transform: translateX(-100%);
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-y: auto;
+  &.is-open { transform: translateX(0); }
+  @media (min-width: $bp-laptop) { display: none !important; }
+}
+
+.mobile-drawer-header {
+  @include flex-between;
+  padding: $space-md $space-lg;
+  border-bottom: 1px solid rgba($gentle-amethyst, 0.15);
+  flex-shrink: 0;
+}
+
+.mobile-drawer-brand { @include center; img { height: 36px; object-fit: contain; } }
+
+.mobile-drawer-close {
+  @include none; @include cursor;
+  width: 32px; height: 32px; @include flex-center;
+  border-radius: $radius-sm; color: $gentle-amethyst; transition: all 0.18s;
+  &:hover { background: rgba($twilight-purple, 0.06); color: $twilight-purple; }
+}
+
+.mobile-drawer-user {
+  @include center; gap: $space-md; padding: $space-lg;
+  border-bottom: 1px solid rgba($gentle-amethyst, 0.12);
+  flex-shrink: 0;
+}
+
+.mobile-drawer-avatar {
+  width: 44px; height: 44px; border-radius: $radius-round;
+  background: $serene-purple; @include flex-center; color: $soft-pearl;
+  font-size: $t-link-des; font-weight: $fw-medium;
+  overflow: hidden; flex-shrink: 0; border: 2px solid rgba($twilight-purple, 0.2);
+  img { width: 100%; height: 100%; object-fit: cover; }
+}
+
+.mobile-drawer-name  { font-family: $font-secondary; font-size: $t-link-des; font-weight: $fw-medium; color: $text-color-dark; }
+.mobile-drawer-email { font-family: $font-secondary; font-size: $t-but-des; color: $gentle-amethyst; margin-top: 0.15rem; }
+
+.mobile-drawer-nav { @include column; padding: $space-sm 0; flex: 1; }
+
+.mobile-drawer-item {
+  @include center; gap: $space-md; padding: $space-sm $space-lg;
+  @include none; border-radius: 0; @include cursor; text-align: left;
+  font-family: $font-secondary; font-size: $t-link-des; color: $text-color-dark;
+  transition: all 0.18s; width: 100%;
+  &:hover { background: rgba($twilight-purple, 0.05); color: $twilight-purple; }
+  &.active {
+    background: rgba($twilight-purple, 0.08); color: $twilight-purple;
+    font-weight: $fw-medium; border-left: 3px solid $twilight-purple;
+    padding-left: calc(#{$space-lg} - 3px);
+  }
+}
+
+.mobile-drawer-icon {
+  width: 32px; height: 32px; @include flex-center;
+  border-radius: $radius-sm; color: $gentle-amethyst; flex-shrink: 0; transition: color 0.18s;
+  .mobile-drawer-item:hover &,
+  .mobile-drawer-item.active & { color: $twilight-purple; }
+}
+
+.mobile-drawer-logout {
+  margin-top: auto;
+  border-top: 1px solid rgba($gentle-amethyst, 0.12);
+  color: rgba($text-color-dark, 0.55);
+  padding-top: $space-md; padding-bottom: $space-md;
+  &:hover { background: rgba(239, 68, 68, 0.05); color: #ef4444; .mobile-drawer-icon { color: #ef4444; } }
+}
+
+.mobile-drawer-badge {
+  margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px;
+  border-radius: 999px; background: $twilight-purple; color: $soft-pearl;
+  font-family: $font-secondary; font-size: 0.65rem; font-weight: $fw-bold;
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+
+.mobile-drawer-divider { height: 1px; background: rgba($gentle-amethyst, 0.12); margin: 8px 12px; flex-shrink: 0; }
+
+.mobile-drawer-platform {
+  color: rgba($text-color-dark, 0.45) !important;
+  &:hover { color: $twilight-purple !important; }
+}
+
+// Notification Panel 
+.notif-panel-overlay { position: fixed; inset: 0; z-index: 90; }
+
+.notif-panel {
+  position: fixed; top: 62px; right: $space-md;
+  width: 340px; max-width: calc(100vw - #{$space-md} * 2); max-height: 480px;
+  background: $soft-pearl; border-radius: $radius-lg;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1), 0 16px 48px rgba(0, 0, 0, 0.14);
+  border: 1px solid rgba($gentle-amethyst, 0.15);
+  z-index: 100; @include column; overflow: hidden; animation: slideUp 0.2s ease;
+  @media (min-width: $bp-tablet) { top: 72px; right: $space-xl; }
+}
+
+.notif-panel-header {
+  @include flex-between; padding: $space-md $space-lg; border-bottom: 1px solid rgba($gentle-amethyst, 0.12); flex-shrink: 0;
+  h3 { font-family: $font-primary; font-size: $t-link-des; font-weight: $fw-regular; color: $text-color-dark; letter-spacing: 0.02em; }
+}
+
+.notif-header-count { font-family: $font-secondary; font-size: $t-but-des; color: $gentle-amethyst; font-weight: $fw-regular; }
+.notif-mark-all-btn { @include none; @include cursor; font-family: $font-secondary; font-size: $t-but-des; color: $twilight-purple; padding: 0.2rem 0.5rem; border-radius: $radius-sm; transition: background 0.18s; &:hover { background: rgba($twilight-purple, 0.06); } }
+
+.notif-panel-list { flex: 1; overflow-y: auto; &::-webkit-scrollbar { width: 4px; } &::-webkit-scrollbar-track { background: transparent; } &::-webkit-scrollbar-thumb { background: rgba($gentle-amethyst, 0.3); border-radius: 2px; } }
+
+.notif-item {
+  @include center; gap: $space-md; padding: $space-sm $space-lg;
+  border-bottom: 1px solid rgba($gentle-amethyst, 0.08); @include cursor; transition: background 0.15s;
+  &:last-child { border-bottom: none; }
+  &:hover { background: rgba($twilight-purple, 0.03); }
+  &.is-unread { background: rgba($misty-lavender, 0.18); &:hover { background: rgba($misty-lavender, 0.28); } }
+}
+
+.notif-icon-wrap { width: 32px; height: 32px; border-radius: $radius-round; @include flex-center; flex-shrink: 0; &.type-like { background: rgba(#e05252, 0.1); color: #e05252; } &.type-comment { background: rgba($twilight-purple, 0.1); color: $twilight-purple; } }
+.notif-body { flex: 1; min-width: 0; }
+.notif-text { font-family: $font-secondary; font-size: $t-but-des; color: $text-color-dark; line-height: 1.4; strong { font-weight: $fw-medium; color: $twilight-purple; } }
+.notif-sub  { display: block; font-family: $font-secondary; font-size: 0.78rem; color: $gentle-amethyst; margin-top: 0.15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
+.notif-time { display: block; font-family: $font-secondary; font-size: 0.75rem; color: rgba($gentle-amethyst, 0.7); margin-top: 0.2rem; }
+
+.notif-loading { @include column; gap: $space-xs; padding: $space-md; }
+.notif-skeleton { height: 52px; background: linear-gradient(90deg, rgba($misty-lavender, 0.3) 25%, rgba($misty-lavender, 0.5) 50%, rgba($misty-lavender, 0.3) 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: $radius-md; }
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+.notif-empty { @include flex-column; padding: $space-xxl $space-lg; color: rgba($gentle-amethyst, 0.5); font-family: $font-secondary; font-size: $t-link-des; }
+.notif-empty-icon { margin-bottom: $space-sm; opacity: 0.4; }
+
+.notif-panel-footer {
+  padding: $space-sm $space-lg; border-top: 1px solid rgba($gentle-amethyst, 0.1); text-align: center; flex-shrink: 0;
+  button { @include none; @include cursor; font-family: $font-secondary; font-size: $t-but-des; color: $gentle-amethyst; padding: 0.3rem 0.75rem; border-radius: $radius-sm; transition: all 0.18s; &:hover { background: rgba($gentle-amethyst, 0.08); color: $text-color-dark; } }
+}
+
+// ─── Add Dog Wizard ───────────────────────────────────────────────────────────
+.adw-overlay {
+  position: fixed; inset: 0;
+  background: rgba(#1e1b4b, 0.55); backdrop-filter: blur(6px);
+  z-index: 1000; display: flex; align-items: flex-end; justify-content: center; padding: 0;
+  animation: adwFadeIn 0.22s ease;
+  @media (min-width: $bp-mobile) { align-items: center; padding: $space-md; }
+}
+@keyframes adwFadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.adw-modal {
+  display: flex; width: 100%; max-width: 100%; max-height: 95dvh;
+  border-radius: 24px 24px 0 0; overflow: hidden;
+  box-shadow: 0 24px 64px rgba(#1e1b4b, 0.35), 0 4px 16px rgba(#1e1b4b, 0.2);
+  animation: adwSlideUp 0.28s cubic-bezier(0.34, 1.2, 0.64, 1);
+  @media (min-width: $bp-mobile) { max-width: 820px; border-radius: $radius-lg; max-height: 90vh; }
+}
+@keyframes adwSlideUp { from { opacity: 0; transform: translateY(24px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+.adw-form { flex: 1; background: $soft-pearl; @include column; overflow: hidden; }
+
+.adw-form-topbar {
+  @include flex-between; padding: $space-sm $space-lg; border-bottom: 1px solid rgba($gentle-amethyst, 0.1); flex-shrink: 0;
+  @media (min-width: $bp-mobile) { padding: $space-md $space-xl; }
+}
+
+.adw-step-dots { display: flex; align-items: center; gap: 0; }
+.adw-dot { width: 10px; height: 10px; border-radius: $radius-round; background: rgba($gentle-amethyst, 0.25); flex-shrink: 0; transition: all 0.2s; &.active { background: $twilight-purple; width: 12px; height: 12px; box-shadow: 0 0 0 3px rgba($twilight-purple, 0.15); } &.done { background: $serene-purple; } }
+.adw-dot-line { width: 32px; height: 2px; background: rgba($gentle-amethyst, 0.2); transition: background 0.2s; &.done { background: $serene-purple; } }
+
+.adw-close { @include none; border-radius: $radius-md; width: 40px; height: 40px; @include flex-center; @include cursor; color: rgba($text-color-dark, 0.5); transition: all 0.18s; &:hover { border-color: $twilight-purple; color: $twilight-purple; background: rgba($twilight-purple, 0.04); } }
+
+.adw-form-body { flex: 1; overflow-y: auto; padding: $space-lg; &::-webkit-scrollbar { width: 5px; } &::-webkit-scrollbar-track { background: transparent; } &::-webkit-scrollbar-thumb { background: rgba($gentle-amethyst, 0.3); border-radius: 3px; } @media (min-width: $bp-mobile) { padding: $space-lg $space-xl; } @media (min-width: $bp-tablet) { padding: $space-xl $space-xxl; } }
+.adw-form-footer { padding: $space-sm $space-lg; border-top: 1px solid rgba($gentle-amethyst, 0.1); display: flex; align-items: center; justify-content: flex-end; gap: $space-sm; flex-shrink: 0; background: $soft-pearl; @media (min-width: $bp-mobile) { padding: $space-md $space-xl; } @media (min-width: $bp-tablet) { padding: $space-md $space-xxl; } }
+
+.adw-step { @include column; }
+.adw-step-label { font-family: $font-secondary; font-size: 0.78rem; font-weight: $fw-bold; color: $serene-purple; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.3rem; }
+.adw-step-heading { font-family: $font-primary; font-size: 1.3rem; font-weight: $fw-regular; color: $text-color-dark; margin-bottom: $space-lg; letter-spacing: 0.03em; strong { color: $twilight-purple; } @media (min-width: $bp-mobile) { font-size: 1.65rem; } }
+
+.adw-label      { display: block; font-family: $font-secondary; font-size: 0.92rem; font-weight: $fw-bold; color: $twilight-purple; margin-bottom: $space-xs; letter-spacing: 0.02em; }
+.adw-label-hint { font-weight: $fw-medium; color: $serene-purple; font-size: 0.85rem; }
+.adw-field      { @include column; gap: 0.2rem; @include relative; }
+.adw-field-error { font-family: $font-secondary; font-size: 0.82rem; color: #e05252; font-weight: $fw-medium; display: flex; align-items: center; gap: 0.25rem; &::before { content: '⚠'; font-size: 0.72rem; } }
+
+.adw-input { width: 100%; padding: 0.7rem $space-md; border-radius: $radius-md; border: none; outline: none; font-family: $font-secondary; font-size: $t-link-des; color: $text-color-dark; background: $input-color; transition: all 0.2s; &::placeholder { color: rgba($gentle-amethyst, 0.6); font-style: italic; } &:focus { background: $soft-pearl; box-shadow: inset 0 0 0 1.5px rgba($twilight-purple, 0.35); } &.adw-has-value { background: rgba($serene-purple, 0.08); box-shadow: inset 0 0 0 1.5px $serene-purple; font-weight: $fw-medium; } &.adw-error { background: #fff8f8; box-shadow: inset 0 0 0 1.5px #e05252; } &.adw-calendar { @include cursor; } }
+
+.adw-breed-wrap { @include relative; .adw-input { padding-right: 2.5rem; } }
+.adw-breed-clear { @include absolute; right: $space-sm; top: 50%; transform: translateY(-50%); @include none; color: $gentle-amethyst; font-size: 1.2rem; padding: 0 $space-xs; &:hover { color: $twilight-purple; } }
+
+.adw-breed-list { border-radius: $radius-md; max-height: 220px; overflow-y: auto; background: white; box-shadow: $shadow-md; border: 1px solid rgba($gentle-amethyst, 0.15); margin-top: 0.2rem; &::-webkit-scrollbar { width: 5px; } &::-webkit-scrollbar-track { background: transparent; } &::-webkit-scrollbar-thumb { background: $gentle-amethyst; border-radius: 3px; } }
+.adw-breed-item { @include flex-between; padding: 0.55rem $space-md; @include cursor; font-family: $font-secondary; font-size: 0.92rem; color: $text-color-dark; transition: background 0.12s; &:hover { background: rgba($misty-lavender, 0.4); } &.selected { background: $input-color; font-weight: $fw-medium; } & + & { border-top: 1px solid rgba($misty-lavender, 0.5); } }
+.adw-breed-dot  { width: 9px; height: 9px; border-radius: $radius-round; border: 1.5px solid $gentle-amethyst; flex-shrink: 0; &.filled { background: $twilight-purple; border-color: $twilight-purple; } }
+.adw-breed-state { @include center; gap: $space-sm; padding: $space-sm $space-md; border-radius: $radius-md; background: $misty-lavender; font-family: $font-secondary; font-size: 0.92rem; color: $gentle-amethyst; margin-top: 0.2rem; &.adw-breed-error { background: $soft-pearl; color: #a03030; @include column; } }
+.adw-spinner { width: 16px; height: 16px; border: 2px solid $input-color; border-top-color: $serene-purple; border-radius: $radius-round; animation: spin 0.7s linear infinite; flex-shrink: 0; }
+.adw-retry-btn { background: $serene-purple; color: $soft-pearl; border: none; outline: none; padding: 0.3rem $space-md; border-radius: 50px; font-family: $font-secondary; font-size: $t-link-des; @include cursor; &:hover { background: $twilight-purple; } }
+
+.adw-mixed-toggle { @include center; gap: $space-sm; @include none; padding: $space-xs 0; margin-top: $space-sm; @include cursor; font-family: $font-secondary; font-size: $t-link-des; color: $twilight-purple; text-align: left; strong { font-weight: $fw-bold; } }
+.adw-mixed-check { width: 18px; height: 18px; min-width: 18px; border-radius: $radius-sm; border: 2px solid $gentle-amethyst; @include flex-center; background: $soft-pearl; transition: all 0.2s; svg { width: 11px; height: 11px; stroke: $soft-pearl; } &.checked { background: $serene-purple; border-color: $serene-purple; } }
+
+.adw-dob-row { @include column; align-items: stretch; gap: $space-sm; margin-top: $space-xs; @media (min-width: $bp-mobile) { flex-direction: row; align-items: flex-start; .adw-dob-field { flex: 1; } .adw-dob-disabled { opacity: 0.4; pointer-events: none; } } }
+.adw-dob-unknown { padding: 0.7rem $space-md; background: rgba($misty-lavender, 0.3); border: none; outline: none; border-radius: $radius-md; font-family: $font-secondary; font-size: $t-link-des; color: $gentle-amethyst; @include cursor; white-space: nowrap; transition: all 0.2s; &:hover { background: $input-color; color: $twilight-purple; } &.selected { background: $input-color; color: $serene-purple; font-weight: $fw-medium; } }
+.adw-dob-hint { @include center; gap: 0.3rem; font-family: $font-secondary; font-size: $t-link-des; color: $serene-purple; margin-top: $space-xs; font-style: italic; }
+
+.adw-stage-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: $space-xs; margin-bottom: $space-xs; @media (min-width: $bp-mobile) { gap: $space-sm; } }
+.adw-stage-btn { @include column; @include center; gap: $space-xs; padding: $space-sm; border: none; outline: none; border-radius: $radius-lg; background: rgba($misty-lavender, 0.35); @include cursor; transition: all 0.2s; @include relative; font-family: $font-secondary; &:hover:not(:disabled) { transform: translateY(-2px); box-shadow: $shadow-card-hover; } &.selected { background: $input-color; box-shadow: $shadow-md; .adw-stage-label { color: $twilight-purple; font-weight: $fw-bold; } .adw-stage-icon { color: $twilight-purple; } } &.locked-out { opacity: 0.3; cursor: not-allowed; &:hover { transform: none; box-shadow: none; } } &.stage-locked.selected { background: rgba($serene-purple, 0.12); box-shadow: 0 0 0 2px rgba($serene-purple, 0.4), $shadow-md; } @media (min-width: $bp-mobile) { padding: $space-md $space-sm; } }
+.adw-stage-icon  { color: $gentle-amethyst; display: flex; transition: color 0.2s; }
+.adw-stage-label { font-size: 0.88rem; font-weight: $fw-medium; color: $text-color-dark; transition: color 0.2s; @media (min-width: $bp-mobile) { font-size: 0.92rem; } }
+.adw-stage-age   { font-size: 0.72rem; color: $gentle-amethyst; @media (min-width: $bp-mobile) { font-size: 0.78rem; } }
+.adw-stage-lock-badge { @include absolute; top: 6px; right: 6px; background: rgba($serene-purple, 0.15); border-radius: $radius-sm; padding: 2px 4px; @include center; color: $serene-purple; }
+
+.adw-personality-category { @include column; gap: $space-sm; }
+.adw-personality-grid { display: flex; flex-wrap: wrap; gap: $space-md; justify-content: center; }
+
+.adw-personality-chip {
+  @include column; align-items: center; gap: $space-sm; padding: $space-md $space-sm $space-sm;
+  background: $soft-pearl; border: 2.5px solid transparent; border-radius: $radius-lg;
+  cursor: pointer; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); width: 110px; flex-shrink: 0; position: relative;
+  &:hover { border-color: rgba($serene-purple, 0.3); transform: translateY(-4px); box-shadow: 0 8px 20px rgba($twilight-purple, 0.12); background: white; }
+  &.selected { border-color: $twilight-purple; background: white; box-shadow: 0 6px 20px rgba($twilight-purple, 0.18); transform: translateY(-4px); .adw-chip-label { color: $twilight-purple; font-weight: $fw-medium; } &::after { content: '✓'; position: absolute; top: $space-xs; right: $space-xs; width: 18px; height: 18px; background: $twilight-purple; color: white; border-radius: 50%; font-size: 0.6rem; display: flex; align-items: center; justify-content: center; } }
+}
+
+.adw-chip-img { width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; border-radius: $radius-md; overflow: hidden; flex-shrink: 0; img { width: 100%; height: 100%; object-fit: contain; transition: transform 0.2s; } .adw-personality-chip:hover & img { transform: scale(1.08); } }
+.adw-chip-label { font-family: $font-secondary; font-size: 0.72rem; color: rgba($text-color-dark, 0.75); text-align: center; line-height: $lh-tight; }
+.adw-chip-fallback { font-size: 2.2rem; line-height: 1; }
+
+.adw-gender-grid { display: grid; grid-template-columns: 1fr 1fr; gap: $space-md; margin-top: $space-md; }
+.adw-gender-btn { @include column; @include center; gap: $space-sm; padding: $space-lg $space-md; border: 2px solid transparent; border-radius: $radius-lg; background: rgba($misty-lavender, 0.3); @include cursor; transition: all 0.2s; font-family: $font-secondary; &:hover { background: $input-color; transform: translateY(-2px); box-shadow: $shadow-card-hover; } &.selected { background: $input-color; box-shadow: $shadow-md; &:first-child { border-color: rgba($twilight-purple, 0.4); } &:last-child { border-color: rgba(#db2777, 0.4); } } @media (min-width: $bp-mobile) { padding: $space-xl $space-md; } }
+.adw-gender-label { font-size: $t-link-des; font-weight: $fw-bold; color: $text-color-dark; letter-spacing: 0.04em; }
+
+.adw-btn-back { @include center; gap: $space-xs; @include none; @include cursor; font-family: $font-secondary; font-size: $t-link-des; color: $gentle-amethyst; padding: $space-xs $space-sm; border-radius: $radius-md; transition: all 0.2s; margin-right: auto; &:hover { color: $text-color-dark; background: rgba($gentle-amethyst, 0.08); } }
+.adw-btn-next { @include center; gap: $space-xs; padding: $space-sm $space-lg; background: $twilight-purple !important; color: $soft-pearl; @include none; border-radius: $radius-lg; font-family: $font-secondary; font-size: $t-link-des; font-weight: $fw-medium; @include cursor; letter-spacing: 0.03em; transition: all 0.2s; box-shadow: $shadow-purple-glow; &:hover { background: $serene-purple !important; transform: translateY(-1px); box-shadow: $shadow-2xl; } @media (min-width: $bp-mobile) { padding: $space-sm $space-xl; } }
+.adw-btn-save { @extend .adw-btn-next; background: linear-gradient(135deg, $twilight-purple 0%, $serene-purple 100%); font-weight: $fw-bold; &:hover { background: linear-gradient(135deg, $serene-purple 0%, $twilight-purple 100%); } }
+
+// Dog Personality Cats
+.dog-personality-cats { display: flex; flex-wrap: wrap; gap: $space-md; justify-content: center; width: 100%; }
+
+.dog-personality-cat-card {
+  @include flex-column; gap: $space-xs; padding: $space-sm $space-sm $space-xs; @include relative; @include cursor;
+  background: rgb(214, 200, 240); border: 2px solid rgba($twilight-purple, 0.18); border-radius: $radius-lg;
+  min-width: 125px; flex: 1; max-width: 150px; transition: all 0.18s; box-shadow: 0 2px 8px rgba($twilight-purple, 0.06);
+  &::after {
+    content: '✎';
+    @include absolute;
+    top: 6px;
+    right: 8px;
+    font-size: 0.65rem;
+    color: rgba($twilight-purple, 0);
+    transition: color 0.18s ease;
+  }
+  &:hover { border-color: rgba($twilight-purple, 0.35); transform: translateY(-2px); box-shadow: 0 6px 16px rgba($twilight-purple, 0.12); }
+}
+
+.dog-personality-cat-img-wrap { width: 100px; height: 100px; @include flex-center; border-radius: $radius-md; overflow: hidden; flex-shrink: 0; img { width: 100%; height: 100%; object-fit: contain; } .dog-pcat-fallback { font-size: 2rem; line-height: 1; } }
+.dog-personality-cat-label { font-family: $font-secondary; font-size: $t-forgot-des; color: $twilight-purple; font-weight: $fw-medium; text-align: center; padding-bottom: $space-sm; line-height: $lh-tight; }
+
+// Modal Personality 
+.modal-personality-cat { margin-bottom: $space-md; }
+.modal-personality-question { font-family: $font-secondary; font-size: $t-body-mob; font-weight: $fw-medium; color: $twilight-purple; margin: 0 0 $space-sm; }
+.modal-personality-grid { display: flex; flex-wrap: wrap; gap: $space-sm; justify-content: center; }
+
+.modal-personality-btn {
+  @include column; align-items: center; gap: $space-xs; padding: $space-sm $space-xs $space-xs;
+  background: $soft-pearl; border: 2px solid transparent; border-radius: $radius-lg;
+  cursor: pointer; transition: all 0.18s; width: 90px; flex-shrink: 0; position: relative;
+  img { width: 60px; height: 60px; object-fit: contain; border-radius: $radius-sm; }
+  span { font-family: $font-secondary; font-size: 0.65rem; text-align: center; color: rgba($text-color-dark, 0.75); line-height: $lh-tight; }
+  &:hover { border-color: rgba($serene-purple, 0.35); transform: translateY(-2px); }
+  &.selected { border-color: $twilight-purple; background: white; box-shadow: 0 4px 12px rgba($twilight-purple, 0.15); transform: translateY(-2px); span { color: $twilight-purple; font-weight: $fw-medium; } &::after { content: '✓'; position: absolute; top: 4px; right: 4px; width: 16px; height: 16px; background: $twilight-purple; color: white; border-radius: 50%; font-size: 0.55rem; display: flex; align-items: center; justify-content: center; } }
+}
+
+//Care Guide
+.cg-cards-section {
+  @include column;
+  gap: $space-lg;
+}
+ 
+.cg-cards-header {
+  @include flex-between;
+  align-items: flex-end;
+}
+ 
+.cg-cards-title {
+  font-family: $font-primary;
+  font-size: 1.2rem;
+  font-weight: $fw-regular;
+  color: $text-color-dark;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.2rem;
+  @media (min-width: $bp-tablet) { font-size: $t-sub-des; }
+}
+ 
+.cg-cards-for {
+  font-family: $font-secondary;
+  font-size: $t-but-des;
+  color: $gentle-amethyst;
+}
+ 
+.cg-cards-stage-pill {
+  font-family: $font-secondary;
+  font-size: $t-but-des;
+  font-weight: $fw-medium;
+  padding: 0.3rem 0.9rem;
+  border-radius: 50px;
+  text-transform: capitalize;
+  flex-shrink: 0;
+  &.stage-puppy  { background: rgba($misty-lavender, 0.25); color: $twilight-purple; border: 1px solid rgba($misty-lavender, 0.5); }
+  &.stage-adult  { background: rgba($serene-purple, 0.1);   color: $serene-purple;   border: 1px solid rgba($serene-purple, 0.2); }
+  &.stage-senior { background: rgba($twilight-purple, 0.1); color: $twilight-purple; border: 1px solid rgba($twilight-purple, 0.2); }
+}
+ 
+// ─── Three-column grid ────────────────────────────────────────────────────────
+.cg-cards-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $space-md;
+ 
+  @media (min-width: $bp-mobile) { grid-template-columns: repeat(2, 1fr); }
+  @media (min-width: $bp-laptop) { grid-template-columns: repeat(3, 1fr); gap: $space-lg; }
+}
+ 
+// ─── Individual tip card ──────────────────────────────────────────────────────
+.cg-tip-card {
+  background: #f5f1fa;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  box-shadow:
+    0 1px 2px rgba(0,0,0,0.06),
+    0 4px 12px rgba(0,0,0,0.08),
+    0 12px 24px rgba(0,0,0,0.06);
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+ 
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow:
+      0 2px 4px rgba(0,0,0,0.08),
+      0 8px 20px rgba(0,0,0,0.12),
+      0 20px 40px rgba($twilight-purple, 0.08);
+ 
+    .cg-tip-img { transform: scale(1.05); }
+  }
+}
+ 
+// ─── Illustration area (matches detail-card-illustration) ─────────────────────
+.cg-tip-illustration {
+  width: 90%;
+  margin: 5% auto 0;
+  height: 180px;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  @include relative;
+ 
+  @media (min-width: $bp-tablet) { height: 210px; }
+}
+ 
+.cg-tip-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 40%;
+  display: block;
+  transition: transform 0.35s ease;
+}
+ 
+.cg-tip-icon-fallback {
+  @include flex-center;
+  width: 100%;
+  height: 100%;
+}
+ 
+// ─── Card text body ───────────────────────────────────────────────────────────
+.cg-tip-body {
+  padding: $space-md;
+  @include column;
+  gap: $space-sm;
+  @media (min-width: $bp-tablet) { padding: $space-lg; }
+}
+ 
+.cg-tip-body-header {
+  @include flex-between;
+  align-items: flex-start;
+  gap: $space-sm;
+}
+ 
+.cg-tip-title {
+  font-family: $font-primary;
+  font-size: $t-body-des;
+  font-weight: $fw-medium;
+  color: $text-color-dark;
+  letter-spacing: 0.02em;
+  flex: 1;
+}
+ 
+.cg-tip-num {
+  font-family: $font-primary;
+  font-size: $t-forgot-des;
+  font-weight: $fw-medium;
+  color: rgba($gentle-amethyst, 0.45);
+  flex-shrink: 0;
+  letter-spacing: 0.04em;
+}
+ 
+.cg-tip-text {
+  font-family: $font-secondary;
+  font-size: $t-but-des;
+  color: $gentle-amethyst;
+  line-height: 1.68;
+ 
+  @media (min-width: $bp-tablet) { font-size: $t-link-des; }
+}

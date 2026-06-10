@@ -1,0 +1,151 @@
+// Navigation fixes
+html[style*="--a11y-font-size: 19px"],
+html[style*="--a11y-font-size: 22px"] {
+
+    .navigation__container {
+    height: auto !important;
+    min-height: 56px;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .navigation__logo-img {
+    height: clamp(36px, 2.6rem, 48px) !important;
+  }
+
+  // Desktop menu links — let them breathe
+  .navigation__menu-link {
+    font-size: 0.85rem !important;
+    padding: 0.4em 0.7em !important;
+  }
+  .btn--nav {
+    font-size: 0.8rem !important;
+    padding: 0.4em 0.9em !important;
+  }
+  .navigation__user-trigger-name {
+    display: none; 
+  }
+  .navigation__hamburger {
+    width: auto !important;
+    height: auto !important;
+    padding: 0.4em !important;
+  }
+  .navigation__mobile ul li > a,
+  .navigation__mobile-toggle,
+  .navigation__mobile-user-link {
+    font-size: 1rem !important;
+    padding: 0.6em 0.75em !important;
+    height: auto !important;
+  }
+  .tips-controls__inner {
+    height: auto !important;
+    min-height: unset !important;
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+    flex-wrap: wrap;
+    gap: 0.5rem !important;
+  }
+
+  .tips-nav__dropdown-trigger {
+    font-size: 0.85rem !important;
+    padding: 0.4em 0.75em !important;
+    height: auto !important;
+  }
+
+  .tips-search__input {
+    font-size: 0.85rem !important;
+    padding-top: 0.45em !important;
+    padding-bottom: 0.45em !important;
+  }
+
+  .tips-count {
+    font-size: 0.8rem !important;
+    padding: 0.3em 0 !important;
+  }
+
+  // ServiceFinder
+  .finder-search__bar {
+    padding: 0.4rem !important;
+  }
+
+  .finder-search__input {
+    font-size: 1rem !important;
+    padding-top: 0.5em !important;
+    padding-bottom: 0.5em !important;
+  }
+
+  .finder-search__button {
+    padding: 0.6em !important;
+  }
+  .type-btn__circle {
+    width: 52px !important;
+    height: 52px !important;
+  }
+
+  .type-btn__label {
+    font-size: 0.6rem !important;
+  }
+
+  // RegisterBusiness hero
+
+  .rb-hero__right {
+    padding: 1.5rem 1rem !important;
+  }
+
+  .rb-input {
+    min-height: auto !important;
+    padding: 0.5em 0.75em !important;
+    font-size: 0.9rem !important;
+  }
+
+  .rb-btn-next {
+    min-height: auto !important;
+    padding: 0.6em 1em !important;
+    font-size: 0.85rem !important;
+  }
+
+  // General card / listing fixes
+
+  .listing-card__title { font-size: 0.95rem !important; }
+  .listing-card__meta  { font-size: 0.75rem !important; }
+  .listing-card__badge { font-size: 0.65rem !important; }
+
+  // tip cards
+  .tip-card__title   { font-size: 0.95rem !important; }
+  .tip-card__summary { font-size: 0.82rem !important; }
+  .tip-card__read    { font-size: 0.8rem !important;  }
+}
+
+// Extra large — 22px — stricter fixes
+html[style*="--a11y-font-size: 22px"] {
+
+  .navigation__menu {
+    gap: 0 !important;
+  }
+
+  .navigation__menu-link {
+    font-size: 0.75rem !important;
+    padding: 0.35em 0.5em !important;
+
+    @media (max-width: 1300px) {
+      font-size: 0 !important; 
+      padding: 0.3em 0.4em !important;
+      i { font-size: 1rem !important; }
+    }
+  }
+
+  .navigation__mobile--open {
+    max-height: calc(100vh - 56px) !important;
+  }
+
+  .tips-controls__inner {
+    flex-wrap: wrap !important;
+  }
+
+  .tips-search {
+    flex: 1 1 100% !important; 
+    @media (min-width: 600px) {
+      flex: 1 !important;
+    }
+  }
+}

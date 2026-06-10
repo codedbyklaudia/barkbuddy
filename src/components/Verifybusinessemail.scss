@@ -1,0 +1,110 @@
+@import '../styles/variables';
+@import '../styles/mixins';
+
+.vbe-page {
+  min-height: 100dvh;
+  background: $twilight-purple;
+  background-image: radial-gradient(
+    ellipse 70% 60% at 20% 20%,
+    rgba($serene-purple, 0.2) 0%,
+    transparent 70%
+  );
+  @include flex-center;
+  padding: $space-xl $space-lg;
+  font-family: $font-secondary;
+}
+
+.vbe-card {
+  background: $soft-pearl;
+  border-radius: $radius-lg;
+  padding: $space-xxl $space-xxl;
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+  box-shadow: $shadow-xl;
+  @include flex-column;
+  gap: $space-lg;
+
+  @media (max-width: $bp-mobile) {
+    padding: $space-xl $space-lg;
+  }
+}
+
+.vbe-spinner {
+  width: 48px; height: 48px;
+  border: 3px solid rgba($serene-purple, 0.2);
+  border-top-color: $serene-purple;
+  border-radius: 50%;
+  animation: vbeSpin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes vbeSpin { to { transform: rotate(360deg); } }
+
+.vbe-icon {
+  font-size: 3rem;
+  line-height: 1;
+  animation: vbePop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes vbePop {
+  0%   { transform: scale(0.5); opacity: 0; }
+  100% { transform: scale(1);   opacity: 1; }
+}
+
+.vbe-title {
+  font-family: $font-primary;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: $fw-regular;
+  color: $twilight-purple;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.vbe-text {
+  font-size: $t-body-des;
+  color: rgba($twilight-purple, 0.6);
+  line-height: 1.7;
+  max-width: 360px;
+  margin: 0;
+}
+
+.vbe-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: $serene-purple;
+  color: $soft-pearl;
+  text-decoration: none;
+  padding: $space-md $space-xxl;
+  border-radius: $radius-lg;
+  font-family: $font-secondary;
+  font-size: $t-but-des;
+  font-weight: $fw-bold;
+  letter-spacing: 0.03em;
+  transition: all 0.25s ease;
+  box-shadow: $shadow-md;
+  min-height: 48px;
+  margin-top: $space-sm;
+
+  &:hover {
+    background: $gentle-amethyst;
+    transform: translateY(-2px);
+    box-shadow: $shadow-purple-glow;
+  }
+
+  &--outline {
+    background: none;
+    color: $twilight-purple;
+    border: 1.5px solid rgba($twilight-purple, 0.25);
+    box-shadow: none;
+
+    &:hover {
+      background: rgba($twilight-purple, 0.05);
+      border-color: rgba($twilight-purple, 0.4);
+      transform: translateY(-2px);
+      box-shadow: $shadow-sm;
+    }
+  }
+}

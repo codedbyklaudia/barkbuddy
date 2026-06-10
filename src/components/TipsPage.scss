@@ -1,0 +1,864 @@
+@import '../styles/variables';
+@import '../styles/mixins';
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+// Animations
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes card-in {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes modal-in {
+  from { opacity: 0; transform: translateY(20px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes bm-pop {
+  0%   { transform: scale(1); }
+  45%  { transform: scale(1.5); }
+  70%  { transform: scale(0.88); }
+  100% { transform: scale(1); }
+}
+@keyframes dropdown-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes login-msg-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+// Accent tokens
+.tips-page {
+  --accent:        #{$serene-purple};
+  --accent-light:  #{rgba($serene-purple, 0.08)};
+  --accent-mid:    #{rgba($serene-purple, 0.15)};
+  --accent-border: #{rgba($serene-purple, 0.25)};
+
+  &--health {
+    --accent:        #059669;
+    --accent-light:  rgba(5,150,105,0.08);
+    --accent-mid:    rgba(5,150,105,0.15);
+    --accent-border: rgba(5,150,105,0.25);
+  }
+  &--training {
+    --accent:        #d97706;
+    --accent-light:  rgba(217,119,6,0.08);
+    --accent-mid:    rgba(217,119,6,0.15);
+    --accent-border: rgba(217,119,6,0.25);
+  }
+  &--nutrition {
+    --accent:        #0891b2;
+    --accent-light:  rgba(8,145,178,0.08);
+    --accent-mid:    rgba(8,145,178,0.15);
+    --accent-border: rgba(8,145,178,0.25);
+  }
+}
+
+// Page shell
+.tips-page {
+  min-height: 100dvh;
+  background: $soft-pearl;
+  font-family: $font-secondary;
+  overflow-x: hidden;
+}
+
+// Hero
+.tips-hero {
+  @include relative;
+  height: clamp(220px, 32vw, 380px);
+  overflow: hidden;
+
+  &__bg { @include absolute; inset: 0; }
+
+  &__bg-img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    object-position: center 30%;
+    filter: saturate(0.75) brightness(0.7);
+  }
+
+  &__bg-veil {
+    @include absolute; inset: 0;
+    background:
+      linear-gradient(to right, rgba($twilight-purple, 0.92) 0%, rgba($twilight-purple, 0.6) 50%, rgba($twilight-purple, 0.35) 100%),
+      linear-gradient(to top, rgba($twilight-purple, 0.6) 0%, transparent 50%);
+  }
+
+  &__inner {
+    @include relative; z-index: 1;
+    height: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 clamp(1.25rem, 4vw, 3rem);
+    @include flex-between;
+    gap: $space-xl;
+  }
+
+  &__text { animation: fade-up 0.55s ease both; }
+
+  &__eyebrow {
+    font-size: 0.72rem;
+    font-weight: $fw-medium;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba($soft-pearl, 0.45);
+    margin-bottom: $space-sm;
+    display: flex;
+    align-items: center;
+    gap: $space-sm;
+
+    &::before {
+      content: '';
+      display: block;
+      width: 18px; height: 1px;
+      background: rgba($soft-pearl, 0.3);
+    }
+  }
+
+  &__title {
+    font-family: $font-primary;
+    font-size: clamp(1.6rem, 4.5vw, 3.6rem);
+    font-weight: $fw-regular;
+    color: $soft-pearl;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+
+    em { font-style: italic; color: rgba($misty-lavender, 0.9); }
+  }
+
+  &__sub {
+    font-size: clamp(0.8rem, 1.2vw, 0.9rem);
+    color: rgba($soft-pearl, 0.45);
+    line-height: 1.7;
+    max-width: 380px;
+    margin-top: $space-md;
+    animation: fade-up 0.55s 0.1s ease both;
+  }
+
+  &__stats {
+    display: flex;
+    gap: $space-md;
+    flex-shrink: 0;
+    animation: fade-up 0.55s 0.15s ease both;
+
+    @media (max-width: $bp-tablet) { display: none; }
+  }
+
+  &__stat {
+    @include column;
+    @include center;
+    padding: $space-md $space-xl;
+    background: rgba($soft-pearl, 0.07);
+    border: 1px solid rgba($soft-pearl, 0.12);
+    border-radius: $radius-md;
+    backdrop-filter: blur(6px);
+    gap: 2px;
+    min-width: 72px;
+
+    strong {
+      font-family: $font-primary;
+      font-size: 1.5rem;
+      font-weight: $fw-bold;
+      color: $soft-pearl;
+      line-height: 1;
+    }
+
+    span {
+      font-size: 0.65rem;
+      font-weight: $fw-bold;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba($soft-pearl, 0.38);
+    }
+
+    &--accent {
+      border-color: var(--accent-border);
+      background: var(--accent-mid);
+      strong { color: #fff; }
+    }
+  }
+}
+
+// Controls bar
+.tips-controls {
+  background: #fff;
+  border-bottom: 1px solid rgba($twilight-purple, 0.07);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 12px rgba($twilight-purple, 0.04);
+}
+
+.tips-controls__inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 clamp(1rem, 3vw, 2rem);
+  @include center;
+  gap: $space-md;
+  min-height: 52px;
+}
+
+// Nav wrapper
+.tips-nav {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+// Desktop tabs
+.tips-nav__tabs {
+  display: flex;
+  align-items: center;
+
+  @media (max-width: $bp-tablet) { display: none; }
+}
+
+.tips-nav__link {
+  display: inline-flex;
+  align-items: center;
+  padding: $space-md $space-lg;
+  font-size: $t-body-des;
+  font-weight: $fw-medium;
+  color: rgba($twilight-purple, 0.38);
+  text-decoration: none;
+  white-space: nowrap;
+  border-bottom: 2.5px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+  flex-shrink: 0;
+
+  &:hover { color: $twilight-purple; }
+
+  &--active {
+    color: $twilight-purple;
+    font-weight: $fw-bold;
+    border-bottom-color: var(--accent);
+  }
+}
+
+// Mobile dropdown
+.tips-nav__dropdown {
+  display: none;
+  position: relative;
+
+  @media (max-width: $bp-tablet) { display: block; }
+}
+
+.tips-nav__dropdown-trigger {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+  padding: 8px $space-md;
+  background: var(--accent-light);
+  border: 1.5px solid var(--accent-border);
+  border-radius: $radius-md;
+  font-family: $font-secondary;
+  font-size: $t-body-des;
+  font-weight: $fw-bold;
+  color: $twilight-purple;
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+  transition: background 0.2s, border-color 0.2s;
+
+  &:hover { background: var(--accent-mid); }
+  span { color: var(--accent); }
+  svg { stroke: var(--accent); flex-shrink: 0; }
+}
+
+.tips-nav__dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  background: #fff;
+  border: 1px solid rgba($twilight-purple, 0.1);
+  border-radius: $radius-md;
+  box-shadow: 0 8px 24px rgba($twilight-purple, 0.14);
+  min-width: 160px;
+  z-index: 200;
+  overflow: hidden;
+  animation: dropdown-in 0.18s ease both;
+}
+
+.tips-nav__dropdown-item {
+  display: block;
+  padding: 10px $space-md;
+  font-family: $font-secondary;
+  font-size: $t-body-des;
+  font-weight: $fw-medium;
+  color: rgba($twilight-purple, 0.6);
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover { background: var(--accent-light); color: $twilight-purple; }
+  &.active { color: var(--accent); font-weight: $fw-bold; background: var(--accent-light); }
+}
+
+// Search
+.tips-search {
+  @include relative;
+  @include center;
+  flex: 1;
+  min-width: 0;
+  background: rgba($twilight-purple, 0.04);
+  border: 1.5px solid rgba($twilight-purple, 0.1);
+  border-radius: 999px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+
+  &:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-light);
+    background: #fff;
+  }
+
+  @media (min-width: $bp-tablet) {
+    max-width: 360px;
+    margin-left: auto;
+  }
+
+  &__icon {
+    position: absolute;
+    left: 12px;
+    color: rgba($twilight-purple, 0.35);
+    display: flex;
+    pointer-events: none;
+    flex-shrink: 0;
+  }
+
+  &__input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-radius: 999px;
+    padding: 9px 32px 9px 34px;
+    font-family: $font-secondary;
+    font-size: $t-body-des;
+    color: $twilight-purple;
+    outline: none;
+
+    &::placeholder { color: rgba($twilight-purple, 0.3); }
+    &::-webkit-search-cancel-button { display: none; }
+  }
+
+  &__clear {
+    @include absolute;
+    right: 8px;
+    background: rgba($twilight-purple, 0.08);
+    border: none;
+    border-radius: 50%;
+    width: 20px; height: 20px;
+    @include flex-center;
+    @include cursor;
+    color: rgba($twilight-purple, 0.45);
+    transition: background 0.15s;
+    flex-shrink: 0;
+
+    &:hover { background: rgba($twilight-purple, 0.14); }
+  }
+}
+
+// Count
+.tips-count {
+  font-size: $t-body-des;
+  color: rgba($twilight-purple, 0.35);
+  white-space: nowrap;
+  flex-shrink: 0;
+  padding: $space-md 0;
+
+  strong { color: var(--accent); font-weight: $fw-regular; }
+
+  @media (max-width: $bp-mobile) { display: none; }
+}
+
+// Body
+.tips-body {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: $space-xxl clamp(1rem, 3vw, 2rem) clamp(4rem, 6vw, 6rem);
+}
+
+// Card grid
+.tips-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: $space-xl;
+
+  @media (max-width: $bp-laptop) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  @media (max-width: $bp-mobile) { grid-template-columns: minmax(0, 1fr); }
+}
+
+// Tip card
+.tip-card {
+  background: #fff;
+  border-radius: $radius-lg;
+  border: 1px solid rgba($twilight-purple, 0.08);
+  overflow: hidden;
+  @include column;
+  @include relative;
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+  opacity: 0;
+  animation: card-in 0.4s ease forwards;
+  cursor: pointer;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba($twilight-purple, 0.1);
+  }
+
+  &__image-wrap {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  &__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease;
+
+    .tip-card:hover & { transform: scale(1.03); }
+  }
+
+  &__image-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba($misty-lavender, 0.35) 0%, rgba($serene-purple, 0.12) 100%);
+    @include flex-center;
+  }
+
+  &__icon-fallback {
+    width: 56px; height: 56px;
+    object-fit: contain;
+    opacity: 0.35;
+  }
+
+  // Bookmark wrapper — sits top-right, contains button + login msg
+  &__bookmark-wrap {
+    position: absolute;
+    top: $space-md;
+    right: $space-md;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+  }
+
+  &__bookmark {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(#fff, 0.85);
+    backdrop-filter: blur(4px);
+    @include flex-center;
+    @include cursor;
+    color: rgba($twilight-purple, 0.4);
+    transition: color 0.2s, background 0.2s, transform 0.2s;
+    flex-shrink: 0;
+
+    &:hover {
+      color: $twilight-purple;
+      background: #fff;
+      transform: scale(1.1);
+    }
+
+    &--saved {
+      color: var(--accent);
+      background: #fff;
+      animation: bm-pop 0.35s ease;
+    }
+  }
+
+  // Login message on card
+  &__login-msg {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(#fff, 0.95);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba($twilight-purple, 0.15);
+    border-radius: $radius-sm;
+    padding: 4px 8px;
+    font-size: 0.72rem;
+    font-weight: $fw-medium;
+    color: $twilight-purple;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba($twilight-purple, 0.1);
+    animation: login-msg-in 0.2s ease both;
+
+    svg { flex-shrink: 0; }
+  }
+
+  &__body {
+    padding: $space-lg;
+    @include column;
+    gap: $space-sm;
+    flex: 1;
+  }
+
+  &__meta { @include flex-between; }
+
+  &__tag {
+    font-size: 0.65rem;
+    font-weight: $fw-bold;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  &__title {
+    font-family: $font-primary;
+    font-size: clamp(1rem, 1.3vw, 1.15rem);
+    font-weight: $fw-regular;
+    color: $twilight-purple;
+    line-height: 1.25;
+    letter-spacing: 0.01em;
+  }
+
+  &__summary {
+    font-size: $t-body-des;
+    color: rgba($twilight-purple, 0.5);
+    line-height: 1.65;
+    flex: 1;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  &__read {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-xs;
+    font-size: $t-body-des;
+    font-weight: $fw-regular;
+    color: var(--accent);
+    margin-top: $space-md;
+    transition: gap 0.2s;
+    pointer-events: none; // card itself handles click
+
+    svg { flex-shrink: 0; transition: transform 0.2s; }
+    .tip-card:hover & { gap: $space-sm; svg { transform: translateX(2px); } }
+  }
+}
+
+// Tip modal
+.tip-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba($twilight-purple, 0.45);
+  backdrop-filter: blur(6px);
+  @include flex-center;
+  padding: $space-lg;
+  animation: fade-in 0.2s ease both;
+  overflow-y: auto;
+}
+
+.tip-modal {
+  @include relative;
+  background: $soft-pearl;
+  border-radius: $radius-lg;
+  width: 100%;
+  max-width: 520px;
+  overflow: hidden;
+  box-shadow: 0 32px 64px rgba($twilight-purple, 0.2);
+  animation: modal-in 0.28s 0.04s ease both;
+  margin: auto;
+
+  &__close {
+    @include absolute;
+    top: $space-md; right: $space-md;
+    z-index: 10;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(#fff, 0.85);
+    backdrop-filter: blur(4px);
+    @include flex-center;
+    @include cursor;
+    color: rgba($twilight-purple, 0.5);
+    transition: background 0.2s, color 0.2s;
+    &:hover { background: #fff; color: $twilight-purple; }
+  }
+
+  &__image {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: linear-gradient(135deg, rgba($misty-lavender, 0.4), rgba($serene-purple, 0.15));
+
+    img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    &--placeholder { @include flex-center; }
+  }
+
+  &__icon-fallback {
+    width: 64px; height: 64px;
+    object-fit: contain;
+    opacity: 0.3;
+  }
+
+  &__body { padding: $space-xl; }
+
+  &__meta {
+    @include flex-between;
+    margin-bottom: $space-md;
+  }
+
+  &__tag {
+    font-size: 0.65rem;
+    font-weight: $fw-bold;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  &__title {
+    font-family: $font-primary;
+    font-size: clamp(1.3rem, 2.5vw, 1.7rem);
+    font-weight: $fw-regular;
+    color: $twilight-purple;
+    line-height: 1.2;
+    letter-spacing: 0.01em;
+    margin-bottom: $space-md;
+  }
+
+  &__summary {
+    font-size: $t-body-des;
+    color: rgba($twilight-purple, 0.55);
+    line-height: 1.75;
+    margin-bottom: $space-xl;
+    font-style: italic;
+    border-left: 3px solid var(--accent-border);
+    padding-left: $space-md;
+  }
+
+  // Points list — redesigned
+  &__points {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 $space-xl 0;
+    @include column;
+    gap: $space-sm;
+  }
+
+  &__point {
+    display: flex;
+    align-items: flex-start;
+    gap: $space-md;
+    padding: $space-sm $space-md;
+    background: rgba($twilight-purple, 0.03);
+    border-radius: $radius-md;
+    border-left: 3px solid var(--accent-border);
+    transition: background 0.15s, border-color 0.15s;
+
+    &:hover {
+      background: var(--accent-light);
+      border-left-color: var(--accent);
+    }
+  }
+
+  &__bullet {
+    flex-shrink: 0;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    margin-top: 6px;
+    opacity: 0.7;
+  }
+
+  &__point-content {
+    @include column;
+    gap: $space-xs;
+    flex: 1;
+  }
+
+  &__point-text {
+    font-size: $t-body-des;
+    font-weight: $fw-medium;
+    color: $twilight-purple;
+    line-height: 1.55;
+  }
+
+  // Sub-points
+  &__sub {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    @include column;
+    gap: 4px;
+
+    li {
+      display: flex;
+      align-items: flex-start;
+      gap: $space-sm;
+      font-size: 0.82rem;
+      color: rgba($twilight-purple, 0.6);
+      line-height: 1.5;
+    }
+  }
+
+  &__sub-bullet {
+    flex-shrink: 0;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    border: 1.5px solid var(--accent);
+    margin-top: 6px;
+    opacity: 0.6;
+  }
+
+  &__callout {
+    border-left: 3px solid var(--accent-border);
+    padding: $space-md $space-lg;
+    background: var(--accent-light);
+    border-radius: 0 $radius-md $radius-md 0;
+    margin-bottom: $space-xl;
+  }
+
+  &__callout-label {
+    display: block;
+    font-size: $t-forgot-des;
+    font-weight: $fw-bold;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+
+  &__callout p {
+    font-size: $t-body-des;
+    color: rgba($twilight-purple, 0.65);
+    line-height: 1.65;
+  }
+
+  // Save button + login message wrapper
+  &__save-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $space-sm;
+  }
+
+  &__save {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-sm;
+    padding: $space-sm $space-xl;
+    border-radius: $radius-lg;
+    border: 1.5px solid rgba($twilight-purple, 0.15);
+    background: transparent;
+    font-family: $font-secondary;
+    font-size: $t-body-des;
+    font-weight: $fw-bold;
+    color: rgba($twilight-purple, 0.45);
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-light);
+    }
+
+    &--saved {
+      border-color: var(--accent-border);
+      color: var(--accent);
+      background: var(--accent-light);
+      animation: bm-pop 0.35s ease;
+    }
+  }
+
+  // Login message inside modal
+  &__login-msg {
+    @include center;
+    gap: 6px;
+    font-size: 0.8rem;
+    font-weight: $fw-medium;
+    color: $twilight-purple;
+    background: rgba($twilight-purple, 0.05);
+    border: 1px solid rgba($twilight-purple, 0.12);
+    border-radius: $radius-sm;
+    padding: 6px 12px;
+    animation: login-msg-in 0.2s ease both;
+
+    svg { flex-shrink: 0; color: $twilight-purple; }
+  }
+}
+
+// Empty state
+.tips-empty {
+  text-align: center;
+  padding: clamp(4rem, 8vw, 6rem) $space-xl;
+
+  &__title {
+    font-family: $font-primary;
+    font-size: $t-tit-des;
+    font-weight: $fw-regular;
+    color: $twilight-purple;
+    margin-bottom: $space-md;
+  }
+
+  &__sub {
+    font-size: $t-body-des;
+    color: rgba($twilight-purple, 0.45);
+
+    button {
+      @include none;
+      color: var(--accent);
+      font-family: $font-secondary;
+      font-size: inherit;
+      @include cursor;
+      text-decoration: underline;
+      padding: 0;
+    }
+  }
+}
+
+// Star picker
+.rating-picker {
+  @include center;
+  gap: 2px;
+
+  &__star {
+    @include none;
+    @include cursor;
+    padding: 2px;
+    line-height: 0;
+    transition: transform 0.12s ease;
+    min-width: 40px;
+    min-height: 40px;
+    @include flex-center;
+
+    @media (min-width: $bp-tablet) { min-width: unset; min-height: unset; }
+
+    &:hover { transform: scale(1.2); }
+    svg { display: block; transition: fill 0.12s ease, stroke 0.12s ease; }
+  }
+}
+
+// Reduced motion
+@media (prefers-reduced-motion: reduce) {
+  .tip-card,
+  .tip-modal,
+  .tip-modal-backdrop,
+  .tips-hero__text,
+  .tips-hero__sub,
+  .tips-hero__stats {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

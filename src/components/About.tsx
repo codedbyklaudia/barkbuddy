@@ -1,0 +1,352 @@
+import React from "react";
+import { Link } from "react-router-dom";
+import { ChevronsRight} from "lucide-react";
+import "./About.scss";
+import Footer from "./Footer";
+
+// Feature item 
+interface FeatureItemProps {
+  icon: string;
+  text: string;
+}
+const FeatureItem: React.FC<FeatureItemProps> = ({ icon, text }) => (
+  <li className="about-feature-item">
+    <img
+      src={icon}
+      alt=""
+      className="about-feature-item__icon"
+      loading="lazy"
+      decoding="async"
+      width={24}
+      height={24}
+    />
+    <span>{text}</span>
+  </li>
+);
+
+// Vision item
+const VisionItem: React.FC<{ text: string; index: number }> = ({ text, index }) => (
+  <div className="about-vision-item" style={{ animationDelay: `${index * 0.1}s` }}>
+    <div className="about-vision-item__num">{String(index + 1).padStart(2, "0")}</div>
+    <p>{text}</p>
+  </div>
+);
+
+// Page
+const About: React.FC = () => {
+  return (
+    <div className="about-page">
+
+      {/* Hero — two-column */}
+      <section className="about-hero">
+
+        {/* Left — text */}
+        <div className="about-hero__left">
+          <div className="about-hero__heading-block">
+
+            <p className="about-hero__eyebrow">About BarkBuddy</p>
+
+            <h1 className="about-hero__title">
+              Built with love, for <em>dog parents.</em>
+            </h1>
+
+            <p className="about-hero__sub">
+              Built from real experiences, real frustrations,<br />
+              and real love for dogs.
+            </p>
+
+            <div className="about-hero__ctas">
+              <Link to="/register" className="about-hero__cta about-hero__cta--primary">
+                Join for free
+                <ChevronsRight />
+              </Link>
+              <Link to="/" className="about-hero__cta about-hero__cta--ghost">
+                Explore the platform
+              </Link>
+            </div>
+
+          </div>
+        </div>
+
+        {/* Right — photo — above the fold → eager */}
+        <div className="about-hero__right" aria-hidden="true">
+          <img
+            src="../images/Illustrations/paw-hand.webp"
+            alt="Paw and hand illustration"
+            className="about-hero__image"
+            loading="eager"
+            decoding="sync"
+            width={16}
+            height={9}
+          />
+        </div>
+
+        {/* Wave */}
+        <svg
+          className="about-hero__wave"
+          viewBox="0 0 1440 72"
+          preserveAspectRatio="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <path d="M0,72 L0,36 Q360,0 720,36 Q1080,72 1440,36 L1440,72 Z" fill="#F8F6F4" />
+        </svg>
+
+      </section>
+
+      {/* Story section */}
+      <section className="about-story">
+        <div className="about-story__inner">
+
+          {/* Left column — text */}
+          <div className="about-story__text">
+            <span className="about-section-label">Hi, I'm Klaudia</span>
+            <h2 className="about-section-title">
+              The founder, designer<br />and developer of BarkBuddy
+            </h2>
+            <p>
+              Like many of you, I'm first and foremost a proud dog parent. Nox - my
+              black and white-coated mix of border collie and corgi - is the reason BarkBuddy exists.
+            </p>
+            <p>
+              BarkBuddy started with a simple question:
+            </p>
+            <blockquote className="about-story__quote">
+              Why is it so hard to find reliable dog care & travel informations, services and dog-friendly places?
+            </blockquote>
+            <p>
+              When I became a dog parent, I quickly realised how overwhelming everything
+              felt. Endless articles. Conflicting advice. Expensive vet visits for
+              questions that could have been prevented with better guidance. And finding
+              trusted local services? That meant jumping between maps, social media
+              groups, and random websites. Not mention about dog-friendly restaurants or places! Calling the place every time to ask whether they accept dogs, No! And then another one.. and another...
+            </p>
+            <p>
+              I knew there had to be a better way - so I built BarkBuddy.
+            </p>
+          </div>
+
+          {/* Right column — photo */}
+          <div className="about-story__photo-wrap">
+            <div className="about-photo about-photo--portrait">
+              <div className="about-photo__placeholder">
+                <img
+                  src="../../images/klaudia+nox.jpeg"
+                  alt="Picture of Klaudia and her dog, Nox"
+                  loading="lazy"
+                  decoding="async"
+                  width={3}
+                  height={4}
+                />
+              </div>
+              <div className="about-photo__frame" aria-hidden="true" />
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* Divider */}
+      <div className="about-divider" aria-hidden="true">
+        <div className="about-divider__line" />
+        <img
+          src="/images/icons/dog-origami.svg"
+          alt="Origami Dog"
+          className="about-divider__icon"
+          loading="lazy"
+          decoding="async"
+          width={40}
+          height={40}
+        />
+        <div className="about-divider__line" />
+      </div>
+
+      {/* Mission */}
+      <section className="about-mission">
+        <div className="about-mission__inner">
+
+          <div className="about-story__photo-wrap about-story__photo-wrap--left">
+            <div className="about-photo about-photo--landscape">
+              <div className="about-photo__placeholder">
+                <img
+                  src="../images/Nox_pic.jpeg"
+                  alt="Founder dog picture"
+                  loading="lazy"
+                  decoding="async"
+                  width={4}
+                  height={3}
+                />
+              </div>
+              <div className="about-photo__frame" aria-hidden="true" />
+            </div>
+          </div>
+
+          <div className="about-mission__text">
+            <span className="about-section-label">The Mission</span>
+            <h2 className="about-section-title">
+              Making dog parenting easier, smarter, and more connected
+            </h2>
+            <p>
+              BarkBuddy exists to support dog parents at every stage of the journey -
+              from the overwhelming first weeks to the confident routines that come later.
+            </p>
+            <div className="about-mission__belief">
+              <p>
+                I believe every dog deserves informed care - and every dog parent
+                deserves simple tools to provide it.
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section className="about-how">
+        <div className="about-how__inner">
+          <div className="about-how__header">
+            <span className="about-section-label">How BarkBuddy Works</span>
+            <h2 className="about-section-title">
+              A growing experience,<br />designed for you
+            </h2>
+            <p className="about-how__sub">
+              BarkBuddy is designed to give value immediately - and grow with you.
+            </p>
+          </div>
+
+          <div className="about-how__tiers">
+
+            <div className="about-tier about-tier--free">
+              <div className="about-tier__header">
+                <div className="about-tier__icon">
+                  <img
+                    src="/images/icons/free.svg"
+                    alt="Free - icon"
+                    loading="lazy"
+                    decoding="async"
+                    width={32}
+                    height={32}
+                  />
+                </div>
+                <div>
+                  <h3 className="about-tier__title">Explore Freely</h3>
+                  <p className="about-tier__sub">No account required</p>
+                </div>
+              </div>
+              <ul className="about-tier__list">
+                <FeatureItem icon="/images/icons/care.svg"             text="Dog care tips" />
+                <FeatureItem icon="/images/icons/plane.svg"            text="Travel guide" />
+                <FeatureItem icon="/images/icons/map-pin-check.svg"    text="Dog-friendly locations" />
+                <FeatureItem icon="/images/icons/services.svg"         text="Local services directory" />
+              </ul>
+            </div>
+
+            <div className="about-how__arrow" aria-hidden="true">
+              <ChevronsRight />
+            </div>
+
+            <div className="about-tier about-tier--account">
+              <div className="about-tier__header">
+                <div className="about-tier__icon">
+                  <img
+                    src="/images/icons/book-key.svg"
+                    alt="Unlock book key"
+                    loading="lazy"
+                    decoding="async"
+                    width={32}
+                    height={32}
+                  />
+                </div>
+                <div>
+                  <h3 className="about-tier__title">Unlock Personalised Features</h3>
+                  <p className="about-tier__sub">Free account</p>
+                </div>
+              </div>
+              <ul className="about-tier__list">
+                <FeatureItem icon="/images/icons/care.svg"             text="Age-personalised care tips" />
+                <FeatureItem icon="/images/icons/calendar-days.svg"    text="Health calendar & reminders" />
+                <FeatureItem icon="/images/icons/folder-heart.svg"     text="Save favourite services" />
+                <FeatureItem icon="/images/icons/message-circle.svg"   text="Community forum" />
+                <FeatureItem icon="/images/icons/android.svg"          text="Android app with walk tracker" />
+              </ul>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* Vision */}
+      <section className="about-vision">
+        <div className="about-vision__inner">
+          <div className="about-vision__header">
+            <span className="about-section-label about-section-label--light">The Bigger Vision</span>
+            <h2 className="about-section-title about-section-title--light">
+              Built for dogs. Designed for you.
+            </h2>
+            <p className="about-vision__sub">
+              It's a growing system - designed to make life genuinely better for
+              dog parents and their dogs.
+            </p>
+          </div>
+
+          <div className="about-vision__grid">
+            {[
+              "Support responsible dog parenting",
+              "Reduce stress and confusion",
+              "Build a global dog-parent community",
+              "Provide personalised insights through our mobile application",
+            ].map((text, i) => (
+              <VisionItem key={i} text={text} index={i} />
+            ))}
+          </div>
+
+          <p className="about-vision__note">
+            Our website serves as the entry point - offering immediate value - while
+            the BarkBuddy mobile app delivers advanced personalisation and smart
+            features for each dog.
+          </p>
+        </div>
+      </section>
+
+      {/* Closing */}
+      <section className="about-closing">
+        <div className="about-closing__inner">
+          <div className="about-closing__paw" aria-hidden="true">
+            <img
+              src="/images/icons/dog-origami.svg"
+              alt="Origami Dog Icon"
+              loading="lazy"
+              decoding="async"
+              width={40}
+              height={40}
+            />
+          </div>
+          <h2 className="about-closing__title">
+            Built with love - for us, the dog parents
+          </h2>
+          <p className="about-closing__body">
+            BarkBuddy was built from real experiences, real frustrations, and real love
+            for dogs. This isn't just a project - it's a passion.
+          </p>
+          <p className="about-closing__tagline">
+            Every feature is designed with one goal in mind:
+          </p>
+          <p className="about-closing__highlight">
+            To make life better for you and your bark buddy.
+          </p>
+          <div className="about-closing__cta">
+            <Link to="/register" className="about-cta-btn about-cta-btn--primary">
+              Join BarkBuddy - it's free
+            </Link>
+            <Link to="/" className="about-cta-btn about-cta-btn--secondary">
+              Explore the platform
+            </Link>
+          </div>
+        </div>
+      </section>
+      <Footer />
+    </div>
+  );
+};
+
+export default About;

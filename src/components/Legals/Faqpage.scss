@@ -1,0 +1,540 @@
+@import '../../styles/variables';
+@import '../../styles/mixins';
+
+// Animations
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slide-in {
+  from { opacity: 0; transform: translateX(-12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+// Page
+.faq-page {
+  background: $soft-pearl;
+  min-height: 100vh;
+  color: $twilight-purple;
+}
+
+// Hero
+.faq-hero {
+  background: $twilight-purple;
+  background-image:
+    radial-gradient(ellipse at 80% 20%, rgba($serene-purple, 0.2) 0%, transparent 55%),
+    radial-gradient(ellipse at 10% 80%, rgba($serene-purple, 0.12) 0%, transparent 50%),
+    radial-gradient(circle, rgba($soft-pearl, 0.04) 1px, transparent 1px);
+  background-size: auto, auto, 24px 24px;
+  padding: $space-5xl clamp($space-lg, 6vw, 80px) $space-xxl;
+  overflow: hidden;
+
+  &__inner {
+    max-width: 100%;
+    animation: fade-up 0.7s ease both;
+  }
+
+  &__eyebrow {
+    @include center;
+    gap: $space-sm;
+    margin-bottom: $space-lg;
+    animation: fade-up 0.6s 0.1s ease both;
+
+    &::before {
+      content: '';
+      display: block;
+      width: 28px;
+      height: 1.5px;
+      background: rgba($soft-pearl, 0.25);
+      flex-shrink: 0;
+    }
+
+    span {
+      @include type-ui(0.9rem, $fw-regular);
+      color: rgba($soft-pearl, 0.45);
+    }
+  }
+
+  &__title {
+    @include type-display($weight: $fw-regular);
+    font-size: clamp(2.4rem, 5vw, 4rem);
+    color: $soft-pearl;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin: 0 0 $space-md;
+    animation: fade-up 0.65s 0.15s ease both;
+
+    em {
+      font-style: italic;
+      color: rgba($serene-purple, 0.8);
+      font-weight: $fw-regular;
+    }
+  }
+
+  &__sub {
+    @include type-ui($t-but-des, $fw-regular);
+    color: rgba($soft-pearl, 0.5);
+    line-height: $lh-loose;
+    margin: 0 0 $space-xxl;
+    max-width: 520px;
+    animation: fade-up 0.65s 0.2s ease both;
+  }
+
+  // Search bar
+  &__search {
+    @include relative;
+    @include center;
+    max-width: 560px;
+    background: rgba($soft-pearl, 0.08);
+    border: 1px solid rgba($soft-pearl, 0.18);
+    border-radius: 50px;
+    overflow: hidden;
+    transition: all 0.25s ease;
+    animation: fade-up 0.65s 0.25s ease both;
+
+    &:focus-within {
+      background: rgba($soft-pearl, 0.13);
+      border-color: rgba($soft-pearl, 0.35);
+      box-shadow: 0 0 0 4px rgba($serene-purple, 0.15);
+    }
+  }
+
+  &__search-icon {
+    position: absolute;
+    left: $space-lg;
+    color: rgba($soft-pearl, 0.35);
+    font-size: 1rem;
+    pointer-events: none;
+  }
+
+  &__search-input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    padding: 16px $space-xxl 16px 52px;
+    @include type-ui($t-but-des, $fw-regular);
+    color: $soft-pearl;
+    outline: none;
+
+    &::placeholder { color: rgba($soft-pearl, 0.3); }
+  }
+
+  &__search-clear {
+    @include none;
+    @include cursor;
+    @include center;
+    color: rgba($soft-pearl, 0.4);
+    padding: 0 $space-md;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    transition: color 0.2s;
+
+    &:hover { color: $soft-pearl; }
+  }
+}
+
+// Search results view
+.faq-search-results {
+  padding: $space-xxl clamp($space-lg, 5vw, 80px);
+  animation: fade-in 0.3s ease;
+
+  &__inner {
+    max-width: 820px;
+    @include margin-center;
+    @include column;
+    gap: $space-sm;
+  }
+
+  &__count {
+    @include type-ui($t-but-des, $fw-medium);
+    color: rgba($twilight-purple, 0.5);
+    margin-bottom: $space-md;
+  }
+
+  &__item {
+    @include column;
+    gap: 0;
+  }
+
+  &__category {
+    @include type-ui(0.68rem, $fw-bold);
+    @include label-caps(0.12em);
+    color: $serene-purple;
+    margin-bottom: $space-xs;
+    padding-left: $space-md;
+  }
+}
+
+// Empty state
+.faq-empty {
+  @include flex-column;
+  gap: $space-md;
+  padding: $space-xxl;
+  color: rgba($twilight-purple, 0.4);
+
+  i { font-size: 2.5rem; }
+
+  p {
+    @include type-ui($t-body-des, $fw-regular);
+    text-align: center;
+
+    a {
+      color: $serene-purple;
+      font-weight: $fw-bold;
+      text-decoration: none;
+      &:hover { text-decoration: underline; }
+    }
+  }
+}
+
+// Split layout
+.faq-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 0;
+  max-width: 1200px;
+  @include margin-center;
+  padding: $space-xxl clamp($space-lg, 4vw, $space-xxl);
+  align-items: start;
+  gap: $space-xxl;
+
+  @media (max-width: $bp-laptop) {
+    grid-template-columns: 1fr;
+    gap: $space-xl;
+    padding: $space-xl $space-lg;
+  }
+}
+
+// Sidebar
+.faq-sidebar {
+  position: sticky;
+  top: 100px;
+  @include column;
+  gap: $space-xs;
+
+  @media (max-width: $bp-laptop) {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: $space-sm;
+  }
+
+  @media (max-width: $bp-tablet) {
+    grid-template-columns: 1fr;
+  }
+
+  &__label {
+    @include type-ui(0.62rem, $fw-bold);
+    @include label-caps(0.18em);
+    color: rgba($twilight-purple, 0.35);
+    margin-bottom: $space-sm;
+    padding-left: $space-sm;
+
+    @media (max-width: $bp-laptop) { grid-column: 1 / -1; }
+  }
+
+  &__btn {
+    @include none;
+    @include cursor;
+    @include center;
+    gap: $space-sm;
+    @include type-ui($t-forgot-des, $fw-medium);
+    color: rgba($twilight-purple, 0.55);
+    padding: 10px $space-md;
+    border-radius: $radius-md;
+    border-left: 2px solid transparent;
+    text-align: left;
+    transition: all 0.2s ease;
+    background: transparent;
+    width: 100%;
+
+    &:hover {
+      color: $twilight-purple;
+      background: rgba($serene-purple, 0.07);
+      border-left-color: rgba($serene-purple, 0.4);
+    }
+
+    &--active {
+      color: $twilight-purple;
+      background: rgba($serene-purple, 0.1);
+      border-left-color: $twilight-purple;
+      font-weight: $fw-bold;
+
+      .faq-sidebar__btn-icon { color: $serene-purple; }
+    }
+
+    @media (max-width: $bp-laptop) {
+      border-left: none;
+      border-bottom: 2px solid transparent;
+      border-radius: $radius-md;
+
+      &--active {
+        border-left: none;
+        border-bottom-color: $serene-purple;
+        background: rgba($serene-purple, 0.08);
+      }
+    }
+  }
+
+  &__btn-icon {
+    font-size: 1rem;
+    color: rgba($twilight-purple, 0.35);
+    flex-shrink: 0;
+    transition: color 0.2s;
+  }
+
+  &__count {
+    margin-left: auto;
+    background: rgba($twilight-purple, 0.07);
+    color: rgba($twilight-purple, 0.45);
+    border-radius: 20px;
+    padding: 2px 8px;
+    @include type-ui(0.68rem, $fw-bold);
+    flex-shrink: 0;
+  }
+
+  &__contact {
+    margin-top: $space-xl;
+    padding: $space-lg;
+    background: rgba($twilight-purple, 0.03);
+    border: 1px solid rgba($twilight-purple, 0.08);
+    border-radius: $radius-lg;
+    @include column;
+    gap: $space-sm;
+
+    @media (max-width: $bp-laptop) { grid-column: 1 / -1; flex-direction: row; align-items: center; flex-wrap: wrap; }
+
+    p {
+      @include type-ui(0.78rem, $fw-regular);
+      color: rgba($twilight-purple, 0.5);
+      @include label-caps(0.06em);
+      margin: 0;
+    }
+  }
+
+  &__contact-link {
+    @include center;
+    gap: $space-xs;
+    @include type-ui($t-forgot-des, $fw-medium);
+    color: $serene-purple;
+    text-decoration: none;
+    transition: color 0.2s;
+
+    &:hover { color: $twilight-purple; }
+
+    i { font-size: 0.9rem; }
+  }
+}
+
+// Questions panel
+.faq-panel {
+  @include column;
+  gap: $space-xl;
+  animation: slide-in 0.3s ease both;
+
+  &__header {
+    @include center;
+    gap: $space-md;
+    padding-bottom: $space-lg;
+    border-bottom: 1.5px solid rgba($twilight-purple, 0.08);
+  }
+
+  &__header-icon {
+    @include icon-box(52px);
+    background: rgba($serene-purple, 0.1);
+    color: $serene-purple;
+    font-size: 1.4rem;
+    border-radius: $radius-lg;
+    flex-shrink: 0;
+  }
+
+  &__title {
+    @include type-display($weight: $fw-regular);
+    font-size: clamp(1.3rem, 2.5vw, 1.8rem);
+    color: $twilight-purple;
+    letter-spacing: -0.02em;
+    margin: 0 0 2px;
+    line-height: 1.2;
+  }
+
+  &__count {
+    @include type-ui(0.82rem, $fw-regular);
+    color: rgba($twilight-purple, 0.4);
+    margin: 0;
+  }
+}
+
+// Accordion
+.faq-accordion {
+  @include column;
+  gap: $space-sm;
+
+  &__item {
+    background: white;
+    border: 1.5px solid rgba($twilight-purple, 0.08);
+    border-radius: $radius-lg;
+    overflow: hidden;
+    transition: all 0.25s ease;
+
+    &:hover { border-color: rgba($twilight-purple, 0.15); }
+
+    &--open {
+      border-color: rgba($serene-purple, 0.3);
+      box-shadow: 0 4px 20px rgba($twilight-purple, 0.07);
+
+      .faq-accordion__btn {
+        color: $twilight-purple;
+        background: rgba($serene-purple, 0.04);
+      }
+    }
+  }
+
+  &__btn {
+    @include none;
+    @include cursor;
+    @include flex-between;
+    gap: $space-md;
+    width: 100%;
+    padding: $space-lg $space-xl;
+    text-align: left;
+    @include type-ui($t-body-des, $fw-medium);
+    color: rgba($twilight-purple, 0.8);
+    line-height: $lh-normal;
+    transition: all 0.2s ease;
+    background: transparent;
+
+    &:hover { color: $twilight-purple; }
+
+    span { flex: 1; }
+  }
+
+  &__icon {
+    font-size: 1.2rem;
+    color: $serene-purple;
+    flex-shrink: 0;
+    transition: transform 0.25s ease;
+  }
+
+  &__body {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.35s ease, opacity 0.3s ease, padding 0.3s ease;
+    padding: 0 $space-xl;
+
+    &--open {
+      max-height: 400px;
+      opacity: 1;
+      padding: 0 $space-xl $space-lg;
+    }
+
+    p {
+      @include type-ui($t-body-des, $fw-regular);
+      color: rgba($twilight-purple, 0.65);
+      line-height: $lh-loose;
+      margin: 0;
+      padding-top: $space-xs;
+      border-top: 1px solid rgba($twilight-purple, 0.06);
+      padding-top: $space-md;
+    }
+  }
+}
+
+// Bottom CTA
+.faq-cta {
+  background: $twilight-purple;
+  background-image:
+    radial-gradient(ellipse at 60% 0%, rgba($serene-purple, 0.2) 0%, transparent 55%),
+    radial-gradient(circle, rgba($soft-pearl, 0.04) 1px, transparent 1px);
+  background-size: auto, 24px 24px;
+  padding: $space-5xl clamp($space-lg, 6vw, 80px);
+  margin-top: $space-xxl;
+
+  &__inner {
+    max-width: 540px;
+    @include margin-center;
+    @include flex-column;
+    gap: $space-md;
+    text-align: center;
+  }
+
+  &__icon {
+    font-size: 2.2rem;
+    color: $serene-purple;
+    margin-bottom: $space-sm;
+  }
+
+  &__title {
+    @include type-display($weight: $fw-regular);
+    font-size: clamp(1.6rem, 3vw, 2.4rem);
+    color: $soft-pearl;
+    letter-spacing: -0.025em;
+    margin: 0;
+    line-height: 1.1;
+  }
+
+  &__sub {
+    @include type-ui($t-but-des, $fw-regular);
+    color: rgba($soft-pearl, 0.5);
+    line-height: $lh-loose;
+    margin: 0;
+    max-width: 420px;
+  }
+
+  &__actions {
+  @include center;
+  gap: $space-md;
+  flex-wrap: wrap;
+  margin-top: $space-sm;
+  width: 100%;
+  justify-content: center; 
+
+  @media (max-width: $bp-mobile) {
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+}
+
+&__btn {
+  @include center;
+  gap: $space-sm;
+  color: $soft-pearl !important;
+  border: 1px solid $soft-pearl;
+  @include type-ui($t-but-des, $fw-regular);
+  text-decoration: none;
+  padding: 12px $space-xl;
+  border-radius: 4px;
+  transition: all 0.22s ease;
+  border: none;
+  @include cursor;
+
+  @media (max-width: $bp-mobile) {
+    width: 100%;
+    max-width: 260px;
+    justify-content: center;
+  }
+
+  &--ghost {
+    background: transparent;
+    color: $soft-pearl;
+    border-bottom: 1px solid rgba($soft-pearl, 0.2);
+    border-radius: 0;
+    padding: 12px 0;
+
+    @media (max-width: $bp-mobile) {
+      border: 1px solid rgba($soft-pearl, 0.2);
+      border-radius: 4px;
+      padding: 12px $space-xl;
+    }
+
+    &:hover { color: $soft-pearl; border-color: $soft-pearl; }
+  }
+}
+}
