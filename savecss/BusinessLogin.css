@@ -1,0 +1,299 @@
+@font-face {
+  font-family: "Fredoka";
+  src: url("../Fonts/Fredoka/Fredoka-font.woff2") format("woff2");
+  font-weight: normal;
+  font-display: swap;
+  font-style: normal;
+}
+@font-face {
+  font-family: "Marcellus";
+  src: url("../Fonts/Marcellus/Marcellus-Regular.woff2") format("woff2");
+  font-weight: normal;
+  font-display: swap;
+  font-style: normal;
+}
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.biz-login {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: 600px 1fr;
+  font-family: "Fredoka", sans-serif;
+}
+@media (max-width: 1024px) {
+  .biz-login {
+    grid-template-columns: 1fr;
+  }
+}
+
+.biz-login__panel {
+  background: #3A2F51;
+  overflow: hidden;
+  position: relative;
+}
+.biz-login__panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 70% 60% at 0% 0%, rgba(146, 122, 207, 0.3) 0%, transparent 65%), radial-gradient(ellipse 50% 50% at 100% 100%, rgba(183, 158, 190, 0.15) 0%, transparent 60%);
+  pointer-events: none;
+}
+@media (max-width: 1024px) {
+  .biz-login__panel {
+    display: none;
+  }
+}
+
+.biz-login__panel-inner {
+  position: relative;
+  z-index: 1;
+  padding: 48px clamp(2rem, 5vw, 3rem);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.biz-login__home-link {
+  margin-top: 48px;
+  font-size: 1.2rem;
+  color: rgba(222, 214, 240, 0.65);
+  text-decoration: none;
+  transition: color 0.2s;
+  display: inline-block;
+}
+.biz-login__home-link:hover {
+  color: rgba(222, 214, 240, 0.75);
+}
+
+.biz-login__brand {
+  margin: auto 0;
+  padding: 48px 0;
+}
+.biz-login__brand-icon {
+  width: 152px;
+  height: 152px;
+  -o-object-fit: contain;
+     object-fit: contain;
+  margin-bottom: 32px;
+  opacity: 0.8;
+}
+.biz-login__brand h1 {
+  font-family: "Marcellus", serif;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 400;
+  color: #f7f7f7;
+  line-height: 1.1;
+  letter-spacing: 0.03em;
+  margin-bottom: 32px;
+}
+.biz-login__brand h1 em {
+  font-style: normal;
+  color: #927ACF;
+}
+.biz-login__brand p {
+  font-size: 1.2rem;
+  color: rgba(222, 214, 240, 0.5);
+  line-height: 1.75;
+  max-width: 400px;
+}
+
+.biz-login__panel-note {
+  margin-top: auto;
+  padding-top: 48px;
+}
+.biz-login__panel-note p {
+  font-size: 1.2rem;
+  color: rgba(222, 214, 240, 0.4);
+  margin-bottom: 8px;
+}
+
+.biz-login__register-link {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #927ACF;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.biz-login__register-link:hover {
+  color: rgb(182.8552486188, 166.9701657459, 223.2298342541);
+}
+
+.biz-login__panel-deco {
+  position: absolute;
+  bottom: -20px;
+  right: -20px;
+  pointer-events: none;
+}
+.biz-login__panel-deco img {
+  width: 160px;
+  height: 160px;
+  -o-object-fit: contain;
+     object-fit: contain;
+  opacity: 0.05;
+  filter: brightness(0) invert(1);
+}
+
+.biz-login__form-side {
+  background: #f7f7f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 24px;
+}
+
+.biz-login__form-inner {
+  width: 100%;
+  max-width: 500px;
+}
+
+.biz-login__form-header {
+  margin-bottom: 48px;
+}
+.biz-login__form-header h2 {
+  font-family: "Marcellus", serif;
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-weight: 400;
+  color: #3A2F51;
+  letter-spacing: 0.02em;
+  margin-bottom: 16px;
+}
+.biz-login__form-header p {
+  font-size: 1.2rem;
+  color: rgba(58, 47, 81, 0.5);
+  line-height: 1.65;
+}
+
+.biz-login__error {
+  background: rgba(220, 38, 38, 0.06);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+  border-radius: 10px;
+  padding: 16px 24px;
+  font-size: 1.2rem;
+  color: #b91c1c;
+  margin-bottom: 32px;
+  line-height: 1.5;
+}
+
+.biz-login__form {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  margin-bottom: 32px;
+}
+
+.biz-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.biz-field label {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: rgba(58, 47, 81, 0.7);
+}
+.biz-field input {
+  width: 100%;
+  background: #fff;
+  border: 1.5px solid rgba(58, 47, 81, 0.12);
+  border-radius: 10px;
+  padding: 16px 24px;
+  font-family: "Fredoka", sans-serif;
+  font-size: 1.2rem;
+  color: #3A2F51;
+  outline: none;
+  min-height: 48px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.biz-field input::-moz-placeholder {
+  color: rgba(58, 47, 81, 0.25);
+}
+.biz-field input::placeholder {
+  color: rgba(58, 47, 81, 0.25);
+}
+.biz-field input:focus {
+  border-color: #927ACF;
+  box-shadow: 0 0 0 3px rgba(146, 122, 207, 0.1);
+}
+.biz-field__hint {
+  font-size: 0.9rem;
+  color: rgba(58, 47, 81, 0.35);
+  line-height: 1.4;
+}
+
+.biz-login__submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  background: #3A2F51;
+  color: #f7f7f7;
+  border: none;
+  border-radius: 20px;
+  padding: 8px;
+  font-family: "Fredoka", sans-serif;
+  font-size: 1.2rem;
+  font-weight: 400;
+  cursor: pointer;
+  min-height: 52px;
+  transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+.biz-login__submit:hover:not(:disabled) {
+  background: rgb(39.5125, 32.01875, 55.18125);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 15px -3px rgba(88, 86, 214, 0.1), 0 4px 6px -2px rgba(88, 86, 214, 0.05);
+}
+.biz-login__submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.biz-login__spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(247, 247, 247, 0.3);
+  border-top-color: #f7f7f7;
+  border-radius: 20px;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.biz-login__contact {
+  text-align: center;
+  font-size: 1.2rem;
+  color: rgba(58, 47, 81, 0.4);
+  line-height: 1.5;
+}
+.biz-login__contact a {
+  color: #927ACF;
+  text-decoration: none;
+  font-weight: 500;
+}
+.biz-login__contact a:hover {
+  text-decoration: underline;
+}
+
+.biz-login_noaccount {
+  margin-top: 8px;
+  text-align: center;
+  font-size: 1.2rem;
+  color: rgba(58, 47, 81, 0.4);
+  line-height: 1.5;
+}
+.biz-login_noaccount a {
+  color: #927ACF;
+  text-decoration: none;
+  font-weight: 500;
+}
+.biz-login_noaccount a:hover {
+  text-decoration: underline;
+}/*# sourceMappingURL=BusinessLogin.css.map */

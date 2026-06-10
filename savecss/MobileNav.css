@@ -1,0 +1,324 @@
+@font-face {
+  font-family: "Fredoka";
+  src: url("../Fonts/Fredoka/Fredoka-font.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: "Marcellus";
+  src: url("../Fonts/Marcellus/Marcellus-Regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+.sidebar-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 32px 16px;
+  gap: 0;
+  overflow-y: auto;
+}
+.sidebar-inner::-webkit-scrollbar {
+  width: 3px;
+}
+.sidebar-inner::-webkit-scrollbar-thumb {
+  background: rgba(146, 122, 207, 0.2);
+  border-radius: 2px;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 4px 32px;
+  border-bottom: 1px solid rgba(146, 122, 207, 0.15);
+  margin-bottom: 24px;
+}
+
+.sidebar-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(146, 122, 207, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+.sidebar-brand-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sidebar-app-name {
+  font-family: "Marcellus", serif;
+  font-size: 1.5rem;
+  font-weight: 400;
+  color: #3A2F51;
+  line-height: 1;
+}
+
+.sidebar-dog-name {
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.9rem;
+  color: #B79EBE;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.sidebar-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 10px;
+  background: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.18s;
+  color: #B79EBE;
+  font-family: "Fredoka", sans-serif;
+  font-size: 1.2rem;
+  font-weight: 400;
+}
+.sidebar-link:hover {
+  background: rgba(146, 122, 207, 0.07);
+  color: #3A2F51;
+}
+.sidebar-link.active {
+  background: rgba(146, 122, 207, 0.1);
+  color: #3A2F51;
+  font-weight: 500;
+}
+
+.sidebar-link-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  width: 22px;
+  text-align: center;
+}
+
+.sidebar-link-label {
+  flex: 1;
+}
+
+.sidebar-link-indicator {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #927ACF;
+  flex-shrink: 0;
+}
+
+.sidebar-footer {
+  padding-top: 24px;
+  border-top: 1px solid rgba(146, 122, 207, 0.15);
+  margin-top: 24px;
+}
+
+.sidebar-footer-text {
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.9rem;
+  color: #B79EBE;
+}
+
+.desktop-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 240px;
+  height: 100vh;
+  background: #f7f7f7;
+  border-right: 1px solid rgba(146, 122, 207, 0.15);
+  box-shadow: 0 1px 3px 0 rgba(88, 86, 214, 0.1), 0 1px 2px 0 rgba(88, 86, 214, 0.06);
+  z-index: 100;
+}
+@media (max-width: 1024px) {
+  .desktop-sidebar {
+    display: none;
+  }
+}
+
+.mobile-topbar {
+  display: none;
+}
+@media (max-width: 1024px) {
+  .mobile-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: #f7f7f7;
+    border-bottom: 1px solid rgba(146, 122, 207, 0.15);
+    padding: 0 16px;
+    z-index: 200;
+    box-shadow: 0 1px 3px 0 rgba(88, 86, 214, 0.1), 0 1px 2px 0 rgba(88, 86, 214, 0.06);
+  }
+}
+
+.mobile-topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mobile-topbar-avatar {
+  font-size: 1.3rem;
+}
+
+.mobile-topbar-name {
+  font-family: "Marcellus", serif;
+  font-size: 1.5rem;
+  color: #3A2F51;
+}
+
+.hamburger {
+  background: none;
+  border: 1.5px solid rgba(146, 122, 207, 0.15);
+  border-radius: 5px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.2s;
+}
+.hamburger:hover {
+  border-color: #927ACF;
+  background: rgba(146, 122, 207, 0.05);
+}
+.hamburger.is-open {
+  border-color: #927ACF;
+}
+.hamburger.is-open .hamburger-bar:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+.hamburger.is-open .hamburger-bar:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+.hamburger.is-open .hamburger-bar:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+.hamburger-bar {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: #927ACF;
+  border-radius: 2px;
+  transition: all 0.25s ease;
+  transform-origin: center;
+}
+
+.mobile-overlay {
+  display: none;
+}
+@media (max-width: 1024px) {
+  .mobile-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(58, 47, 81, 0.45);
+    backdrop-filter: blur(3px);
+    z-index: 299;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  .mobile-overlay.is-visible {
+    opacity: 1;
+    pointer-events: all;
+  }
+}
+
+.mobile-drawer {
+  display: none;
+}
+@media (max-width: 1024px) {
+  .mobile-drawer {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: min(240px, 80vw);
+    height: 100vh;
+    background: #f7f7f7;
+    box-shadow: 0 25px 50px -12px rgba(88, 86, 214, 0.25);
+    z-index: 300;
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .mobile-drawer.is-open {
+    transform: translateX(0);
+  }
+}
+
+.drawer-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: 1.5px solid rgba(146, 122, 207, 0.15);
+  border-radius: 5px;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #B79EBE;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.18s;
+  z-index: 1;
+}
+.drawer-close:hover {
+  border-color: #927ACF;
+  color: #3A2F51;
+}
+
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.app-main {
+  flex: 1;
+  min-width: 0;
+  padding: 32px;
+}
+@media (min-width: 1025px) {
+  .app-main {
+    margin-left: 240px;
+  }
+}
+@media (max-width: 1024px) {
+  .app-main {
+    padding: 16px;
+    margin-top: 60px;
+  }
+}
+@media (max-width: 480px) {
+  .app-main {
+    padding: 8px;
+  }
+}/*# sourceMappingURL=MobileNav.css.map */

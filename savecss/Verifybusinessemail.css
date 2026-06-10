@@ -1,0 +1,129 @@
+@font-face {
+  font-family: "Fredoka";
+  src: url("../Fonts/Fredoka/Fredoka-font.woff2") format("woff2");
+  font-weight: normal;
+  font-display: swap;
+  font-style: normal;
+}
+@font-face {
+  font-family: "Marcellus";
+  src: url("../Fonts/Marcellus/Marcellus-Regular.woff2") format("woff2");
+  font-weight: normal;
+  font-display: swap;
+  font-style: normal;
+}
+.vbe-page {
+  min-height: 100dvh;
+  background: #3A2F51;
+  background-image: radial-gradient(ellipse 70% 60% at 20% 20%, rgba(146, 122, 207, 0.2) 0%, transparent 70%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+  font-family: "Fredoka", sans-serif;
+}
+
+.vbe-card {
+  background: #f7f7f7;
+  border-radius: 20px;
+  padding: 48px 48px;
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 25px -5px rgba(88, 86, 214, 0.1), 0 10px 10px -5px rgba(88, 86, 214, 0.04);
+  display: flex;
+  align-items: center;
+  text-align: center;
+  flex-direction: column;
+  gap: 24px;
+}
+@media (max-width: 480px) {
+  .vbe-card {
+    padding: 32px 24px;
+  }
+}
+
+.vbe-spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid rgba(146, 122, 207, 0.2);
+  border-top-color: #927ACF;
+  border-radius: 50%;
+  animation: vbeSpin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes vbeSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.vbe-icon {
+  font-size: 3rem;
+  line-height: 1;
+  animation: vbePop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes vbePop {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.vbe-title {
+  font-family: "Marcellus", serif;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 400;
+  color: #3A2F51;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.vbe-text {
+  font-size: 1.2rem;
+  color: rgba(58, 47, 81, 0.6);
+  line-height: 1.7;
+  max-width: 360px;
+  margin: 0;
+}
+
+.vbe-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #927ACF;
+  color: #f7f7f7;
+  text-decoration: none;
+  padding: 16px 48px;
+  border-radius: 20px;
+  font-family: "Fredoka", sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 6px -1px rgba(88, 86, 214, 0.1), 0 2px 4px -1px rgba(88, 86, 214, 0.06);
+  min-height: 48px;
+  margin-top: 8px;
+}
+.vbe-btn:hover {
+  background: #B79EBE;
+  transform: translateY(-2px);
+  box-shadow: 0 0 20px rgba(149, 128, 255, 0.4);
+}
+.vbe-btn--outline {
+  background: none;
+  color: #3A2F51;
+  border: 1.5px solid rgba(58, 47, 81, 0.25);
+  box-shadow: none;
+}
+.vbe-btn--outline:hover {
+  background: rgba(58, 47, 81, 0.05);
+  border-color: rgba(58, 47, 81, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 1px 3px 0 rgba(88, 86, 214, 0.1), 0 1px 2px 0 rgba(88, 86, 214, 0.06);
+}/*# sourceMappingURL=Verifybusinessemail.css.map */
