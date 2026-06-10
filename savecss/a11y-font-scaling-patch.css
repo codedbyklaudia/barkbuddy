@@ -1,0 +1,161 @@
+html[style*="--a11y-font-size: 19px"] .navigation__container,
+html[style*="--a11y-font-size: 22px"] .navigation__container {
+  height: auto !important;
+  min-height: 56px;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+html[style*="--a11y-font-size: 19px"] .navigation__logo-img,
+html[style*="--a11y-font-size: 22px"] .navigation__logo-img {
+  height: clamp(36px, 2.6rem, 48px) !important;
+}
+html[style*="--a11y-font-size: 19px"] .navigation__menu-link,
+html[style*="--a11y-font-size: 22px"] .navigation__menu-link {
+  font-size: 0.85rem !important;
+  padding: 0.4em 0.7em !important;
+}
+html[style*="--a11y-font-size: 19px"] .btn--nav,
+html[style*="--a11y-font-size: 22px"] .btn--nav {
+  font-size: 0.8rem !important;
+  padding: 0.4em 0.9em !important;
+}
+html[style*="--a11y-font-size: 19px"] .navigation__user-trigger-name,
+html[style*="--a11y-font-size: 22px"] .navigation__user-trigger-name {
+  display: none;
+}
+html[style*="--a11y-font-size: 19px"] .navigation__hamburger,
+html[style*="--a11y-font-size: 22px"] .navigation__hamburger {
+  width: auto !important;
+  height: auto !important;
+  padding: 0.4em !important;
+}
+html[style*="--a11y-font-size: 19px"] .navigation__mobile ul li > a,
+html[style*="--a11y-font-size: 19px"] .navigation__mobile-toggle,
+html[style*="--a11y-font-size: 19px"] .navigation__mobile-user-link,
+html[style*="--a11y-font-size: 22px"] .navigation__mobile ul li > a,
+html[style*="--a11y-font-size: 22px"] .navigation__mobile-toggle,
+html[style*="--a11y-font-size: 22px"] .navigation__mobile-user-link {
+  font-size: 1rem !important;
+  padding: 0.6em 0.75em !important;
+  height: auto !important;
+}
+html[style*="--a11y-font-size: 19px"] .tips-controls__inner,
+html[style*="--a11y-font-size: 22px"] .tips-controls__inner {
+  height: auto !important;
+  min-height: unset !important;
+  padding-top: 0.5rem !important;
+  padding-bottom: 0.5rem !important;
+  flex-wrap: wrap;
+  gap: 0.5rem !important;
+}
+html[style*="--a11y-font-size: 19px"] .tips-nav__dropdown-trigger,
+html[style*="--a11y-font-size: 22px"] .tips-nav__dropdown-trigger {
+  font-size: 0.85rem !important;
+  padding: 0.4em 0.75em !important;
+  height: auto !important;
+}
+html[style*="--a11y-font-size: 19px"] .tips-search__input,
+html[style*="--a11y-font-size: 22px"] .tips-search__input {
+  font-size: 0.85rem !important;
+  padding-top: 0.45em !important;
+  padding-bottom: 0.45em !important;
+}
+html[style*="--a11y-font-size: 19px"] .tips-count,
+html[style*="--a11y-font-size: 22px"] .tips-count {
+  font-size: 0.8rem !important;
+  padding: 0.3em 0 !important;
+}
+html[style*="--a11y-font-size: 19px"] .finder-search__bar,
+html[style*="--a11y-font-size: 22px"] .finder-search__bar {
+  padding: 0.4rem !important;
+}
+html[style*="--a11y-font-size: 19px"] .finder-search__input,
+html[style*="--a11y-font-size: 22px"] .finder-search__input {
+  font-size: 1rem !important;
+  padding-top: 0.5em !important;
+  padding-bottom: 0.5em !important;
+}
+html[style*="--a11y-font-size: 19px"] .finder-search__button,
+html[style*="--a11y-font-size: 22px"] .finder-search__button {
+  padding: 0.6em !important;
+}
+html[style*="--a11y-font-size: 19px"] .type-btn__circle,
+html[style*="--a11y-font-size: 22px"] .type-btn__circle {
+  width: 52px !important;
+  height: 52px !important;
+}
+html[style*="--a11y-font-size: 19px"] .type-btn__label,
+html[style*="--a11y-font-size: 22px"] .type-btn__label {
+  font-size: 0.6rem !important;
+}
+html[style*="--a11y-font-size: 19px"] .rb-hero__right,
+html[style*="--a11y-font-size: 22px"] .rb-hero__right {
+  padding: 1.5rem 1rem !important;
+}
+html[style*="--a11y-font-size: 19px"] .rb-input,
+html[style*="--a11y-font-size: 22px"] .rb-input {
+  min-height: auto !important;
+  padding: 0.5em 0.75em !important;
+  font-size: 0.9rem !important;
+}
+html[style*="--a11y-font-size: 19px"] .rb-btn-next,
+html[style*="--a11y-font-size: 22px"] .rb-btn-next {
+  min-height: auto !important;
+  padding: 0.6em 1em !important;
+  font-size: 0.85rem !important;
+}
+html[style*="--a11y-font-size: 19px"] .listing-card__title,
+html[style*="--a11y-font-size: 22px"] .listing-card__title {
+  font-size: 0.95rem !important;
+}
+html[style*="--a11y-font-size: 19px"] .listing-card__meta,
+html[style*="--a11y-font-size: 22px"] .listing-card__meta {
+  font-size: 0.75rem !important;
+}
+html[style*="--a11y-font-size: 19px"] .listing-card__badge,
+html[style*="--a11y-font-size: 22px"] .listing-card__badge {
+  font-size: 0.65rem !important;
+}
+html[style*="--a11y-font-size: 19px"] .tip-card__title,
+html[style*="--a11y-font-size: 22px"] .tip-card__title {
+  font-size: 0.95rem !important;
+}
+html[style*="--a11y-font-size: 19px"] .tip-card__summary,
+html[style*="--a11y-font-size: 22px"] .tip-card__summary {
+  font-size: 0.82rem !important;
+}
+html[style*="--a11y-font-size: 19px"] .tip-card__read,
+html[style*="--a11y-font-size: 22px"] .tip-card__read {
+  font-size: 0.8rem !important;
+}
+
+html[style*="--a11y-font-size: 22px"] .navigation__menu {
+  gap: 0 !important;
+}
+html[style*="--a11y-font-size: 22px"] .navigation__menu-link {
+  font-size: 0.75rem !important;
+  padding: 0.35em 0.5em !important;
+}
+@media (max-width: 1300px) {
+  html[style*="--a11y-font-size: 22px"] .navigation__menu-link {
+    font-size: 0 !important;
+    padding: 0.3em 0.4em !important;
+  }
+  html[style*="--a11y-font-size: 22px"] .navigation__menu-link i {
+    font-size: 1rem !important;
+  }
+}
+html[style*="--a11y-font-size: 22px"] .navigation__mobile--open {
+  max-height: calc(100vh - 56px) !important;
+}
+html[style*="--a11y-font-size: 22px"] .tips-controls__inner {
+  flex-wrap: wrap !important;
+}
+html[style*="--a11y-font-size: 22px"] .tips-search {
+  flex: 1 1 100% !important;
+}
+@media (min-width: 600px) {
+  html[style*="--a11y-font-size: 22px"] .tips-search {
+    flex: 1 !important;
+  }
+}/*# sourceMappingURL=a11y-font-scaling-patch.css.map */
