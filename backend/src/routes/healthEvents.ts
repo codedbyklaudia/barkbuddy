@@ -8,15 +8,13 @@ router.use(authenticate);
 
 const VALID_TYPES = ["vaccine", "flea_tick", "worming", "vet", "grooming", "custom"];
 
-// ─── GET all events ───────────────────────────────────────────────────────────
-// due_date::text prevents pg driver converting DATE → UTC midnight JS Date,
-// which in BST (UTC+1) would roll the day back by 1.
-// Now also returns dog_id, dog_name so the frontend can colour-code per dog.
+// GET all events
 router.get("/", async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const result = await pool.query(
       `SELECT he.id, he.dog_id, he.type, he.title, he.notes,
               he.due_date::text,
+              he.time::text,
               he.completed, he.completed_at,
               he.created_at, he.updated_at,
               d.name     AS dog_name,
@@ -34,15 +32,15 @@ router.get("/", async (req: AuthRequest, res: Response): Promise<void> => {
   }
 });
 
-// ─── POST — add a new health event ───────────────────────────────────────────
-// Now accepts optional dog_id. Falls back to the user's primary dog if omitted
-// (keeps backward compat with any old clients that don't send dog_id yet).
+// POST — add a new health event
 router.post("/", [
   body("type").isIn(VALID_TYPES).withMessage("Invalid event type"),
   body("title").trim().isLength({ min: 1, max: 150 }).withMessage("Title is required"),
   body("due_date").isDate().withMessage("Please provide a valid date"),
   body("notes").optional().trim(),
   body("dog_id").optional().isUUID().withMessage("Invalid dog_id"),
+  body("time").optional({ nullable: true })
+    .matches(/^([01]\d|2[0-3]):([0-5]\d)$/).withMessage("Time must be HH:mm"),
 ], async (req: AuthRequest, res: Response): Promise<void> => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -56,13 +54,13 @@ router.post("/", [
     return;
   }
 
-  const { type, title, notes, due_date, dog_id } = req.body;
+  const { type, title, notes, due_date, dog_id, time } = req.body;
 
   try {
     let resolvedDogId = dog_id;
 
     if (!resolvedDogId) {
-      // Fallback: use primary dog (or first dog) — keeps old behaviour intact
+      // Fallback: use primary dog (or first dog)
       const dogResult = await pool.query(
         "SELECT id FROM dogs WHERE user_id = $1 ORDER BY is_main DESC, created_at ASC LIMIT 1",
         [req.user!.userId]
@@ -85,12 +83,13 @@ router.post("/", [
     }
 
     const result = await pool.query(
-      `INSERT INTO health_events (dog_id, user_id, type, title, notes, due_date)
-       VALUES ($1, $2, $3, $4, $5, $6)
+      `INSERT INTO health_events (dog_id, user_id, type, title, notes, due_date, time)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING id, dog_id, type, title, notes,
                  due_date::text,
+                 time::text,
                  completed, completed_at, created_at`,
-      [resolvedDogId, req.user!.userId, type, title, notes || null, due_date]
+      [resolvedDogId, req.user!.userId, type, title, notes || null, due_date, time || null]
     );
 
     // Fetch dog name to return with event
@@ -112,7 +111,7 @@ router.post("/", [
   }
 });
 
-// ─── PATCH /:id/complete — mark done / undone ─────────────────────────────────
+// PATCH /:id/complete — mark done / undone
 router.patch("/:id/complete", async (req: AuthRequest, res: Response): Promise<void> => {
   const { completed } = req.body;
 
@@ -125,6 +124,7 @@ router.patch("/:id/complete", async (req: AuthRequest, res: Response): Promise<v
        WHERE id = $3 AND user_id = $4
        RETURNING id, dog_id, type, title,
                  due_date::text,
+                 time::text,
                  completed, completed_at`,
       [completed, completed ? new Date() : null, req.params.id, req.user!.userId]
     );
@@ -152,14 +152,16 @@ router.patch("/:id/complete", async (req: AuthRequest, res: Response): Promise<v
   }
 });
 
-// ─── PATCH /:id — edit title / due_date / notes / dog_id ─────────────────────
+// PATCH /:id — edit title / due_date / notes / dog_id / time
 router.patch("/:id", [
   body("title").optional().trim().isLength({ min: 1, max: 150 }),
   body("due_date").optional().isDate(),
   body("notes").optional().trim(),
   body("dog_id").optional().isUUID(),
+  body("time").optional({ nullable: true })
+    .matches(/^([01]\d|2[0-3]):([0-5]\d)$/).withMessage("Time must be HH:mm"),
 ], async (req: AuthRequest, res: Response): Promise<void> => {
-  const { title, due_date, notes, dog_id } = req.body;
+  const { title, due_date, notes, dog_id, time } = req.body;
 
   try {
     const updates: string[] = [];
@@ -174,6 +176,7 @@ router.patch("/:id", [
     if (due_date !== undefined) add("due_date", due_date);
     if (notes    !== undefined) add("notes",    notes);
     if (dog_id   !== undefined) add("dog_id",   dog_id);
+    if (time     !== undefined) add("time",     time || null);
 
     if (updates.length === 0) {
       res.status(400).json({ message: "No changes provided" });
@@ -188,6 +191,7 @@ router.patch("/:id", [
        WHERE id = $${params.length - 1} AND user_id = $${params.length}
        RETURNING id, dog_id, type, title, notes,
                  due_date::text,
+                 time::text,
                  completed, completed_at`,
       params
     );
@@ -215,7 +219,7 @@ router.patch("/:id", [
   }
 });
 
-// DELETE /:id 
+// DELETE /:id
 router.delete("/:id", async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const result = await pool.query(
