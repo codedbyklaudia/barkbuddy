@@ -510,18 +510,20 @@ router.get("/:userId/posts", async (req: AuthRequest, res: Response): Promise<vo
     try {
         const result = await pool.query(
             `SELECT 
-                p.id,
-                p.title,
-                p.content,
-                p.category,
-                p.created_at AS "createdAt",
-                COUNT(DISTINCT c.id) AS "commentCount",
-                COUNT(DISTINCT l.id) AS "likeCount"
-            FROM forum_posts p
-            LEFT JOIN forum_comments c ON c.post_id = p.id
-            LEFT JOIN forum_likes l ON l.post_id = p.id
-            WHERE p.user_id = $1
-            ORDER BY p.created_at DESC`,
+                fp.id,
+                fp.title,
+                fp.content,
+                fp.category,
+                (fp.created_at AT TIME ZONE 'UTC')::text AS "createdAt",
+                (
+                    SELECT COUNT(*)::int 
+                    FROM forum_comments fc 
+                    WHERE fc.post_id = fp.id
+                ) AS "commentCount"
+            FROM forum_posts fp
+            WHERE fp.user_id = $1
+            AND fp.is_published = true
+            ORDER BY fp.created_at DESC`,
             [req.params.userId]
         );
         res.json({ posts: result.rows, total: result.rows.length });
