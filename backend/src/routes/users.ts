@@ -506,6 +506,30 @@ router.get("/:userId/dogs", async (req: AuthRequest, res: Response): Promise<voi
         res.status(500).json({ message: "Something went wrong." });
     }
 });
+router.get("/:userId/posts", async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+        const result = await pool.query(
+            `SELECT 
+                p.id,
+                p.title,
+                p.content,
+                p.category,
+                p.created_at AS "createdAt",
+                COUNT(DISTINCT c.id) AS "commentCount",
+                COUNT(DISTINCT l.id) AS "likeCount"
+            FROM forum_posts p
+            LEFT JOIN forum_comments c ON c.post_id = p.id
+            LEFT JOIN forum_likes l ON l.post_id = p.id
+            WHERE p.user_id = $1
+            ORDER BY p.created_at DESC`,
+            [req.params.userId]
+        );
+        res.json({ posts: result.rows, total: result.rows.length });
+    } catch (err) {
+        console.error("GET /users/:userId/posts error:", err);
+        res.status(500).json({ message: "Something went wrong." });
+    }
+});
 // GET /api/users/search
 router.get("/search", async (req: AuthRequest, res: Response): Promise<void> => {
   try {
