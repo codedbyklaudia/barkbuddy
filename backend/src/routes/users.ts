@@ -532,6 +532,22 @@ router.get("/:userId/posts", async (req: AuthRequest, res: Response): Promise<vo
         res.status(500).json({ message: "Something went wrong." });
     }
 });
+router.get("/:userId/stats", async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+        const result = await pool.query(
+            `SELECT 
+                COALESCE(ROUND(SUM(distance_km)::numeric, 1), 0) AS "totalKm",
+                COUNT(*) AS "totalWalks"
+            FROM walks
+            WHERE user_id = $1`,
+            [req.params.userId]
+        );
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error("GET /users/:userId/stats error:", err);
+        res.status(500).json({ message: "Something went wrong." });
+    }
+});
 // GET /api/users/search
 router.get("/search", async (req: AuthRequest, res: Response): Promise<void> => {
   try {
