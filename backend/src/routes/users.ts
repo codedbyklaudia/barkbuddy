@@ -492,7 +492,20 @@ router.post("/me/dogs/:dogId/avatar", uploadDogAvatar.single("avatar"), async (r
     res.status(500).json({ message: "Failed to upload image" });
   }
 });
-
+router.get("/:userId/dogs", async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+        const result = await pool.query(
+            `SELECT id, name, breed, gender, dob,
+             life_stage AS "lifeStage",
+             avatar_url AS "avatarUrl"
+             FROM dogs WHERE user_id = $1 ORDER BY is_main DESC, created_at ASC`,
+            [req.params.userId]
+        );
+        res.json({ dogs: result.rows });
+    } catch (err) {
+        res.status(500).json({ message: "Something went wrong." });
+    }
+});
 // GET /api/users/search
 router.get("/search", async (req: AuthRequest, res: Response): Promise<void> => {
   try {
