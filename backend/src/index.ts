@@ -93,6 +93,7 @@ app.use("/api/business",           businessAuthRouter);
 app.use("/api/business",           businessRoutes);
 app.use("/api/listings",           listingsRouter);
 app.use("/api/walks",              walksRouter);
+app.use("/api/reports",            reportsRouter);
 app.use("/api/chat",               chatRouter);
 
 app.get("/api/listings/new", async (_req, res) => {
