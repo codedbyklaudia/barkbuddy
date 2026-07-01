@@ -245,6 +245,14 @@ router.post("/register", registerValidation, async (req: Request, res: Response)
             ? calculateLifeStage(dogDob)
             : lifeStage;
 
+        // Log incoming payload in dev so you can see what arrived
+        console.log("Register payload:", {
+            name, email, dogName, breed,
+            dogGender, dogDob, lifeStage, resolvedLifeStage,
+            personalityType: typeof personality,
+            personality,
+        });
+
         await client.query("BEGIN");
 
         const userResult = await client.query(
@@ -254,6 +262,14 @@ router.post("/register", registerValidation, async (req: Request, res: Response)
             [name, email, passwordHash]
         );
         const user = userResult.rows[0];
+
+        // Normalise personality — accept both JS array and JSON string from client
+        let personalityValue: string[] = [];
+        if (Array.isArray(personality)) {
+            personalityValue = personality;
+        } else if (typeof personality === "string") {
+            try { personalityValue = JSON.parse(personality); } catch { personalityValue = []; }
+        }
 
         const dogResult = await client.query(
             `INSERT INTO dogs (user_id, name, gender, breed, dob, life_stage, personality)
@@ -266,7 +282,7 @@ router.post("/register", registerValidation, async (req: Request, res: Response)
                 breed            || "Mixed Breed",
                 dogDob           || null,
                 resolvedLifeStage || null,
-                personality,
+                personalityValue,
             ]
         );
         const dog = dogResult.rows[0];
@@ -294,9 +310,11 @@ router.post("/register", registerValidation, async (req: Request, res: Response)
                 personality: dog.personality,
             },
         });
-    } catch (err) {
+    } catch (err: any) {
         await client.query("ROLLBACK");
-        console.error("Register error:", err);
+        console.error("Register error:", err?.message || err);
+        console.error("Register error detail:", err?.detail || "");
+        console.error("Register error code:", err?.code || "");
         res.status(500).json({ message: "Something went wrong. Please try again." });
     } finally {
         client.release();
