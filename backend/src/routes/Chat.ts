@@ -166,11 +166,17 @@ router.get("/conversations/:id/members", async (req: AuthRequest, res: Response)
         if (access.rows.length === 0) { res.status(403).json({ message: "Forbidden" }); return; }
 
         const result = await pool.query(
-            `SELECT u.id, u.name, u.avatar_url AS "avatarUrl", cm.joined_at AS "joinedAt"
+            `SELECT
+               u.id,
+               u.name,
+               u.avatar_url  AS "avatarUrl",
+               cm.joined_at  AS "joinedAt",
+               (c.created_by = u.id) AS "isCreator"
              FROM conversation_members cm
              JOIN users u ON u.id = cm.user_id
+             JOIN conversations c ON c.id = cm.conversation_id
              WHERE cm.conversation_id = $1
-             ORDER BY cm.joined_at ASC`,
+             ORDER BY "isCreator" DESC, cm.joined_at ASC`,
             [convId]
         );
         res.json({ members: result.rows });
@@ -190,7 +196,7 @@ router.post("/conversations/:id/members", async (req: AuthRequest, res: Response
 
     try {
         const access = await pool.query(
-            `SELECT c.is_group FROM conversations c
+            `SELECT c.is_group, c.created_by FROM conversations c
              JOIN conversation_members cm ON cm.conversation_id = c.id AND cm.user_id = $1
              WHERE c.id = $2`,
             [requesterId, convId]
@@ -198,6 +204,9 @@ router.post("/conversations/:id/members", async (req: AuthRequest, res: Response
         if (access.rows.length === 0) { res.status(403).json({ message: "Forbidden" }); return; }
         if (!access.rows[0].is_group) {
             res.status(400).json({ message: "Cannot add members to a 1:1 chat" }); return;
+        }
+        if (access.rows[0].created_by !== requesterId) {
+            res.status(403).json({ message: "Only the group admin can add members" }); return;
         }
 
         await pool.query(
@@ -238,13 +247,16 @@ router.delete("/conversations/:id/members/:userId", async (req: AuthRequest, res
 
     try {
         const access = await pool.query(
-            `SELECT c.is_group FROM conversations c
+            `SELECT c.is_group, c.created_by FROM conversations c
              JOIN conversation_members cm ON cm.conversation_id = c.id AND cm.user_id = $1
              WHERE c.id = $2`,
             [requesterId, convId]
         );
         if (access.rows.length === 0) { res.status(403).json({ message: "Forbidden" }); return; }
         if (!access.rows[0].is_group) { res.status(400).json({ message: "Not a group" }); return; }
+        if (access.rows[0].created_by !== requesterId) {
+            res.status(403).json({ message: "Only the group admin can remove members" }); return;
+        }
 
         await pool.query(
             `DELETE FROM conversation_members WHERE conversation_id = $1 AND user_id = $2`,
