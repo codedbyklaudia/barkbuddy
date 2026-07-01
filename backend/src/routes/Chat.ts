@@ -398,6 +398,64 @@ router.delete("/conversations/:id", async (req: AuthRequest, res: Response): Pro
     }
 });
 
+// ── POST /api/chat/send-image — upload image and send as message ──────────────
+// Multipart: conversationId (text) + image (file)
+// SQL: ALTER TABLE messages ADD COLUMN IF NOT EXISTS image_url TEXT;
+router.post(
+    "/send-image",
+    upload.single("image"),
+    async (req: AuthRequest, res: Response): Promise<void> => {
+        const userId = req.user!.userId;
+        const convId = req.body.conversationId as string;
+
+        if (!convId)    { res.status(400).json({ message: "conversationId required" }); return; }
+        if (!req.file)  { res.status(400).json({ message: "No image uploaded" });       return; }
+
+        try {
+            // Verify membership
+            const access = await pool.query(
+                `SELECT 1 FROM conversation_members WHERE conversation_id = $1 AND user_id = $2`,
+                [convId, userId]
+            );
+            if (access.rows.length === 0) { res.status(403).json({ message: "Forbidden" }); return; }
+
+            // Upload to Cloudinary
+            const imageUrl: string = await new Promise((resolve, reject) => {
+                const stream = cloudinary.uploader.upload_stream(
+                    {
+                        folder: "barkbuddy/chat_images",
+                        transformation: [{ width: 1200, crop: "limit", quality: "auto" }],
+                    },
+                    (err, result) => {
+                        if (err || !result) return reject(err);
+                        resolve(result.secure_url);
+                    }
+                );
+                streamifier.createReadStream(req.file!.buffer).pipe(stream);
+            });
+
+            // Insert message with image_url
+            const msg = await pool.query(
+                `INSERT INTO messages (conversation_id, sender_id, content, image_url)
+                 VALUES ($1, $2, '', $3)
+                 RETURNING id, sender_id AS "senderId", content, image_url AS "imageUrl", created_at AS "createdAt"`,
+                [convId, userId, imageUrl]
+            );
+
+            // Update conversation preview
+            await pool.query(
+                `UPDATE conversations SET last_message = '📷 Image', last_message_at = NOW() WHERE id = $1`,
+                [convId]
+            );
+
+            res.status(201).json({ message: msg.rows[0] });
+        } catch (err) {
+            console.error("POST /chat/send-image error:", err);
+            res.status(500).json({ message: "Something went wrong." });
+        }
+    }
+);
+
 // ── GET /api/chat/conversations/:id/messages ──────────────────────────────────
 router.get("/conversations/:id/messages", async (req: AuthRequest, res: Response): Promise<void> => {
     const userId = req.user!.userId;
@@ -421,6 +479,7 @@ router.get("/conversations/:id/messages", async (req: AuthRequest, res: Response
                m.id,
                m.sender_id  AS "senderId",
                m.content,
+               m.image_url  AS "imageUrl",
                m.read_at    AS "readAt",
                m.created_at AS "createdAt",
                u.name       AS "senderName",
