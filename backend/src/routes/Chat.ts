@@ -1,12 +1,16 @@
 import { Router, Response } from "express";
+import multer from "multer";
+import { v2 as cloudinary } from "cloudinary";
+import streamifier from "streamifier";
 import pool from "../db";
 import { authenticate, AuthRequest } from "../middleware/auth";
 
 const router = Router();
+const upload = multer({ storage: multer.memoryStorage() });
 router.use(authenticate);
 
-// GET /api/chat/conversations
-// Returns all conversations for the current user.
+// ── GET /api/chat/conversations ───────────────────────────────────────────────
+// Optional ?q= for server-side search.
 router.get("/conversations", async (req: AuthRequest, res: Response): Promise<void> => {
     const userId = req.user!.userId;
     const q      = (req.query.q as string || "").trim();
@@ -23,33 +27,26 @@ router.get("/conversations", async (req: AuthRequest, res: Response): Promise<vo
                c.id,
                c.last_message,
                c.last_message_at,
-               c.is_group                          AS "isGroup",
-               c.group_name                        AS "groupName",
-               c.group_avatar                      AS "groupAvatar",
-               -- 1:1 other user (null for groups)
-               CASE WHEN c.is_group THEN NULL ELSE u.id          END AS "otherUserId",
-               CASE WHEN c.is_group THEN c.group_name ELSE u.name        END AS "otherUserName",
+               c.is_group                                                    AS "isGroup",
+               c.group_name                                                  AS "groupName",
+               c.group_avatar                                                AS "groupAvatar",
+               CASE WHEN c.is_group THEN NULL        ELSE u.id          END  AS "otherUserId",
+               CASE WHEN c.is_group THEN c.group_name ELSE u.name       END  AS "otherUserName",
                CASE WHEN c.is_group THEN c.group_avatar ELSE u.avatar_url END AS "otherUserAvatar",
-               -- Unread count (messages not sent by me that I haven't read)
                (SELECT COUNT(*)
                 FROM messages m
                 WHERE m.conversation_id = c.id
                   AND m.sender_id != $1
-                  AND m.read_at IS NULL)            AS "unreadCount",
-               -- Archived flag per user
+                  AND m.read_at IS NULL)                                     AS "unreadCount",
                EXISTS(
                  SELECT 1 FROM conversation_archives ca
                  WHERE ca.conversation_id = c.id AND ca.user_id = $1
-               )                                    AS "isArchived"
+               )                                                             AS "isArchived"
              FROM conversations c
-             -- Join the members table to check membership for all chat types
-             JOIN conversation_members cm
-               ON cm.conversation_id = c.id AND cm.user_id = $1
-             -- Left-join users only for 1:1 chats to get the other person's info
+             JOIN conversation_members cm ON cm.conversation_id = c.id AND cm.user_id = $1
              LEFT JOIN conversation_members cm2
                ON cm2.conversation_id = c.id AND cm2.user_id != $1 AND NOT c.is_group
-             LEFT JOIN users u
-               ON u.id = cm2.user_id AND NOT c.is_group
+             LEFT JOIN users u ON u.id = cm2.user_id AND NOT c.is_group
              ${searchClause}
              ORDER BY c.last_message_at DESC NULLS LAST`,
             params
@@ -60,179 +57,10 @@ router.get("/conversations", async (req: AuthRequest, res: Response): Promise<vo
         res.status(500).json({ message: "Something went wrong." });
     }
 });
-router.put("/conversations/:id/group", async (req: AuthRequest, res: Response): Promise<void> => {
-    const userId = req.user!.userId;
-    const convId = req.params.id;
-    const { groupName, groupAvatar } = req.body as {
-        groupName?: string;
-        groupAvatar?: string;
-    };
- 
-    try {
-        const access = await pool.query(
-            `SELECT is_group FROM conversations c
-             JOIN conversation_members cm ON cm.conversation_id = c.id AND cm.user_id = $1
-             WHERE c.id = $2`,
-            [userId, convId]
-        );
-        if (access.rows.length === 0) { res.status(403).json({ message: "Forbidden" }); return; }
-        if (!access.rows[0].is_group) { res.status(400).json({ message: "Not a group" }); return; }
- 
-        const sets: string[]  = [];
-        const params: any[]   = [];
-        let   idx             = 1;
- 
-        if (groupName)   { sets.push(`group_name = $${idx++}`);   params.push(groupName.trim()); }
-        if (groupAvatar) { sets.push(`group_avatar = $${idx++}`); params.push(groupAvatar); }
- 
-        if (sets.length === 0) { res.status(400).json({ message: "Nothing to update" }); return; }
- 
-        params.push(convId);
-        await pool.query(
-            `UPDATE conversations SET ${sets.join(", ")} WHERE id = $${idx}`,
-            params
-        );
- 
-        res.json({ ok: true });
-    } catch (err) {
-        console.error("PUT /chat/conversations/group error:", err);
-        res.status(500).json({ message: "Something went wrong." });
-    }
-});
- 
-// ── POST /api/chat/conversations/:id/avatar — upload group avatar ─────────────
-// Uses multer + Cloudinary (same pattern as user avatar upload)
-import multer from "multer";
-import { v2 as cloudinary } from "cloudinary";
-import streamifier from "streamifier";
- 
-const upload = multer({ storage: multer.memoryStorage() });
- 
-router.post(
-    "/conversations/:id/avatar",
-    upload.single("avatar"),
-    async (req: AuthRequest, res: Response): Promise<void> => {
-        const userId = req.user!.userId;
-        const convId = req.params.id;
- 
-        if (!req.file) { res.status(400).json({ message: "No file uploaded" }); return; }
- 
-        try {
-            const access = await pool.query(
-                `SELECT 1 FROM conversation_members
-                 WHERE conversation_id = $1 AND user_id = $2`,
-                [convId, userId]
-            );
-            if (access.rows.length === 0) { res.status(403).json({ message: "Forbidden" }); return; }
- 
-            // Upload to Cloudinary
-            const avatarUrl: string = await new Promise((resolve, reject) => {
-                const stream = cloudinary.uploader.upload_stream(
-                    { folder: "barkbuddy/group_avatars", transformation: [{ width: 200, crop: "fill" }] },
-                    (err, result) => {
-                        if (err || !result) return reject(err);
-                        resolve(result.secure_url);
-                    }
-                );
-                streamifier.createReadStream(req.file!.buffer).pipe(stream);
-            });
- 
-            await pool.query(
-                `UPDATE conversations SET group_avatar = $1 WHERE id = $2`,
-                [avatarUrl, convId]
-            );
- 
-            res.json({ avatarUrl });
-        } catch (err) {
-            console.error("POST /chat/conversations/avatar error:", err);
-            res.status(500).json({ message: "Something went wrong." });
-        }
-    }
-);
- 
-// ── DELETE /api/chat/conversations/:id/members/:userId — remove member ────────
-router.delete("/conversations/:id/members/:userId",
-    async (req: AuthRequest, res: Response): Promise<void> => {
-        const requesterId  = req.user!.userId;
-        const convId       = req.params.id;
-        const targetUserId = req.params.userId;
- 
-        try {
-            // Only members can remove others
-            const access = await pool.query(
-                `SELECT c.is_group FROM conversations c
-                 JOIN conversation_members cm ON cm.conversation_id = c.id AND cm.user_id = $1
-                 WHERE c.id = $2`,
-                [requesterId, convId]
-            );
-            if (access.rows.length === 0) { res.status(403).json({ message: "Forbidden" }); return; }
-            if (!access.rows[0].is_group) { res.status(400).json({ message: "Not a group" }); return; }
- 
-            await pool.query(
-                `DELETE FROM conversation_members
-                 WHERE conversation_id = $1 AND user_id = $2`,
-                [convId, targetUserId]
-            );
-            res.json({ ok: true });
-        } catch (err) {
-            console.error("DELETE /chat/members/:userId error:", err);
-            res.status(500).json({ message: "Something went wrong." });
-        }
-    }
-);
- 
-// ── DELETE /api/chat/conversations/:id/members/me — leave group ───────────────
-router.delete("/conversations/:id/members/me",
-    async (req: AuthRequest, res: Response): Promise<void> => {
-        const userId = req.user!.userId;
-        const convId = req.params.id;
- 
-        try {
-            await pool.query(
-                `DELETE FROM conversation_members
-                 WHERE conversation_id = $1 AND user_id = $2`,
-                [convId, userId]
-            );
-            res.json({ ok: true });
-        } catch (err) {
-            console.error("DELETE /chat/members/me error:", err);
-            res.status(500).json({ message: "Something went wrong." });
-        }
-    }
-);
- 
-// ── DELETE /api/chat/conversations/:id — delete group entirely ────────────────
-router.delete("/conversations/:id",
-    async (req: AuthRequest, res: Response): Promise<void> => {
-        const userId = req.user!.userId;
-        const convId = req.params.id;
- 
-        try {
-            const access = await pool.query(
-                `SELECT created_by, is_group FROM conversations WHERE id = $1`,
-                [convId]
-            );
-            if (access.rows.length === 0) { res.status(404).json({ message: "Not found" }); return; }
-            if (!access.rows[0].is_group)  { res.status(400).json({ message: "Not a group" }); return; }
-            if (access.rows[0].created_by !== userId) {
-                res.status(403).json({ message: "Only the group creator can delete it" });
-                return;
-            }
- 
-            // CASCADE handles messages + members
-            await pool.query(`DELETE FROM conversations WHERE id = $1`, [convId]);
-            res.json({ ok: true });
-        } catch (err) {
-            console.error("DELETE /chat/conversations error:", err);
-            res.status(500).json({ message: "Something went wrong." });
-        }
-    }
-);
 
-// ── POST /api/chat/conversations ──────────────────────────────────────────────
-// Start or retrieve a 1:1 conversation with a buddy.
+// ── POST /api/chat/conversations — start or get 1:1 conversation ──────────────
 router.post("/conversations", async (req: AuthRequest, res: Response): Promise<void> => {
-    const userId      = req.user!.userId;
+    const userId          = req.user!.userId;
     const { otherUserId } = req.body;
 
     if (!otherUserId) { res.status(400).json({ message: "otherUserId required" }); return; }
@@ -262,7 +90,6 @@ router.post("/conversations", async (req: AuthRequest, res: Response): Promise<v
         );
         const convId = result.rows[0].id;
 
-        // Ensure both users are in conversation_members
         await pool.query(
             `INSERT INTO conversation_members (conversation_id, user_id)
              VALUES ($1, $2), ($1, $3)
@@ -277,9 +104,8 @@ router.post("/conversations", async (req: AuthRequest, res: Response): Promise<v
     }
 });
 
-// ── POST /api/chat/conversations/group ───────────────────────────────────────
-// Create a group chat with a name and initial member list.
-// Body: { groupName, memberIds: string[] }
+// ── POST /api/chat/conversations/group — create group ────────────────────────
+// Must be registered BEFORE /conversations/:id routes to avoid param conflicts.
 router.post("/conversations/group", async (req: AuthRequest, res: Response): Promise<void> => {
     const userId = req.user!.userId;
     const { groupName, memberIds } = req.body as {
@@ -288,33 +114,27 @@ router.post("/conversations/group", async (req: AuthRequest, res: Response): Pro
     };
 
     if (!groupName?.trim()) {
-        res.status(400).json({ message: "groupName is required" });
-        return;
+        res.status(400).json({ message: "groupName is required" }); return;
     }
     if (!Array.isArray(memberIds) || memberIds.length === 0) {
-        res.status(400).json({ message: "memberIds must be a non-empty array" });
-        return;
+        res.status(400).json({ message: "memberIds must be a non-empty array" }); return;
     }
 
-    // Deduplicate and always include the creator
     const allMembers = [...new Set([userId, ...memberIds])];
-
     const client = await pool.connect();
     try {
         await client.query("BEGIN");
 
+        // Fix 3: store created_by so the creator can delete the group
         const conv = await client.query(
-            `INSERT INTO conversations (is_group, group_name)
-             VALUES (true, $1)
+            `INSERT INTO conversations (is_group, group_name, created_by)
+             VALUES (true, $1, $2)
              RETURNING id`,
-            [groupName.trim()]
+            [groupName.trim(), userId]
         );
         const convId = conv.rows[0].id;
 
-        // Add all members
-        const memberValues = allMembers
-            .map((_, i) => `($1, $${i + 2})`)
-            .join(", ");
+        const memberValues = allMembers.map((_, i) => `($1, $${i + 2})`).join(", ");
         await client.query(
             `INSERT INTO conversation_members (conversation_id, user_id)
              VALUES ${memberValues}
@@ -334,15 +154,13 @@ router.post("/conversations/group", async (req: AuthRequest, res: Response): Pro
 });
 
 // ── GET /api/chat/conversations/:id/members ───────────────────────────────────
-// List all members of a conversation (useful for group info screen).
 router.get("/conversations/:id/members", async (req: AuthRequest, res: Response): Promise<void> => {
     const userId = req.user!.userId;
     const convId = req.params.id;
 
     try {
         const access = await pool.query(
-            `SELECT 1 FROM conversation_members
-             WHERE conversation_id = $1 AND user_id = $2`,
+            `SELECT 1 FROM conversation_members WHERE conversation_id = $1 AND user_id = $2`,
             [convId, userId]
         );
         if (access.rows.length === 0) { res.status(403).json({ message: "Forbidden" }); return; }
@@ -362,18 +180,15 @@ router.get("/conversations/:id/members", async (req: AuthRequest, res: Response)
     }
 });
 
-// ── POST /api/chat/conversations/:id/members ──────────────────────────────────
-// Add a user to a group chat.
-// Body: { userId: string }
+// ── POST /api/chat/conversations/:id/members — add member ────────────────────
 router.post("/conversations/:id/members", async (req: AuthRequest, res: Response): Promise<void> => {
-    const requesterId = req.user!.userId;
-    const convId      = req.params.id;
-    const { userId: newMemberId } = req.body;
+    const requesterId       = req.user!.userId;
+    const convId            = req.params.id;
+    const { userId: newId } = req.body;
 
-    if (!newMemberId) { res.status(400).json({ message: "userId required" }); return; }
+    if (!newId) { res.status(400).json({ message: "userId required" }); return; }
 
     try {
-        // Check requester is already in the group
         const access = await pool.query(
             `SELECT c.is_group FROM conversations c
              JOIN conversation_members cm ON cm.conversation_id = c.id AND cm.user_id = $1
@@ -382,23 +197,137 @@ router.post("/conversations/:id/members", async (req: AuthRequest, res: Response
         );
         if (access.rows.length === 0) { res.status(403).json({ message: "Forbidden" }); return; }
         if (!access.rows[0].is_group) {
-            res.status(400).json({ message: "Cannot add members to a 1:1 chat" });
-            return;
+            res.status(400).json({ message: "Cannot add members to a 1:1 chat" }); return;
         }
 
         await pool.query(
-            `INSERT INTO conversation_members (conversation_id, user_id)
-             VALUES ($1, $2)
-             ON CONFLICT DO NOTHING`,
-            [convId, newMemberId]
+            `INSERT INTO conversation_members (conversation_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+            [convId, newId]
         );
-
         res.json({ ok: true });
     } catch (err) {
         console.error("POST /chat/members error:", err);
         res.status(500).json({ message: "Something went wrong." });
     }
 });
+
+// ── DELETE /api/chat/conversations/:id/members/me — leave group ───────────────
+// Fix 2: /me MUST be registered BEFORE /:userId — otherwise Express treats
+// the literal string "me" as the :userId param and this handler is never reached.
+router.delete("/conversations/:id/members/me", async (req: AuthRequest, res: Response): Promise<void> => {
+    const userId = req.user!.userId;
+    const convId = req.params.id;
+
+    try {
+        await pool.query(
+            `DELETE FROM conversation_members WHERE conversation_id = $1 AND user_id = $2`,
+            [convId, userId]
+        );
+        res.json({ ok: true });
+    } catch (err) {
+        console.error("DELETE /chat/members/me error:", err);
+        res.status(500).json({ message: "Something went wrong." });
+    }
+});
+
+// ── DELETE /api/chat/conversations/:id/members/:userId — remove member ────────
+router.delete("/conversations/:id/members/:userId", async (req: AuthRequest, res: Response): Promise<void> => {
+    const requesterId  = req.user!.userId;
+    const convId       = req.params.id;
+    const targetUserId = req.params.userId;
+
+    try {
+        const access = await pool.query(
+            `SELECT c.is_group FROM conversations c
+             JOIN conversation_members cm ON cm.conversation_id = c.id AND cm.user_id = $1
+             WHERE c.id = $2`,
+            [requesterId, convId]
+        );
+        if (access.rows.length === 0) { res.status(403).json({ message: "Forbidden" }); return; }
+        if (!access.rows[0].is_group) { res.status(400).json({ message: "Not a group" }); return; }
+
+        await pool.query(
+            `DELETE FROM conversation_members WHERE conversation_id = $1 AND user_id = $2`,
+            [convId, targetUserId]
+        );
+        res.json({ ok: true });
+    } catch (err) {
+        console.error("DELETE /chat/members/:userId error:", err);
+        res.status(500).json({ message: "Something went wrong." });
+    }
+});
+
+// ── PUT /api/chat/conversations/:id/group — update group name / avatar ────────
+router.put("/conversations/:id/group", async (req: AuthRequest, res: Response): Promise<void> => {
+    const userId = req.user!.userId;
+    const convId = req.params.id;
+    const { groupName, groupAvatar } = req.body as { groupName?: string; groupAvatar?: string };
+
+    try {
+        const access = await pool.query(
+            `SELECT is_group FROM conversations c
+             JOIN conversation_members cm ON cm.conversation_id = c.id AND cm.user_id = $1
+             WHERE c.id = $2`,
+            [userId, convId]
+        );
+        if (access.rows.length === 0) { res.status(403).json({ message: "Forbidden" }); return; }
+        if (!access.rows[0].is_group)  { res.status(400).json({ message: "Not a group" }); return; }
+
+        const sets: string[] = [];
+        const params: any[]  = [];
+        let   idx            = 1;
+
+        if (groupName)   { sets.push(`group_name = $${idx++}`);   params.push(groupName.trim()); }
+        if (groupAvatar) { sets.push(`group_avatar = $${idx++}`); params.push(groupAvatar); }
+        if (sets.length === 0) { res.status(400).json({ message: "Nothing to update" }); return; }
+
+        params.push(convId);
+        await pool.query(`UPDATE conversations SET ${sets.join(", ")} WHERE id = $${idx}`, params);
+        res.json({ ok: true });
+    } catch (err) {
+        console.error("PUT /chat/conversations/group error:", err);
+        res.status(500).json({ message: "Something went wrong." });
+    }
+});
+
+// ── POST /api/chat/conversations/:id/avatar — upload group avatar ─────────────
+router.post(
+    "/conversations/:id/avatar",
+    upload.single("avatar"),
+    async (req: AuthRequest, res: Response): Promise<void> => {
+        const userId = req.user!.userId;
+        const convId = req.params.id;
+
+        if (!req.file) { res.status(400).json({ message: "No file uploaded" }); return; }
+
+        try {
+            const access = await pool.query(
+                `SELECT 1 FROM conversation_members WHERE conversation_id = $1 AND user_id = $2`,
+                [convId, userId]
+            );
+            if (access.rows.length === 0) { res.status(403).json({ message: "Forbidden" }); return; }
+
+            const avatarUrl: string = await new Promise((resolve, reject) => {
+                const stream = cloudinary.uploader.upload_stream(
+                    { folder: "barkbuddy/group_avatars", transformation: [{ width: 200, crop: "fill" }] },
+                    (err, result) => {
+                        if (err || !result) return reject(err);
+                        resolve(result.secure_url);
+                    }
+                );
+                streamifier.createReadStream(req.file!.buffer).pipe(stream);
+            });
+
+            await pool.query(
+                `UPDATE conversations SET group_avatar = $1 WHERE id = $2`, [avatarUrl, convId]
+            );
+            res.json({ avatarUrl });
+        } catch (err) {
+            console.error("POST /chat/conversations/avatar error:", err);
+            res.status(500).json({ message: "Something went wrong." });
+        }
+    }
+);
 
 // ── PATCH /api/chat/conversations/:id/archive ─────────────────────────────────
 router.patch("/conversations/:id/archive", async (req: AuthRequest, res: Response): Promise<void> => {
@@ -407,16 +336,13 @@ router.patch("/conversations/:id/archive", async (req: AuthRequest, res: Respons
 
     try {
         const access = await pool.query(
-            `SELECT 1 FROM conversation_members
-             WHERE conversation_id = $1 AND user_id = $2`,
+            `SELECT 1 FROM conversation_members WHERE conversation_id = $1 AND user_id = $2`,
             [convId, userId]
         );
         if (access.rows.length === 0) { res.status(403).json({ message: "Forbidden" }); return; }
 
         await pool.query(
-            `INSERT INTO conversation_archives (conversation_id, user_id)
-             VALUES ($1, $2)
-             ON CONFLICT DO NOTHING`,
+            `INSERT INTO conversation_archives (conversation_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
             [convId, userId]
         );
         res.json({ ok: true });
@@ -433,13 +359,41 @@ router.patch("/conversations/:id/unarchive", async (req: AuthRequest, res: Respo
 
     try {
         await pool.query(
-            `DELETE FROM conversation_archives
-             WHERE conversation_id = $1 AND user_id = $2`,
+            `DELETE FROM conversation_archives WHERE conversation_id = $1 AND user_id = $2`,
             [convId, userId]
         );
         res.json({ ok: true });
     } catch (err) {
         console.error("PATCH /chat/unarchive error:", err);
+        res.status(500).json({ message: "Something went wrong." });
+    }
+});
+
+// ── DELETE /api/chat/conversations/:id — delete conversation ──────────────────
+// Groups: only the creator can delete. 1:1: either participant can delete.
+router.delete("/conversations/:id", async (req: AuthRequest, res: Response): Promise<void> => {
+    const userId = req.user!.userId;
+    const convId = req.params.id;
+
+    try {
+        const conv = await pool.query(
+            `SELECT created_by, is_group FROM conversations
+             JOIN conversation_members cm ON cm.conversation_id = conversations.id AND cm.user_id = $1
+             WHERE conversations.id = $2`,
+            [userId, convId]
+        );
+        if (conv.rows.length === 0) { res.status(404).json({ message: "Not found" }); return; }
+
+        const { created_by, is_group } = conv.rows[0];
+
+        if (is_group && created_by !== userId) {
+            res.status(403).json({ message: "Only the group creator can delete it" }); return;
+        }
+
+        await pool.query(`DELETE FROM conversations WHERE id = $1`, [convId]);
+        res.json({ ok: true });
+    } catch (err) {
+        console.error("DELETE /chat/conversations error:", err);
         res.status(500).json({ message: "Something went wrong." });
     }
 });
@@ -453,8 +407,7 @@ router.get("/conversations/:id/messages", async (req: AuthRequest, res: Response
 
     try {
         const access = await pool.query(
-            `SELECT 1 FROM conversation_members
-             WHERE conversation_id = $1 AND user_id = $2`,
+            `SELECT 1 FROM conversation_members WHERE conversation_id = $1 AND user_id = $2`,
             [convId, userId]
         );
         if (access.rows.length === 0) { res.status(403).json({ message: "Forbidden" }); return; }
@@ -495,16 +448,15 @@ router.get("/conversations/:id/messages", async (req: AuthRequest, res: Response
 
 // ── POST /api/chat/conversations/:id/messages ─────────────────────────────────
 router.post("/conversations/:id/messages", async (req: AuthRequest, res: Response): Promise<void> => {
-    const userId  = req.user!.userId;
-    const convId  = req.params.id;
+    const userId      = req.user!.userId;
+    const convId      = req.params.id;
     const { content } = req.body;
 
     if (!content?.trim()) { res.status(400).json({ message: "Message cannot be empty" }); return; }
 
     try {
         const access = await pool.query(
-            `SELECT 1 FROM conversation_members
-             WHERE conversation_id = $1 AND user_id = $2`,
+            `SELECT 1 FROM conversation_members WHERE conversation_id = $1 AND user_id = $2`,
             [convId, userId]
         );
         if (access.rows.length === 0) { res.status(403).json({ message: "Forbidden" }); return; }
@@ -532,7 +484,8 @@ router.get("/status/:userId", async (req: AuthRequest, res: Response): Promise<v
     const { userId } = req.params;
     try {
         const result = await pool.query(
-            `SELECT last_seen, status FROM users WHERE id = $1`, [userId]);
+            `SELECT last_seen, status FROM users WHERE id = $1`, [userId]
+        );
         if (result.rows.length === 0) { res.status(404).json({ online: false }); return; }
 
         const { last_seen, status } = result.rows[0];
