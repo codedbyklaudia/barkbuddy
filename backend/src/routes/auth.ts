@@ -114,12 +114,26 @@ router.post("/send-verification", async (req: Request, res: Response): Promise<v
         return;
     }
 
-    const code      = generateCode();
-    const expiresAt = Date.now() + CODE_TTL_MS;
-
-    pendingCodes.set(email.toLowerCase(), { code, expiresAt });
+    const normalised = email.toLowerCase().trim();
 
     try {
+        // Block immediately if email is already registered
+        const existing = await pool.query(
+            "SELECT id FROM users WHERE LOWER(email) = $1 LIMIT 1",
+            [normalised]
+        );
+        if (existing.rows.length > 0) {
+            res.status(409).json({
+                message: "This email is already registered. Please log in instead.",
+                code:    "EMAIL_EXISTS",
+            });
+            return;
+        }
+
+        const code      = generateCode();
+        const expiresAt = Date.now() + CODE_TTL_MS;
+        pendingCodes.set(normalised, { code, expiresAt });
+
         await resend.emails.send({
             from:    "BarkBuddy <paws@barkbuddy.org.uk>",
             to:      email,
@@ -145,7 +159,7 @@ router.post("/send-verification", async (req: Request, res: Response): Promise<v
 
         res.status(200).json({ message: "Verification email sent." });
     } catch (err) {
-        console.error("Email send error:", err);
+        console.error("send-verification error:", err);
         res.status(500).json({ message: "Failed to send the verification email. Please try again." });
     }
 });
