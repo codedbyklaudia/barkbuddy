@@ -12,6 +12,11 @@ const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
 const FROM       = "BarkBuddy <paws@barkbuddy.org.uk>";
 
 const generateToken = () => crypto.randomBytes(32).toString("hex");
+const generateCode  = () => String(Math.floor(100000 + Math.random() * 900000));
+
+const CODE_TTL_MINUTES  = 15;
+const TOKEN_TTL_MINUTES = 10; // shorter-lived than the email-link token, since it's handed off immediately
+const MAX_CODE_ATTEMPTS = 5;
 
 // POST /api/password/forgot
 router.post("/forgot", [
@@ -65,6 +70,143 @@ router.post("/forgot", [
     res.json({ message: "If an account exists, a reset link has been sent." });
   } catch (err) {
     console.error("Forgot password error:", err);
+    res.status(500).json({ message: "Something went wrong. Please try again." });
+  }
+});
+
+// ─── POST /api/password/forgot-code ──────────────────────────────────────────
+// Mobile app version of /forgot — emails a 6-digit code instead of a link
+router.post("/forgot-code", [
+  body("email").isEmail().withMessage("Please enter a valid email").normalizeEmail(),
+], async (req: Request, res: Response): Promise<void> => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    res.status(400).json({ message: "Please enter a valid email address" });
+    return;
+  }
+
+  const { email } = req.body;
+
+  try {
+    const userResult = await pool.query(
+      "SELECT id, name, email FROM users WHERE email = $1",
+      [email]
+    );
+
+    // Always return success — prevents user enumeration
+    if (userResult.rows.length === 0) {
+      res.json({ message: "If an account exists, a verification code has been sent." });
+      return;
+    }
+
+    const user = userResult.rows[0];
+
+    // Invalidate any existing unused codes
+    await pool.query(
+      "UPDATE password_reset_codes SET used = true WHERE user_id = $1 AND used = false",
+      [user.id]
+    );
+
+    const code      = generateCode();
+    const codeHash  = await bcrypt.hash(code, 12);
+    const expiresAt = new Date(Date.now() + CODE_TTL_MINUTES * 60 * 1000);
+
+    await pool.query(
+      `INSERT INTO password_reset_codes (user_id, code_hash, expires_at) VALUES ($1, $2, $3)`,
+      [user.id, codeHash, expiresAt]
+    );
+
+    await resend.emails.send({
+      from:    FROM,
+      to:      user.email,
+      subject: "Your BarkBuddy verification code 🐾",
+      html:    generateCodeEmailHtml(user.name, code),
+    });
+
+    res.json({ message: "If an account exists, a verification code has been sent." });
+  } catch (err) {
+    console.error("Forgot password (code) error:", err);
+    res.status(500).json({ message: "Something went wrong. Please try again." });
+  }
+});
+
+// ─── POST /api/password/verify-code ──────────────────────────────────────────
+// Validates the 6-digit code, then mints a normal reset token so the
+// existing /api/password/reset endpoint can finish the job unchanged.
+router.post("/verify-code", [
+  body("email").isEmail().withMessage("Please enter a valid email").normalizeEmail(),
+  body("code").isLength({ min: 6, max: 6 }).withMessage("Code must be 6 digits"),
+], async (req: Request, res: Response): Promise<void> => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    res.status(400).json({ message: "Please enter a valid 6-digit code" });
+    return;
+  }
+
+  const { email, code } = req.body;
+
+  try {
+    const userResult = await pool.query("SELECT id FROM users WHERE email = $1", [email]);
+    if (userResult.rows.length === 0) {
+      res.status(400).json({ message: "Invalid or expired code" });
+      return;
+    }
+    const userId = userResult.rows[0].id;
+
+    const codeResult = await pool.query(
+      `SELECT id, code_hash, expires_at, attempts FROM password_reset_codes
+       WHERE user_id = $1 AND used = false
+       ORDER BY created_at DESC LIMIT 1`,
+      [userId]
+    );
+
+    if (codeResult.rows.length === 0) {
+      res.status(400).json({ message: "Invalid or expired code" });
+      return;
+    }
+
+    const row = codeResult.rows[0];
+
+    if (new Date(row.expires_at) < new Date()) {
+      res.status(400).json({ message: "Code has expired. Please request a new one." });
+      return;
+    }
+
+    if (row.attempts >= MAX_CODE_ATTEMPTS) {
+      res.status(429).json({ message: "Too many attempts. Please request a new code." });
+      return;
+    }
+
+    const matches = await bcrypt.compare(code, row.code_hash);
+
+    if (!matches) {
+      await pool.query(
+        "UPDATE password_reset_codes SET attempts = attempts + 1 WHERE id = $1",
+        [row.id]
+      );
+      res.status(400).json({ message: "Incorrect code. Please try again." });
+      return;
+    }
+
+    // Code is correct — burn it and mint a short-lived reset token
+    await pool.query("UPDATE password_reset_codes SET used = true WHERE id = $1", [row.id]);
+
+    await pool.query(
+      "UPDATE password_reset_tokens SET used = true WHERE user_id = $1 AND used = false",
+      [userId]
+    );
+
+    const token     = generateToken();
+    const expiresAt = new Date(Date.now() + TOKEN_TTL_MINUTES * 60 * 1000);
+
+    await pool.query(
+      `INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES ($1, $2, $3)`,
+      [userId, token, expiresAt]
+    );
+
+    res.json({ token });
+  } catch (err) {
+    console.error("Verify code error:", err);
     res.status(500).json({ message: "Something went wrong. Please try again." });
   }
 });
@@ -151,7 +293,7 @@ router.get("/verify-token", async (req: Request, res: Response): Promise<void> =
   }
 });
 
-// ─── Email HTML template ──────────────────────────────────────────────────────
+// ─── Email HTML template — reset link ────────────────────────────────────────
 const generateResetEmailHtml = (name: string, resetUrl: string): string => `
 <!DOCTYPE html>
 <html>
@@ -196,6 +338,63 @@ const generateResetEmailHtml = (name: string, resetUrl: string): string => `
               </p>
               <p style="color:#9ca3af;font-size:12px;line-height:1.5;margin:0;border-top:1px solid #f3f4f6;padding-top:20px;">
                 If you didn't request a password reset, you can safely ignore this email.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background:#f9fafb;padding:20px 40px;text-align:center;border-top:1px solid #f3f4f6;">
+              <p style="color:#9ca3af;font-size:11px;margin:0;">
+                © ${new Date().getFullYear()} BarkBuddy · Made with 🐾 for dog lovers
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+`;
+
+// ─── Email HTML template — 6-digit code (mobile) ─────────────────────────────
+const generateCodeEmailHtml = (name: string, code: string): string => `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin:0;padding:0;background:#f4f1fb;font-family:'Segoe UI',sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f1fb;padding:40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="520" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(91,33,182,0.08);">
+          <tr>
+            <td style="background:linear-gradient(135deg,#2d1b69 0%,#5b21b6 100%);padding:36px 40px;text-align:center;">
+              <div style="font-size:28px;margin-bottom:8px;">🐾</div>
+              <h1 style="color:#ede9fe;font-size:22px;font-weight:400;letter-spacing:0.04em;margin:0;">BarkBuddy</h1>
+              <p style="color:rgba(237,233,254,0.7);font-size:13px;margin:6px 0 0;">Password Reset Code</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:40px 40px 32px;">
+              <p style="color:#1e1b4b;font-size:15px;margin:0 0 12px;">Hi <strong>${name}</strong>,</p>
+              <p style="color:#4b5563;font-size:14px;line-height:1.6;margin:0 0 24px;">
+                Use the code below in the BarkBuddy app to reset your password.
+                It expires in <strong>${CODE_TTL_MINUTES} minutes</strong>.
+              </p>
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="center" style="padding:8px 0 28px;">
+                    <div style="display:inline-block;background:#f4f1fb;border-radius:12px;padding:16px 32px;
+                                font-size:32px;font-weight:700;letter-spacing:10px;color:#5b21b6;">
+                      ${code}
+                    </div>
+                  </td>
+                </tr>
+              </table>
+              <p style="color:#9ca3af;font-size:12px;line-height:1.5;margin:0;border-top:1px solid #f3f4f6;padding-top:20px;">
+                If you didn't request this, you can safely ignore this email.
               </p>
             </td>
           </tr>
