@@ -60,6 +60,174 @@ router.get("/conversations", async (req: AuthRequest, res: Response): Promise<vo
         res.status(500).json({ message: "Something went wrong." });
     }
 });
+router.put("/conversations/:id/group", async (req: AuthRequest, res: Response): Promise<void> => {
+    const userId = req.user!.userId;
+    const convId = req.params.id;
+    const { groupName, groupAvatar } = req.body as {
+        groupName?: string;
+        groupAvatar?: string;
+    };
+ 
+    try {
+        const access = await pool.query(
+            `SELECT is_group FROM conversations c
+             JOIN conversation_members cm ON cm.conversation_id = c.id AND cm.user_id = $1
+             WHERE c.id = $2`,
+            [userId, convId]
+        );
+        if (access.rows.length === 0) { res.status(403).json({ message: "Forbidden" }); return; }
+        if (!access.rows[0].is_group) { res.status(400).json({ message: "Not a group" }); return; }
+ 
+        const sets: string[]  = [];
+        const params: any[]   = [];
+        let   idx             = 1;
+ 
+        if (groupName)   { sets.push(`group_name = $${idx++}`);   params.push(groupName.trim()); }
+        if (groupAvatar) { sets.push(`group_avatar = $${idx++}`); params.push(groupAvatar); }
+ 
+        if (sets.length === 0) { res.status(400).json({ message: "Nothing to update" }); return; }
+ 
+        params.push(convId);
+        await pool.query(
+            `UPDATE conversations SET ${sets.join(", ")} WHERE id = $${idx}`,
+            params
+        );
+ 
+        res.json({ ok: true });
+    } catch (err) {
+        console.error("PUT /chat/conversations/group error:", err);
+        res.status(500).json({ message: "Something went wrong." });
+    }
+});
+ 
+// ── POST /api/chat/conversations/:id/avatar — upload group avatar ─────────────
+// Uses multer + Cloudinary (same pattern as user avatar upload)
+import multer from "multer";
+import { v2 as cloudinary } from "cloudinary";
+import streamifier from "streamifier";
+ 
+const upload = multer({ storage: multer.memoryStorage() });
+ 
+router.post(
+    "/conversations/:id/avatar",
+    upload.single("avatar"),
+    async (req: AuthRequest, res: Response): Promise<void> => {
+        const userId = req.user!.userId;
+        const convId = req.params.id;
+ 
+        if (!req.file) { res.status(400).json({ message: "No file uploaded" }); return; }
+ 
+        try {
+            const access = await pool.query(
+                `SELECT 1 FROM conversation_members
+                 WHERE conversation_id = $1 AND user_id = $2`,
+                [convId, userId]
+            );
+            if (access.rows.length === 0) { res.status(403).json({ message: "Forbidden" }); return; }
+ 
+            // Upload to Cloudinary
+            const avatarUrl: string = await new Promise((resolve, reject) => {
+                const stream = cloudinary.uploader.upload_stream(
+                    { folder: "barkbuddy/group_avatars", transformation: [{ width: 200, crop: "fill" }] },
+                    (err, result) => {
+                        if (err || !result) return reject(err);
+                        resolve(result.secure_url);
+                    }
+                );
+                streamifier.createReadStream(req.file!.buffer).pipe(stream);
+            });
+ 
+            await pool.query(
+                `UPDATE conversations SET group_avatar = $1 WHERE id = $2`,
+                [avatarUrl, convId]
+            );
+ 
+            res.json({ avatarUrl });
+        } catch (err) {
+            console.error("POST /chat/conversations/avatar error:", err);
+            res.status(500).json({ message: "Something went wrong." });
+        }
+    }
+);
+ 
+// ── DELETE /api/chat/conversations/:id/members/:userId — remove member ────────
+router.delete("/conversations/:id/members/:userId",
+    async (req: AuthRequest, res: Response): Promise<void> => {
+        const requesterId  = req.user!.userId;
+        const convId       = req.params.id;
+        const targetUserId = req.params.userId;
+ 
+        try {
+            // Only members can remove others
+            const access = await pool.query(
+                `SELECT c.is_group FROM conversations c
+                 JOIN conversation_members cm ON cm.conversation_id = c.id AND cm.user_id = $1
+                 WHERE c.id = $2`,
+                [requesterId, convId]
+            );
+            if (access.rows.length === 0) { res.status(403).json({ message: "Forbidden" }); return; }
+            if (!access.rows[0].is_group) { res.status(400).json({ message: "Not a group" }); return; }
+ 
+            await pool.query(
+                `DELETE FROM conversation_members
+                 WHERE conversation_id = $1 AND user_id = $2`,
+                [convId, targetUserId]
+            );
+            res.json({ ok: true });
+        } catch (err) {
+            console.error("DELETE /chat/members/:userId error:", err);
+            res.status(500).json({ message: "Something went wrong." });
+        }
+    }
+);
+ 
+// ── DELETE /api/chat/conversations/:id/members/me — leave group ───────────────
+router.delete("/conversations/:id/members/me",
+    async (req: AuthRequest, res: Response): Promise<void> => {
+        const userId = req.user!.userId;
+        const convId = req.params.id;
+ 
+        try {
+            await pool.query(
+                `DELETE FROM conversation_members
+                 WHERE conversation_id = $1 AND user_id = $2`,
+                [convId, userId]
+            );
+            res.json({ ok: true });
+        } catch (err) {
+            console.error("DELETE /chat/members/me error:", err);
+            res.status(500).json({ message: "Something went wrong." });
+        }
+    }
+);
+ 
+// ── DELETE /api/chat/conversations/:id — delete group entirely ────────────────
+router.delete("/conversations/:id",
+    async (req: AuthRequest, res: Response): Promise<void> => {
+        const userId = req.user!.userId;
+        const convId = req.params.id;
+ 
+        try {
+            const access = await pool.query(
+                `SELECT created_by, is_group FROM conversations WHERE id = $1`,
+                [convId]
+            );
+            if (access.rows.length === 0) { res.status(404).json({ message: "Not found" }); return; }
+            if (!access.rows[0].is_group)  { res.status(400).json({ message: "Not a group" }); return; }
+            if (access.rows[0].created_by !== userId) {
+                res.status(403).json({ message: "Only the group creator can delete it" });
+                return;
+            }
+ 
+            // CASCADE handles messages + members
+            await pool.query(`DELETE FROM conversations WHERE id = $1`, [convId]);
+            res.json({ ok: true });
+        } catch (err) {
+            console.error("DELETE /chat/conversations error:", err);
+            res.status(500).json({ message: "Something went wrong." });
+        }
+    }
+);
 
 // ── POST /api/chat/conversations ──────────────────────────────────────────────
 // Start or retrieve a 1:1 conversation with a buddy.
