@@ -255,6 +255,7 @@ router.post("/register", registerValidation, async (req: Request, res: Response)
 
         await client.query("BEGIN");
 
+        console.log("Step 1: inserting user...");
         const userResult = await client.query(
             `INSERT INTO users (name, email, password_hash)
              VALUES ($1, $2, $3)
@@ -262,8 +263,9 @@ router.post("/register", registerValidation, async (req: Request, res: Response)
             [name, email, passwordHash]
         );
         const user = userResult.rows[0];
+        console.log("Step 1 OK — user id:", user.id);
 
-        // Normalise personality — accept both JS array and JSON string from client
+        // Normalise personality
         let personalityValue: string[] = [];
         if (Array.isArray(personality)) {
             personalityValue = personality;
@@ -271,9 +273,13 @@ router.post("/register", registerValidation, async (req: Request, res: Response)
             try { personalityValue = JSON.parse(personality); } catch { personalityValue = []; }
         }
 
+        console.log("Step 2: inserting dog...", {
+            user_id: user.id, dogName, dogGender, breed,
+            dogDob, resolvedLifeStage, personalityValue,
+        });
         const dogResult = await client.query(
             `INSERT INTO dogs (user_id, name, gender, breed, dob, life_stage, personality)
-             VALUES ($1, $2, $3, $4, $5, $6, $7)
+             VALUES ($1, $2, $3, $4, $5::date, $6, $7)
              RETURNING id, name, gender, breed, dob, life_stage, personality`,
             [
                 user.id,
@@ -286,6 +292,7 @@ router.post("/register", registerValidation, async (req: Request, res: Response)
             ]
         );
         const dog = dogResult.rows[0];
+        console.log("Step 2 OK — dog id:", dog.id);
 
         await client.query("COMMIT");
 
