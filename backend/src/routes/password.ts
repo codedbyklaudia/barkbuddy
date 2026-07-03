@@ -38,7 +38,7 @@ router.post("/forgot", [
 
     // Always return success — prevents user enumeration
     if (userResult.rows.length === 0) {
-      res.json({ message: "If an account exists, a reset link has been sent." });
+      res.status(404).json({ message: "No account found with this email address." });
       return;
     }
 
