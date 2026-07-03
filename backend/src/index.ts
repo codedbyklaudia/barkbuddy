@@ -28,6 +28,7 @@ import profileRouter           from "./routes/ProfileRoutes";
 import savedRouter             from "./routes/saved";
 import walksRouter             from "./routes/Walks";
 import chatRouter              from "./routes/Chat";
+import accountRoutes from './routes/Account';
 import reportsRouter from "./routes/Reports";
 import { verifyToken }         from "./utils/jwt";
 import pool                    from "./db";
@@ -95,6 +96,7 @@ app.use("/api/listings",           listingsRouter);
 app.use("/api/walks",              walksRouter);
 app.use("/api/reports",            reportsRouter);
 app.use("/api/chat",               chatRouter);
+app.use("/api/account",            accountRoutes);
 
 app.get("/api/listings/new", async (_req, res) => {
   try {
