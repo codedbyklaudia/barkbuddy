@@ -15,7 +15,7 @@ const generateToken = () => crypto.randomBytes(32).toString("hex");
 const generateCode  = () => String(Math.floor(100000 + Math.random() * 900000));
 
 const CODE_TTL_MINUTES  = 15;
-const TOKEN_TTL_MINUTES = 10; // shorter-lived than the email-link token, since it's handed off immediately
+const TOKEN_TTL_MINUTES = 10;
 const MAX_CODE_ATTEMPTS = 5;
 
 // POST /api/password/forgot
@@ -36,7 +36,6 @@ router.post("/forgot", [
       [email]
     );
 
-    // Always return success — prevents user enumeration
     if (userResult.rows.length === 0) {
       res.status(404).json({ message: "No account found with this email address." });
       return;
@@ -44,14 +43,13 @@ router.post("/forgot", [
 
     const user = userResult.rows[0];
 
-    // Invalidate any existing unused tokens
     await pool.query(
       "UPDATE password_reset_tokens SET used = true WHERE user_id = $1 AND used = false",
       [user.id]
     );
 
     const token     = generateToken();
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
 
     await pool.query(
       `INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES ($1, $2, $3)`,
@@ -67,15 +65,15 @@ router.post("/forgot", [
       html:    generateResetEmailHtml(user.name, resetUrl),
     });
 
-    res.json({ message: "If an account exists, a reset link has been sent." });
+    res.json({ message: "Reset link sent." });
   } catch (err) {
     console.error("Forgot password error:", err);
     res.status(500).json({ message: "Something went wrong. Please try again." });
   }
 });
 
-// ─── POST /api/password/forgot-code ──────────────────────────────────────────
-// Mobile app version of /forgot — emails a 6-digit code instead of a link
+// POST /api/password/forgot-code
+// Mobile — emails a 6-digit code instead of a link
 router.post("/forgot-code", [
   body("email").isEmail().withMessage("Please enter a valid email").normalizeEmail(),
 ], async (req: Request, res: Response): Promise<void> => {
@@ -93,15 +91,14 @@ router.post("/forgot-code", [
       [email]
     );
 
-    // Always return success — prevents user enumeration
+    // 404 so the Android app can show a friendly "not found" error
     if (userResult.rows.length === 0) {
-      res.json({ message: "If an account exists, a verification code has been sent." });
+      res.status(404).json({ message: "No account found with this email address." });
       return;
     }
 
     const user = userResult.rows[0];
 
-    // Invalidate any existing unused codes
     await pool.query(
       "UPDATE password_reset_codes SET used = true WHERE user_id = $1 AND used = false",
       [user.id]
@@ -123,16 +120,14 @@ router.post("/forgot-code", [
       html:    generateCodeEmailHtml(user.name, code),
     });
 
-    res.json({ message: "If an account exists, a verification code has been sent." });
+    res.json({ message: "Verification code sent." });
   } catch (err) {
     console.error("Forgot password (code) error:", err);
     res.status(500).json({ message: "Something went wrong. Please try again." });
   }
 });
 
-// ─── POST /api/password/verify-code ──────────────────────────────────────────
-// Validates the 6-digit code, then mints a normal reset token so the
-// existing /api/password/reset endpoint can finish the job unchanged.
+// POST /api/password/verify-code
 router.post("/verify-code", [
   body("email").isEmail().withMessage("Please enter a valid email").normalizeEmail(),
   body("code").isLength({ min: 6, max: 6 }).withMessage("Code must be 6 digits"),
@@ -188,7 +183,7 @@ router.post("/verify-code", [
       return;
     }
 
-    // Code is correct — burn it and mint a short-lived reset token
+    // Code correct — burn it and mint a short-lived reset token
     await pool.query("UPDATE password_reset_codes SET used = true WHERE id = $1", [row.id]);
 
     await pool.query(
@@ -275,7 +270,7 @@ router.post("/reset", [
   }
 });
 
-// ─── GET /api/password/verify-token ──────────────────────────────────────────
+// GET /api/password/verify-token
 router.get("/verify-token", async (req: Request, res: Response): Promise<void> => {
   const { token } = req.query as { token: string };
 
@@ -293,7 +288,7 @@ router.get("/verify-token", async (req: Request, res: Response): Promise<void> =
   }
 });
 
-// ─── Email HTML template — reset link ────────────────────────────────────────
+// Email template — reset link
 const generateResetEmailHtml = (name: string, resetUrl: string): string => `
 <!DOCTYPE html>
 <html>
@@ -356,7 +351,7 @@ const generateResetEmailHtml = (name: string, resetUrl: string): string => `
 </html>
 `;
 
-// ─── Email HTML template — 6-digit code (mobile) ─────────────────────────────
+// Email template — 6-digit code (mobile)
 const generateCodeEmailHtml = (name: string, code: string): string => `
 <!DOCTYPE html>
 <html>
