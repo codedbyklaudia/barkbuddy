@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { Pool } from 'pg';
 import { Resend } from 'resend';
 import crypto from 'crypto';
-import { authenticate } from '../middleware/auth'; // your existing JWT middleware
+import { authenticate, AuthRequest } from '../middleware/auth'; // your existing JWT middleware
 
 const router = Router();
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -11,7 +11,7 @@ export default function accountRoutes(pool: Pool) {
 
   // POST /api/account/schedule-deletion
   router.post('/schedule-deletion', authenticate, async (req: Request, res: Response) => {
-    const userId = (req as any).user.id;
+    const userId = (req as AuthRequest).user?.userId;
 
     try {
       const restoreToken = crypto.randomBytes(32).toString('hex');
