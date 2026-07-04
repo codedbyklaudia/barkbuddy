@@ -32,6 +32,8 @@ import accountRoutes from './routes/Account';
 import reportsRouter from "./routes/Reports";
 import { verifyToken }         from "./utils/jwt";
 import pool                    from "./db";
+import { startDeletionCron } from './jobs/deleteExpiredAccounts';
+startDeletionCron(pool);
 
 dotenv.config();
 
@@ -96,7 +98,7 @@ app.use("/api/listings",           listingsRouter);
 app.use("/api/walks",              walksRouter);
 app.use("/api/reports",            reportsRouter);
 app.use("/api/chat",               chatRouter);
-app.use("/api/account",            accountRoutes);
+app.use("/api/account", accountRoutes(pool));
 
 app.get("/api/listings/new", async (_req, res) => {
   try {
