@@ -346,8 +346,8 @@ router.post("/login", loginValidation, async (req: Request, res: Response): Prom
 
     try {
         const userResult = await pool.query(
-            `SELECT id, name, email, password_hash, profile_complete
-             FROM users WHERE LOWER(email) = LOWER($1)`,
+            `SELECT id, name, email, password_hash, profile_complete, deletion_scheduled_at
+            FROM users WHERE LOWER(email) = LOWER($1)`,
             [email]
         );
 
@@ -366,6 +366,14 @@ router.post("/login", loginValidation, async (req: Request, res: Response): Prom
             res.status(401).json({
                 message: "Incorrect password",
                 errors:  { password: "Incorrect password" },
+            });
+            return;
+        }
+
+        if (user.deletion_scheduled_at) {
+            res.status(403).json({
+                code:    "ACCOUNT_SCHEDULED_FOR_DELETION",
+                message: "Your account is scheduled for deletion. Check your email for a restore link.",
             });
             return;
         }
