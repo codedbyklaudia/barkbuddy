@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Link } from 'react-router-dom';
 import "./Login.scss";
 import { useAuth } from "../context/AuthContext";
@@ -69,7 +69,6 @@ const LoginForm: React.FC<{
 
       <div className="login-card">
         <div className="login-header">
-          {/* desktop mascot: absolute top-right */}
           <img
             className="login-mascot"
             src="../../images/dog-register.svg"
@@ -148,7 +147,6 @@ const LoginForm: React.FC<{
           </button>
         </div>
 
-        {/* 2 lines, each a plain paragraph - immune to flex cascade issues */}
         <div className="login-footer-note">
           <p>Don't have an account? <Link to={"/register"}>Register here</Link></p>
           <p>Business Owner? <Link to={"/business/login"} className="biz-link">Login here</Link></p>
@@ -160,12 +158,34 @@ const LoginForm: React.FC<{
 
 const LoginPage: React.FC = () => {
   const navigate  = useNavigate();
+  const location  = useLocation();
   const { login } = useAuth();
 
-  const [formData, setFormData] = useState<LoginFormData>({ email: "", password: "" });
-  const [errors,   setErrors]   = useState<Record<string, string>>({});
-  const [apiError, setApiError] = useState("");
-  const [loading,  setLoading]  = useState(false);
+  const [formData,      setFormData]      = useState<LoginFormData>({ email: "", password: "" });
+  const [errors,        setErrors]        = useState<Record<string, string>>({});
+  const [apiError,      setApiError]      = useState("");
+  const [loading,       setLoading]       = useState(false);
+  const [restoredBanner, setRestoredBanner] = useState<"success" | "expired" | "invalid" | null>(null);
+
+  // Read query params on mount
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const restored = params.get("restored");
+    const error    = params.get("error");
+
+    if (restored === "true") {
+      setRestoredBanner("success");
+    } else if (error === "link-expired") {
+      setRestoredBanner("expired");
+    } else if (error === "link-invalid" || error === "server") {
+      setRestoredBanner("invalid");
+    }
+
+    // Clean up URL so the banner doesn't reappear on refresh
+    if (restored || error) {
+      window.history.replaceState({}, "", "/login");
+    }
+  }, [location.search]);
 
   const handleChange = (key: keyof LoginFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
@@ -191,8 +211,13 @@ const LoginPage: React.FC = () => {
       login(res.token, res.user, res.dog);
       navigate("/dashboard");
     } catch (err: any) {
-      if (err.errors) setErrors(err.errors);
-      else setApiError(err.message || "Something went wrong. Please try again.");
+      if (err.code === "ACCOUNT_SCHEDULED_FOR_DELETION") {
+        setApiError("Your account is scheduled for deletion. Check your email for a restore link.");
+      } else if (err.errors) {
+        setErrors(err.errors);
+      } else {
+        setApiError(err.message || "Something went wrong. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -211,6 +236,76 @@ const LoginPage: React.FC = () => {
         </svg>
         Home
       </Link>
+
+      {/* Restore / error banners */}
+      {restoredBanner === "success" && (
+        <div style={{
+          position: "fixed", top: 24, left: "50%", transform: "translateX(-50%)",
+          background: "#e8f5e9", border: "1px solid #a5d6a7", borderRadius: 12,
+          padding: "14px 24px", zIndex: 9999, maxWidth: 420, width: "90%",
+          display: "flex", alignItems: "flex-start", gap: 12, boxShadow: "0 4px 20px rgba(0,0,0,0.1)"
+        }}>
+          <span style={{ fontSize: 22 }}>🐾</span>
+          <div>
+            <div style={{ fontWeight: 700, color: "#2e7d32", marginBottom: 4 }}>
+              Account restored!
+            </div>
+            <div style={{ color: "#388e3c", fontSize: 14 }}>
+              Welcome back! Your account is fully restored. Log in below to pick up where you left off.
+            </div>
+          </div>
+          <button onClick={() => setRestoredBanner(null)}
+            style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "#888", fontSize: 18 }}>
+            ✕
+          </button>
+        </div>
+      )}
+
+      {restoredBanner === "expired" && (
+        <div style={{
+          position: "fixed", top: 24, left: "50%", transform: "translateX(-50%)",
+          background: "#fff3e0", border: "1px solid #ffcc80", borderRadius: 12,
+          padding: "14px 24px", zIndex: 9999, maxWidth: 420, width: "90%",
+          display: "flex", alignItems: "flex-start", gap: 12, boxShadow: "0 4px 20px rgba(0,0,0,0.1)"
+        }}>
+          <span style={{ fontSize: 22 }}>⚠️</span>
+          <div>
+            <div style={{ fontWeight: 700, color: "#e65100", marginBottom: 4 }}>
+              Restore link expired
+            </div>
+            <div style={{ color: "#bf360c", fontSize: 14 }}>
+              This restore link has expired. Your account may have already been deleted.
+            </div>
+          </div>
+          <button onClick={() => setRestoredBanner(null)}
+            style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "#888", fontSize: 18 }}>
+            ✕
+          </button>
+        </div>
+      )}
+
+      {restoredBanner === "invalid" && (
+        <div style={{
+          position: "fixed", top: 24, left: "50%", transform: "translateX(-50%)",
+          background: "#fce4ec", border: "1px solid #ef9a9a", borderRadius: 12,
+          padding: "14px 24px", zIndex: 9999, maxWidth: 420, width: "90%",
+          display: "flex", alignItems: "flex-start", gap: 12, boxShadow: "0 4px 20px rgba(0,0,0,0.1)"
+        }}>
+          <span style={{ fontSize: 22 }}>❌</span>
+          <div>
+            <div style={{ fontWeight: 700, color: "#c62828", marginBottom: 4 }}>
+              Something went wrong
+            </div>
+            <div style={{ color: "#b71c1c", fontSize: 14 }}>
+              This restore link is invalid. Please contact support if you need help.
+            </div>
+          </div>
+          <button onClick={() => setRestoredBanner(null)}
+            style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "#888", fontSize: 18 }}>
+            ✕
+          </button>
+        </div>
+      )}
 
       <LoginForm
         data={formData}
