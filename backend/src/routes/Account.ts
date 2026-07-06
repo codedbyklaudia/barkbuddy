@@ -80,7 +80,7 @@ export default function accountRoutes(pool: Pool) {
   router.get('/restore', async (req: Request, res: Response) => {
     const { token } = req.query;
     if (!token || typeof token !== 'string') {
-      return res.redirect(`${process.env.APP_BASE_URL}/login?error=link-invalid`);
+      return res.redirect(`${process.env.APP_BASE_URL}/#/login?error=link-invalid`);
     }
 
     try {
@@ -96,7 +96,7 @@ export default function accountRoutes(pool: Pool) {
       );
 
       if (rows.length === 0) {
-        return res.redirect(`${process.env.APP_BASE_URL}/login?error=link-expired`);
+        return res.redirect(`${process.env.APP_BASE_URL}/#/login?error=link-expired`);
       }
 
       const { email, name } = rows[0];
@@ -110,7 +110,7 @@ export default function accountRoutes(pool: Pool) {
           <div style="font-family: sans-serif; max-width: 560px; margin: 0 auto;">
             <h2 style="color: #5B3F8C;">Welcome back, ${name}! 🐾</h2>
             <p>Your BarkBuddy account has been successfully restored. Everything is just as you left it.</p>
-            <a href="${process.env.APP_BASE_URL}/login"
+            <a href="${process.env.APP_BASE_URL}/#/login"
                style="display:inline-block;background:#5B3F8C;color:#fff;padding:12px 24px;
                       border-radius:8px;text-decoration:none;font-weight:bold;margin:16px 0;">
               Log in to BarkBuddy
@@ -120,7 +120,7 @@ export default function accountRoutes(pool: Pool) {
           </div>
         `
       });
-return res.redirect(`${process.env.APP_BASE_URL}/login?restored=true`);
+return res.redirect(`${process.env.APP_BASE_URL}/#/login?restored=true`);
 
     } catch (err) {
       console.error('restore error:', err);

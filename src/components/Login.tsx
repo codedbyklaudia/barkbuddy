@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Link } from 'react-router-dom';
 import "./Login.scss";
 import { useAuth } from "../context/AuthContext";
@@ -158,18 +158,20 @@ const LoginForm: React.FC<{
 
 const LoginPage: React.FC = () => {
   const navigate  = useNavigate();
-  const location  = useLocation();
   const { login } = useAuth();
 
-  const [formData,      setFormData]      = useState<LoginFormData>({ email: "", password: "" });
-  const [errors,        setErrors]        = useState<Record<string, string>>({});
-  const [apiError,      setApiError]      = useState("");
-  const [loading,       setLoading]       = useState(false);
+  const [formData,       setFormData]       = useState<LoginFormData>({ email: "", password: "" });
+  const [errors,         setErrors]         = useState<Record<string, string>>({});
+  const [apiError,       setApiError]       = useState("");
+  const [loading,        setLoading]        = useState(false);
   const [restoredBanner, setRestoredBanner] = useState<"success" | "expired" | "invalid" | null>(null);
 
-  // Read query params on mount
+  // HashRouter puts everything after # so useLocation().search is empty.
+  // Read params directly from window.location.hash instead.
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
+    const hash = window.location.hash; // e.g. "#/login?restored=true"
+    const queryString = hash.includes("?") ? hash.split("?")[1] : "";
+    const params = new URLSearchParams(queryString);
     const restored = params.get("restored");
     const error    = params.get("error");
 
@@ -183,9 +185,9 @@ const LoginPage: React.FC = () => {
 
     // Clean up URL so the banner doesn't reappear on refresh
     if (restored || error) {
-      window.history.replaceState({}, "", "/login");
+      window.history.replaceState({}, "", window.location.pathname + "#/login");
     }
-  }, [location.search]);
+  }, []);
 
   const handleChange = (key: keyof LoginFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
