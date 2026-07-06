@@ -31,7 +31,7 @@ export default function accountRoutes(pool: Pool) {
       if (rows.length === 0) return res.status(404).json({ error: 'User not found' });
 
       const { email, name } = rows[0];
-      const restoreUrl = `${process.env.APP_BASE_URL}/restore-account?token=${restoreToken}`;
+      const restoreUrl = `${process.env.API_URL}/api/account/restore?token=${restoreToken}`;
       const deletionDate = deletionAt.toLocaleDateString('en-GB', {
         day: 'numeric', month: 'long', year: 'numeric'
       });
