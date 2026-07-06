@@ -174,6 +174,8 @@ const LoginPage: React.FC = () => {
     const params = new URLSearchParams(queryString);
     const restored = params.get("restored");
     const error    = params.get("error");
+    console.log('full hash:', window.location.hash);
+  console.log('full href:', window.location.href);
 
     if (restored === "true") {
       setRestoredBanner("success");
