@@ -9,7 +9,7 @@ const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
 router.use(authenticate);
 
-// POST /api/chat/dog-assistant 
+//  POST /api/chat/dog-assistant
 router.post("/dog-assistant", async (req: AuthRequest, res: Response): Promise<void> => {
     const { system, messages } = req.body;
 
@@ -19,12 +19,14 @@ router.post("/dog-assistant", async (req: AuthRequest, res: Response): Promise<v
     }
 
     if (!process.env.GEMINI_API_KEY) {
+        console.error("GEMINI_API_KEY is not set in environment variables");
         res.status(500).json({ error: "GEMINI_API_KEY not configured" });
         return;
     }
+    console.log("Gemini key present, length:", process.env.GEMINI_API_KEY.length);
 
     try {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
 
         const contents = messages.map((m: { role: string; content: string }) => ({
             role: m.role === "assistant" ? "model" : "user",
@@ -48,15 +50,22 @@ router.post("/dog-assistant", async (req: AuthRequest, res: Response): Promise<v
             body: JSON.stringify(body),
         });
 
+        const responseText = await response.text();
+
         if (!response.ok) {
-            const err = await response.text();
-            console.error("Gemini error:", err);
-            res.status(500).json({ error: "Chat failed" });
+            console.error("Gemini error status:", response.status, responseText);
+            res.status(500).json({ error: "Chat failed", detail: responseText });
             return;
         }
 
-        const data = await response.json() as any;
+        const data = JSON.parse(responseText) as any;
         const reply: string = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+
+        if (!reply) {
+            console.error("Gemini empty reply:", JSON.stringify(data));
+            res.status(500).json({ error: "Empty response from Gemini" });
+            return;
+        }
 
         res.json({ reply });
     } catch (err: any) {
