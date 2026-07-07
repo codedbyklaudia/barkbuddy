@@ -39,7 +39,7 @@ router.post("/dog-assistant", async (req: AuthRequest, res: Response): Promise<v
             },
             contents,
             generationConfig: {
-                maxOutputTokens: 800,
+                maxOutputTokens: 1500,
                 temperature: 0.7,
             },
         };
