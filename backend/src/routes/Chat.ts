@@ -9,8 +9,63 @@ const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
 router.use(authenticate);
 
+// POST /api/chat/dog-assistant 
+router.post("/dog-assistant", async (req: AuthRequest, res: Response): Promise<void> => {
+    const { system, messages } = req.body;
+
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+        res.status(400).json({ error: "messages array required" });
+        return;
+    }
+
+    if (!process.env.GEMINI_API_KEY) {
+        res.status(500).json({ error: "GEMINI_API_KEY not configured" });
+        return;
+    }
+
+    try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
+
+        const contents = messages.map((m: { role: string; content: string }) => ({
+            role: m.role === "assistant" ? "model" : "user",
+            parts: [{ text: m.content }],
+        }));
+
+        const body = {
+            system_instruction: {
+                parts: [{ text: system || "You are a helpful dog care assistant." }],
+            },
+            contents,
+            generationConfig: {
+                maxOutputTokens: 300,
+                temperature: 0.7,
+            },
+        };
+
+        const response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+        });
+
+        if (!response.ok) {
+            const err = await response.text();
+            console.error("Gemini error:", err);
+            res.status(500).json({ error: "Chat failed" });
+            return;
+        }
+
+        const data = await response.json() as any;
+        const reply: string = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+
+        res.json({ reply });
+    } catch (err: any) {
+        console.error("Dog assistant error:", err?.message);
+        res.status(500).json({ error: "Chat failed" });
+    }
+});
+
 // ── GET /api/chat/conversations ───────────────────────────────────────────────
-// Optional ?q= for server-side search.
 router.get("/conversations", async (req: AuthRequest, res: Response): Promise<void> => {
     const userId = req.user!.userId;
     const q      = (req.query.q as string || "").trim();
@@ -105,7 +160,6 @@ router.post("/conversations", async (req: AuthRequest, res: Response): Promise<v
 });
 
 // ── POST /api/chat/conversations/group — create group ────────────────────────
-// Must be registered BEFORE /conversations/:id routes to avoid param conflicts.
 router.post("/conversations/group", async (req: AuthRequest, res: Response): Promise<void> => {
     const userId = req.user!.userId;
     const { groupName, memberIds } = req.body as {
@@ -125,7 +179,6 @@ router.post("/conversations/group", async (req: AuthRequest, res: Response): Pro
     try {
         await client.query("BEGIN");
 
-        // Fix 3: store created_by so the creator can delete the group
         const conv = await client.query(
             `INSERT INTO conversations (is_group, group_name, created_by)
              VALUES (true, $1, $2)
@@ -221,8 +274,6 @@ router.post("/conversations/:id/members", async (req: AuthRequest, res: Response
 });
 
 // ── DELETE /api/chat/conversations/:id/members/me — leave group ───────────────
-// Fix 2: /me MUST be registered BEFORE /:userId — otherwise Express treats
-// the literal string "me" as the :userId param and this handler is never reached.
 router.delete("/conversations/:id/members/me", async (req: AuthRequest, res: Response): Promise<void> => {
     const userId = req.user!.userId;
     const convId = req.params.id;
@@ -382,7 +433,6 @@ router.patch("/conversations/:id/unarchive", async (req: AuthRequest, res: Respo
 });
 
 // ── DELETE /api/chat/conversations/:id — delete conversation ──────────────────
-// Groups: only the creator can delete. 1:1: either participant can delete.
 router.delete("/conversations/:id", async (req: AuthRequest, res: Response): Promise<void> => {
     const userId = req.user!.userId;
     const convId = req.params.id;
@@ -410,9 +460,7 @@ router.delete("/conversations/:id", async (req: AuthRequest, res: Response): Pro
     }
 });
 
-// ── POST /api/chat/send-image — upload image and send as message ──────────────
-// Multipart: conversationId (text) + image (file)
-// SQL: ALTER TABLE messages ADD COLUMN IF NOT EXISTS image_url TEXT;
+// ── POST /api/chat/send-image ─────────────────────────────────────────────────
 router.post(
     "/send-image",
     upload.single("image"),
@@ -424,14 +472,12 @@ router.post(
         if (!req.file)  { res.status(400).json({ message: "No image uploaded" });       return; }
 
         try {
-            // Verify membership
             const access = await pool.query(
                 `SELECT 1 FROM conversation_members WHERE conversation_id = $1 AND user_id = $2`,
                 [convId, userId]
             );
             if (access.rows.length === 0) { res.status(403).json({ message: "Forbidden" }); return; }
 
-            // Upload to Cloudinary
             const imageUrl: string = await new Promise((resolve, reject) => {
                 const stream = cloudinary.uploader.upload_stream(
                     {
@@ -446,7 +492,6 @@ router.post(
                 streamifier.createReadStream(req.file!.buffer).pipe(stream);
             });
 
-            // Insert message with image_url
             const msg = await pool.query(
                 `INSERT INTO messages (conversation_id, sender_id, content, image_url)
                  VALUES ($1, $2, '', $3)
@@ -454,7 +499,6 @@ router.post(
                 [convId, userId, imageUrl]
             );
 
-            // Update conversation preview
             await pool.query(
                 `UPDATE conversations SET last_message = '📷 Image', last_message_at = NOW() WHERE id = $1`,
                 [convId]
