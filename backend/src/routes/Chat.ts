@@ -9,7 +9,7 @@ const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
 router.use(authenticate);
 
-//  POST /api/chat/dog-assistant
+// ── POST /api/chat/dog-assistant 
 router.post("/dog-assistant", async (req: AuthRequest, res: Response): Promise<void> => {
     const { system, messages } = req.body;
 
@@ -26,7 +26,7 @@ router.post("/dog-assistant", async (req: AuthRequest, res: Response): Promise<v
     console.log("Gemini key present, length:", process.env.GEMINI_API_KEY.length);
 
     try {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
 
         const contents = messages.map((m: { role: string; content: string }) => ({
             role: m.role === "assistant" ? "model" : "user",
