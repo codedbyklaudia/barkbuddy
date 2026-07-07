@@ -32,16 +32,21 @@ const calcProfileComplete = (user: {
   return score;
 };
 
-// Helper: reset streak to 0 if no walk in last 24h
+// Helper: reset streak only if last walk was 2+ calendar days ago (not just "not today")
 const resetStreakIfStale = async (userId: string): Promise<void> => {
-  const today = new Date().toISOString().split("T")[0];
   const result = await pool.query(
     `SELECT streak, last_walk_date::text AS last_walk_date FROM users WHERE id = $1`,
     [userId]
   );
   const row      = result.rows[0];
   const lastDate = row.last_walk_date ?? null;
-  if (lastDate !== today && (row.streak ?? 0) > 0) {
+  if ((row.streak ?? 0) === 0 || lastDate === null) return;
+
+  const today     = new Date().toISOString().split("T")[0];
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
+
+  // Only reset if last walk was before yesterday — walking yesterday keeps the streak alive
+  if (lastDate < yesterday) {
     await pool.query(
       `UPDATE users SET streak = 0, last_walk_date = NULL WHERE id = $1`,
       [userId]
@@ -492,62 +497,66 @@ router.post("/me/dogs/:dogId/avatar", uploadDogAvatar.single("avatar"), async (r
     res.status(500).json({ message: "Failed to upload image" });
   }
 });
+
 router.get("/:userId/dogs", async (req: AuthRequest, res: Response): Promise<void> => {
-    try {
-        const result = await pool.query(
-            `SELECT id, name, breed, gender, dob,
-             life_stage AS "lifeStage",
-             avatar_url AS "avatarUrl"
-             FROM dogs WHERE user_id = $1 ORDER BY is_main DESC, created_at ASC`,
-            [req.params.userId]
-        );
-        res.json({ dogs: result.rows });
-    } catch (err) {
-        res.status(500).json({ message: "Something went wrong." });
-    }
+  try {
+    const result = await pool.query(
+      `SELECT id, name, breed, gender, dob,
+       life_stage AS "lifeStage",
+       avatar_url AS "avatarUrl"
+       FROM dogs WHERE user_id = $1 ORDER BY is_main DESC, created_at ASC`,
+      [req.params.userId]
+    );
+    res.json({ dogs: result.rows });
+  } catch (err) {
+    res.status(500).json({ message: "Something went wrong." });
+  }
 });
+
 router.get("/:userId/posts", async (req: AuthRequest, res: Response): Promise<void> => {
-    try {
-        const result = await pool.query(
-            `SELECT 
-                fp.id,
-                fp.title,
-                fp.content,
-                fp.category,
-                (fp.created_at AT TIME ZONE 'UTC')::text AS "createdAt",
-                (
-                    SELECT COUNT(*)::int 
-                    FROM forum_comments fc 
-                    WHERE fc.post_id = fp.id
-                ) AS "commentCount"
-            FROM forum_posts fp
-            WHERE fp.user_id = $1
-            AND fp.is_published = true
-            ORDER BY fp.created_at DESC`,
-            [req.params.userId]
-        );
-        res.json({ posts: result.rows, total: result.rows.length });
-    } catch (err) {
-        console.error("GET /users/:userId/posts error:", err);
-        res.status(500).json({ message: "Something went wrong." });
-    }
+  try {
+    const result = await pool.query(
+      `SELECT 
+          fp.id,
+          fp.title,
+          fp.content,
+          fp.category,
+          (fp.created_at AT TIME ZONE 'UTC')::text AS "createdAt",
+          (
+              SELECT COUNT(*)::int 
+              FROM forum_comments fc 
+              WHERE fc.post_id = fp.id
+          ) AS "commentCount"
+      FROM forum_posts fp
+      WHERE fp.user_id = $1
+      AND fp.is_published = true
+      ORDER BY fp.created_at DESC`,
+      [req.params.userId]
+    );
+    res.json({ posts: result.rows, total: result.rows.length });
+  } catch (err) {
+    console.error("GET /users/:userId/posts error:", err);
+    res.status(500).json({ message: "Something went wrong." });
+  }
 });
+
 router.get("/:userId/stats", async (req: AuthRequest, res: Response): Promise<void> => {
-    try {
-        const result = await pool.query(
-            `SELECT 
-                COALESCE(ROUND(SUM(distance_km)::numeric, 1), 0) AS "totalKm",
-                COUNT(*) AS "totalWalks"
-            FROM walks
-            WHERE user_id = $1`,
-            [req.params.userId]
-        );
-        res.json(result.rows[0]);
-    } catch (err) {
-        console.error("GET /users/:userId/stats error:", err);
-        res.status(500).json({ message: "Something went wrong." });
-    }
+  try {
+    const result = await pool.query(
+      `SELECT 
+          COALESCE(ROUND(SUM(distance_km)::numeric, 1), 0) AS "totalKm",
+          COUNT(*) AS "totalWalks"
+      FROM walks
+      WHERE user_id = $1`,
+      [req.params.userId]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error("GET /users/:userId/stats error:", err);
+    res.status(500).json({ message: "Something went wrong." });
+  }
 });
+
 // GET /api/users/search
 router.get("/search", async (req: AuthRequest, res: Response): Promise<void> => {
   try {
@@ -556,7 +565,6 @@ router.get("/search", async (req: AuthRequest, res: Response): Promise<void> => 
 
     const searchTerm = `%${query.toLowerCase()}%`;
 
-    // Subquery picks first dog regardless of is_main
     const result = await pool.query(
       `SELECT
         u.id,
