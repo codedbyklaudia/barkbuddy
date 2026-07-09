@@ -622,5 +622,124 @@ router.get("/status/:userId", async (req: AuthRequest, res: Response): Promise<v
         res.status(500).json({ message: "Something went wrong." });
     }
 });
-
+router.post("/dog-tips", async (req: AuthRequest, res: Response): Promise<void> => {
+    const { breed, lifeStage, category } = req.body;
+ 
+    if (!breed || !lifeStage || !category) {
+        res.status(400).json({ error: "breed, lifeStage, and category are required" });
+        return;
+    }
+ 
+    if (!process.env.GEMINI_API_KEY) {
+        res.status(500).json({ error: "GEMINI_API_KEY not configured" });
+        return;
+    }
+ 
+    const stageDesc = (s: string) => {
+        switch (s.toLowerCase()) {
+            case "puppy":  return "0–6 months old, learning everything for the first time";
+            case "teen":   return "6–18 months old, adolescent, brain rewiring, testing limits";
+            case "adult":  return "18 months–7 years old, fully grown, established habits";
+            case "senior": return "7+ years old, slowing down, needs gentler approach";
+            default:       return s;
+        }
+    };
+ 
+    const catDesc = (c: string) => {
+        switch (c) {
+            case "Training":  return "behaviour, commands, socialisation, mental enrichment";
+            case "Grooming":  return "coat care, brushing, bathing, nails, ears, teeth";
+            case "Health":    return "preventive care, vaccinations, breed conditions, vet visits";
+            case "Nutrition": return "diet, feeding, portions, supplements, toxic foods";
+            default:          return c;
+        }
+    };
+ 
+    const systemPrompt = `You are a professional veterinary-informed dog care writer.
+You write specific, practical, breed-aware care tips.
+Every tip must be directly relevant to a ${lifeStage} ${breed}.
+Never write generic advice that applies to any dog — always reference the ${breed}'s specific traits, predispositions, or life stage needs.
+Return ONLY a valid JSON array with exactly 5 objects. No markdown, no explanation, no backticks, no text before or after the array.
+Each object must have exactly these fields:
+- title: short tip title (string)
+- summary: one sentence describing the tip (string)  
+- points: array of exactly 4 practical bullet points (array of strings)
+- calloutTitle: short callout heading (string)
+- calloutBody: one important highlighted fact or warning (string)`;
+ 
+    const userPrompt = `Generate exactly 5 ${category} tips for a ${lifeStage} ${breed}.
+Life stage: ${stageDesc(lifeStage)}.
+Category focus: ${catDesc(category)}.
+Return a JSON array of exactly 5 objects. Start your response with [ and end with ].`;
+ 
+    try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
+ 
+        const body = {
+            system_instruction: {
+                parts: [{ text: systemPrompt }],
+            },
+            contents: [
+                { role: "user", parts: [{ text: userPrompt }] }
+            ],
+            generationConfig: {
+                maxOutputTokens: 4000,  // enough for 5 detailed tips
+                temperature: 0.7,
+                responseMimeType: "application/json",  // force Gemini to return JSON
+            },
+        };
+ 
+        const response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+        });
+ 
+        const responseText = await response.text();
+ 
+        if (!response.ok) {
+            console.error("Gemini tips error:", response.status, responseText);
+            res.status(500).json({ error: "Tips generation failed", detail: responseText });
+            return;
+        }
+ 
+        const data = JSON.parse(responseText) as any;
+        const raw: string = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+ 
+        if (!raw) {
+            console.error("Gemini empty tips reply:", JSON.stringify(data));
+            res.status(500).json({ error: "Empty response from Gemini" });
+            return;
+        }
+ 
+        // Clean and validate JSON before sending
+        let json = raw.trim()
+            .replace(/```json/g, "")
+            .replace(/```/g, "")
+            .trim();
+ 
+        const start = json.indexOf("[");
+        const end   = json.lastIndexOf("]");
+        if (start === -1 || end === -1 || end <= start) {
+            console.error("Gemini tips: no valid JSON array found in:", raw);
+            res.status(500).json({ error: "Invalid JSON from Gemini" });
+            return;
+        }
+        json = json.substring(start, end + 1);
+ 
+        // Validate it parses before sending
+        const parsed = JSON.parse(json);
+        if (!Array.isArray(parsed) || parsed.length === 0) {
+            res.status(500).json({ error: "Empty tips array from Gemini" });
+            return;
+        }
+ 
+        console.log(`Generated ${parsed.length} tips for ${breed} ${lifeStage} ${category}`);
+        res.json({ tips: parsed });
+ 
+    } catch (err: any) {
+        console.error("Dog tips error:", err?.message);
+        res.status(500).json({ error: "Tips generation failed" });
+    }
+});
 export default router;
