@@ -115,10 +115,34 @@ router.get("/stats", authenticate, async (req: AuthRequest, res: Response) => {
       [userId]
     );
 
+    // Previous month stats for recap card
+    const prevMonthStats = await pool.query(
+      `SELECT
+         COALESCE(SUM(distance_km), 0) AS total_km,
+         COUNT(*)                      AS total_walks
+       FROM walks
+       WHERE user_id = $1
+         AND TO_CHAR(started_at, 'YYYY-MM') = TO_CHAR(NOW() - INTERVAL '1 month', 'YYYY-MM')`,
+      [userId]
+    );
+
+    // Current streak from users table
+    const streakResult = await pool.query(
+      `SELECT streak, last_walk_date::text AS last_walk_date FROM users WHERE id = $1`,
+      [userId]
+    );
+    const streakRow    = streakResult.rows[0];
+    const today        = new Date().toISOString().split("T")[0];
+    const currentStreak = streakRow?.streak ?? 0;
+    const walkedToday   = streakRow?.last_walk_date === today;
+
     res.json({
-      monthly: monthStats.rows[0],
-      week:    weekStats.rows,
-      goals:   goals.rows[0] || { daily_km: 3.0, monthly_km: 93.0 },
+      monthly:        monthStats.rows[0],
+      week:           weekStats.rows,
+      goals:          goals.rows[0] || { daily_km: 3.0, monthly_km: 93.0 },
+      current_streak: currentStreak,
+      walked_today:   walkedToday,
+      prev_month:     prevMonthStats.rows[0],
     });
   } catch (err) {
     console.error(err);
@@ -136,7 +160,7 @@ router.get("/", authenticate, async (req: AuthRequest, res: Response) => {
     const result = await pool.query(
       `SELECT id, dog_ids, started_at, ended_at, duration_seconds,
               distance_km, steps, notes,
-              route                          -- ← included so the app can replay the map
+              route
        FROM walks
        WHERE user_id = $1
        ORDER BY started_at DESC
