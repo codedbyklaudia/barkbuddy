@@ -3,13 +3,21 @@ import { getMessaging } from "firebase-admin/messaging";
 import { ServiceAccount } from "firebase-admin/app";
 import pool from "../db";
 
-// Initialise once
+// Initialise once — fix escaped newlines in private key
 if (!getApps().length) {
-    initializeApp({
-        credential: cert(
-            JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT!) as ServiceAccount
-        ),
-    });
+    try {
+        const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT!
+            .replace(/\\n/g, '\n');
+
+        initializeApp({
+            credential: cert(
+                JSON.parse(serviceAccountJson) as ServiceAccount
+            ),
+        });
+        console.log("✅ Firebase Admin initialised");
+    } catch (err) {
+        console.error("❌ Firebase Admin init FAILED:", err);
+    }
 }
 
 export async function sendToUser(
@@ -26,9 +34,15 @@ export async function sendToUser(
             [userId]
         );
         const token = result.rows[0]?.fcm_token;
-        if (!token) return;
 
-        await getMessaging().send({
+        console.log(`📬 sendToUser → userId=${userId} hasToken=${!!token}`);
+
+        if (!token) {
+            console.log("⚠️ No FCM token for user — skipping");
+            return;
+        }
+
+        const response = await getMessaging().send({
             token,
             notification: { title, body },
             data: { channel, type, ...data },
@@ -37,7 +51,22 @@ export async function sendToUser(
                 notification: { channelId: channel },
             },
         });
-    } catch (err) {
-        console.error("sendToUser error:", err);
+
+        console.log("✅ FCM sent successfully:", response);
+
+    } catch (err: any) {
+        console.error("❌ FCM send error:", err?.message || err);
+
+        // Clear stale/expired token so we don't keep trying
+        if (
+            err?.code === "messaging/registration-token-not-registered" ||
+            err?.code === "messaging/invalid-registration-token"
+        ) {
+            console.log("🗑 Clearing stale FCM token for user:", userId);
+            await pool.query(
+                "UPDATE users SET fcm_token = NULL WHERE id = $1",
+                [userId]
+            );
+        }
     }
 }
