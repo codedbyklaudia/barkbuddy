@@ -251,13 +251,15 @@ io.on("connection", (socket: Socket) => {
             const groupName = convInfo.rows[0]?.group_name;
 
             await sendToUser(
-                otherUserId,
-                isGroup ? `${senderName} in ${groupName}` : `${senderName} 💬`,
-                data.content.trim().substring(0, 100),
-                "messages",
-                "new_message",
-                { conversationId: data.conversationId }
-            );
+              otherUserId,
+              isGroup
+                  ? `New message in ${groupName}`
+                  : `New message from ${senderName}`,
+              data.content.trim().substring(0, 100),
+              "messages",
+              "new_message",
+              { conversationId: data.conversationId }
+          );
 
         } catch (err) {
             console.error("[Socket] send_message error:", err);
