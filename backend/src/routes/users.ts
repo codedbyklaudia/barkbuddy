@@ -719,4 +719,18 @@ router.get("/:userId/badges", async (req: AuthRequest, res: Response): Promise<v
         res.status(500).json({ message: "Something went wrong." });
     }
 });
+router.patch("/me/fcm-token", async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+        const { fcmToken } = req.body;
+        if (!fcmToken) { res.status(400).json({ message: "fcmToken required" }); return; }
+        await pool.query(
+            "UPDATE users SET fcm_token = $1 WHERE id = $2",
+            [fcmToken, req.user!.userId]
+        );
+        res.json({ message: "FCM token updated" });
+    } catch (err) {
+        console.error("PATCH /users/me/fcm-token error:", err);
+        res.status(500).json({ message: "Something went wrong." });
+    }
+});
 export default router;
