@@ -634,5 +634,89 @@ router.get("/search", async (req: AuthRequest, res: Response): Promise<void> => 
     res.status(500).json({ message: "Something went wrong." });
   }
 });
+// GET /api/users/:userId/badges
+router.get("/:userId/badges", async (req: AuthRequest, res: Response): Promise<void> => {
+    const { userId } = req.params;
 
+    try {
+        const walksResult = await pool.query(
+            `SELECT distance_km, started_at, duration_seconds
+             FROM walks
+             WHERE user_id = $1
+             ORDER BY started_at DESC`,
+            [userId]
+        );
+        const walks = walksResult.rows;
+
+        const totalWalks = walks.length;
+        const totalKm    = walks.reduce((s: number, w: any) =>
+            s + parseFloat(w.distance_km || 0), 0);
+
+        // Streak
+        const uniqueDays = [...new Set(walks.map((w: any) =>
+            new Date(w.started_at).toISOString().substring(0, 10)
+        ))].sort().reverse() as string[];
+
+        let streak   = 0;
+        let expected = new Date().toISOString().substring(0, 10);
+        for (const d of uniqueDays) {
+            if (d === expected) {
+                streak++;
+                const prev = new Date(expected);
+                prev.setDate(prev.getDate() - 1);
+                expected = prev.toISOString().substring(0, 10);
+            } else break;
+        }
+
+        const hasWalkOver = (minKm: number) =>
+            walks.some((w: any) => parseFloat(w.distance_km) >= minKm);
+
+        const hasHour = (from: number, to: number) =>
+            walks.some((w: any) => {
+                const h = new Date(w.started_at).getHours();
+                return h >= from && h < to;
+            });
+
+        // Perfect week
+        const now       = new Date();
+        const dayOfWeek = now.getDay() === 0 ? 6 : now.getDay() - 1;
+        const weekStart = new Date(now);
+        weekStart.setDate(now.getDate() - dayOfWeek);
+        weekStart.setHours(0, 0, 0, 0);
+        const daysThisWeek = new Set(
+            walks
+                .filter((w: any) => new Date(w.started_at) >= weekStart)
+                .map((w: any) => new Date(w.started_at).toISOString().substring(0, 10))
+        ).size;
+        const perfectWeek = daysThisWeek >= 7;
+
+        // Must match BADGE_CATALOGUE order exactly
+        const earned: boolean[] = [
+            totalWalks >= 1,
+            totalWalks >= 3,
+            totalWalks >= 10,
+            totalWalks >= 25,
+            totalWalks >= 50,
+            hasWalkOver(50),
+            hasWalkOver(21),
+            totalKm >= 100,
+            totalKm >= 500,
+            streak >= 7,
+            streak >= 30,
+            hasHour(0, 8),
+            hasHour(21, 24),
+            perfectWeek,
+        ];
+
+        const earnedIndices = earned
+            .map((v, i) => v ? i : -1)
+            .filter((i): i is number => i >= 0);
+
+        res.json({ earned_indices: earnedIndices });
+
+    } catch (err) {
+        console.error("GET /users/:userId/badges error:", err);
+        res.status(500).json({ message: "Something went wrong." });
+    }
+});
 export default router;
