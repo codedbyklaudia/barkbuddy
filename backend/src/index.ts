@@ -28,13 +28,13 @@ import profileRouter           from "./routes/ProfileRoutes";
 import savedRouter             from "./routes/saved";
 import walksRouter             from "./routes/Walks";
 import chatRouter              from "./routes/Chat";
+import "./lib/notifications"; // Ensure notifications module is loaded
 import accountRoutes from './routes/Account';
 import reportsRouter from "./routes/Reports";
 import { verifyToken }         from "./utils/jwt";
 import pool                    from "./db";
 import { startDeletionCron } from './jobs/deleteExpiredAccounts';
 startDeletionCron(pool);
-
 dotenv.config();
 
 cloudinary.config({
@@ -293,12 +293,13 @@ io.on("connection", (socket: Socket) => {
 });
 
 httpServer.listen(PORT, () => {
-  console.log(`🚀 BarkBuddy server running on port ${PORT}`);
-  console.log(`   NODE_ENV:   ${process.env.NODE_ENV ?? "development"}`);
-  console.log(`   DATABASE:   ${process.env.DATABASE_URL    ? "✅ set" : "❌ MISSING"}`);
-  console.log(`   JWT:        ${process.env.JWT_SECRET      ? "✅ set" : "❌ MISSING"}`);
-  console.log(`   RESEND:     ${process.env.RESEND_API_KEY  ? "✅ set" : "❌ MISSING"}`);
-  console.log(`   CLOUDINARY: ${process.env.CLOUDINARY_CLOUD_NAME ? "✅ set" : "❌ MISSING"}`);
+    console.log(`🚀 BarkBuddy server running on port ${PORT}`);
+    console.log(`   NODE_ENV:   ${process.env.NODE_ENV ?? "development"}`);
+    console.log(`   DATABASE:   ${process.env.DATABASE_URL        ? "✅ set" : "❌ MISSING"}`);
+    console.log(`   JWT:        ${process.env.JWT_SECRET          ? "✅ set" : "❌ MISSING"}`);
+    console.log(`   RESEND:     ${process.env.RESEND_API_KEY      ? "✅ set" : "❌ MISSING"}`);
+    console.log(`   CLOUDINARY: ${process.env.CLOUDINARY_CLOUD_NAME ? "✅ set" : "❌ MISSING"}`);
+    console.log(`   FIREBASE:   ${process.env.FIREBASE_SERVICE_ACCOUNT ? "✅ set" : "❌ MISSING"}`);
 });
 
 export default app;
