@@ -6,17 +6,40 @@ import pool from "../db";
 // Initialise once — fix escaped newlines in private key
 if (!getApps().length) {
     try {
-        const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT!
-            .replace(/\\n/g, '\n');
+        let raw = process.env.FIREBASE_SERVICE_ACCOUNT!;
 
-        initializeApp({
-            credential: cert(
-                JSON.parse(serviceAccountJson) as ServiceAccount
-            ),
-        });
-        console.log("✅ Firebase Admin initialised");
-    } catch (err) {
-        console.error("❌ Firebase Admin init FAILED:", err);
+        // Remove real line breaks that Render may have introduced
+        // then fix the private key's escaped newlines
+        raw = raw
+            .replace(/\r\n/g, '\\n')  // Windows line endings
+            .replace(/\r/g, '\\n')     // old Mac line endings
+            .replace(/\n/g, '\\n');    // Unix line endings — but only OUTSIDE the JSON string
+
+        // Better approach — parse then fix the private key separately
+        // First try direct parse
+        let parsed: any;
+        try {
+            parsed = JSON.parse(raw);
+        } catch {
+            // If that fails, try extracting and fixing the private key manually
+            const fixedRaw = raw.replace(
+                /"private_key"\s*:\s*"([\s\S]*?)(?<!\\)"/,
+                (_match: string, key: string) => {
+                    const fixedKey = key
+                        .replace(/\r\n/g, '\\n')
+                        .replace(/\r/g, '\\n')
+                        .replace(/\n/g, '\\n');
+                    return `"private_key":"${fixedKey}"`;
+                }
+            );
+            parsed = JSON.parse(fixedRaw);
+        }
+
+        console.log("✅ JSON parsed — project_id:", parsed.project_id);
+        initializeApp({ credential: cert(parsed as ServiceAccount) });
+        console.log("✅ Firebase Admin initialised successfully");
+    } catch (err: any) {
+        console.error("❌ Firebase Admin init FAILED:", err?.message);
     }
 }
 
