@@ -20,7 +20,7 @@ import businessAuthRouter      from "./routes/Businessauth";
 import businessPasswordRouter  from "./routes/Businesspassword";
 import businessDashboardRouter from "./routes/Businessdashboard";
 import listingsRouter          from "./routes/Listings";
-import buddiesRouter           from "./routes/buddies";
+import buddiesRouter, { setIo as setBuddiesIo } from "./routes/buddies";
 import dogsRouter              from "./routes/Dogs";
 import reviewRouter            from "./routes/Reviews";
 import profileRouter           from "./routes/ProfileRoutes";
@@ -166,6 +166,9 @@ const io = new SocketServer(httpServer, {
     cors: { origin: "*", methods: ["GET", "POST"] },
 });
 
+// Give the buddies router access to io so it can push real-time events
+setBuddiesIo(io);
+
 io.use((socket, next) => {
     const token = socket.handshake.auth?.token;
     if (!token) return next(new Error("No token"));
@@ -204,7 +207,6 @@ io.on("connection", (socket: Socket) => {
     socket.on("send_message", async (data: { conversationId: string; content: string }) => {
         if (!data.content?.trim()) return;
         try {
-            // Works for both 1:1 and group — blocks left users too
             const access = await pool.query(
                 `SELECT 1 FROM conversation_members
                  WHERE conversation_id = $1 AND user_id = $2 AND left_at IS NULL`,
@@ -228,13 +230,11 @@ io.on("connection", (socket: Socket) => {
                 [data.content.trim().substring(0, 100), data.conversationId]
             );
 
-            // Emit to everyone in conversation room
             io.to(`conv:${data.conversationId}`).emit("new_message", {
                 conversationId: data.conversationId,
                 message: result.rows[0],
             });
 
-            // Get sender name + conversation info for notifications
             const senderResult = await pool.query(
                 `SELECT name FROM users WHERE id = $1`, [userId]
             );
@@ -247,7 +247,6 @@ io.on("connection", (socket: Socket) => {
             const isGroup   = convInfo.rows[0]?.is_group;
             const groupName = convInfo.rows[0]?.group_name;
 
-            // Notify all other active members
             const members = await pool.query(
                 `SELECT user_id FROM conversation_members
                  WHERE conversation_id = $1 AND user_id != $2 AND left_at IS NULL`,

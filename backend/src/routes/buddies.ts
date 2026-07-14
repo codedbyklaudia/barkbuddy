@@ -1,14 +1,18 @@
 import { Router, Response } from "express";
 import pool from "../db";
 import { authenticate, AuthRequest } from "../middleware/auth";
+import { sendToUser } from "../lib/notifications";
 
 const router = Router();
 router.use(authenticate);
 
+// Injected by index.ts after io is created
+let _io: any = null;
+export function setIo(io: any) { _io = io; }
+
 router.get("/", async (req: AuthRequest, res: Response): Promise<void> => {
   const userId = req.user!.userId;
   try {
-    // Accepted buddies
     const buddiesResult = await pool.query(
       `SELECT
          br.id,
@@ -32,7 +36,6 @@ router.get("/", async (req: AuthRequest, res: Response): Promise<void> => {
       [userId]
     );
 
-    // Pending incoming (others sent to me)
     const pendingInResult = await pool.query(
       `SELECT
          br.id,
@@ -50,7 +53,6 @@ router.get("/", async (req: AuthRequest, res: Response): Promise<void> => {
       [userId]
     );
 
-    // Pending outgoing (I sent to others)
     const pendingOutResult = await pool.query(
       `SELECT
          br.id,
@@ -88,7 +90,6 @@ router.post("/request", async (req: AuthRequest, res: Response): Promise<void> =
   }
 
   try {
-    // Check for existing request in either direction
     const existing = await pool.query(
       `SELECT id, status FROM buddy_requests
        WHERE (sender_id = $1 AND receiver_id = $2)
@@ -107,6 +108,13 @@ router.post("/request", async (req: AuthRequest, res: Response): Promise<void> =
       [senderId, receiverId]
     );
 
+    // Notify the receiver instantly via socket
+    if (_io) {
+      _io.to(`user:${receiverId}`).emit("buddy_request_received", {
+        fromUserId: senderId,
+      });
+    }
+
     res.json({ message: "Buddy request sent" });
   } catch (err) {
     console.error("POST /buddies/request error:", err);
@@ -116,21 +124,48 @@ router.post("/request", async (req: AuthRequest, res: Response): Promise<void> =
 
 // POST /api/buddies/:id/accept
 router.post("/:id/accept", async (req: AuthRequest, res: Response): Promise<void> => {
-  const userId    = req.user!.userId;
-  const requestId = req.params.id;
+  const accepterId = req.user!.userId;
+  const requestId  = req.params.id;
 
   try {
     const result = await pool.query(
       `UPDATE buddy_requests
        SET status = 'accepted', updated_at = NOW()
        WHERE id = $1 AND receiver_id = $2 AND status = 'pending'
-       RETURNING id`,
-      [requestId, userId]
+       RETURNING id, sender_id`,
+      [requestId, accepterId]
     );
 
     if (result.rows.length === 0) {
       res.status(404).json({ message: "Request not found or already handled" });
       return;
+    }
+
+    const originalSenderId = result.rows[0].sender_id;
+
+    // Get the accepter's name to personalise the notification
+    const accepterResult = await pool.query(
+      `SELECT name FROM users WHERE id = $1`, [accepterId]
+    );
+    const accepterName = accepterResult.rows[0]?.name ?? "Someone";
+
+    // Push FCM notification to the original sender
+    await sendToUser(
+      originalSenderId,
+      "Buddy Pack 🐾",
+      `${accepterName} accepted your invitation to their Buddy Pack!`,
+      "buddies",
+      "buddy_accepted",
+      { acceptedByUserId: accepterId }
+    );
+
+    // Push real-time socket event to the original sender so the dashboard
+    // updates immediately without waiting for the next app open
+    if (_io) {
+      _io.to(`user:${originalSenderId}`).emit("buddy_request_accepted", {
+        acceptedByUserId: accepterId,
+        acceptedByName:   accepterName,
+      });
     }
 
     res.json({ message: "Buddy accepted" });
