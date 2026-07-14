@@ -4,6 +4,7 @@ import { v2 as cloudinary } from "cloudinary";
 import streamifier from "streamifier";
 import pool from "../db";
 import { authenticate, AuthRequest } from "../middleware/auth";
+import { sendToUser } from "../lib/notifications";
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -23,7 +24,6 @@ router.post("/dog-assistant", async (req: AuthRequest, res: Response): Promise<v
         res.status(500).json({ error: "GEMINI_API_KEY not configured" });
         return;
     }
-    console.log("Gemini key present, length:", process.env.GEMINI_API_KEY.length);
 
     try {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
@@ -94,6 +94,7 @@ router.get("/conversations", async (req: AuthRequest, res: Response): Promise<vo
                c.is_group                                                    AS "isGroup",
                c.group_name                                                  AS "groupName",
                c.group_avatar                                                AS "groupAvatar",
+               cm.left_at                                                    AS "leftAt",
                CASE WHEN c.is_group THEN NULL        ELSE u.id          END  AS "otherUserId",
                CASE WHEN c.is_group THEN c.group_name ELSE u.name       END  AS "otherUserName",
                CASE WHEN c.is_group THEN c.group_avatar ELSE u.avatar_url END AS "otherUserAvatar",
@@ -238,6 +239,7 @@ router.get("/conversations/:id/members", async (req: AuthRequest, res: Response)
              JOIN users u ON u.id = cm.user_id
              JOIN conversations c ON c.id = cm.conversation_id
              WHERE cm.conversation_id = $1
+               AND cm.left_at IS NULL
              ORDER BY "isCreator" DESC, cm.joined_at ASC`,
             [convId]
         );
@@ -272,7 +274,9 @@ router.post("/conversations/:id/members", async (req: AuthRequest, res: Response
         }
 
         await pool.query(
-            `INSERT INTO conversation_members (conversation_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+            `INSERT INTO conversation_members (conversation_id, user_id)
+             VALUES ($1, $2)
+             ON CONFLICT (conversation_id, user_id) DO UPDATE SET left_at = NULL`,
             [convId, newId]
         );
         res.json({ ok: true });
@@ -288,10 +292,32 @@ router.delete("/conversations/:id/members/me", async (req: AuthRequest, res: Res
     const convId = req.params.id;
 
     try {
+        // Soft delete — keep row so conversation stays in list
         await pool.query(
-            `DELETE FROM conversation_members WHERE conversation_id = $1 AND user_id = $2`,
+            `UPDATE conversation_members
+             SET left_at = NOW()
+             WHERE conversation_id = $1 AND user_id = $2`,
             [convId, userId]
         );
+
+        // System message so others see who left
+        const nameResult = await pool.query(
+            `SELECT name FROM users WHERE id = $1`, [userId]
+        );
+        const name = nameResult.rows[0]?.name ?? "Someone";
+
+        await pool.query(
+            `INSERT INTO messages (conversation_id, sender_id, content, is_system)
+             VALUES ($1, $2, $3, true)`,
+            [convId, userId, `${name} left the group`]
+        );
+
+        await pool.query(
+            `UPDATE conversations SET last_message = $1, last_message_at = NOW()
+             WHERE id = $2`,
+            [`${name} left the group`, convId]
+        );
+
         res.json({ ok: true });
     } catch (err) {
         console.error("DELETE /chat/members/me error:", err);
@@ -319,7 +345,8 @@ router.delete("/conversations/:id/members/:userId", async (req: AuthRequest, res
         }
 
         await pool.query(
-            `DELETE FROM conversation_members WHERE conversation_id = $1 AND user_id = $2`,
+            `UPDATE conversation_members SET left_at = NOW()
+             WHERE conversation_id = $1 AND user_id = $2`,
             [convId, targetUserId]
         );
         res.json({ ok: true });
@@ -343,7 +370,7 @@ router.put("/conversations/:id/group", async (req: AuthRequest, res: Response): 
             [userId, convId]
         );
         if (access.rows.length === 0) { res.status(403).json({ message: "Forbidden" }); return; }
-        if (!access.rows[0].is_group)  { res.status(400).json({ message: "Not a group" }); return; }
+        if (!access.rows[0].is_group) { res.status(400).json({ message: "Not a group" }); return; }
 
         const sets: string[] = [];
         const params: any[]  = [];
@@ -391,7 +418,8 @@ router.post(
             });
 
             await pool.query(
-                `UPDATE conversations SET group_avatar = $1 WHERE id = $2`, [avatarUrl, convId]
+                `UPDATE conversations SET group_avatar = $1 WHERE id = $2`,
+                [avatarUrl, convId]
             );
             res.json({ avatarUrl });
         } catch (err) {
@@ -414,7 +442,8 @@ router.patch("/conversations/:id/archive", async (req: AuthRequest, res: Respons
         if (access.rows.length === 0) { res.status(403).json({ message: "Forbidden" }); return; }
 
         await pool.query(
-            `INSERT INTO conversation_archives (conversation_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+            `INSERT INTO conversation_archives (conversation_id, user_id)
+             VALUES ($1, $2) ON CONFLICT DO NOTHING`,
             [convId, userId]
         );
         res.json({ ok: true });
@@ -449,7 +478,8 @@ router.delete("/conversations/:id", async (req: AuthRequest, res: Response): Pro
     try {
         const conv = await pool.query(
             `SELECT created_by, is_group FROM conversations
-             JOIN conversation_members cm ON cm.conversation_id = conversations.id AND cm.user_id = $1
+             JOIN conversation_members cm
+               ON cm.conversation_id = conversations.id AND cm.user_id = $1
              WHERE conversations.id = $2`,
             [userId, convId]
         );
@@ -477,12 +507,13 @@ router.post(
         const userId = req.user!.userId;
         const convId = req.body.conversationId as string;
 
-        if (!convId)    { res.status(400).json({ message: "conversationId required" }); return; }
-        if (!req.file)  { res.status(400).json({ message: "No image uploaded" });       return; }
+        if (!convId)   { res.status(400).json({ message: "conversationId required" }); return; }
+        if (!req.file) { res.status(400).json({ message: "No image uploaded" });       return; }
 
         try {
             const access = await pool.query(
-                `SELECT 1 FROM conversation_members WHERE conversation_id = $1 AND user_id = $2`,
+                `SELECT 1 FROM conversation_members
+                 WHERE conversation_id = $1 AND user_id = $2 AND left_at IS NULL`,
                 [convId, userId]
             );
             if (access.rows.length === 0) { res.status(403).json({ message: "Forbidden" }); return; }
@@ -504,14 +535,44 @@ router.post(
             const msg = await pool.query(
                 `INSERT INTO messages (conversation_id, sender_id, content, image_url)
                  VALUES ($1, $2, '', $3)
-                 RETURNING id, sender_id AS "senderId", content, image_url AS "imageUrl", created_at AS "createdAt"`,
+                 RETURNING id, sender_id AS "senderId", content,
+                           image_url AS "imageUrl", created_at AS "createdAt"`,
                 [convId, userId, imageUrl]
             );
 
             await pool.query(
-                `UPDATE conversations SET last_message = '📷 Image', last_message_at = NOW() WHERE id = $1`,
+                `UPDATE conversations SET last_message = '📷 Image', last_message_at = NOW()
+                 WHERE id = $1`,
                 [convId]
             );
+
+            const senderResult = await pool.query(
+                `SELECT name FROM users WHERE id = $1`, [userId]
+            );
+            const senderName = senderResult.rows[0]?.name ?? "Someone";
+
+            const convResult = await pool.query(
+                `SELECT is_group, group_name FROM conversations WHERE id = $1`, [convId]
+            );
+            const isGroup   = convResult.rows[0]?.is_group;
+            const groupName = convResult.rows[0]?.group_name;
+
+            const members = await pool.query(
+                `SELECT user_id FROM conversation_members
+                 WHERE conversation_id = $1 AND user_id != $2 AND left_at IS NULL`,
+                [convId, userId]
+            );
+
+            for (const member of members.rows) {
+                await sendToUser(
+                    member.user_id,
+                    isGroup ? `${senderName} in ${groupName}` : senderName + " 💬",
+                    "📷 Sent an image",
+                    "messages",
+                    "new_message",
+                    { conversationId: convId }
+                );
+            }
 
             res.status(201).json({ message: msg.rows[0] });
         } catch (err) {
@@ -529,8 +590,10 @@ router.get("/conversations/:id/messages", async (req: AuthRequest, res: Response
     const before = req.query.before as string;
 
     try {
+        // Allow left users to read history
         const access = await pool.query(
-            `SELECT 1 FROM conversation_members WHERE conversation_id = $1 AND user_id = $2`,
+            `SELECT 1 FROM conversation_members
+             WHERE conversation_id = $1 AND user_id = $2`,
             [convId, userId]
         );
         if (access.rows.length === 0) { res.status(403).json({ message: "Forbidden" }); return; }
@@ -542,13 +605,14 @@ router.get("/conversations/:id/messages", async (req: AuthRequest, res: Response
         const result = await pool.query(
             `SELECT
                m.id,
-               m.sender_id  AS "senderId",
+               m.sender_id   AS "senderId",
                m.content,
-               m.image_url  AS "imageUrl",
-               m.read_at    AS "readAt",
-               m.created_at AS "createdAt",
-               u.name       AS "senderName",
-               u.avatar_url AS "senderAvatar"
+               m.image_url   AS "imageUrl",
+               m.read_at     AS "readAt",
+               m.is_system   AS "isSystem",
+               m.created_at  AS "createdAt",
+               u.name        AS "senderName",
+               u.avatar_url  AS "senderAvatar"
              FROM messages m
              JOIN users u ON m.sender_id = u.id
              WHERE m.conversation_id = $1 ${beforeClause}
@@ -579,22 +643,54 @@ router.post("/conversations/:id/messages", async (req: AuthRequest, res: Respons
     if (!content?.trim()) { res.status(400).json({ message: "Message cannot be empty" }); return; }
 
     try {
+        // Block left users from sending
         const access = await pool.query(
-            `SELECT 1 FROM conversation_members WHERE conversation_id = $1 AND user_id = $2`,
+            `SELECT 1 FROM conversation_members
+             WHERE conversation_id = $1 AND user_id = $2 AND left_at IS NULL`,
             [convId, userId]
         );
         if (access.rows.length === 0) { res.status(403).json({ message: "Forbidden" }); return; }
 
         const msg = await pool.query(
             `INSERT INTO messages (conversation_id, sender_id, content)
-             VALUES ($1, $2, $3) RETURNING id, sender_id, content, created_at`,
+             VALUES ($1, $2, $3)
+             RETURNING id, sender_id, content, created_at`,
             [convId, userId, content.trim()]
         );
 
         await pool.query(
-            `UPDATE conversations SET last_message = $1, last_message_at = NOW() WHERE id = $2`,
+            `UPDATE conversations SET last_message = $1, last_message_at = NOW()
+             WHERE id = $2`,
             [content.trim().substring(0, 100), convId]
         );
+
+        const senderResult = await pool.query(
+            `SELECT name FROM users WHERE id = $1`, [userId]
+        );
+        const senderName = senderResult.rows[0]?.name ?? "Someone";
+
+        const convResult = await pool.query(
+            `SELECT is_group, group_name FROM conversations WHERE id = $1`, [convId]
+        );
+        const isGroup   = convResult.rows[0]?.is_group;
+        const groupName = convResult.rows[0]?.group_name;
+
+        const members = await pool.query(
+            `SELECT user_id FROM conversation_members
+             WHERE conversation_id = $1 AND user_id != $2 AND left_at IS NULL`,
+            [convId, userId]
+        );
+
+        for (const member of members.rows) {
+            await sendToUser(
+                member.user_id,
+                isGroup ? `${senderName} in ${groupName}` : senderName + " 💬",
+                content.trim().substring(0, 100),
+                "messages",
+                "new_message",
+                { conversationId: convId }
+            );
+        }
 
         res.status(201).json({ message: msg.rows[0] });
     } catch (err) {
@@ -622,19 +718,19 @@ router.get("/status/:userId", async (req: AuthRequest, res: Response): Promise<v
         res.status(500).json({ message: "Something went wrong." });
     }
 });
+
+// ── POST /api/chat/dog-tips ───────────────────────────────────────────────────
 router.post("/dog-tips", async (req: AuthRequest, res: Response): Promise<void> => {
     const { breed, lifeStage, category } = req.body;
- 
     if (!breed || !lifeStage || !category) {
         res.status(400).json({ error: "breed, lifeStage, and category are required" });
         return;
     }
- 
     if (!process.env.GEMINI_API_KEY) {
         res.status(500).json({ error: "GEMINI_API_KEY not configured" });
         return;
     }
- 
+
     const stageDesc = (s: string) => {
         switch (s.toLowerCase()) {
             case "puppy":  return "0–6 months old, learning everything for the first time";
@@ -644,7 +740,7 @@ router.post("/dog-tips", async (req: AuthRequest, res: Response): Promise<void> 
             default:       return s;
         }
     };
- 
+
     const catDesc = (c: string) => {
         switch (c) {
             case "Training":  return "behaviour, commands, socialisation, mental enrichment";
@@ -654,7 +750,7 @@ router.post("/dog-tips", async (req: AuthRequest, res: Response): Promise<void> 
             default:          return c;
         }
     };
- 
+
     const systemPrompt = `You are a professional veterinary-informed dog care writer.
 You write specific, practical, breed-aware care tips.
 Every tip must be directly relevant to a ${lifeStage} ${breed}.
@@ -666,80 +762,66 @@ Each object must have exactly these fields:
 - points: array of exactly 4 practical bullet points (array of strings)
 - calloutTitle: short callout heading (string)
 - calloutBody: one important highlighted fact or warning (string)`;
- 
+
     const userPrompt = `Generate exactly 5 ${category} tips for a ${lifeStage} ${breed}.
 Life stage: ${stageDesc(lifeStage)}.
 Category focus: ${catDesc(category)}.
 Return a JSON array of exactly 5 objects. Start your response with [ and end with ].`;
- 
+
     try {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
- 
         const body = {
-            system_instruction: {
-                parts: [{ text: systemPrompt }],
-            },
-            contents: [
-                { role: "user", parts: [{ text: userPrompt }] }
-            ],
+            system_instruction: { parts: [{ text: systemPrompt }] },
+            contents: [{ role: "user", parts: [{ text: userPrompt }] }],
             generationConfig: {
-                maxOutputTokens: 4000,  // enough for 5 detailed tips
+                maxOutputTokens: 4000,
                 temperature: 0.7,
-                responseMimeType: "application/json",  // force Gemini to return JSON
+                responseMimeType: "application/json",
             },
         };
- 
+
         const response = await fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(body),
         });
- 
+
         const responseText = await response.text();
- 
         if (!response.ok) {
             console.error("Gemini tips error:", response.status, responseText);
             res.status(500).json({ error: "Tips generation failed", detail: responseText });
             return;
         }
- 
+
         const data = JSON.parse(responseText) as any;
         const raw: string = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
- 
         if (!raw) {
             console.error("Gemini empty tips reply:", JSON.stringify(data));
             res.status(500).json({ error: "Empty response from Gemini" });
             return;
         }
- 
-        // Clean and validate JSON before sending
-        let json = raw.trim()
-            .replace(/```json/g, "")
-            .replace(/```/g, "")
-            .trim();
- 
+
+        let json = raw.trim().replace(/```json/g, "").replace(/```/g, "").trim();
         const start = json.indexOf("[");
         const end   = json.lastIndexOf("]");
         if (start === -1 || end === -1 || end <= start) {
-            console.error("Gemini tips: no valid JSON array found in:", raw);
             res.status(500).json({ error: "Invalid JSON from Gemini" });
             return;
         }
         json = json.substring(start, end + 1);
- 
-        // Validate it parses before sending
+
         const parsed = JSON.parse(json);
         if (!Array.isArray(parsed) || parsed.length === 0) {
             res.status(500).json({ error: "Empty tips array from Gemini" });
             return;
         }
- 
+
         console.log(`Generated ${parsed.length} tips for ${breed} ${lifeStage} ${category}`);
         res.json({ tips: parsed });
- 
     } catch (err: any) {
         console.error("Dog tips error:", err?.message);
         res.status(500).json({ error: "Tips generation failed" });
     }
 });
+
 export default router;
