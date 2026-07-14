@@ -595,16 +595,25 @@ router.get("/conversations/:id/messages", async (req: AuthRequest, res: Response
     const before = req.query.before as string;
 
     try {
-        const access = await pool.query(
-            `SELECT 1 FROM conversation_members
+        // Get member row — includes left_at so we can cap messages for left users
+        const memberResult = await pool.query(
+            `SELECT left_at FROM conversation_members
              WHERE conversation_id = $1 AND user_id = $2`,
             [convId, userId]
         );
-        if (access.rows.length === 0) { res.status(403).json({ message: "Forbidden" }); return; }
+        if (memberResult.rows.length === 0) {
+            res.status(403).json({ message: "Forbidden" });
+            return;
+        }
 
+        const leftAt = memberResult.rows[0].left_at as string | null;
+
+        // Build param list dynamically
         const params: any[] = [convId, limit];
-        const beforeClause  = before ? `AND m.created_at < $3` : "";
-        if (before) params.push(before);
+        const beforeClause  = before ? `AND m.created_at < $${params.push(before)}` : "";
+        // If the user left, only show messages up to and including their left_at timestamp.
+        // <= so the "X left the group" system pill is still visible.
+        const leftAtClause  = leftAt ? `AND m.created_at <= $${params.push(leftAt)}` : "";
 
         const result = await pool.query(
             `SELECT
@@ -619,17 +628,20 @@ router.get("/conversations/:id/messages", async (req: AuthRequest, res: Response
                u.avatar_url  AS "senderAvatar"
              FROM messages m
              JOIN users u ON m.sender_id = u.id
-             WHERE m.conversation_id = $1 ${beforeClause}
+             WHERE m.conversation_id = $1 ${beforeClause} ${leftAtClause}
              ORDER BY m.created_at DESC
              LIMIT $2`,
             params
         );
 
-        await pool.query(
-            `UPDATE messages SET read_at = NOW()
-             WHERE conversation_id = $1 AND sender_id != $2 AND read_at IS NULL`,
-            [convId, userId]
-        );
+        // Only mark messages as read if the user is still an active member
+        if (!leftAt) {
+            await pool.query(
+                `UPDATE messages SET read_at = NOW()
+                 WHERE conversation_id = $1 AND sender_id != $2 AND read_at IS NULL`,
+                [convId, userId]
+            );
+        }
 
         res.json({ messages: result.rows.reverse() });
     } catch (err) {
