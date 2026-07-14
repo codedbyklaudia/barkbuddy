@@ -91,22 +91,27 @@ router.get("/conversations", async (req: AuthRequest, res: Response): Promise<vo
                c.id,
                c.last_message,
                c.last_message_at,
-               c.is_group                                                    AS "isGroup",
-               c.group_name                                                  AS "groupName",
-               c.group_avatar                                                AS "groupAvatar",
-               cm.left_at                                                    AS "leftAt",
-               CASE WHEN c.is_group THEN NULL        ELSE u.id          END  AS "otherUserId",
-               CASE WHEN c.is_group THEN c.group_name ELSE u.name       END  AS "otherUserName",
+               c.is_group                                                     AS "isGroup",
+               c.group_name                                                   AS "groupName",
+               c.group_avatar                                                 AS "groupAvatar",
+               cm.left_at                                                     AS "leftAt",
+               CASE WHEN c.is_group THEN NULL         ELSE u.id          END  AS "otherUserId",
+               CASE WHEN c.is_group THEN c.group_name ELSE u.name        END  AS "otherUserName",
                CASE WHEN c.is_group THEN c.group_avatar ELSE u.avatar_url END AS "otherUserAvatar",
+               (SELECT u2.name
+                FROM messages m2
+                JOIN users u2 ON u2.id = m2.sender_id
+                WHERE m2.conversation_id = c.id
+                ORDER BY m2.created_at DESC LIMIT 1)                          AS "lastSenderName",
                (SELECT COUNT(*)
                 FROM messages m
                 WHERE m.conversation_id = c.id
                   AND m.sender_id != $1
-                  AND m.read_at IS NULL)                                     AS "unreadCount",
+                  AND m.read_at IS NULL)                                      AS "unreadCount",
                EXISTS(
                  SELECT 1 FROM conversation_archives ca
                  WHERE ca.conversation_id = c.id AND ca.user_id = $1
-               )                                                             AS "isArchived"
+               )                                                              AS "isArchived"
              FROM conversations c
              JOIN conversation_members cm ON cm.conversation_id = c.id AND cm.user_id = $1
              LEFT JOIN conversation_members cm2
@@ -292,15 +297,12 @@ router.delete("/conversations/:id/members/me", async (req: AuthRequest, res: Res
     const convId = req.params.id;
 
     try {
-        // Soft delete — keep row so conversation stays in list
         await pool.query(
-            `UPDATE conversation_members
-             SET left_at = NOW()
+            `UPDATE conversation_members SET left_at = NOW()
              WHERE conversation_id = $1 AND user_id = $2`,
             [convId, userId]
         );
 
-        // System message so others see who left
         const nameResult = await pool.query(
             `SELECT name FROM users WHERE id = $1`, [userId]
         );
@@ -356,7 +358,7 @@ router.delete("/conversations/:id/members/:userId", async (req: AuthRequest, res
     }
 });
 
-// ── PUT /api/chat/conversations/:id/group — update group name / avatar ────────
+// ── PUT /api/chat/conversations/:id/group ────────────────────────────────────
 router.put("/conversations/:id/group", async (req: AuthRequest, res: Response): Promise<void> => {
     const userId = req.user!.userId;
     const convId = req.params.id;
@@ -381,7 +383,10 @@ router.put("/conversations/:id/group", async (req: AuthRequest, res: Response): 
         if (sets.length === 0) { res.status(400).json({ message: "Nothing to update" }); return; }
 
         params.push(convId);
-        await pool.query(`UPDATE conversations SET ${sets.join(", ")} WHERE id = $${idx}`, params);
+        await pool.query(
+            `UPDATE conversations SET ${sets.join(", ")} WHERE id = $${idx}`,
+            params
+        );
         res.json({ ok: true });
     } catch (err) {
         console.error("PUT /chat/conversations/group error:", err);
@@ -389,7 +394,7 @@ router.put("/conversations/:id/group", async (req: AuthRequest, res: Response): 
     }
 });
 
-// ── POST /api/chat/conversations/:id/avatar — upload group avatar ─────────────
+// ── POST /api/chat/conversations/:id/avatar ───────────────────────────────────
 router.post(
     "/conversations/:id/avatar",
     upload.single("avatar"),
@@ -470,7 +475,7 @@ router.patch("/conversations/:id/unarchive", async (req: AuthRequest, res: Respo
     }
 });
 
-// ── DELETE /api/chat/conversations/:id — delete conversation ──────────────────
+// ── DELETE /api/chat/conversations/:id ───────────────────────────────────────
 router.delete("/conversations/:id", async (req: AuthRequest, res: Response): Promise<void> => {
     const userId = req.user!.userId;
     const convId = req.params.id;
@@ -486,7 +491,6 @@ router.delete("/conversations/:id", async (req: AuthRequest, res: Response): Pro
         if (conv.rows.length === 0) { res.status(404).json({ message: "Not found" }); return; }
 
         const { created_by, is_group } = conv.rows[0];
-
         if (is_group && created_by !== userId) {
             res.status(403).json({ message: "Only the group creator can delete it" }); return;
         }
@@ -540,16 +544,17 @@ router.post(
                 [convId, userId, imageUrl]
             );
 
-            await pool.query(
-                `UPDATE conversations SET last_message = '📷 Image', last_message_at = NOW()
-                 WHERE id = $1`,
-                [convId]
-            );
-
             const senderResult = await pool.query(
                 `SELECT name FROM users WHERE id = $1`, [userId]
             );
             const senderName = senderResult.rows[0]?.name ?? "Someone";
+
+            await pool.query(
+                `UPDATE conversations
+                 SET last_message = $1, last_message_at = NOW()
+                 WHERE id = $2`,
+                [`📷 Image`, convId]
+            );
 
             const convResult = await pool.query(
                 `SELECT is_group, group_name FROM conversations WHERE id = $1`, [convId]
@@ -567,7 +572,7 @@ router.post(
                 await sendToUser(
                     member.user_id,
                     isGroup ? `${senderName} in ${groupName}` : senderName + " 💬",
-                    "📷 Sent an image",
+                    "📷 Sent a photo",
                     "messages",
                     "new_message",
                     { conversationId: convId }
@@ -590,7 +595,6 @@ router.get("/conversations/:id/messages", async (req: AuthRequest, res: Response
     const before = req.query.before as string;
 
     try {
-        // Allow left users to read history
         const access = await pool.query(
             `SELECT 1 FROM conversation_members
              WHERE conversation_id = $1 AND user_id = $2`,
@@ -643,7 +647,6 @@ router.post("/conversations/:id/messages", async (req: AuthRequest, res: Respons
     if (!content?.trim()) { res.status(400).json({ message: "Message cannot be empty" }); return; }
 
     try {
-        // Block left users from sending
         const access = await pool.query(
             `SELECT 1 FROM conversation_members
              WHERE conversation_id = $1 AND user_id = $2 AND left_at IS NULL`,
@@ -796,7 +799,6 @@ Return a JSON array of exactly 5 objects. Start your response with [ and end wit
         const data = JSON.parse(responseText) as any;
         const raw: string = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
         if (!raw) {
-            console.error("Gemini empty tips reply:", JSON.stringify(data));
             res.status(500).json({ error: "Empty response from Gemini" });
             return;
         }
