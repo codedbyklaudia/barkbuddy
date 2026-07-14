@@ -182,7 +182,7 @@ io.on("connection", (socket: Socket) => {
     const userId = (socket as any).userId as string;
     socket.join(`user:${userId}`);
 
-    // Notify buddies this user is now online
+    // Notify buddies online
     (async () => {
         try {
             await pool.query(
@@ -204,15 +204,16 @@ io.on("connection", (socket: Socket) => {
     socket.on("send_message", async (data: { conversationId: string; content: string }) => {
         if (!data.content?.trim()) return;
         try {
-            const check = await pool.query(
-                `SELECT user1_id, user2_id FROM conversations
-                 WHERE id = $1 AND (user1_id = $2 OR user2_id = $2)`,
+            // Works for both 1:1 and group — blocks left users too
+            const access = await pool.query(
+                `SELECT 1 FROM conversation_members
+                 WHERE conversation_id = $1 AND user_id = $2 AND left_at IS NULL`,
                 [data.conversationId, userId]
             );
-            if (check.rows.length === 0) return;
-
-            const conv        = check.rows[0];
-            const otherUserId = conv.user1_id === userId ? conv.user2_id : conv.user1_id;
+            if (access.rows.length === 0) {
+                console.log(`[Socket] send_message blocked — user ${userId} not active member of ${data.conversationId}`);
+                return;
+            }
 
             const result = await pool.query(
                 `INSERT INTO messages (conversation_id, sender_id, content)
@@ -222,22 +223,18 @@ io.on("connection", (socket: Socket) => {
             );
 
             await pool.query(
-                `UPDATE conversations SET last_message = $1, last_message_at = NOW() WHERE id = $2`,
+                `UPDATE conversations SET last_message = $1, last_message_at = NOW()
+                 WHERE id = $2`,
                 [data.content.trim().substring(0, 100), data.conversationId]
             );
 
+            // Emit to everyone in conversation room
             io.to(`conv:${data.conversationId}`).emit("new_message", {
                 conversationId: data.conversationId,
                 message: result.rows[0],
             });
 
-            io.to(`user:${otherUserId}`).emit("conversation_updated", {
-                conversationId: data.conversationId,
-                lastMessage: data.content.trim(),
-            });
-
-            // Push notification to receiver
-            console.log(`📬 Socket message — notifying user: ${otherUserId}`);
+            // Get sender name + conversation info for notifications
             const senderResult = await pool.query(
                 `SELECT name FROM users WHERE id = $1`, [userId]
             );
@@ -250,16 +247,28 @@ io.on("connection", (socket: Socket) => {
             const isGroup   = convInfo.rows[0]?.is_group;
             const groupName = convInfo.rows[0]?.group_name;
 
-            await sendToUser(
-              otherUserId,
-              isGroup
-                  ? `New message in ${groupName}`
-                  : `New message from ${senderName}`,
-              data.content.trim().substring(0, 100),
-              "messages",
-              "new_message",
-              { conversationId: data.conversationId }
-          );
+            // Notify all other active members
+            const members = await pool.query(
+                `SELECT user_id FROM conversation_members
+                 WHERE conversation_id = $1 AND user_id != $2 AND left_at IS NULL`,
+                [data.conversationId, userId]
+            );
+
+            for (const member of members.rows) {
+                io.to(`user:${member.user_id}`).emit("conversation_updated", {
+                    conversationId: data.conversationId,
+                    lastMessage: data.content.trim(),
+                });
+
+                await sendToUser(
+                    member.user_id,
+                    isGroup ? `${senderName} in ${groupName}` : `${senderName} 💬`,
+                    data.content.trim().substring(0, 100),
+                    "messages",
+                    "new_message",
+                    { conversationId: data.conversationId }
+                );
+            }
 
         } catch (err) {
             console.error("[Socket] send_message error:", err);
